@@ -63,7 +63,11 @@ namespace Isis {
      *  
      * @see QSharedData 
      *  
-     * @author 2018-09-13 UA/OSIRIS-REx IPWG Team - Original Version
+     * @author 2018-09-13 UA/OSIRIS-REx IPWG Team - Original Version 
+     *  
+     * @internal 
+     *   @history 2018-09-26 UA/OSIRIS-REx IPWG Team - Corrected order of array 
+     *                          initializations in constructor
      */
       class BulletDskData : public QSharedData {
         public:
@@ -72,7 +76,7 @@ namespace Isis {
           typedef QScopedPointer<int, QScopedPointerArrayDeleter<int> >       BtIndexArray;
 
           BulletDskData() : QSharedData(), m_vertices(0), m_indexes(0),
-                            m_btMesh(0), m_btIndex(0), m_btVertex(0) { 
+                            m_btMesh(0), m_btVertex(0), m_btIndex(0), { 
               // allocate(0, 0);
           }
           ~BulletDskData() { }
