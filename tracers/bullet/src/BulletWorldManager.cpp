@@ -42,9 +42,8 @@ namespace Isis {
   /**
    * Default empty constructor.
    */
-  BulletWorldManager::BulletWorldManager() {
-    m_name = "Body-Fixed-Coordinate-System";
-    initWorld();  
+  BulletWorldManager::BulletWorldManager() :  m_data( new BulletWorldData() ) {
+
   }
 
 
@@ -53,9 +52,17 @@ namespace Isis {
    * 
    * @param name The name of the world.
    */
-  BulletWorldManager::BulletWorldManager(const QString &name) {
-    m_name = name;
-    initWorld();  
+  BulletWorldManager::BulletWorldManager(const QString &name) : 
+                                         m_data( new BulletWorldData(name) ) {
+
+  }
+
+  /**
+   * Construct a world from an existing world. This creates a shared instance. To 
+   * build a custom world you use the default constructor and add shapes. 
+   */
+  BulletWorldManager::BulletWorldManager(const BulletWorldManager &world) :
+                                         m_data(world.m_data) {
   }
 
 
@@ -71,7 +78,7 @@ namespace Isis {
    * @return @b QString The name of the Bullet collision world.
    */
   QString BulletWorldManager::name() const {
-    return ( m_name );
+    return ( m_data->m_name );
   }
 
 
@@ -81,7 +88,8 @@ namespace Isis {
    * @return @b int The number of collision objects in the world.
    */
   int BulletWorldManager::size() const{
-    return ( m_world->getCollisionObjectArray().size() );
+    btAssert( !m_data->m_world.isNull() );
+    return ( m_data->m_world->getCollisionObjectArray().size() );
   }
 
 
@@ -95,7 +103,8 @@ namespace Isis {
   BulletTargetShape *BulletWorldManager::getTarget(const int &index) const {
     btAssert( index < size() );
     btAssert( index >= 0 );
-    return ( (BulletTargetShape *) (m_world->getCollisionObjectArray().at(index)->getUserPointer()) );
+    btAssert( !m_data->m_world.isNull() );
+    return ( (BulletTargetShape *) (m_data->m_world->getCollisionObjectArray().at(index)->getUserPointer()) );
   }
 
 
@@ -107,9 +116,9 @@ namespace Isis {
    * @return @b BulletTargetShape* Pointer to shape if found. Otherwise null.
    */
   BulletTargetShape *BulletWorldManager::getTarget(const QString &name) const { 
-
+    btAssert( !m_data->m_world.isNull() );
     QString v_name = name.toLower();
-    const btCollisionObjectArray &btobjects = m_world->getCollisionObjectArray();
+    const btCollisionObjectArray &btobjects = m_data->m_world->getCollisionObjectArray();
     for ( int i = 0 ; i < btobjects.size() ; i++ ) {
       BulletTargetShape *target = (BulletTargetShape *)  (btobjects[i]->getUserPointer());
       if ( target->name().toLower() == v_name ) {
@@ -129,16 +138,29 @@ namespace Isis {
  */
   void BulletWorldManager::addTarget(BulletTargetShape *target) {
 
+
+    //  Ensure validity
+    btAssert( !m_data->m_mutex.isNull() );
+    btAssert( !m_data->m_world.isNull() );
+
     // May need to retain the target in a list for world destruction!!??
     // CollisionBody is expected to contain a UserPointer that links back to 
     // target (BulletTargetShape or some other type). 
-    m_world->addCollisionObject( target->body() );
-
+    QMutexLocker locker(m_data->m_mutex.data());
+    m_data->m_world->addCollisionObject( target->body() );
+    m_data->m_world->updateAabbs();
+    return;
   }
 
 
 /**
- * @brief Perform ray casting from a position and a look direction
+ * @brief Perform ray casting from a position and a look direction 
+ *  
+ * Its not clear if mutex locking is needed here for several reasons. Bullet is 
+ * thread safe but only if it was compiled with BULLET2_USE_THREAD_LOCKS=ON. The 
+ * default is to not turn on thread locking so invoke thread locking here. 
+ * However, if its built with threading, it is not clear if thread locking is
+ * needed and should to be tested. 
  * 
  * @author 2017-03-17 Kris Becker 
  * 
@@ -155,7 +177,13 @@ namespace Isis {
  */
   bool BulletWorldManager::raycast(const btVector3 &rayStart, const btVector3 &rayEnd, 
                                    btCollisionWorld::RayResultCallback &results ) const {
-    m_world->rayTest(rayStart, rayEnd, results);
+
+    //  Ensure validity
+    btAssert( !m_data->m_mutex.isNull() );
+    btAssert( !m_data->m_world.isNull() );
+
+    QMutexLocker locker(m_data->m_mutex.data());
+    m_data->m_world->rayTest(rayStart, rayEnd, results);
     return ( results.hasHit() );
   }
 
@@ -166,21 +194,10 @@ namespace Isis {
    * @return @b btCollisionWorld The Bullet collision world used for ray casting.
    */
   const btCollisionWorld &BulletWorldManager::getWorld() const {
-    return ( *m_world );
+    btAssert( !m_data->m_world.isNull() );
+    return ( *(m_data->m_world.data()) );
   }
 
 
-/**
- * Initialize the collision world for object ray tracing 
- * 
- * @author  2017-03-17 Kris Becker 
- */
-  void BulletWorldManager::initWorld() {
-    m_collision.reset( new btDefaultCollisionConfiguration() );
-    m_dispatcher.reset(new btCollisionDispatcher(m_collision.data()) );
-    m_broadphase.reset( new btDbvtBroadphase() );  // Could also be an AxisSweep
-    m_world.reset( new btCollisionWorld( m_dispatcher.data(), m_broadphase.data(), m_collision.data() ) );
-
-  }
 
 }  // namespace Isis
