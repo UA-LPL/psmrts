@@ -45,7 +45,10 @@ namespace Isis {
    * @author 2017-03-22 Kris Becker
    *
    * @internal
-   *   @history 2017-03-22 - Kris Becker - Original Version
+   *   @history 2017-03-22 Kris Becker - Original Version
+   *   @history 2019-03-12 Kris Becker - Added emissionAngle() and
+   *                          incidenceAngle() methods to compute angles using the
+   *                          ellipsoid normal.
  
    */
   class BulletShapeModel : public ShapeModel {
@@ -77,18 +80,21 @@ namespace Isis {
       virtual void clearSurfacePoint();
 
       // Calculate the default normal of the current intersection point
-      void calculateDefaultNormal();
+      virtual void calculateDefaultNormal();
 
-      bool isDEM() const;
+      virtual bool isDEM() const;
 
       // Calculate the surface normal of the current intersection point
       void setLocalNormalFromIntercept();
-      void calculateLocalNormal(QVector<double *> cornerNeighborPoints);
-      void calculateSurfaceNormal();
+      virtual void calculateLocalNormal(QVector<double *> cornerNeighborPoints);
+      virtual void calculateSurfaceNormal();
 
-      Distance localRadius(const Latitude &lat, const Longitude &lon);
+      virtual Distance localRadius(const Latitude &lat, const Longitude &lon);
 
       QVector<double> ellipsoidNormal();
+
+      virtual double emissionAngle(const std::vector<double> &sB);
+      virtual double incidenceAngle(const std::vector<double> &uB);
 
       const BulletWorldManager &model() const;
 

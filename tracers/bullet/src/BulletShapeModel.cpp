@@ -590,6 +590,89 @@ namespace Isis {
     return (norm);
   }
 
+  /**
+   * Computes and returns emission angle, in degrees, given the observer
+   * position. The surface normal vector is calculated using an ellipsoid, not
+   * the local normal of the actual target shape.
+   *
+   * Emission Angle: The angle between the surface normal vector at the
+   * intersection point and the vector from the intersection point to the
+   * observer (usually the spacecraft). The emission angle varies from 0 degrees
+   * when the observer is viewing the sub-spacecraft point (nadir viewing) to 90
+   * degrees when the intercept is tangent to the surface of the target body.
+   * Thus, higher values of emission angle indicate more oblique viewing of the
+   * target.
+   *
+   * @param observerBodyFixedPosition  Three dimensional position of the observer,
+   *                                   in the coordinate system of the target body.
+   *
+   * @return The emission angle, in decimal degrees.
+   *
+   */
+  double BulletShapeModel::emissionAngle(const std::vector<double> &observerBodyFixedPosition) {
+
+    // If there is already a normal save it, because it's probably the local normal
+    std::vector<double> localNormal;
+    bool hadNormal = hasNormal();
+    if ( hadNormal ) {
+      localNormal = normal();
+    }
+
+    // Calculate the ellipsoid surface normal
+    calculateDefaultNormal();
+
+    // Use ShapeModel to calculate the ellipsoid emission angle
+    double ellipsoidEmission = ShapeModel::emissionAngle(observerBodyFixedPosition);
+
+    // If there's a saved normal, reset it
+    if ( hadNormal ) {
+      setNormal(localNormal);
+    }
+
+    // Return the ellipsoid emission angle
+    return ellipsoidEmission;
+  }
+
+
+  /**
+   * Computes and returns incidence angle, in degrees, given the illuminator position.
+   * The surface normal vector is calculated using an ellipsoid, not the local
+   * normal of the actual target shape.
+   *
+   * Incidence Angle: The angle between the surface normal vector at the intersection
+   * point and the vector from the intersection point to the illuminator (usually the
+   * sun).
+   *
+   * Note: this method does not use the surface model.
+   *
+   * @param illuminatorBodyFixedPosition Three dimensional position for the illuminator,
+   *                                     in the body-fixed coordinate system.
+   *
+   * @return @b double Incidence angle, in degrees.
+   */
+  double BulletShapeModel::incidenceAngle(const std::vector<double> &illuminatorBodyFixedPosition) {
+
+    // If there is already a normal save it, because it's probably the local normal
+    std::vector<double> localNormal;
+    bool hadNormal = hasNormal();
+    if ( hadNormal ) {
+      localNormal = normal();
+    }
+
+    // Calculate the ellipsoid surface normal
+    calculateDefaultNormal();
+
+    // Use ShapeModel to calculate the ellipsoid incidence angle
+    double ellipsoidIncidence = ShapeModel::incidenceAngle(illuminatorBodyFixedPosition);
+
+    // If there's a saved normal, reset it
+    if ( hadNormal ) {
+      setNormal(localNormal);
+    }
+
+    // Return the ellipsoid incidence angle
+    return ellipsoidIncidence;
+  }
 
   /**
    * Returns a direct reference to the Bullet world that contains the target
