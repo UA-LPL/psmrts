@@ -53,6 +53,12 @@ namespace Isis {
    *   @history 2017-06-07 Kristin Berry - Added a using declaration so that the new 
    *                            intersectSurface methods in ShapeModel are accessible by
    *                            EllipsoidShape.
+   *   @history 2019-03-14 Kris Becker (UA) - Added emissionAngle() and
+   *                            incidenceAngle() methods to properly compute
+   *                            ellipsoid angles. (This actually addresses a bug
+   *                            in the ShapeModel implementations of these methods
+   *                            that uses a normal if one exists - problem is its
+   *                            likely the local normal and not the ellipsoid.)
    *   @todo Remove Model from name to match other derived classes
    */
   class NaifDskShape : public ShapeModel {
@@ -85,6 +91,9 @@ namespace Isis {
       Distance localRadius(const Latitude &lat, const Longitude &lon);
 
       QVector<double> ellipsoidNormal();
+
+      virtual double emissionAngle(const std::vector<double> &sB);
+      virtual double incidenceAngle(const std::vector<double> &uB);
 
       const NaifDskPlateModel &model() const;
       const Intercept *intercept() const;
