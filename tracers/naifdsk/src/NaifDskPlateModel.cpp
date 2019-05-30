@@ -129,6 +129,9 @@ namespace Isis {
    * this routine should not fail based upon this technique. 
    *  
    * @history 2013-12-05 Kris Becker Original Version 
+   * @history 2019-05-30 Kris Becker Added try/catch exceptions in  NAIF 
+   *                        intercept functions when ray tracing fails.
+   *
    * 
    * @param lat Latitide of the grid coordinate point
    * @param lon Longitude of the grid coordinate point
@@ -157,17 +160,18 @@ namespace Isis {
     QMutexLocker lock(&m_dsk->m_mutex);  // Thread locking for NAIF I/O
   #endif
   
-    llgrid_pl02( m_dsk->m_handle, &m_dsk->m_dladsc, npoints, 
-                 (ConstSpiceDouble (*)[2]) lonlat, 
-                 (SpiceDouble (*)[3]) &spoint[0], &plateId);
-    NaifStatus::CheckErrors();
-  
-  #if 0
-    if ( !isPlateIdValid(plateId) ) {
-      QString mess = "Plateid = " + QString::number(plateId) + " is invalid";
-      throw IException(IException::Programmer, mess, _FILEINFO_);
+    try {
+      llgrid_pl02( m_dsk->m_handle, &m_dsk->m_dladsc, npoints, 
+                   (ConstSpiceDouble (*)[2]) lonlat, 
+                   (SpiceDouble (*)[3]) &spoint[0], &plateId);
+      NaifStatus::CheckErrors();
     }
-  #endif
+    catch (IException &ie) {
+      return (0);
+    }
+  
+    // If the plate is not valid, return this status 
+    if ( !isPlateIdValid(plateId) ) return (0); 
   
     // Other error checks???
     return  ( makePoint(spoint) );
