@@ -45,6 +45,11 @@ namespace Isis {
  * @author 2017-03-17 Kris Becker 
  * @internal 
  *   @history 2017-03-17  Kris Becker  Original Version
+ *   @history 2019-05-30  Kris Becker Corrected lat/lon intercepts in regional,
+ *                           non-global, shape models. Rays eminating from the
+ *                           body origin were not properly being scaled beyond
+ *                           the surface for inverted ray target body intercepts.
+ *
  */
   class BulletTargetShape {
     public:

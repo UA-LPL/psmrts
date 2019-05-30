@@ -67,15 +67,30 @@ namespace Isis {
   /**
    * Calculate and save the maximum distance across the body. This is
    * calculated as the distance from the x, y, z minimum to x, y, z maximum.
+   *
+   * @history 2019-05-30 Kris Becker The bounding sphere was computed in funky
+   *                       way that did not work for regional shape models.
+   *                       Provide accurate determination of maximum radius/BB.
    */
   void BulletTargetShape::setMaximumDistance() {
     if (m_btbody) {
+#if 0     // Old  Stuff
       btVector3 center;
       m_btbody->getCollisionShape()->getBoundingSphere(center, m_maximumDistance);
       m_maximumDistance *= 2;
+#else
+       btTransform tr;
+       tr.setIdentity();
+       btVector3 aabbMin,aabbMax;
+   
+       m_btbody->getCollisionShape()->getAabb(tr,aabbMin,aabbMax);
+       m_maximumDistance = ( aabbMin.length() < aabbMax.length() ) ? aabbMax.length() : aabbMin.length();
+       m_maximumDistance *= 1.5;
+   
+#endif
     }
     else {
-      m_maximumDistance = 0;
+      m_maximumDistance = 1.0;
     }
   }
 
