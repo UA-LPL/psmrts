@@ -42,7 +42,8 @@ namespace Isis {
   /**
    * Default empty constructor.
    */
-  BulletWorldManager::BulletWorldManager() :  m_data( new BulletWorldData() ) {
+  BulletWorldManager::BulletWorldManager() :  m_data( new BulletWorldData() ),
+                                              m_raytraces(0) {
 
   }
 
@@ -53,7 +54,8 @@ namespace Isis {
    * @param name The name of the world.
    */
   BulletWorldManager::BulletWorldManager(const QString &name) : 
-                                         m_data( new BulletWorldData(name) ) {
+                                         m_data( new BulletWorldData(name) ),
+                                         m_raytraces(0) {
 
   }
 
@@ -62,7 +64,8 @@ namespace Isis {
    * build a custom world you use the default constructor and add shapes. 
    */
   BulletWorldManager::BulletWorldManager(const BulletWorldManager &world) :
-                                         m_data(world.m_data) {
+                                         m_data(world.m_data),
+                                         m_raytraces(0) {
   }
 
 
@@ -183,6 +186,7 @@ namespace Isis {
     btAssert( !m_data->m_world.isNull() );
 
     QMutexLocker locker(m_data->m_mutex.data());
+    m_raytraces++;
     m_data->m_world->rayTest(rayStart, rayEnd, results);
     return ( results.hasHit() );
   }
@@ -198,6 +202,9 @@ namespace Isis {
     return ( *(m_data->m_world.data()) );
   }
 
+  BigInt BulletWorldManager::ntraces() const {
+      return ( m_raytraces );
+  }
 
 
 }  // namespace Isis

@@ -71,6 +71,7 @@ namespace Isis {
  *   @history 2018-09-13 UA/OSIRIS-REx IPWG Team - Modified to use a more
  *                         efficient shared object data strategy; improved
  *                         implementation and documentation
+ *   @history 2020-01-18 Kris Becker Addd ray tracing counter
  */
   class BulletWorldManager {
     public:
@@ -90,6 +91,8 @@ namespace Isis {
                     btCollisionWorld::RayResultCallback &hits ) const;
 
       const btCollisionWorld &getWorld() const;
+
+      BigInt ntraces() const;
 
 
     private:
@@ -150,6 +153,7 @@ namespace Isis {
       };
 
       QExplicitlySharedDataPointer<BulletWorldData> m_data; //!< Shared data to Bullet world
+      mutable BigInt m_raytraces; //!< Ray trace counter
 
   };
 
