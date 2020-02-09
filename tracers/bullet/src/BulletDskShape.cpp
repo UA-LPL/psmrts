@@ -39,6 +39,7 @@
 #include "IsisBullet.h"
 #include "IString.h"
 #include "Pvl.h"
+
 #include "NaifDskPlateModel.h"
 #include "NaifStatus.h"
 
@@ -49,23 +50,40 @@ namespace Isis {
   /**
    * Default empty constructor.
    */
-  BulletDskShape::BulletDskShape() :  m_dskfile(), m_mesh( new BulletDskData() ) { }
+  BulletDskShape::BulletDskShape() :  BulletTargetShape(), 
+                                      m_meshfile(), 
+                                      m_mesh( new BulletMeshData() ) { }
 
+  BulletDskShape::BulletDskShape(const Pvl *conf) : BulletTargetShape(conf), 
+                                                    m_meshfile(), 
+                                                    m_mesh( new BulletMeshData() ) { }
 
   /**
    * Construct a BulletDskShape from a DSK file.
    * 
    * @param dskfile The DSK file to load into a Bullet target shape.
    */
-  BulletDskShape::BulletDskShape(const QString &dskfile) : m_dskfile(dskfile), 
-                                                           m_mesh(new BulletDskData() )  {
-    loadFromDsk(dskfile);
-    setMaximumDistance();
+  BulletDskShape::BulletDskShape(const QString &dskfile, const int nparts,
+                                 const bool debug) : BulletTargetShape(), 
+                                 m_meshfile(dskfile), 
+                                 m_mesh( new BulletMeshData() ) {
+    Pvl conf = makeDefaultConfig(nparts, debug);
+    setDebug(debug);
+    loadMeshFile(dskfile, &conf);
+    setName(dskfile);
+  }
+
+  BulletDskShape::BulletDskShape(const QString &dskfile, const Pvl *conf) : 
+                                 BulletTargetShape(conf), 
+                                 m_meshfile(dskfile), 
+                                 m_mesh( new BulletMeshData() ) {
+    loadMeshFile(dskfile, conf);
+    setName(dskfile);
   }
 
 
   /**
-   * Desctructor
+   * Destructor
    */
   BulletDskShape::~BulletDskShape() { 
 
@@ -77,7 +95,7 @@ namespace Isis {
  * @return QString Name of input file
  */
   QString BulletDskShape::filename() const {
-      return (m_dskfile);
+      return (m_meshfile);
   }
 
 
@@ -87,12 +105,7 @@ namespace Isis {
    * @return @b int The number of triangles. If nothing has been loaded, then 0 is returned.
    */
   int BulletDskShape::getNumTriangles() const {
-    int nTriangles(0);
-    if ( !m_mesh->m_btMesh.isNull() ) {
-      nTriangles =  m_mesh->m_btMesh->getIndexedMeshArray()[0].m_numTriangles;
-    }
-
-    return ( nTriangles );
+    return ( m_mesh->m_btMesh.ntriangles() );
   }
 
 
@@ -102,12 +115,7 @@ namespace Isis {
    * @return @b int The number of verticies. If nothing has been loaded, then 0 is returned.
    */
   int BulletDskShape::getNumVertices() const {
-    int nVerticies(0);
-    if ( !m_mesh->m_btMesh.isNull() ) {
-      return ( m_mesh->m_btMesh->getIndexedMeshArray()[0].m_numVertices );
-    }
-
-    return ( nVerticies );
+    return ( m_mesh->m_btMesh.nvertices() );
   }
 
 
@@ -124,10 +132,8 @@ namespace Isis {
   * @return @b btVector3 The local normal for the triangle.
   */
   btVector3 BulletDskShape::getNormal(const int index) const {
-    btMatrix3x3 triangle = getTriangle(index);
-    btVector3 edge1 = triangle.getRow(1) - triangle.getRow(0);
-    btVector3 edge2 = triangle.getRow(2) - triangle.getRow(0);
-    return ( edge1.cross( edge2 ) );
+    btVector3 normal = m_mesh->m_btMesh.getNormal(index);
+    return ( normal );
   }
 
 
@@ -141,24 +147,32 @@ namespace Isis {
    *                        around the surface normal of the triangle.
    */
   btMatrix3x3 BulletDskShape::getTriangle(const int index) const {
-    btAssert ( index >= 0 );
-    btAssert ( index < getNumTriangles() );
-
-     // Set up pointers to triangle indexes
-    const btIndexedMesh &v_mesh = m_mesh->m_btMesh->getIndexedMeshArray()[0];
-
-    const int *t_index = static_cast<int32_t *> ((void *) v_mesh.m_triangleIndexBase);
-    int p_index = 3 * index;
-    int vndx0 = t_index[p_index];
-    int vndx1 = t_index[p_index+1];
-    int vndx2 = t_index[p_index+2];
-
-    const btScalar *t_vertex = static_cast<const btScalar *> ((void *) v_mesh.m_vertexBase);
-
-    btMatrix3x3 triangle(t_vertex[vndx0+0], t_vertex[vndx0+1], t_vertex[vndx0+2], 
-                         t_vertex[vndx1+0], t_vertex[vndx1+1], t_vertex[vndx1+2],
-                         t_vertex[vndx2+0], t_vertex[vndx2+1], t_vertex[vndx2+2]);
+    btMatrix3x3 triangle = m_mesh->m_btMesh.getTriangle(index);
     return ( triangle );
+  }
+
+/** 
+ * @brief Return the Bullet mesh mapper object 
+ *  
+ * @return const BulletMeshMapper& Returns a const reference to the mesh map
+ */
+  const BulletMeshMapper &BulletDskShape::getMeshMap() const {
+      return ( m_mesh->m_btMesh );
+  }
+
+
+
+/**
+ * @brief Load the contents of a NAIF DSK and create a Bullet triangle mesh  
+ *  
+ * This method may be suitable for most derived classes 
+ *  
+ * @param dskfile The DSK file to load.
+ */
+  void BulletDskShape::loadMeshFile(const QString &meshfile, const int nparts,
+                                    const bool debug) { 
+    Pvl conf = makeDefaultConfig(nparts, debug);
+    loadMeshFile(meshfile, &conf);
   }
 
 
@@ -169,97 +183,191 @@ namespace Isis {
  * 
  * @param dskfile The DSK file to load.
  */
-  void BulletDskShape::loadFromDsk(const QString &dskfile) {
+  void BulletDskShape::loadMeshFile(const QString &meshfile, const Pvl *conf) {
+
+
+    if ( isDebug() ) {
+      std::cout << "\nLoading DSK shape from " << meshfile << "\n";
+    }
+
+    // Process configuration parameters 
+    PvlFlatMap parms(m_parameters);
+    if ( conf)  parms.merge(PvlFlatMap(*conf));
+    int nparts =  toInt(parms.get("BulletParts", "0"));
+      
+    // Set the filename...
+    m_meshfile = meshfile;
 
     /** NAIF DSK parameter setup   */
     SpiceInt      v_handle;   //!< The DAS file handle of the DSK file.
-    SpiceDLADescr v_dladsc;   /**< The DLA descriptor of the DSK segment representing the 
-                                   target surface.*/
-    SpiceDSKDescr v_dskdsc;   //!< The DSK descriptor.
-    SpiceInt      v_plates;   //!< Number of Plates in the model.
-    SpiceInt      v_vertices; //!< Number of vertices defining the plate.
 
-    // Sanity check
-    FileName dskFile(dskfile);
+    // Sanity check if file exists
+    FileName dskFile(meshfile);
     if ( !dskFile.fileExists() ) {
-      QString mess = "NAIF DSK file [" + dskfile + "] does not exist.";
+      QString mess = "NAIF DSK file [" + meshfile + "] does not exist.";
       throw IException(IException::User, mess, _FILEINFO_);
     }
+
+    // Start load timing
+    QTime runTime = QTime::currentTime();
+    runTime.start();
   
     // Open the NAIF Digital Shape Kernel (DSK)
     dasopr_c( dskFile.expanded().toLatin1().data(), &v_handle );
     NaifStatus::CheckErrors();
-  
-    // Search to the first DLA segment
-    SpiceBoolean found;
-    dlabfs_c( v_handle, &v_dladsc, &found );
+
+    SpiceBoolean found(1);
+    SpiceDLADescr v_dladsc;  
+
+    // Find first segment
+    dlabfs_c(v_handle, &v_dladsc, &found);
     NaifStatus::CheckErrors();
     if ( !found ) {
-      QString mess = "No segments found in DSK file " + dskfile ; 
+      QString mess = "No segments found in DSK file " + meshfile ; 
       throw IException(IException::User, mess, _FILEINFO_);
     }
 
-    dskgd_c( v_handle, &v_dladsc, &v_dskdsc );
-    NaifStatus::CheckErrors();
+    // Parameters for DSK states
+    SpiceDSKDescr v_dskdsc; 
+    QVector<SpiceDLADescr> v_segments;
 
-    // Get size/counts
-    dskz02_c( v_handle, &v_dladsc, &v_vertices, &v_plates );
-    NaifStatus::CheckErrors();
+    SpiceInt      v_plates (0);   //!< Number of Plates in the model.
+    SpiceInt      v_vertices(0); //!< Number of vertices defining the plate.
+
+    while ( found ) {
+
+        // Save the this segment and evaluate contents
+        v_segments.push_back(v_dladsc);
+
+        dskgd_c( v_handle, &v_dladsc, &v_dskdsc );
+        NaifStatus::CheckErrors();
+
+        // Get size/counts
+        SpiceInt nvertices, nplates;
+        dskz02_c( v_handle, &v_dladsc, &nvertices, &nplates );
+        NaifStatus::CheckErrors();
+       
+        v_vertices += nvertices;
+        v_plates   += nplates;
+
+        // Check for next one...
+        dlafns_c(v_handle, &v_segments.back(), &v_dladsc, &found);
+        NaifStatus::CheckErrors();
+    }
 
     // Now allocate a new indexed mesh to contain all the DSK data
     m_mesh->allocate(v_vertices, v_plates);
     btAssert( !m_mesh->m_btVertex.isNull() );
     btAssert( !m_mesh->m_btIndex.isNull() );
+
     double *vVertexBasePtr = m_mesh->m_btVertex.data();
     int    *vIndexBasePtr = m_mesh->m_btIndex.data();
 
-    SpiceInt n;
-    (void) dskv02_c(v_handle, &v_dladsc, 1, v_vertices, &n, 
-                    ( SpiceDouble(*)[3] ) (vVertexBasePtr));
-    NaifStatus::CheckErrors();
+    // Now read in all mesh and reset the indexes so that 
+    // they are sequential
+    SpiceInt indexOffset = -1;
+    for (int s = 0 ; s < v_segments.size() ; s++) {
+        
+       // Get size/counts...again
+        SpiceInt nvertices, nplates;
+        dskz02_c( v_handle, &v_segments[s], &nvertices, &nplates );
+        NaifStatus::CheckErrors();
 
-    // Read the indexes from the DSK
-    (void) dskp02_c(v_handle, &v_dladsc, 1, v_plates, &n, 
-                    ( SpiceInt(*)[3] ) (vIndexBasePtr));
-    NaifStatus::CheckErrors();
+        SpiceInt n;
+        (void) dskv02_c(v_handle, &v_dladsc, 1, nvertices, &n, 
+                        ( SpiceDouble(*)[3] ) (vVertexBasePtr));
+        NaifStatus::CheckErrors();
+
+        // Read the indexes from the DSK
+        (void) dskp02_c(v_handle, &v_dladsc, 1, nplates, &n, 
+                        ( SpiceInt(*)[3] ) (vIndexBasePtr));
+        NaifStatus::CheckErrors();
+
+        // Got to reset the vertex indexes to 0-based
+        int nverts = nplates * 3;
+        for (int i = 0 ; i < nverts ; i++) {
+          vIndexBasePtr[i] += indexOffset;
+          btAssert ( vIndexBasePtr[i] >= 0 );
+          btAssert ( vIndexBasePtr[i] < v_vertices );
+        }
+
+        // Update offset for next segment
+        indexOffset += nvertices;
+        vVertexBasePtr += (nvertices * 3);
+        vIndexBasePtr  += (nplates * 3);
+    }
 
     // Ok, close the DSK...
     dascls_c(v_handle);
 
-    // Set mesh parameters appropriately
-    btIndexedMesh v_mesh;
-    v_mesh.m_vertexType = PHY_DOUBLE;
-
-    // Set and allocate data for triangle indexes
-    v_mesh.m_numTriangles = v_plates;
-    v_mesh.m_triangleIndexBase = reinterpret_cast<unsigned char *> (vIndexBasePtr);
-    v_mesh.m_triangleIndexStride = (sizeof(int) * 3);
-
-    // Set and allocate vertex data
-    v_mesh.m_numVertices = v_vertices;
-    v_mesh.m_vertexBase = reinterpret_cast<unsigned char *> (vVertexBasePtr);
-    v_mesh.m_vertexStride = (sizeof(double) * 3);
-
-    // Got to reset the vertex indexes to 0-based
-    int nverts = v_plates * 3;
-    for (int i = 0 ; i < nverts ; i++) {
-      vIndexBasePtr[i] -= 1;
-      btAssert ( vIndexBasePtr[i] >= 0 );
-      btAssert ( vIndexBasePtr[i] < v_vertices );
+    double ttime = runTime.elapsed() / 1000.0;
+    if ( isDebug() ) {
+        std::cout << "Load/ProcessTime: " << ttime << "\n";
+    }
+    
+    // Now map the mesh using requested parts. This approach treats each 
+    // segment equally and assumes the segments/meshes are unique parts of
+    // the target body. If this is not the desired behavior, it is 
+    // recommended to separate the segments into separate files or
+    // reimplement this load method.
+    m_mesh->m_btMesh.addArray(v_vertices, m_mesh->m_btVertex.data(),  
+                              v_plates, m_mesh->m_btIndex.data(), nparts);
+    if ( isDebug() ) {
+        std::cout << "\nBulletParts:       " << nparts << "\n";
+        std::cout << "MaxParts:          " << m_mesh->m_btMesh.MaxPartsPerBody() << "\n";
+        std::cout << "MaxTrangles:       " << m_mesh->m_btMesh.MaxTrianglesPerPart() << "\n";
+        std::cout << "MaxTriangles/Part: " << m_mesh->m_btMesh.MaxTrianglesPerPart() << "\n";
+        std::cout << "PartsUsed:         " << m_mesh->m_btMesh.nparts() << "\n";
+        std::cout << "Vertices:          " << m_mesh->m_btMesh.nvertices() << "\n";
+        std::cout << "Indexes/Facets:    " << m_mesh->m_btMesh.ntriangles() << "\n";
     }
 
-    m_mesh->m_btMesh->addIndexedMesh(v_mesh, PHY_INTEGER);
+
+    // Create the target (collision) body mesh and add to Bullet world.
     bool useQuantizedAabbCompression = true;
-    // bool useQuantizedAabbCompression = false;
-    btBvhTriangleMeshShape *v_triShape = new btBvhTriangleMeshShape(m_mesh->m_btMesh.data(), 
-                                                                    useQuantizedAabbCompression);
-    v_triShape->setUserPointer(this);
-    btCollisionObject *vbody = new btCollisionObject();
-    vbody->setCollisionShape(v_triShape);
-    setTargetBody(vbody);
+    addMeshToWorld(m_mesh->m_btMesh, useQuantizedAabbCompression);
+
+    if ( isDebug() ) {
+        std::cout << "TotalTime: " << (runTime.elapsed() / 1000.0) << "\n\n";
+    }
 
     return;
 
+  }
+
+
+/**
+ * @brief Add the mesh to the Bullet world
+ * 
+ * @param meshmap        Mapped mesh to add
+ * @param useCompression Use BVH compression (recommended!)
+ */
+  void BulletDskShape::addMeshToWorld(BulletMeshMapper &meshmap, 
+                                      const bool useCompression) {
+
+      if ( isDebug() ) {
+        std::cout << "\nInit/Adding Mesh to World - Compression: " << useCompression << "\n";
+      }
+
+      // Start load timing
+      QTime runTime = QTime::currentTime();
+      runTime.start();
+
+      btBvhTriangleMeshShape *v_triShape = new btBvhTriangleMeshShape(&meshmap.mesh(), 
+                                                                      useCompression);
+      v_triShape->setUserPointer(this);
+      btCollisionObject *vbody = new btCollisionObject();
+      vbody->setCollisionShape(v_triShape);
+      setTargetBody(vbody);
+
+      double ttime = runTime.elapsed() / 1000.0;
+      if ( isDebug() ) {
+        std::cout << "BulletMeshInitTime: " << ttime << "\n\n";
+      }
+
+      // Determine maximum distance
+      setMaximumDistance();
+      return;
   }
 
 }  // namespace Isis
