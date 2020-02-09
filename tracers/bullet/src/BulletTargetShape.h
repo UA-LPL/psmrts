@@ -29,6 +29,7 @@
 
 #include "IsisBullet.h"
 #include "BulletClosestRayCallback.h"
+#include "PvlFlatMap.h"
 
 namespace Isis {
 
@@ -49,20 +50,34 @@ namespace Isis {
  *                           non-global, shape models. Rays eminating from the
  *                           body origin were not properly being scaled beyond
  *                           the surface for inverted ray target body intercepts.
+ *   @history 2019-10-03 Kris Becker Added scale parameter to
+ *                           setMaximumDistance(). This is intended to provide a
+ *                           safe radius for determination of intersections from
+ *                           virtual positions above the target body (e.g., for
+ *                           intersections of lat/lon coordinates). Added
+ *                           support for OBJ and Bullet native formats. Added
+ *                           new generic loader and constructor with a
+ *                           PvlFlatMap parameter.
+ * 
  *
  */
   class BulletTargetShape {
     public:
       BulletTargetShape();
+      BulletTargetShape(const Pvl *conf);
+      BulletTargetShape(const PvlFlatMap &params);
       BulletTargetShape(btCollisionObject *btbody, const QString &name = "");
       virtual ~BulletTargetShape();
 
       QString name() const;
 
       // Special constructors
+      static BulletTargetShape *load(const QString &dem, const PvlFlatMap &params);
       static BulletTargetShape *load(const QString &dem, const Pvl *conf = 0);
+      static BulletTargetShape *loadOBJ(const QString &dem, const Pvl *conf = 0);
       static BulletTargetShape *loadPC(const QString &dem, const Pvl *conf = 0);
       static BulletTargetShape *loadDSK(const QString &dem, const Pvl *conf = 0);
+      static BulletTargetShape *loadBullet(const QString &dem, const Pvl *conf = 0);
       static BulletTargetShape *loadCube(const QString &dem, const Pvl *conf = 0);
 
       void writeBullet(const QString &btName) const;
@@ -70,9 +85,20 @@ namespace Isis {
 
       btScalar maximumDistance() const;
 
+      virtual void reportModelParameters(PvlContainer &parameters) const;
+
+      void setDebug( const bool debug);
+      bool isDebug() const;
+
     protected:
+      PvlFlatMap  m_parameters;  /**! Shape initialization parameters. 
+                                      Deriving classes can modify at will */
+
+      void setName(const QString &name);
+      Pvl makeDefaultConfig(const int nparts = 0, 
+                            const bool debug = false) const;
       void setTargetBody(btCollisionObject *body);
-      void setMaximumDistance();
+      void setMaximumDistance(const double scale = 1.5);
 
     private:
       QString                           m_name; /**! The name of the body */
@@ -81,6 +107,10 @@ namespace Isis {
       btScalar                          m_maximumDistance; /**! The distance from the minimum
                                                                 x, y, z values to the maximum
                                                                 x, y, z values. */
+
+      bool                              m_debug; /**! Debugging status */
+
+      void init(const PvlFlatMap &conf);
 
   };
 

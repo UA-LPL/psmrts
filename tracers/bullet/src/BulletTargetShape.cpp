@@ -24,11 +24,14 @@
 
 #include "BulletTargetShape.h"
 #include "BulletDskShape.h"
+#include "BulletObjShape.h"
 
 #include <iostream>
 #include <iomanip>
 #include <numeric>
 #include <sstream>
+
+#include <QTime>
 
 #include "FileName.h"
 #include "IException.h"
@@ -42,9 +45,32 @@ namespace Isis {
    * 
    * The filename defaults to an empty string and the maximum distance defaults to 0.
    */
-  BulletTargetShape::BulletTargetShape()
-    : m_maximumDistance(0) { }
+  BulletTargetShape::BulletTargetShape() : m_parameters(), 
+                                           m_name(""), m_btbody(), 
+                                           m_maximumDistance(0), 
+                                           m_debug(false) { }
 
+
+
+  BulletTargetShape::BulletTargetShape(const Pvl *conf) : 
+                                       m_parameters(), 
+                                       m_name(""), m_btbody(), 
+                                       m_maximumDistance(0), 
+                                       m_debug(false) { 
+
+    if  ( conf ) {
+      init( PvlFlatMap(*conf) );
+    }
+
+  }
+
+  BulletTargetShape::BulletTargetShape(const PvlFlatMap &params) :
+                                       m_parameters(),
+                                       m_name(""), m_btbody(), 
+                                       m_maximumDistance(0), 
+                                       m_debug(false) { 
+      init(params);
+  }
 
   /** 
    * Constructs a BulletTargetShape for a given a Bullet object
@@ -53,7 +79,8 @@ namespace Isis {
    * @param name The name of the object.
    */
   BulletTargetShape::BulletTargetShape(btCollisionObject *btbody, const QString &name) :
-                                       m_name(name), m_btbody(btbody) {
+                                       m_parameters(), m_name(name), m_btbody(btbody),
+                                       m_maximumDistance(0), m_debug(false) {
     setMaximumDistance();
   }
 
@@ -72,7 +99,7 @@ namespace Isis {
    *                       way that did not work for regional shape models.
    *                       Provide accurate determination of maximum radius/BB.
    */
-  void BulletTargetShape::setMaximumDistance() {
+  void BulletTargetShape::setMaximumDistance(const double scale) {
     if (m_btbody) {
 #if 0     // Old  Stuff
       btVector3 center;
@@ -85,12 +112,12 @@ namespace Isis {
    
        m_btbody->getCollisionShape()->getAabb(tr,aabbMin,aabbMax);
        m_maximumDistance = ( aabbMin.length() < aabbMax.length() ) ? aabbMax.length() : aabbMin.length();
-       m_maximumDistance *= 1.5;
+       m_maximumDistance *= scale;
    
 #endif
     }
     else {
-      m_maximumDistance = 1.0;
+      m_maximumDistance = 1.0 * scale;
     }
   }
 
@@ -102,6 +129,22 @@ namespace Isis {
    */
   QString BulletTargetShape::name() const {
     return ( m_name );
+  }
+
+  /**
+   * Load a DEM file into the target shape.
+   * 
+   * @param dem The DEM file to load.
+   * @param conf PVL config for the DEM load. Currently unused.
+   * 
+   * @return @b BulletTargetShape A target shape containing the DEM
+   */
+  BulletTargetShape *BulletTargetShape::load(const QString &dem, const PvlFlatMap &pvlmap) {
+     Pvl pvl;
+     foreach ( const PvlKeyword &key, pvlmap) {
+         pvl.addKeyword( key );
+     }
+     return ( load(dem, &pvl) );
   }
 
 
@@ -118,9 +161,11 @@ namespace Isis {
     
     QString ext = v_file.extension().toLower();
 
-    if ( "bds" == ext) return ( loadDSK(dem) );
-    if ( "cub" == ext) return ( loadCube(dem) );
-    return ( loadPC(dem) );
+    if ( "bds" == ext)    return ( loadDSK(dem, conf) );
+    if ( "obj" == ext)    return ( loadOBJ(dem, conf) );
+    if ( "bullet" == ext) return ( loadBullet(dem, conf) );
+    if ( "cub" == ext)    return ( loadCube(dem, conf) );
+    return ( loadPC(dem, conf) );
   }
 
 
@@ -142,13 +187,27 @@ namespace Isis {
    * Load a DSK in Bullet
    * 
    * @param dem The DEM file to load.
-   * @param conf PVL config for the DEM load. Currently unused.
+   * @param conf PVL config for the DEM load.
    * 
    * @return @b BulletTargetShape A target shape containing the DEM
    */
   BulletTargetShape *BulletTargetShape::loadDSK(const QString &dem, const Pvl *conf) {
-    return ( new BulletDskShape(dem) );
+    return ( new BulletDskShape(dem, conf) );
   }
+
+
+  /**
+   * Load a OBJ file in Bullet
+   * 
+   * @param dem The DEM file to load.
+   * @param conf PVL config for the DEM load.
+   * 
+   * @return @b BulletTargetShape A target shape containing the DEM
+   */
+  BulletTargetShape *BulletTargetShape::loadOBJ(const QString &dem, const Pvl *conf) {
+    return ( new BulletObjShape(dem, conf) );
+  }
+
 
   /** Load an ISIS cube type DEM in Bullet.
    * 
@@ -163,15 +222,46 @@ namespace Isis {
     return (0);
   }
 
+  BulletTargetShape *BulletTargetShape::loadBullet(const QString &dem, const Pvl *conf) {
+      return (0);
+  }
+
   /** 
    * Write a serialized version of the target shape to a Bullet file
    * 
    * @param btName The name of the file to write the target shape to.
-   * 
-   * @note Currently not implemented
    */
   void BulletTargetShape::writeBullet(const QString &btName) const {
 
+    if ( isDebug() ) {
+       std::cout << "\nWriting Bullet Format shape to " << btName << "\n";
+    }
+
+    // Start load timing
+    QTime runTime = QTime::currentTime();
+    runTime.start();
+
+    btCollisionObject *object = body();
+
+    int maxSerializeBufferSize = 1024*1024*5;
+    btDefaultSerializer* serializer = new btDefaultSerializer(maxSerializeBufferSize);
+    serializer->startSerialization();
+
+    object->serializeSingleObject(serializer);
+    serializer->finishSerialization();
+
+    FileName btfile(btName);
+    std::string fname = btfile.expanded().toStdString();
+    FILE* f2 = fopen(fname.c_str(),"wb");
+    fwrite(serializer->getBufferPointer(),serializer->getCurrentBufferSize(),1,f2);
+    fclose(f2);
+
+    if ( isDebug() ) {
+        double ttime = runTime.elapsed() / 1000.0;
+        std::cout << "Done. Elasped Time: " << ttime << "\n";
+    }
+    
+    return;
   }
 
   /** 
@@ -183,6 +273,51 @@ namespace Isis {
     return ( m_btbody.data() );
   }
 
+  /**
+   * @brief Make default configuration file with sub parts specificiation option 
+   * 
+   * @param nparts  Number of Bullet subparts to use in mesh
+   * 
+   * @return Pvl  Bullet configuration file
+   */
+  Pvl BulletTargetShape::makeDefaultConfig(const int nparts, const bool debug) const {
+      Pvl conf;
+      conf.addKeyword(PvlKeyword("BulletParts", toString(nparts)));
+      conf.addKeyword(PvlKeyword("BulletDebug", toString(debug)));
+      return ( conf );
+  }
+
+  void BulletTargetShape::reportModelParameters(PvlContainer &parameters) const {
+    // Do this here, otherwise default behavior will ensue from here on out
+    parameters.addKeyword(PvlKeyword("RayTraceEngine", "Bullet"), PvlContainer::Replace);
+
+    if ( m_parameters.exists("OnError") ) {
+      parameters.addKeyword( m_parameters.keyword("OnError"), PvlContainer::Replace );
+    }
+
+    if ( m_parameters.exists("Tolerance") ) {
+      parameters.addKeyword( m_parameters.keyword("Tolerance"), PvlContainer::Replace );
+    }
+
+  }
+
+
+  /** Set the internal dubugging state   */
+  void BulletTargetShape::setDebug( const bool debug) {
+      m_debug = debug;
+      return;
+  }
+
+
+  /** Return the internal debugging state  */
+  bool BulletTargetShape::isDebug() const {
+      return ( m_debug );
+  }
+
+  /** Set name of shape   */
+  void BulletTargetShape::setName(const QString &name) {
+      m_name = name;
+  }
 
   /** Set the Bullet shape object to this object instance   */
   void BulletTargetShape::setTargetBody(btCollisionObject *body) {
@@ -194,6 +329,18 @@ namespace Isis {
 
   btScalar BulletTargetShape::maximumDistance() const {
     return m_maximumDistance;
+  }
+
+  void BulletTargetShape::init(const PvlFlatMap &conf) {
+     if ( conf.exists("RayTraceEngine") ) m_parameters.add(conf.keyword("RayTraceEngine"));
+     if ( conf.exists("OnError") )        m_parameters.add(conf.keyword("OnError"));
+     if ( conf.exists("Tolerance") )      m_parameters.add(conf.keyword("Tolerance"));
+     if ( conf.exists("BulletParts") )    m_parameters.add(conf.keyword("BulletParts"));
+
+     // Check to see if debugging is desired
+     setDebug(toBool(conf.get("BulletDebug", "false")));
+
+     return;
   }
 
 }  // namespace Isis
