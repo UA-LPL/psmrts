@@ -49,6 +49,9 @@ namespace Isis {
    *   @history 2019-03-12 Kris Becker - Added emissionAngle() and
    *                          incidenceAngle() methods to compute angles using the
    *                          ellipsoid normal.
+   *   @history 2020-01-09 Kris Becker - Added debug reporting
+   *  
+
  
    */
   class BulletShapeModel : public ShapeModel {

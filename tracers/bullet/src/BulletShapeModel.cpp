@@ -156,7 +156,12 @@ namespace Isis {
   /** 
    * Destructor. Cleanup is handled by Bullet routines and QPointers.
    */
-  BulletShapeModel::~BulletShapeModel() { }
+  BulletShapeModel::~BulletShapeModel() { 
+      if ( model().getTarget()->isDebug() ) {
+        std::cout << "\nBulletModel:    " << model().getTarget()->name()<< "\n";
+        std::cout << "TotalRayTraces: " << model().ntraces() << "\n";
+      }
+  }
 
 
   /**
@@ -193,7 +198,7 @@ namespace Isis {
   bool BulletShapeModel::intersectSurface(std::vector<double> observerPos,
                                           std::vector<double> lookDirection) {
 
-    clearSurfacePoint();
+    // clearSurfacePoint();
     btVector3 observer(observerPos[0], observerPos[1], observerPos[2]);
     btVector3 lookdir(lookDirection[0], lookDirection[1], lookDirection[2]);
     btVector3 rayEnd = castLookDir(observer, lookdir);
@@ -226,7 +231,7 @@ namespace Isis {
                                           const bool &checkOcclusion) {
 
     // Set up for finding all rays along origin vector through lat/lon surface point
-    clearSurfacePoint();
+    // clearSurfacePoint();
     btVector3 origin(0.0, 0.0, 0.0);
     btVector3 lookdir = latlonToVector(lat, lon);
     btVector3 rayEnd = castLookDir(origin, lookdir);
@@ -282,7 +287,9 @@ namespace Isis {
  *                    multiple intersections.
  * @param checkOcclusion If occlusion should be checked.
  * 
- * @return @b bool If an intersection was found and saved.
+ * @return @b bool If an intersection was found and saved. 
+ *  
+ * @internal 
  */
   bool BulletShapeModel::intersectSurface(const SurfacePoint &surfpt, 
                                           const std::vector<double> &observerPos,
