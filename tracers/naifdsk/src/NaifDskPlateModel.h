@@ -61,10 +61,13 @@ namespace Isis {
    *   @history 2017-06-28 Kris Becker - Updated DSK includes for NAIF N0066 release that now
    *                           includes the DSK formally. The includes are now all in SpiceUsr.h.
    *                           Removed SPICE includes from the cpp file as well. Fixes #4947.
-   *   @history 2019-05-30  Kris Becker Corrected lat/lon intercepts in regional,
+   *   @history 2019-05-30 Kris Becker Corrected lat/lon intercepts in regional,
    *                               non-global, shape models. Rays eminating from the
    *                               body origin were not properly being scaled beyond
    *                               the surface for inverted ray target body intercepts.
+   *   @history 2020-01-16 Kris Becker Added new intercept(lat,lon) method. This
+   *                           new method can be used instead of point(lat, lon)
+   *                           to gain access to more info re the intercept point.
    *
    *
    */
@@ -84,6 +87,7 @@ namespace Isis {
 
       SurfacePoint *point(const Latitude &lat, const Longitude &lon) const;
       Intercept *intercept(const NaifVertex &vertex, const NaifVector &raydir) const;
+      Intercept *intercept(const Latitude &lat, const Longitude &lon) const;
   //    Intercept *intercept(const SurfacePoint &pnt) const;
 
       // Lower level I/O

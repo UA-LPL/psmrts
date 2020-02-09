@@ -212,6 +212,70 @@ namespace Isis {
   }
   
 
+  /**
+   * @brief Get surface intersection for a lat/lon grid point 
+   *  
+   * This method will return a intercept point given a lat/lon coordinate. Primary
+   * use of this method is to determine radius values at the grid point.
+   *  
+   * Essentially a fixed body ray is created from the lat/lon location that 
+   * extends beyond the highest radius of the body as defined by the plate model. 
+   * The endpoint of this ray serves as the observer position. A look direction 
+   * vector is created from the observer point by reversing the direction of the 
+   * vector from the center of the body to the observer point.  Theoretically, 
+   * this routine should not fail based upon this technique. 
+   *  
+   * @history 2020-01-16 Kris Becker Reimplementation of the point() method but
+   *                         will return an Intercept datum.
+   *
+   * 
+   * @param lat Latitide of the grid coordinate point
+   * @param lon Longitude of the grid coordinate point
+   * 
+   * @return Intercept*  Returns a pointer to a valid intercept point
+   */
+  Intercept *NaifDskPlateModel::intercept(const Latitude &lat, 
+                                          const Longitude &lon) const {
+
+    // Sanity check on input point
+    verify ( lat.isValid(), "Latitude parameter invalid in NaifDskPlateMode::intercept()" );
+    verify ( lon.isValid(), "Longitude parameter invalid in NaifDskPlateMode::intercept()" );
+
+    // Ensure a DSK file is opened or exception is thrown
+    verify( isValid(), "NAIF DSK file not opened/valid!");
+
+    // Get the lon/lat point in radians
+    SpiceDouble lonlat[2];
+    lonlat[0] = lon.positiveEast(Angle::Radians);
+    lonlat[1] = lat.planetocentric(Angle::Radians);
+    SpiceInt npoints(1);
+    NaifVertex spoint(3, 0.0);
+    SpiceInt plateId(-1);
+
+  #if defined(MAKE_THREAD_SAFE)
+    QMutexLocker lock(&m_dsk->m_mutex);  // Thread locking for NAIF I/O
+  #endif
+
+    try {
+      llgrid_pl02( m_dsk->m_handle, &m_dsk->m_dladsc, npoints, 
+                   (ConstSpiceDouble (*)[2]) lonlat, 
+                   (SpiceDouble (*)[3]) &spoint[0], &plateId);
+      NaifStatus::CheckErrors();
+    }
+    catch (IException &ie) {
+      return (0);
+    }
+
+    // If the plate is not valid, return this status 
+    if ( !isPlateIdValid(plateId) ) return (0); 
+
+    NaifTriangle triangle = plate(plateId); 
+  
+    // Return the intercept
+    return (new Intercept(NaifVertex(3, 0.0), spoint, makePoint(spoint), 
+                          new TriangularPlate(triangle, plateId)));
+
+  }
 
   /**
    * @brief Determines if the plate ID is valid 

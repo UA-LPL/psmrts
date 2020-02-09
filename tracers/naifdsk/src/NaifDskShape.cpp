@@ -149,9 +149,12 @@ namespace Isis {
    * @return bool Returns true if an intercept was successful, false otherwise
    */
   bool NaifDskShape::intersectSurface(std::vector<double> observerPos,
-                                           std::vector<double> lookDirection) {
+                                      std::vector<double> lookDirection) {
+
     NaifVertex obs(3, &observerPos[0]);
     NaifVector raydir(3, &lookDirection[0]);
+
+    // clearSurfacePoint();  // Set initial condition (KJB 2020-01-15)
     m_intercept.reset(m_model.intercept(obs, raydir));
 
     bool success = !m_intercept.isNull();
@@ -169,8 +172,8 @@ namespace Isis {
    * from the center of the body through the lart/lon location on the ellipsiod.
    * From this, a look direction back toward the center of the body is genrated
    * and then an intercept point is determined.  See NaifDskPlateMode::point() for
-   * details.
-   *
+   * details. 
+   * 
    * @author 2014-02-10 Kris Becker
    *
    * @param lat Latitude coordinate of grid point
@@ -179,10 +182,32 @@ namespace Isis {
    * @return Distance Radius value of the intercept grid point
    */
   Distance NaifDskShape::localRadius(const Latitude &lat,
-                                          const Longitude &lon) {
+                                     const Longitude &lon) {
+
+
+      Distance d;
+
+      // Just comment to invoke previous behavior
+#define SAVE_LATLON_INTERCEPT 1
+#if defined(SAVE_LATLON_INTERCEPT)
+    QScopedPointer<Intercept> pnt(m_model.intercept(lat, lon));
+    if ( !pnt.isNull() )  {
+      d = pnt->location().GetLocalRadius();
+
+      // This is a big kludge!  In lui of writting backcheck intersections
+      // add this intersection if on is not set already.
+      if ( !hasIntersection() ) {
+        m_intercept.reset( pnt.take() );
+        SurfacePoint point = m_intercept->location();
+        setSurfacePoint(point); // sets ShapeModel::m_hasIntersection=t, ShapeModel::m_hasNormal=f
+      }
+    }
+#else //Original implementation
     QScopedPointer<SurfacePoint> pnt(m_model.point(lat, lon));
-    if ( !pnt.isNull() )  return (pnt->GetLocalRadius());
-    return (Distance());
+     if ( !pnt.isNull() )  d = pnt->GetLocalRadius();
+#endif
+
+    return (d);
   }
 
   /**

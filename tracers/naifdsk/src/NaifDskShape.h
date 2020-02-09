@@ -59,6 +59,9 @@ namespace Isis {
    *                            in the ShapeModel implementations of these methods
    *                            that uses a normal if one exists - problem is its
    *                            likely the local normal and not the ellipsoid.)
+   *   @history 2020-01-15 Kris Becker (UA) - Add additional intersectSurface()
+   *                            methods to properly handle lat/lon intercepts.
+   *                      
    *   @todo Remove Model from name to match other derived classes
    */
   class NaifDskShape : public ShapeModel {
@@ -75,8 +78,8 @@ namespace Isis {
       using Isis::ShapeModel::intersectSurface;
 
       // Intersect the shape model
-      bool intersectSurface(std::vector<double> observerPos,
-                            std::vector<double> lookDirection);
+      virtual bool intersectSurface(std::vector<double> observerPos,
+                                    std::vector<double> lookDirection);
 
       // Calculate the default normal of the current intersection point
       void calculateDefaultNormal();
