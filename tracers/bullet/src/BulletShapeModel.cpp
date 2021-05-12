@@ -29,6 +29,9 @@
 #include <QtGlobal>
 #include <QVector>
 
+#include "BulletShapeFactory.h"
+#include "BulletPrioritizedShapes.h"
+#include "BulletWorldManager.h"
 #include "IException.h"
 #include "Intercept.h"
 #include "IString.h"
@@ -87,28 +90,14 @@ namespace Isis {
     //     normal = (0,0,0)
     //     hasEllipsoidIntersection = false
 
-    setName("Bullet");  // Really is used as type in the system at present!
-
     PvlGroup &kernels = pvl.findGroup("Kernels", Pvl::Traverse);
+    PvlFlatMap params(kernels);
 
-    QString shapefile;
-    if (kernels.hasKeyword("ElevationModel")) {
-      shapefile = (QString) kernels["ElevationModel"];
-    }
-    else { // if (kernels.hasKeyword("ShapeModel")) {
-      shapefile = (QString) kernels["ShapeModel"];
-    }
-
-    QScopedPointer<BulletTargetShape> v_shape( BulletTargetShape::load(shapefile) );
-    if (v_shape.isNull() ) {
-      QString mess = "Cannot create a BulletShape from " + shapefile;
-      throw IException(IException::User, mess, _FILEINFO_);
-    }
-    
-    // Attempt to initialize the DSK file - exception ensues if errors occur
-    // error thrown if ShapeModel=Null (i.e. Ellipsoid)
-    m_model.reset(new BulletWorldManager(shapefile));
-    m_model->addTarget( v_shape.take() );
+    BulletShapeFactory *factory = BulletShapeFactory::getInstance();
+    m_model.reset(factory->prioritizeShapes( factory->resolveShapeList(kernels),
+                                             params, target, pvl,
+                                             params.get("ShapeModel")) );
+    setName("Bullet");  // Really is used as type in the system at present!
   }
 
 
@@ -127,8 +116,7 @@ namespace Isis {
     // Attempt to initialize the DSK file - exception ensues if errors occur
     // error thrown if ShapeModel=Null (i.e. Ellipsoid)
     btAssert ( shape != 0 );
-    m_model.reset( new BulletWorldManager( shape->name() ) );
-    m_model->addTarget( shape );
+    m_model.reset( new BulletPrioritizedShapes( shape ) );
     setName("Bullet");  // Really is used as type in the system at present!
   }
 
@@ -142,14 +130,53 @@ namespace Isis {
    * 
    * @author 2014-02-12 Kris Becker
    */
-  BulletShapeModel::BulletShapeModel(BulletWorldManager *model, Target *target, Pvl &pvl) : 
-                                     ShapeModel(target), m_model(model), m_tolerance(DBL_MAX), 
+  BulletShapeModel::BulletShapeModel(BulletWorldManager *world, Target *target, Pvl &pvl) : 
+                                     ShapeModel(target), 
+                                     m_model(),  
+                                     m_tolerance(DBL_MAX), 
                                      m_intercept(btVector3(0,0,0), btVector3(0,0,0))  {
 
     // TODO create valid Target
     // Using this constructor, ellipsoidNormal(),
     // calculateSurfaceNormal(), and setLocalNormalFromIntercept()
     // methods can not be called
+    m_model.reset( new BulletPrioritizedShapes(world) );
+    setName("Bullet");  // Really is used as type in the system at present!
+  }
+
+  /**
+   * Constructor for creating a new Bullet model from a prioritized shape model
+   * 
+   * @param model The existing Bullet world model to use
+   * @param target Target object describing the observed body
+   * @param pvl    Unused in this case
+   * 
+   * @author 2014-02-12 Kris Becker
+   */
+  BulletShapeModel::BulletShapeModel(const BulletPrioritizedShapes &shapes, 
+                                     Target *target, Pvl &pvl) : 
+                                     ShapeModel(target), 
+                                     m_model( new BulletPrioritizedShapes(shapes) ), 
+                                     m_tolerance(DBL_MAX), 
+                                     m_intercept(btVector3(0,0,0), btVector3(0,0,0))  {
+    setName("Bullet");
+  }
+  /**
+   * Constructor for creating a new Bullet model from a prioritized shape model
+   * 
+   * @param model The existing Bullet world model to use
+   * @param target Target object describing the observed body
+   * @param pvl    Unused in this case
+   * 
+   * @author 2014-02-12 Kris Becker
+   */
+  BulletShapeModel::BulletShapeModel(BulletPrioritizedShapes *shapes, 
+                                     Target *target, Pvl &pvl) : 
+                                     ShapeModel(target), 
+                                     m_model(shapes), 
+                                     m_tolerance(DBL_MAX), 
+                                     m_intercept(btVector3(0,0,0), btVector3(0,0,0))  {
+    setName("Bullet");
   }
 
 
@@ -157,10 +184,17 @@ namespace Isis {
    * Destructor. Cleanup is handled by Bullet routines and QPointers.
    */
   BulletShapeModel::~BulletShapeModel() { 
-      if ( model().getTarget()->isDebug() ) {
-        std::cout << "\nBulletModel:    " << model().getTarget()->name()<< "\n";
-        std::cout << "TotalRayTraces: " << model().ntraces() << "\n";
-      }
+      if ( model().isDebug() ) {
+        std::cout << "\nBulletModel:    " << model().name()<< "\n";
+        std::cout << "TotalRayTraces: "   << model().ntraces() << "\n\n";
+
+        // Now list trace counts/world
+        std::cout << "WorldShape, RayTraces, Priority\n";
+        for (int w = 0 ; w < model().size(); w++) {
+          const BulletWorldManager &world = model().get(w);
+          std::cout << world.name() << ", " << world.ntraces() << ", " << world.priority() <<"\n";
+        }
+    }
   }
 
 
@@ -685,8 +719,8 @@ namespace Isis {
    * Returns a direct reference to the Bullet world that contains the target
    * shape and can perform ray casts.
    */
-  const BulletWorldManager &BulletShapeModel::model() const {
-    return (*m_model);
+  const BulletPrioritizedShapes &BulletShapeModel::model() const {
+    return ( *m_model );
   }
 
 
@@ -698,7 +732,7 @@ namespace Isis {
    * @return @b btScalar The maximum distance in the bullet world in kilometers.
    */
   btScalar BulletShapeModel::maxDistance() const {
-    return m_model->getTarget()->maximumDistance();
+    return m_model->maximumDistance();
   }
 
 

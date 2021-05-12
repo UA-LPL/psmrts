@@ -32,6 +32,7 @@
 #include "Intercept.h"
 #include "BulletAllHitsRayCallback.h"
 #include "BulletClosestRayCallback.h"
+#include "BulletPrioritizedShapes.h"
 #include "BulletTargetShape.h"
 #include "BulletWorldManager.h"
 #include "Target.h"
@@ -50,18 +51,24 @@ namespace Isis {
    *                          incidenceAngle() methods to compute angles using the
    *                          ellipsoid normal.
    *   @history 2020-01-09 Kris Becker - Added debug reporting
+   *   @history 2021-04-22 Kris Becker - Added prioritized shape models; use this
+   *                          as the fundamental implementation
    *  
 
  
    */
   class BulletShapeModel : public ShapeModel {
     public:
+
       // Constructors
       BulletShapeModel();
       BulletShapeModel(Target *target, Pvl &pvl);
       BulletShapeModel(const QString &shapefile, Target *target, Pvl &pvl);
       BulletShapeModel(BulletTargetShape *shape, Target *target, Pvl &pvl);
-      BulletShapeModel(BulletWorldManager *model, Target *target, Pvl &pvl);
+      BulletShapeModel(BulletWorldManager *world, Target *target, Pvl &pvl);
+      BulletShapeModel(BulletPrioritizedShapes *shapes, Target *target, Pvl &pvl);
+      BulletShapeModel(const BulletPrioritizedShapes &shapes, Target *target, Pvl &pvl);
+
 
       // Destructor
       ~BulletShapeModel();
@@ -99,7 +106,7 @@ namespace Isis {
       virtual double emissionAngle(const std::vector<double> &sB);
       virtual double incidenceAngle(const std::vector<double> &uB);
 
-      const BulletWorldManager &model() const;
+      const BulletPrioritizedShapes &model() const;
 
 
       // Determine if the internal intercept is occluded from the observer/lookdir
@@ -108,9 +115,9 @@ namespace Isis {
 
     private:
       // Disallow copying because ShapeModel is not copyable
-      Q_DISABLE_COPY(BulletShapeModel)
+      Q_DISABLE_COPY(BulletShapeModel);
 
-      QScopedPointer<BulletWorldManager> m_model;        /**! Bullet collision world that contains
+      QScopedPointer<BulletPrioritizedShapes> m_model;        /**! Bullet collision world that contains
                                                               the representation of the body. */
       double                             m_tolerance;    /**! Tolerance of occlusion check in
                                                               kilometers. */

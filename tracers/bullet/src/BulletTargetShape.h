@@ -29,12 +29,14 @@
 
 #include "IsisBullet.h"
 #include "BulletClosestRayCallback.h"
+#include "BulletMeshMapper.h"
 #include "PvlFlatMap.h"
 
 namespace Isis {
 
 
-  class Pvl; 
+class Pvl; 
+//class BulletMeshMapper;
 
 /**
  * @brief Bullet Target Shape for planetary bodies 
@@ -58,11 +60,18 @@ namespace Isis {
  *                           support for OBJ and Bullet native formats. Added
  *                           new generic loader and constructor with a
  *                           PvlFlatMap parameter.
+ *   @history 2021-04-27 Kris Becker Add getMeshMap() method. Note that this
+ *                           mesh may not be available when using direct
+ *                           constructors. The special constructors should
+ *                           provide an implementation for this method. If
+ *                           there is not one the default is throw an
+ *                           exception...so caller beware!
  * 
  *
  */
   class BulletTargetShape {
     public:
+      // The special constructors are preferred!
       BulletTargetShape();
       BulletTargetShape(const Pvl *conf);
       BulletTargetShape(const PvlFlatMap &params);
@@ -82,6 +91,7 @@ namespace Isis {
 
       void writeBullet(const QString &btName) const;
       btCollisionObject *body() const;
+      virtual const BulletMeshMapper &getMeshMap() const;
 
       btScalar maximumDistance() const;
 

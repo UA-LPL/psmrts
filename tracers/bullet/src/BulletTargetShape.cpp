@@ -273,6 +273,18 @@ namespace Isis {
     return ( m_btbody.data() );
   }
 
+/**
+ * Return the mesh associated with this target shape
+ *  
+ * If the deriving class has a mesh, this should be reimplemented 
+ * 
+ * @return const BulletMeshMapper& 
+ */
+  const BulletMeshMapper &BulletTargetShape::getMeshMap() const {
+    QString mess = "There is no meshmap associated with target " + name();
+    throw IException(IException::Programmer, mess, _FILEINFO_);
+  }
+
   /**
    * @brief Make default configuration file with sub parts specificiation option 
    * 

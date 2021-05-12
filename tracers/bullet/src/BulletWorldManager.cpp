@@ -43,7 +43,7 @@ namespace Isis {
    * Default empty constructor.
    */
   BulletWorldManager::BulletWorldManager() :  m_data( new BulletWorldData() ),
-                                              m_raytraces(0) {
+                                              m_raytraces(0),  m_priority(0) {
 
   }
 
@@ -53,10 +53,35 @@ namespace Isis {
    * 
    * @param name The name of the world.
    */
-  BulletWorldManager::BulletWorldManager(const QString &name) : 
+  BulletWorldManager::BulletWorldManager(const QString &name, const unsigned long priority) : 
                                          m_data( new BulletWorldData(name) ),
-                                         m_raytraces(0) {
+                                         m_raytraces(0), m_priority(priority) {
 
+  }
+
+
+  /**
+   * Construct a world manager with a given name.
+   * 
+   * @param name The name of the world.
+   */
+  BulletWorldManager::BulletWorldManager(BulletTargetShape *shape,
+                                         const unsigned long priority) : 
+                                         m_data( new BulletWorldData(shape->name()) ),
+                                         m_raytraces(0), m_priority(priority) {
+      addTarget(shape);
+  }
+
+
+  /**
+   * Construct a world from an existing world. This creates a shared instance. To 
+   * build a custom world you use the default constructor and add shapes. 
+   */
+  BulletWorldManager::BulletWorldManager(const BulletWorldManager &world,
+                                         const unsigned long priority) :
+                                         m_data(world.m_data),
+                                         m_raytraces(0), 
+                                         m_priority(priority)  {
   }
 
   /**
@@ -65,9 +90,9 @@ namespace Isis {
    */
   BulletWorldManager::BulletWorldManager(const BulletWorldManager &world) :
                                          m_data(world.m_data),
-                                         m_raytraces(0) {
+                                         m_raytraces(0), 
+                                         m_priority(world.m_priority)  {
   }
-
 
   /**
    * Destroys the BulletWorldManager.
@@ -84,6 +109,18 @@ namespace Isis {
     return ( m_data->m_name );
   }
 
+/**
+ * Returns the priority number for this instance
+ * 
+ * Priorities are defined when the object is created. And than use values 
+ *  0 to N in lowest values have priority
+ *  
+ * @return int Priority as given when created. 
+ *             
+ */
+  unsigned long BulletWorldManager::priority() const {
+    return ( m_priority );
+  }
 
   /**
    * Number of collision objects in the world.
@@ -91,8 +128,8 @@ namespace Isis {
    * @return @b int The number of collision objects in the world.
    */
   int BulletWorldManager::size() const{
-    btAssert( !m_data->m_world.isNull() );
-    return ( m_data->m_world->getCollisionObjectArray().size() );
+    return  ( m_data->m_shapes.size() );
+    // return ( m_data->m_world->getCollisionObjectArray().size() );
   }
 
 
@@ -106,8 +143,8 @@ namespace Isis {
   BulletTargetShape *BulletWorldManager::getTarget(const int &index) const {
     btAssert( index < size() );
     btAssert( index >= 0 );
-    btAssert( !m_data->m_world.isNull() );
-    return ( (BulletTargetShape *) (m_data->m_world->getCollisionObjectArray().at(index)->getUserPointer()) );
+    return ( m_data->m_shapes[index] );
+    //return ( (BulletTargetShape *) (m_data->m_world->getCollisionObjectArray().at(index)->getUserPointer()) );
   }
 
 
@@ -119,7 +156,6 @@ namespace Isis {
    * @return @b BulletTargetShape* Pointer to shape if found. Otherwise null.
    */
   BulletTargetShape *BulletWorldManager::getTarget(const QString &name) const { 
-    btAssert( !m_data->m_world.isNull() );
     QString v_name = name.toLower();
     const btCollisionObjectArray &btobjects = m_data->m_world->getCollisionObjectArray();
     for ( int i = 0 ; i < btobjects.size() ; i++ ) {
@@ -144,12 +180,12 @@ namespace Isis {
 
     //  Ensure validity
     btAssert( !m_data->m_mutex.isNull() );
-    btAssert( !m_data->m_world.isNull() );
 
     // May need to retain the target in a list for world destruction!!??
     // CollisionBody is expected to contain a UserPointer that links back to 
     // target (BulletTargetShape or some other type). 
     QMutexLocker locker(m_data->m_mutex.data());
+    m_data->m_shapes.append(target);
     m_data->m_world->addCollisionObject( target->body() );
     m_data->m_world->updateAabbs();
     return;
@@ -183,7 +219,6 @@ namespace Isis {
 
     //  Ensure validity
     btAssert( !m_data->m_mutex.isNull() );
-    btAssert( !m_data->m_world.isNull() );
 
     QMutexLocker locker(m_data->m_mutex.data());
     m_raytraces++;
@@ -198,7 +233,7 @@ namespace Isis {
    * @return @b btCollisionWorld The Bullet collision world used for ray casting.
    */
   const btCollisionWorld &BulletWorldManager::getWorld() const {
-    btAssert( !m_data->m_world.isNull() );
+   
     return ( *(m_data->m_world.data()) );
   }
 

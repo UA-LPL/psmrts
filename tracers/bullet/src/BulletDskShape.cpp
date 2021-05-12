@@ -180,10 +180,20 @@ namespace Isis {
  * @brief Load the contents of a NAIF DSK and create a Bullet triangle mesh  
  * 
  * @author 2017-03-28 Kris Becker 
+ *  
+ * @internal 
+ *   @history 2021-04-21 Kris Becker Made this method thread safe from
+ *                          interacting with the NAIF static environment
  * 
  * @param dskfile The DSK file to load.
  */
   void BulletDskShape::loadMeshFile(const QString &meshfile, const Pvl *conf) {
+
+    // Ok, in order to thread the load of a NAIF DSK, we must lock any NAIF
+    // interactions to provide exclusive access to this operation. A static 
+    // mutex should do it. The NAIF read and load is pretty fast. Its the
+    // Bullet processing that is costly.
+    static QMutex naifMutex;
 
 
     if ( isDebug() ) {
@@ -207,6 +217,10 @@ namespace Isis {
       QString mess = "NAIF DSK file [" + meshfile + "] does not exist.";
       throw IException(IException::User, mess, _FILEINFO_);
     }
+
+    // Lets lock up all NAIF interactions here to serialized access. This 
+    // approach could be improved.
+    QMutexLocker naif(&naifMutex);
 
     // Start load timing
     QTime runTime = QTime::currentTime();
@@ -297,10 +311,11 @@ namespace Isis {
         vIndexBasePtr  += (nplates * 3);
     }
 
-    // Ok, close the DSK...
+    // Ok, close the DSK, which also means we can unlock the mutex from
+    // anytime beyond this point.
     dascls_c(v_handle);
-
     double ttime = runTime.elapsed() / 1000.0;
+
     if ( isDebug() ) {
         std::cout << "Load/ProcessTime: " << ttime << "\n";
     }
@@ -322,13 +337,17 @@ namespace Isis {
         std::cout << "Indexes/Facets:    " << m_mesh->m_btMesh.ntriangles() << "\n";
     }
 
+    // Location of this lock matters. One of the most costly operations is to
+    // compute the quantitized AABB compression in Bullet. Lets unlock the timer
+    // for this opperation and get a little more serialized I/O reporting.
+    naif.unlock();
 
     // Create the target (collision) body mesh and add to Bullet world.
     bool useQuantizedAabbCompression = true;
     addMeshToWorld(m_mesh->m_btMesh, useQuantizedAabbCompression);
 
     if ( isDebug() ) {
-        std::cout << "TotalTime: " << (runTime.elapsed() / 1000.0) << "\n\n";
+        std::cout << "TotalTime load/processing of "  << meshfile << ": " << (runTime.elapsed() / 1000.0) << "\n\n";
     }
 
     return;

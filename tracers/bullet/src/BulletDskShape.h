@@ -53,7 +53,8 @@ namespace Isis {
  *                          world.
  *   @history 2020-01-15 Kris Becker - Removed writeOBJ() and added the method
  *                         to the BulletObjShape class.
- *  @history 2020-01-21 Kris Becker - Added setting of name in constructors 
+ *  @history 2020-01-21 Kris Becker - Added setting of name in constructors
+ *  @history 2021-04-21 Kris Becker - Added thread safety 
  */
   class BulletDskShape : public BulletTargetShape {
     public:

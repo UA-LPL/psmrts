@@ -71,16 +71,25 @@ namespace Isis {
  *   @history 2018-09-13 UA/OSIRIS-REx IPWG Team - Modified to use a more
  *                         efficient shared object data strategy; improved
  *                         implementation and documentation
- *   @history 2020-01-18 Kris Becker Addd ray tracing counter
+ *   @history 2020-01-18 Kris Becker Add ray tracing counter
+ *   @history 2021-04-21 Kris Becker Add priority values to help manage
+ *                          prioritized ray tracing
  */
   class BulletWorldManager {
     public:
       BulletWorldManager();
-      BulletWorldManager(const QString &name);
+      BulletWorldManager(const QString &name, 
+                         const unsigned long priority = 0);
+      BulletWorldManager(const BulletWorldManager &world, 
+                         const unsigned long priority);
       BulletWorldManager(const BulletWorldManager &world);
+      BulletWorldManager(BulletTargetShape *shape, 
+                         const unsigned long priority = 0);
+
       virtual ~BulletWorldManager();
 
       QString name() const;
+      unsigned long priority() const;
       int size() const;
 
       BulletTargetShape *getTarget(const int &index = 0) const;
@@ -118,7 +127,7 @@ namespace Isis {
           }
 
           /** Destructor   */
-          ~BulletWorldData() { }
+          ~BulletWorldData() { destroy(); }
 
           QString                                         m_name; /**! The name of the Bullet
                                                                        world. */
@@ -133,14 +142,16 @@ namespace Isis {
                                                                              acceleration tree. */
           QScopedPointer<btCollisionWorld>                m_world; /**! The Bullet collision world that
                                                                         contains the representation of
-                                                                        the body. */
-          QScopedPointer<QMutex>                          m_mutex; //!< Mutex for thread safety
+                                                                        the body/target. */
+          QScopedPointer<QMutex>                          m_mutex;     //!< Mutex for thread safety
+          QVector<BulletTargetShape *>                    m_shapes;   //!< list of corresponding target shapes
 
         private:
           Q_DISABLE_COPY(BulletWorldData);  // Copy is undefined for this context
 
           /** Initialize a new Bullet world structure   */
           void initWorld(const QString &name = "Body-Fixed-Coordinate-System") { 
+            destroy();
             m_name = name;   
             m_collision.reset( new btDefaultCollisionConfiguration() );
             m_dispatcher.reset(new btCollisionDispatcher( m_collision.data() ) );
@@ -149,11 +160,21 @@ namespace Isis {
                                                  m_broadphase.data(), 
                                                  m_collision.data() ) );
             m_mutex.reset( new QMutex() );
+            m_shapes.clear(); 
+          }
+
+          /** Frees resources upon destruction   */
+          void destroy() {
+            foreach ( BulletTargetShape *shape, m_shapes ) {
+              delete shape;
+            }
+            m_shapes.clear();
           }
       };
 
       QExplicitlySharedDataPointer<BulletWorldData> m_data; //!< Shared data to Bullet world
       mutable BigInt m_raytraces; //!< Ray trace counter
+      unsigned long  m_priority;  //!< Priority of the object
 
   };
 
