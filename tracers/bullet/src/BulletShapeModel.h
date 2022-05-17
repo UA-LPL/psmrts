@@ -38,6 +38,7 @@
 #include "Target.h"
 
 namespace Isis {
+  class RayTrace;
   class Target;
 
   /**
@@ -133,9 +134,14 @@ namespace Isis {
       QVector<BulletClosestRayCallback> sortHits(const BulletAllHitsRayCallback &hits,
                                                  const btVector3 &sortPoint) const;
       bool isOccluded(const BulletClosestRayCallback &hit,
-                      const btVector3 &observer) const;
+                      const btVector3 &observer,
+                      RayTrace *ray= nullptr) const;
 
-      void updateShapeModel(const BulletClosestRayCallback &result);
+      void updateShapeModel(const BulletClosestRayCallback &result, 
+                            RayTrace *ray = nullptr);
+
+      void updateRayTrace( const BulletClosestRayCallback &result,
+                           RayTrace *ray = nullptr) const;
 
 
   };

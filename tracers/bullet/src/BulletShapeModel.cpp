@@ -39,6 +39,7 @@
 #include "Longitude.h"
 #include "NaifStatus.h"
 #include "Pvl.h"
+#include "RayTrace.h"
 #include "ShapeModel.h"
 #include "SpecialPixel.h"
 #include "Statistics.h"
@@ -237,8 +238,14 @@ namespace Isis {
     btVector3 lookdir(lookDirection[0], lookDirection[1], lookDirection[2]);
     btVector3 rayEnd = castLookDir(observer, lookdir);
     BulletClosestRayCallback result(observer, rayEnd);
+
+    if ( rayptr() ) {
+      rayptr()->m_observer = rayptr()->assign( observerPos );
+      rayptr()->m_lookdir  = rayptr()->assign( lookDirection );
+    }
+
     bool success = m_model->raycast(observer, rayEnd, result);
-    updateShapeModel(result);
+    updateShapeModel(result, rayptr() );
     return ( success );
   }
 
@@ -271,6 +278,12 @@ namespace Isis {
     btVector3 rayEnd = castLookDir(origin, lookdir);
     BulletAllHitsRayCallback results( origin, rayEnd, false);
 
+    if ( rayptr() ) {
+      rayptr()->m_observer = rayptr()->assign( observerPos );
+      rayptr()->m_lookdir  = rayptr()->assign( &rayEnd[0] );
+      rayptr()->m_target   = rayptr()->assign( &origin[0] );
+    }
+
     // If no intersections (unlikely for this case), we are done!
     if ( !m_model->raycast(origin, rayEnd, results) ) {
       return ( false );
@@ -288,8 +301,8 @@ namespace Isis {
         //   If the hit is occluded then move on.
         //   Otherwise, it is the closest non-occluded point so take it.
         BulletClosestRayCallback &hit = points[i];
-        if ( !isOccluded(hit, observer) ) {
-          updateShapeModel( hit );
+        if ( !isOccluded(hit, observer, sunrayptr() ) ) {
+          updateShapeModel( hit, rayptr() );
           break;
         }
       }
@@ -297,7 +310,7 @@ namespace Isis {
 
     // If occlusion is not being checked, take the intersection closest to the observer
     else {
-      updateShapeModel( points[0] );
+      updateShapeModel( points[0], rayptr() );
     }
 
     // Is set by the update routine
@@ -336,6 +349,12 @@ namespace Isis {
     btVector3 rayEnd = castLookDir(origin, surfPointVec);
     BulletAllHitsRayCallback results(origin, rayEnd, false);
 
+    if ( rayptr() ) {
+      rayptr()->m_observer = rayptr()->assign( observerPos );
+      rayptr()->m_lookdir  = rayptr()->assign( &rayEnd[0] );
+      rayptr()->m_target   = rayptr()->assign( &origin[0] );
+    }
+
     // Cast the ray to find all intersections
     //   If no intersections (unlikely for this case), we are done!
     if ( !m_model->raycast(origin, rayEnd, results) ) {
@@ -354,8 +373,8 @@ namespace Isis {
         //   If the hit is occluded then move on.
         //   Otherwise, it is the closest non-occluded point so take it.
         BulletClosestRayCallback &hit = points[i];
-        if ( !isOccluded(hit, observer) ) {
-          updateShapeModel( hit );
+        if ( !isOccluded(hit, observer, sunrayptr() ) ) {
+          updateShapeModel( hit, rayptr() );
           break;
         }
       }
@@ -363,7 +382,7 @@ namespace Isis {
 
     // If occlusion is not being checked, take the intersection closest to the observer
     else {
-      updateShapeModel( points[0] );
+      updateShapeModel( points[0], rayptr() );
     }
 
     // Is set by the update routine
@@ -381,7 +400,8 @@ namespace Isis {
    * @return @b bool If the intersection is occluded from the observer.
    */
   bool BulletShapeModel::isOccluded(const BulletClosestRayCallback &hit,
-                                    const btVector3 &observer) const {
+                                    const btVector3 &observer,
+                                    RayTrace *ray) const {
     // If the callback does not have an intersection return true
     if ( !hit.isValid() ) {
       return true;
@@ -403,6 +423,7 @@ namespace Isis {
     }
 
     // Is this intersection the same as the previous intersection?
+    updateRayTrace(results, ray);
     if ( results.isVisible( hit, getTolerance() ) ) {
       return false;
     }
@@ -525,6 +546,7 @@ namespace Isis {
     btVector3 rayEnd = castLookDir( observer,  btVector3(lookDirection[0], lookDirection[1], lookDirection[2]) );
     BulletClosestRayCallback results(observer, rayEnd);
     (void) m_model->raycast(observer, rayEnd, results);
+    updateRayTrace(results,  sunrayptr() );
     return ( m_intercept.isVisible( results, getTolerance() ) );
   }
 
@@ -750,7 +772,7 @@ namespace Isis {
   btVector3  BulletShapeModel::castLookDir(const btVector3 &observer, 
                                            const btVector3 &lookdir) const {
     btScalar lookScale = observer.length() + maxDistance();
-    return ( observer + lookdir.normalized() * lookScale );
+    return ( observer + (lookdir.normalized() * lookScale) );
   }
 
 
@@ -837,13 +859,15 @@ namespace Isis {
    *               will be flagged as not having a surface point or normal.
    * 
    */
-  void BulletShapeModel::updateShapeModel(const BulletClosestRayCallback &result) {
+  void BulletShapeModel::updateShapeModel(const BulletClosestRayCallback &result,
+                                          RayTrace *ray) {
     m_intercept = result;
     if ( m_intercept.isValid() ) {
       ShapeModel::setSurfacePoint( makeSurfacePoint(m_intercept.point()) ); // sets ShapeModel::m_hasIntersection=t, ShapeModel::m_hasNormal=f
 
       btVector3 normal = m_intercept.normal();
       setNormal(normal[0], normal[1], normal[2]);
+      updateRayTrace( result, ray );
     }
     else {
       ShapeModel::clearSurfacePoint();
@@ -852,4 +876,26 @@ namespace Isis {
 
     return;
   }
+
+/* 
+ * @brief Update the ray trace information for the intercept 
+ *  
+ * @author 2022-05-10 Kris Becker Original version
+ * 
+ * @param result Bullet ray trace result
+ * @param ray    Ray trace result
+ */
+  void BulletShapeModel::updateRayTrace( const BulletClosestRayCallback &result,
+                                         RayTrace *ray) const {
+    if ( ray ) {
+      ray->m_hit      = result.isValid();
+      ray->m_observer = ray->assign( &result.observer()[0] );
+      ray->m_lookdir  = ray->assign( &result.lookdir()[0] );
+      ray->m_xyz      = ray->assign( &result.point()[0] );
+      ray->m_normal   = ray->assign( &result.normal()[0] );
+      ray->m_facet_id  = result.triangleIndex();
+      ray->m_mesh_id  = result.partId();
+    }
+  }
+
 }; // namespace Isis
