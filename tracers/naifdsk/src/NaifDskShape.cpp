@@ -38,6 +38,7 @@
 #include "NaifDskPlateModel.h"
 #include "NaifStatus.h"
 #include "Pvl.h"
+#include "RayTrace.h"
 #include "ShapeModel.h"
 #include "SpecialPixel.h"
 #include "Statistics.h"
@@ -117,7 +118,7 @@ namespace Isis {
    *              model() method
    */
   NaifDskShape::NaifDskShape(const NaifDskPlateModel &model) :
-                                       m_model(model), m_intercept(NULL) {
+                             m_model(model), m_intercept(NULL) {
 
     // TODO create valid Target
     // Using this constructor, ellipsoidNormal(),
@@ -155,7 +156,7 @@ namespace Isis {
     NaifVector raydir(3, &lookDirection[0]);
 
     // clearSurfacePoint();  // Set initial condition (KJB 2020-01-15)
-    m_intercept.reset(m_model.intercept(obs, raydir));
+    m_intercept.reset(m_model.intercept(obs, raydir, rayptr()));
 
     bool success = !m_intercept.isNull();
     if (success) {
@@ -190,7 +191,7 @@ namespace Isis {
       // Just comment to invoke previous behavior
 #define SAVE_LATLON_INTERCEPT 1
 #if defined(SAVE_LATLON_INTERCEPT)
-    QScopedPointer<Intercept> pnt(m_model.intercept(lat, lon));
+    QScopedPointer<Intercept> pnt(m_model.intercept(lat, lon, rayptr()));
     if ( !pnt.isNull() )  {
       d = pnt->location().GetLocalRadius();
 
@@ -203,7 +204,7 @@ namespace Isis {
       }
     }
 #else //Original implementation
-    QScopedPointer<SurfacePoint> pnt(m_model.point(lat, lon));
+    QScopedPointer<SurfacePoint> pnt(m_model.point(lat, lon, rayptr()));
      if ( !pnt.isNull() )  d = pnt->GetLocalRadius();
 #endif
 

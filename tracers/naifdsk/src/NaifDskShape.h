@@ -61,6 +61,7 @@ namespace Isis {
    *                            likely the local normal and not the ellipsoid.)
    *   @history 2020-01-15 Kris Becker (UA) - Add additional intersectSurface()
    *                            methods to properly handle lat/lon intercepts.
+   *   @history 2022-05-11 Kris Becker (UA) - Add ray tracing functionality to API
    *                      
    *   @todo Remove Model from name to match other derived classes
    */

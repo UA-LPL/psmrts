@@ -50,6 +50,7 @@
 #include "Longitude.h"
 #include "NaifDskApi.h"
 #include "NaifStatus.h"
+#include "RayTrace.h"
 #include "SurfacePoint.h"
 #include "TriangularPlate.h"
 
@@ -134,12 +135,14 @@ namespace Isis {
    *
    * 
    * @param lat Latitide of the grid coordinate point
-   * @param lon Longitude of the grid coordinate point
+   * @param lon Longitude of the grid coordinate point 
+   * @param ray Pointer to optional ray trace information/details 
    * 
    * @return SurfacePoint*  Returns a pointer to a valid intercept point
    */
   SurfacePoint *NaifDskPlateModel::point(const Latitude &lat, 
-                                         const Longitude &lon) const {
+                                         const Longitude &lon,
+                                         RayTrace *ray) const {
   
     // Sanity check on input point
     verify ( lat.isValid(), "Latitude parameter invalid in NaifDskPlateMode::point()" );
@@ -171,10 +174,11 @@ namespace Isis {
     }
   
     // If the plate is not valid, return this status 
+    if ( ray ) ray->m_facet_id = plateId;
     if ( !isPlateIdValid(plateId) ) return (0); 
   
     // Other error checks???
-    return  ( makePoint(spoint) );
+    return  ( makePoint(spoint, ray) );
   }
   
 
@@ -198,13 +202,14 @@ namespace Isis {
    *                    found, a null pointer is returned.
    */
   Intercept *NaifDskPlateModel::intercept(const NaifVertex &vertex,
-                                          const NaifVector &raydir) const {
+                                          const NaifVector &raydir,
+                                          RayTrace *ray) const {
     // Get the plate
     NaifVertex xpoint;
-    SpiceInt plateid = plateIdOfIntercept(vertex, raydir, xpoint);
+    SpiceInt plateid = plateIdOfIntercept(vertex, raydir, xpoint, ray);
     if ( !isPlateIdValid(plateid) ) return (0);
   
-    NaifTriangle triangle = plate(plateid); 
+    NaifTriangle triangle = plate(plateid, ray); 
   
     // Return the intercept
     return (new Intercept(vertex, raydir, makePoint(xpoint), 
@@ -235,7 +240,8 @@ namespace Isis {
    * @return Intercept*  Returns a pointer to a valid intercept point
    */
   Intercept *NaifDskPlateModel::intercept(const Latitude &lat, 
-                                          const Longitude &lon) const {
+                                          const Longitude &lon,
+                                          RayTrace *ray) const {
 
     // Sanity check on input point
     verify ( lat.isValid(), "Latitude parameter invalid in NaifDskPlateMode::intercept()" );
@@ -267,12 +273,13 @@ namespace Isis {
     }
 
     // If the plate is not valid, return this status 
-    if ( !isPlateIdValid(plateId) ) return (0); 
+    if ( ray ) ray->m_facet_id = plateId;
+    if (!isPlateIdValid(plateId)) return (0);
 
-    NaifTriangle triangle = plate(plateId); 
+    NaifTriangle triangle = plate(plateId, ray); 
   
     // Return the intercept
-    return (new Intercept(NaifVertex(3, 0.0), spoint, makePoint(spoint), 
+    return (new Intercept(NaifVertex(3, 0.0), spoint, makePoint(spoint, ray), 
                           new TriangularPlate(triangle, plateId)));
 
   }
@@ -320,7 +327,8 @@ namespace Isis {
    */
   SpiceInt NaifDskPlateModel::plateIdOfIntercept(const NaifVertex &vertex, 
                                                     const NaifVector &raydir,
-                                                    NaifVertex &xpoint) const {
+                                                    NaifVertex &xpoint,
+                                                    RayTrace *ray) const {
   
     // Sanity check on input parameters
     try {
@@ -346,15 +354,28 @@ namespace Isis {
   #endif
     // Find the plate of intersection and intercept point
     NaifStatus::CheckErrors();
-    dskx02_c( m_dsk->m_handle, &m_dsk->m_dladsc, &vertex[0], &raydir[0],
+
+    if ( ray ) {
+      ray->m_hit = false;
+      ray->m_observer = ray->assign( &vertex[0] );
+      ray->m_lookdir  = ray->assign( &raydir[0] );
+    }
+    dskx02_c(m_dsk->m_handle, &m_dsk->m_dladsc, &vertex[0], &raydir[0],
               &plateid, &xpt[0], &found);
     // Check status
     NaifStatus::CheckErrors();
+
     if ( !found ) return (0);
   
     // Return succesful results
     xpoint = xpt;
-    return ( plateid );
+
+    if ( ray ) {
+      ray->m_hit = true;
+      ray->m_xyz = ray->assign ( &xpt[0] );
+      ray->m_facet_id = plateid;
+    }
+    return (plateid);
   }
   
 
@@ -372,7 +393,7 @@ namespace Isis {
    * 
    * @return NaifTriangle Triahgle associated with the plate id
    */
-  NaifTriangle NaifDskPlateModel::plate(SpiceInt plateid) const {
+  NaifTriangle NaifDskPlateModel::plate(SpiceInt plateid, RayTrace *ray) const {
   
     // Ensure a DSK file is opened or exception is thrown
     verify( isValid(), "NAIF DSK file not opened/valid!");
@@ -404,7 +425,15 @@ namespace Isis {
              ( SpiceDouble(*)[3] )(plate[i]));
     }
     NaifStatus::CheckErrors();
-  
+
+    if ( ray) {
+      ray->m_facet_id = plateid;
+      ray->m_v0     = ray->assign( plate[0] );
+      ray->m_v1     = ray->assign( plate[1] );
+      ray->m_v2     = ray->assign( plate[2] );
+      ray->m_normal = ray->compute_normal();
+    }
+    
     return (plate);
   }
   
@@ -481,8 +510,15 @@ namespace Isis {
 
 
   /** Construct and return a SurfacePoint pointer  */
-  SurfacePoint *NaifDskPlateModel::makePoint(const NaifVertex &v) const {
+  SurfacePoint *NaifDskPlateModel::makePoint(const NaifVertex &v,
+                                             RayTrace *ray) const {
     verify( validate(v), "Vertex/point invalid - not a 3 vector" );
+    
+    // Update ray trace tracking
+    if ( ray ) {
+      ray->m_xyz = ray->assign( &v[0] );
+    }
+
     return (new SurfacePoint(Displacement(v[0], Displacement::Kilometers),
                              Displacement(v[1], Displacement::Kilometers),
                              Displacement(v[2], Displacement::Kilometers)));

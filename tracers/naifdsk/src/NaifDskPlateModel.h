@@ -34,6 +34,7 @@ namespace Isis {
   class Intercept;
   class Latitude;
   class Longitude;
+  class RayTrace;
   class SurfacePoint;
 
   /**
@@ -68,8 +69,8 @@ namespace Isis {
    *   @history 2020-01-16 Kris Becker Added new intercept(lat,lon) method. This
    *                           new method can be used instead of point(lat, lon)
    *                           to gain access to more info re the intercept point.
-   *
-   *
+   *   @history 2022-05-11 Kris Becker Added RayTrace tracing class to the
+   *                           intercept methods
    */
   class NaifDskPlateModel {
 
@@ -85,17 +86,21 @@ namespace Isis {
       SpiceInt numberPlates() const;
       SpiceInt numberVertices() const;
 
-      SurfacePoint *point(const Latitude &lat, const Longitude &lon) const;
-      Intercept *intercept(const NaifVertex &vertex, const NaifVector &raydir) const;
-      Intercept *intercept(const Latitude &lat, const Longitude &lon) const;
+      SurfacePoint *point(const Latitude &lat, const Longitude &lon,
+                          RayTrace *ray = nullptr) const;
+      Intercept *intercept(const NaifVertex &vertex, const NaifVector &raydir,
+                           RayTrace *ray = nullptr) const;
+      Intercept *intercept(const Latitude &lat, const Longitude &lon,
+                           RayTrace *ray = nullptr) const;
   //    Intercept *intercept(const SurfacePoint &pnt) const;
 
       // Lower level I/O
       bool     isPlateIdValid(const SpiceInt plateid) const;
       SpiceInt plateIdOfIntercept(const NaifVertex &vertex,
                                      const NaifVector &raydir,
-                                     NaifVertex &xpoint) const;
-      NaifTriangle plate(SpiceInt plateid) const;
+                                     NaifVertex &xpoint,
+                                     RayTrace *ray = nullptr) const;
+      NaifTriangle plate(SpiceInt plateid, RayTrace *ray = nullptr) const;
 
       NaifDskPlateModel *clone() const;
 
@@ -141,7 +146,7 @@ namespace Isis {
       NaifDskDescriptor *openDSK(const QString &dskfile);
       bool verify(const bool &test, const QString &errmsg,
                   const ErrAction &action = Throw) const;
-      SurfacePoint *makePoint(const NaifVertex &v) const;
+      SurfacePoint *makePoint(const NaifVertex &v, RayTrace *ray = nullptr) const;
   };
 
 } // namespace Isis
