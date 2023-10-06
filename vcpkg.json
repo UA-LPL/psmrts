@@ -1,0 +1,17 @@
+{
+  "name": "psmrts",
+  "version": "0.1.0",
+  "dependencies": [
+    "vcpkg-cmake",
+    "nlohmann-json",
+    "args",
+    "eigen3",
+    "cspice",
+    "embree3",
+    "catch2",
+    {
+      "name": "bullet3",
+      "features": ["double-precision", "extras"]
+    }
+  ]
+}

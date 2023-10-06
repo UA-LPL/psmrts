@@ -1,0 +1,6 @@
+.DS_Store
+.vscode
+.vs
+vcpkg
+vcpkg_installed
+build
