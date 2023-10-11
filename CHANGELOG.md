@@ -35,9 +35,7 @@ release.
 ## TODO
 
 
-## [0.1.0] 2023-07-xx
-
-
+## [0.0.1] 2023-10-06
 ### Initial Version
 
 This is the initial import of the Planetary Shape Model and Ray Tracing System (PSMRTS)
