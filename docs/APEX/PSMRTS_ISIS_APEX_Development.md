@@ -1,7 +1,7 @@
 ## **Discussion - API Design of ISIS Dependency Libraries**
 
 - **Topic**: ISIS External Library Dependency API Design - __PSMRTS__
-- **Date**: August 1, 2023
+- **Date**: October 11, 2023
 - **Author**: Kris J. Becker
 
 ## **Introduction**
@@ -10,9 +10,38 @@ The University of Arizona (UA) OSIRIS-REx (OREX) Image Processing Working Group 
 
 We intend to provide the bulk of this work in the form of a shared library that will serve as an external ISIS build and runtime dependency. Our goal is to design the library such that it has utility and value outside of ISIS as a standalone package that can be used by the scientific community to aid in other research and development activities. This includes the USGS CSM environment among others. As such, we would like to solicit feedback and recommendations on best practices for design and implementation strategies that will help guide the development of this library.
 
-### Implications for ISIS System
+## Enhanced Support for Small Body Cartography in the ISIS System
 
-Upon completion and inclusion in ISIS, this library will be used in an implementation of a new shape model class derived from the base class [ShapeModel](https://github.com/DOI-USGS/ISIS3/tree/dev/isis/src/base/objs/ShapeModel). This new shape model will fully replace and incorporate the functionaility of the [NaifDskShape](https://github.com/DOI-USGS/ISIS3/tree/dev/isis/src/base/objs/NaifDskShape), [BulletShapeModel](https://github.com/DOI-USGS/ISIS3/tree/dev/isis/src/base/objs/BulletShapeModel) and [EmbreeShapeModel](https://github.com/DOI-USGS/ISIS3/tree/dev/isis/src/base/objs/EmbreeShapeModel) classes into a single implementation. This will significantly reduce external build/runtime dependencies, code volume, and reduce maintenance costs of enhanced cartographic and geometric support for small irregularly shaped celestial bodies in the ISIS system.
+The features and capabilities in this library were identified as essential modifications and additions to the ISIS system that were required to meet the cartographic and mapping objectives of the OSIRIS-REx sample return mission from the surface of Bennu. While there were some basic capabilities in ISIS for support of small, irregular body cartography, further evaluation and testing identified additional requirements. New features were added to the ISIS 3.6 version and maintained and tested by the OREX/IPWG during three years of proximity operations at Bennu. These features and capabilities were also used in additional projects that involved mapping of 433 Eros (NEAR), 67P Churyumov-Gerasimenko (Rosetta), 19P Borrelly (Deep Space 1), 81P Wild 2 (Stardust), 9P Tempel 1 (Stardust-NExT, Deep Impact) and 103P Hartley 2 (EPOXI (Deep Impact)). Here is a summary of these features and capabilities enabled by this contribution:
+
+- Implemented shape model instance sharing of Bullet shape models to enable use in *qview*, *qmos*, *findfeatures* and *jigsaw* applcations to name a few.
+- Developed techniques to specify use of a ray tracing engine, such as Bullet, NAIF DSK and Embree in spiceinit that persists in each image thereafter.
+- Added support for the OBJ format to the Bullet shape model.
+- Implemented methods to specify multiple shape models that are shared for every image which significantly increases efficiency and eliminates out-of-memory errors due to redundant reloads of the same shape model.
+- Implemented ray tracing prioritization of multiple shape models per image in the Bullet shape model system
+- Implemented threaded loading of multiple shape models which significantly decreases startup times.
+- Fixed Bullet facet partitioning that eliminates the need for USGS to maintain a special version of the Bullet library. This enables direct use of any Bullet library release.
+- Fixed support for regional, non-global shape models.
+- Fixes computations of emission and incidence angles due to stateful object errors in the NAIF DSK, Bullet and Embree shape models.
+- Fixed issues in *noproj* where keywords were dropped that caused loss of ray trace engine history and resulted in errors in resulting image.
+- Add explicit control of thread usage and ray tracing performance metrics.
+
+These additions enabled the following capabilities and improvements in ISIS processing and mapping techniques.
+
+- High precision foreground topography occlusion detection during orthorectified cartographic mapping.
+- High precision sun illumination and shadowing detection. This is also a new backplane option added to *phocube* that can be used as a mask. It is also (optionally) considered in orthorectified mapping.
+- Precise computations of local photometric angles and oblique pixel resolution.
+- Runtime switching of ray trace engine and shape models without rerunning of *spiceinit*. This significantly improves support for *footprintinit*, *jigsaw* and orthorectified mapping as well as enhanced analysis and research activities (e.g., testing/comparisons of shape models in near real time).
+- Development of simulated images from shape models for unsupervised feature matching and establishment of ground truth control networks.
+- Enhanced and improved photometric products for scientific analysis.
+- High precision control and orthorectified projections of cartographic global maps at 5 cm/pixel and 4 mm/pixel regional sample return site maps of Bennu.
+- Full disk (i.e., flyby observations) control/bundle adjustment and geometric backplanes of various comets.
+- Specialized application, *shape2map*, to convert tessellated shape models into ISIS 2.5D shape models.
+
+
+## Implications for ISIS System
+
+Upon completion and inclusion in the current ISIS version, this library will be used in an implementation of a new shape model class derived from the base class [ShapeModel](https://github.com/DOI-USGS/ISIS3/tree/dev/isis/src/base/objs/ShapeModel). This new shape model will fully replace and incorporate the functionality of the [NaifDskShape](https://github.com/DOI-USGS/ISIS3/tree/dev/isis/src/base/objs/NaifDskShape), [BulletShapeModel](https://github.com/DOI-USGS/ISIS3/tree/dev/isis/src/base/objs/BulletShapeModel) and [EmbreeShapeModel](https://github.com/DOI-USGS/ISIS3/tree/dev/isis/src/base/objs/EmbreeShapeModel) classes into a single ShapeModel class implementation. This will significantly reduce external build/runtime dependencies, code volume, and reduce maintenance costs of enhanced cartographic and geometric support for small irregularly shaped celestial bodies in the ISIS system.
 
 ## **Description**
 In general, there will be several categories of contributions that the APEX team will deliver to the USGS/ISIS repository:
@@ -23,7 +52,7 @@ In general, there will be several categories of contributions that the APEX team
 
 Item 1 will consist of normal Issues/PR cycles as they are completed and prepared for inclusion into the ISIS system. In addition to software documentation, item 3 will provide tutorials focused on the UA/ISIS enhancements that were used to process image data of Bennu from the OREX OCAMS and NAVCAM instruments. Item 2 is the main topic of this document. This is a standalone shared library that incorporates all of ISIS' current small, irregular body shape model cartography features and capabilities. This includes support for the [NAIF digital shape kernels (DSK)](https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/Tutorials/pdf/individual_docs/37_dsk.pdf), [Bullet Physics SDK](https://github.com/bulletphysics/bullet3), [Intel Embree](https://www.embree.org) ray tracing libraries. These libraries are specifically designed for specialized ray tracing of high resolution object (or shape) models that are essentially tessellated plate models.
 
-Tessellated plate models consist of a set of floating point 3D vectors that represent surface points from the object body origin and a set of 3D integer indexes that refer to these vectors in the order in which they are stored (in memory). This configuration formulates interconnected triangles (commonly referred to as _facets_) which describe the topography of an object's surface. These models can be stored in files in a variety of forms including NAIF DSK, Wavefront's OBJ, PLY and various other 3D shape model formats. This system will not support ISIS 2.5D digital elevation models (DEM) directly.
+Tessellated plate models consist of a set of floating point 3D vectors that represent surface points from the object body origin and a set of 3D integer indexes that refer to these vectors in the order in which they are stored (in memory). This configuration formulates interconnected triangles (commonly referred to as _facets_) which describe the topography of an object's surface. These models can be stored in files in a variety of forms including NAIF DSK, Wavefront's OBJ, PLY and various other 3D shape model formats. This system will not support ISIS 2.5D digital elevation models (DEM) directly and will not have an ISIS dependency.
 
 ### The Planetary Shape Model and Ray Tracing System Library
 The new library, called the **`Planetary Shape Model and Ray Tracing System`**, (**PSMRTS**) will provide a C-based [application programming interface](https://en.wikipedia.org/wiki/API) (API) that is also [application binary interface](https://en.wikipedia.org/wiki/Application_binary_interface) (ABI) compatible. Through abstraction and [foreign function interfaces](https://en.wikipedia.org/wiki/Foreign_function_interface) (FFI), this shared library will provide the high precision cartographic capabilities in the UA/ISIS system that were developed for the OREX encounter at Bennu. For example, this system was used to produce a [global 5 centimeter resolution orthorectified cartographic mosaic map of Bennu](https://www.asteroidmission.org/bennu_global_mosaic/) and [4 millimeter pixel resolution regional mosaics](https://www.nasa.gov/feature/goddard/2020/osiris-rex-produces-nightingale-mosaic) of potential sample sites. UA/ISIS mainly used the Bullet ray tracing system for cartographic processing of OCAMS images. However the NAIF and Embree systems were also useful for a variety of activities during the mission. Hence, support for these systems will also be included in the `PSMRTS` library.
@@ -194,7 +223,7 @@ The figure below demonstrates the capabilities of the `PSMRTS` system.
 
 ![Figure 1. Eight 5cm tile were used in orthorectified projection of the OCAMS image.](orex_ocams_5cm_prioritized.png)
 
-### Description
+### Details/Description of Figure 1.
 Image A, 20190404T175836S168_pol_iofL2pan, was acquired of Bennu on January 4, 2019 at a distance of ~5km. It is radiometrically calibrated I/F with an average of ~7cm/pixel. Prior to projecting the image, it was controlled to ground using the shape model.
 
 Image B is an orthorectified projected version of Image A into a equirectangular map using a 80cm global DTM. It has the outline of eight 5cm tessellated/faceted tiles superimposed over the map to provide context for Images C & D. The eight 5cm tiles, minimally and collectively, provide coverage of Image A ground FOV with nearly 35 million facets that are managed in the UA/ISIS Bullet Ray Tracing system for all geometric operations. In comparison, the 80cm global DTM has ~3.36 million facets for all of Bennu’s surface.
@@ -205,5 +234,22 @@ Image D is using the same list of 8 5cm tiles as Image C, but the ray trace from
 
 In Image C, you will notice significant anomalies that occurred during orthorectified mapping via ray tracing only in areas of common tile coverage. This indicates very slight (millimeter to centimeter) differences in common overlapping areas of the tiles. These differences are likely due to Poisson reconstruction being applied independently to each tile, resulting in minute differences in common areas, particularly on the edges of boulders and in large areas of differences in topography of the terrain. Image D does not show this same effect because of ray tracing prioritization of the DTM tile list and early termination upon the first surface intercept. It should also be noted that unprioritized processing takes significantly more time. The number of tiles that can be used for any single image is limited to the amount of memory available on the computer system.
 
+### Objectives of this Discussion
+Below are questions and topics of which we are requesting feedback and discussion from the ISIS and scientific community. This identifies the type of information we seek to aid and support the development, utility and adoption of this library.
+
+1. We are hoping for constructive comments/suggestions regarding best practices to develop a diverse, yet simple, implementation of the C-API. The objective is to provide an easy API implementation to code for other languages such as Python, TypeScript, Rust, etc…
+1. How should strings be handled?
+1. We expect significant returns (numbers and volume) of data from ray traces. Some criticisms of the Bullet system is the use of significant allocated memory, which is costly to manage when utilized in an environment such as this and results in memory fragmentation and decreased performance. What are the best ways to prevent this that does not lead to development/data management problems and performance degradation (specifically, we expect an extremely large number of ray tracing operations will occur – at least two per pixel)?
+1. What is the most effective and easiest use of threading? [Boost.Thread](https://theboostcpplibraries.com/boost.thread-management) has a feature that provides an [interrupt() mechanism](https://theboostcpplibraries.com/boost.thread-management#ex.thread_03) that may be used to cleanly (i.e., no corruption, memory leaks, reentrant state, etc…) early-terminate a thread. But this must be considered in the C++ implementation and the effort may not provide the expected benefits.
+1. How many shape model formats should we support?
+1. For OBJ (and potentially other formats), do we also retain and provide the metadata to decorate the object? This will increase the overhead and complexity (and will be targeted for a future revision).
+1. For clarity, all the Qt dependencies will be removed in favor of C++ standards to minimize dependencies and target standardized constructs. What other standards/approaches should be used?
+1. What is the best way to specify the list of (prioritized) shape models and which ray tracing engine is preferred by the (ISIS, specifically, but not exclusive) user?
+1. What type/level of debugging and threading control do users want/need?
 
 
+And some issues specific to ISIS:
+
+10. How does an ISIS user specify which ray trace engine to use? UA/ISIS uses an IsisPreferences file, that contains a **ShapeModel** group, specifed in *spiceinit* only and records in the _Kernels_ group the **RayTraceEngine** keyword. This allows users to run *editlab* to change as needed/desired. This preserves the ray tracing engine until the kernel group disappears.
+1. How should multiple shape model files be provided in *spiceinit*? In UA/ISIS, we specify a PVL file with a .conf file extension that contains a **ShapeModel** keyword containing the prioritized list of shape model files. This allows users to change the contents at will without any additional consideration. *editlab* can be run to set it to _Ellipsoid_ if needed. Whatever is used, _ShapeModelFactory_ must recognize this file and process appropriately.
+1. The IsisPreferences file can also be used to further parameterize the ray trace engine. For example, you can specify the size (i.e., number of facets) of each partition in the UA/ISIS Bullet shape model. You can also add a one-time use of debugging and control use of threading upon loads for shape model files. You can also specify a **Tolerance** in meters of surface intercept precision. And how to behave should an error occur (e.g., continue to the next ray tracing engine or fail). How else might this be accomplished?
