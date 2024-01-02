@@ -20,7 +20,7 @@ while getopts ":htcx" o; do
             extraopts="-DBUILD_EXTRAS=ON"
             ;;
         *)
-            echo "Usage: $0 [-t]"
+            echo "Usage: $0 [-t] [-c] [-x]"
             return 1
             ;;
     esac
