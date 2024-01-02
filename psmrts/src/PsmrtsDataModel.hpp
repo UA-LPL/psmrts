@@ -1,0 +1,167 @@
+#ifndef PsmrtsDataModel_hpp
+#define PsmrtsDataModel_hpp
+
+#include <string>
+#include <memory>
+#include <exception>
+#include <Eigen/Geometry>
+
+namespace psmrts {
+/**
+ * @brief PsmrtsDataModel provides general storage needs for arbitrary data types
+ *
+ * This class provides the fundamentals of storage for a mesh-type, tessellated
+ * plate model. It is designed to store the facet index (integer), vector
+ * (double or float) or can also store most other arbitrary types.
+ *
+ * This design uses the Eigen data type to map the second dimension to make
+ * it usable directly in vector oriented systems.
+ *
+ * @author Kris J. Becker, University of Arizona
+ * @history 2023-12-12 Kris J. Becker  Original Version
+ */
+
+  template <typename T = Eigen::Vector3d>
+    class PsmrtsDataModel {
+      public:
+        typedef typename T::Scalar   Scalar;
+        typedef typename T::Scalar   value_type;
+
+        typedef Eigen::Map<T>        Data;
+        typedef Eigen::Map<const T>  ConstData;
+
+        /** Default constructor */
+        PsmrtsDataModel() {
+          init();
+        }
+
+        /** Construct an array of values */
+        PsmrtsDataModel( const size_t n_data ) {
+          init();
+          allocate( n_data );
+        }
+
+        /** User defined map to n_data T values where total_allocated() = ( value_size() * size() )*/
+        PsmrtsDataModel( const Scalar *data, const size_t n_data ) {
+          init();
+          m_data_prt = data;
+        }
+
+        virtual ~PsmrtsDataModel() { }
+
+        /** Total number of data T allocated */
+        inline size_t size() const {
+          return ( n_t_size );
+        }
+
+        /** Returns the number of values in T */
+        inline size_t data_size() const {
+          return ( m_values_size );
+        }
+
+        /** Returns the number of bytes per T value */
+        inline size_t scalar_size() const {
+          return ( sizeof ( value_type ) );
+        }
+
+        /** Returns the number of scalar values allocated */
+        inline size_t total_allocated() const {
+          return ( m_volume_size );
+        }
+
+
+        /** Returns a copy of the T value at the given index */
+        inline T at( index ) const {
+          return ( T( data( index ) );
+        }
+
+        /** Returns a modifiable reference to data at the give index */
+        inline Data &operator()( const size_t index )  {
+          return ( Data( data( index ) );
+        }
+
+        /** Returns a const reference to data at the give index */
+        inline ConstData &operator()( const size_t index ) const {
+          return ( ConstData( data( index ) );
+        }
+
+      protected:
+
+        /** Validate the index into a T value */
+        inline void validate( const size_t index ) const {
+          if ( index >= m_t_size ) {
+            std::string mess = "Invalid index ( " + std::to_string( index ) +
+                               "), max index is " + std::to_string( m_t_size ) + " - 1";
+            throw std::runtime_error( mess );
+          }
+        }
+
+        /** Compute the value_type index into T data volume */
+        inline size_t data_index( const size_t index ) {
+#if defined( DEBUG ) || defined(PSMRTS_BOUNDS_CHECK)
+          validate( index );
+#endif
+          return ( index * m_values_size );
+        }
+
+        /** Return modifiable memory reference of T at index */
+        inline value_type *data( const size_t index ) {
+          return ( m_data_data_ptr[ data_index( index ) ] );
+        }
+
+        /** Return const memory reference of T at index */
+        inline const value_type *data( const size_t index ) const {
+          return ( m_data_ptr[ data_index( index ) ] );
+        }
+
+        /** Reset all variables to default state which releases any prior data */
+        inline void init() {
+          m_data.reset();
+          m_data_ptr    = m_data.get();
+
+          m_values_size = T().size();
+          m_t_size      = 0;
+          m_volume_size = 0;
+          return;
+        }
+
+        /** Allocate n_data T elements */
+        inline void allocate( const size_t n_data ) {
+          try {
+            size_t v_alloc = n_data * m_values_size;
+
+            m_data = std::shared_ptr<ValueType> ( new value_type(v_alloc],
+                                                  std::default_delete<value_type[]>() );
+            m_data_ptr    = m_data.get();
+
+            m_t_size      = n_data;
+            m_volume_size = v_alloc;
+          }
+          catch ( const std::bad_alloc &b_alloc ) {
+            m_data.reset();
+            m_data_ptr    = m_data.get(;
+            m_t_size      = 0;
+            m_volume_size = 0;
+
+            std::string msg = "Failed to allocate data of size " +
+                              std::to_string( n_data );
+
+            throw std::runtime_error( msg + "\n" + b_alloc.what() );
+          }
+
+          return;
+        }
+
+      private:
+        std::shared_ptr<value_type> m_data;        // Data array T scalar values
+        value_type *m_data_ptr      *m_data_ptr;   // This will allow for 1-based
+                                                   // and user defined data access
+        size_t                      m_values_size; // Number of value_types per T
+        size_t                      m_t_size;      // Number of values of T
+        size_t                      m_volume_size; // m_values_size * m_t_size
+
+
+    };
+}  // namespace psmrts
+
+#endif // PsmrtsDataModel_hpp
