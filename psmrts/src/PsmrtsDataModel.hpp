@@ -44,14 +44,15 @@ namespace psmrts {
         /** User defined map to n_data T values where total_allocated() = ( value_size() * size() )*/
         PsmrtsDataModel( const Scalar *data, const size_t n_data ) {
           init();
-          m_data_prt = data;
+          m_data_ptr = data;
         }
 
+        /** Destructor */
         virtual ~PsmrtsDataModel() { }
 
         /** Total number of data T allocated */
         inline size_t size() const {
-          return ( n_t_size );
+          return ( m_t_size );
         }
 
         /** Returns the number of values in T */
@@ -71,24 +72,24 @@ namespace psmrts {
 
 
         /** Returns a copy of the T value at the given index */
-        inline T at( index ) const {
-          return ( T( data( index ) );
+        inline T at( const int index ) const {
+          return ( T( data( index ) ) );
         }
 
         /** Returns a modifiable reference to data at the give index */
-        inline Data &operator()( const size_t index )  {
-          return ( Data( data( index ) );
+        inline Data operator()( const int index ) {
+          return ( Data( data( index ) ) );
         }
 
         /** Returns a const reference to data at the give index */
-        inline ConstData &operator()( const size_t index ) const {
-          return ( ConstData( data( index ) );
+        inline ConstData operator()( const int index ) const {
+          return ( ConstData( data( index ) ) );
         }
 
       protected:
 
         /** Validate the index into a T value */
-        inline void validate( const size_t index ) const {
+        inline void validate( const int index ) const {
           if ( index >= m_t_size ) {
             std::string mess = "Invalid index ( " + std::to_string( index ) +
                                "), max index is " + std::to_string( m_t_size ) + " - 1";
@@ -97,7 +98,7 @@ namespace psmrts {
         }
 
         /** Compute the value_type index into T data volume */
-        inline size_t data_index( const size_t index ) {
+        inline size_t data_index( const int index ) const {
 #if defined( DEBUG ) || defined(PSMRTS_BOUNDS_CHECK)
           validate( index );
 #endif
@@ -105,13 +106,13 @@ namespace psmrts {
         }
 
         /** Return modifiable memory reference of T at index */
-        inline value_type *data( const size_t index ) {
-          return ( m_data_data_ptr[ data_index( index ) ] );
+        inline value_type *data( const int index ) {
+          return ( m_data_ptr + data_index( index ) );
         }
 
         /** Return const memory reference of T at index */
-        inline const value_type *data( const size_t index ) const {
-          return ( m_data_ptr[ data_index( index ) ] );
+        inline const value_type *data( const int index ) const {
+          return ( m_data_ptr + data_index( index ) );
         }
 
         /** Reset all variables to default state which releases any prior data */
@@ -130,18 +131,15 @@ namespace psmrts {
           try {
             size_t v_alloc = n_data * m_values_size;
 
-            m_data = std::shared_ptr<ValueType> ( new value_type(v_alloc],
-                                                  std::default_delete<value_type[]>() );
+            m_data = std::shared_ptr<value_type> ( new value_type(v_alloc),
+                                                   std::default_delete<value_type[]>() );
             m_data_ptr    = m_data.get();
 
             m_t_size      = n_data;
             m_volume_size = v_alloc;
           }
           catch ( const std::bad_alloc &b_alloc ) {
-            m_data.reset();
-            m_data_ptr    = m_data.get(;
-            m_t_size      = 0;
-            m_volume_size = 0;
+            init();
 
             std::string msg = "Failed to allocate data of size " +
                               std::to_string( n_data );
@@ -154,7 +152,7 @@ namespace psmrts {
 
       private:
         std::shared_ptr<value_type> m_data;        // Data array T scalar values
-        value_type *m_data_ptr      *m_data_ptr;   // This will allow for 1-based
+        value_type                 *m_data_ptr;   // This will allow for 1-based
                                                    // and user defined data access
         size_t                      m_values_size; // Number of value_types per T
         size_t                      m_t_size;      // Number of values of T
