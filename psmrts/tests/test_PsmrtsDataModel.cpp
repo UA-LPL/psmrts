@@ -206,4 +206,17 @@ TEST_CASE( "PsmrtsDataModel (double) Data Values Test", "[datamodel][buffer][dou
   CHECK( data_n[0] == 28.0 ); 
   CHECK( data_n[1] == 29.0 ); 
   CHECK( data_n[2] == 30.0 ); 
+
+  auto p_model_c = ObjVectorData( data_1.data(), 2);
+  ObjVectorData::Data data_c = p_model_c( 0 );
+  CHECK( data_c[0] == 4.0 ); 
+  CHECK( data_c[1] == 5.0 ); 
+  CHECK( data_c[2] == 6.0 ); 
+
+  ObjVectorData::Data data_c1 = p_model_c( 1 );
+  CHECK( data_c1[0] == 7.0 ); 
+  CHECK( data_c1[1] == 8.0 ); 
+  CHECK( data_c1[2] == 9.0 ); 
+
+  CHECK_THROWS( p_model_c(3) );
 }
