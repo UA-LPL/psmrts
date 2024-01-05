@@ -98,6 +98,56 @@ TEST_CASE( "PsmrtsDataModel Protected API Default Test", "[datamodel][buffer][pr
 
 }
 
+TEST_CASE( "PsmrtsDataModel (double) Double Test", "[datamodel][buffer][double]") {
+
+  typedef psmrts::PsmrtsDataModel<Eigen::Vector3d> ObjVectorData;
+
+  const size_t n_data = 100;
+  auto p_model  = ObjVectorData( n_data );
+
+  CHECK( p_model.size()            == n_data );
+  CHECK( p_model.data_size()       == 3 );
+  CHECK( p_model.total_allocated() == (  n_data * p_model.data_size() ) );
+
+
+  CHECK( p_model.scalar_size()     == 8 );
+  CHECK( p_model.scalar_size()     == sizeof( double ) );
+  CHECK( p_model.scalar_size()     == sizeof( ObjVectorData::Scalar ) );
+  CHECK( p_model.scalar_size()     == sizeof( ObjVectorData::value_type ) );
+  CHECK( p_model.scalar_size()     == sizeof( ObjVectorData::Scalar ) );
+  CHECK( p_model.scalar_size()     == sizeof( ObjVectorData::value_type) );
+
+  CHECK_NOTHROW( p_model.at( 0 ) );
+  CHECK_NOTHROW( p_model( 0 ) );
+  CHECK_NOTHROW( p_model( n_data - 1 ) );
+
+}
+
+TEST_CASE( "PsmrtsDataModel (int) Integer Test", "[datamodel][buffer][integer]") {
+
+  typedef psmrts::PsmrtsDataModel<Eigen::Vector3i> ObjIndexData;
+
+  const size_t n_data = 100;
+  auto p_model  = ObjIndexData( n_data );
+
+  CHECK( p_model.size()            == n_data );
+  CHECK( p_model.data_size()       == 3 );
+  CHECK( p_model.total_allocated() == (  n_data * p_model.data_size() ) );
+
+
+  CHECK( p_model.scalar_size()     == 4 );
+  CHECK( p_model.scalar_size()     == sizeof( int ) );
+  CHECK( p_model.scalar_size()     == sizeof( ObjIndexData::Scalar ) );
+  CHECK( p_model.scalar_size()     == sizeof( ObjIndexData::value_type ) );
+  CHECK( p_model.scalar_size()     == sizeof( ObjIndexData::Scalar ) );
+  CHECK( p_model.scalar_size()     == sizeof( ObjIndexData::value_type) );
+
+  CHECK_NOTHROW( p_model.at( 0 ) );
+  CHECK_NOTHROW( p_model( 0 ) );
+  CHECK_NOTHROW( p_model( n_data - 1 ) );
+
+}
+
 TEST_CASE( "PsmrtsDataModel (unsigned char) Byte Test", "[datamodel][buffer][byte]") {
 
   typedef Eigen::Vector<unsigned char, 3>   UCharType;
@@ -121,4 +171,39 @@ TEST_CASE( "PsmrtsDataModel (unsigned char) Byte Test", "[datamodel][buffer][byt
   CHECK_NOTHROW( p_model( 0 ) );
   CHECK_NOTHROW( p_model( n_data - 1 ) );
 
+}
+
+TEST_CASE( "PsmrtsDataModel (double) Data Values Test", "[datamodel][buffer][double][values]") {
+
+  typedef psmrts::PsmrtsDataModel<Eigen::Vector3d> ObjVectorData;
+
+  const size_t n_data = 10;
+  auto p_model  = ObjVectorData( n_data );
+
+  CHECK( p_model.size()            == n_data );
+  CHECK( p_model.data_size()       == 3 );
+  CHECK( p_model.total_allocated() == (  n_data * p_model.data_size() ) );
+
+  double value = 1.0;
+  for ( int n = 0 ; n < p_model.size() ; n++ ) {
+    ObjVectorData::Data data_t = p_model( n ); 
+    for ( int v = 0 ; v < data_t.size() ; v++ ) {
+      data_t[v] = value++; 
+    }
+  }
+
+  ObjVectorData::Data data_0 = p_model( 0 ); 
+  CHECK( data_0[0] == 1.0 ); 
+  CHECK( data_0[1] == 2.0 ); 
+  CHECK( data_0[2] == 3.0 ); 
+  
+  ObjVectorData::Data data_1 = p_model( 1 ); 
+  CHECK( data_1[0] == 4.0 ); 
+  CHECK( data_1[1] == 5.0 ); 
+  CHECK( data_1[2] == 6.0 ); 
+
+  ObjVectorData::Data data_n = p_model( n_data - 1 ); 
+  CHECK( data_n[0] == 28.0 ); 
+  CHECK( data_n[1] == 29.0 ); 
+  CHECK( data_n[2] == 30.0 ); 
 }
