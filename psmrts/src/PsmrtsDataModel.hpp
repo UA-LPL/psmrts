@@ -42,9 +42,11 @@ namespace psmrts {
         }
 
         /** User defined map to n_data T values where total_allocated() = ( value_size() * size() )*/
-        PsmrtsDataModel( const Scalar *data, const size_t n_data ) {
+        PsmrtsDataModel( Scalar *data, const size_t n_data ) {
           init();
           m_data_ptr = data;
+          m_t_size = n_data;
+          m_volume_size = n_data * data_size();
         }
 
         /** Destructor */
