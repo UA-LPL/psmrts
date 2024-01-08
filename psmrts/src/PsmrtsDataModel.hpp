@@ -100,7 +100,7 @@ namespace psmrts {
         }
 
         /** Compute the value_type index into T data volume */
-        inline size_t data_index( const int index ) const {
+        inline int get_data_index( const int index ) const {
 #if defined( DEBUG ) || defined(PSMRTS_BOUNDS_CHECK)
           validate( index );
 #endif
@@ -109,12 +109,12 @@ namespace psmrts {
 
         /** Return modifiable memory reference of T at index */
         inline value_type *get_data_ref( const int index ) {
-          return ( m_data_ptr + data_index( index ) );
+          return ( m_data_ptr + get_data_index( index ) );
         }
 
         /** Return const memory reference of T at index */
         inline const value_type *get_data_ref( const int index ) const {
-          return ( m_data_ptr + data_index( index ) );
+          return ( m_data_ptr + get_data_index( index ) );
         }
 
         /** Reset all variables to default state which releases any prior data */

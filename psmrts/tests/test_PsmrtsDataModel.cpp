@@ -37,7 +37,7 @@ TEST_CASE( "PsmrtsDataModel Protected API Default Test", "[datamodel][buffer][pr
       }
 
       inline int data_index_t( const int index ) const {
-        return ( this->data_index( index ) );
+        return ( this->get_data_index( index ) );
       }
 
       inline const value_type *get_data_t( const int index ) const {
