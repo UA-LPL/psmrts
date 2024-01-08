@@ -15,7 +15,6 @@ TEST_CASE( "PsmrtsDataModel Default Test", "[datamodel][buffer][default]") {
 
   CHECK( p_model.scalar_size()     == 8 );
   CHECK( p_model.scalar_size()     == sizeof( double ) );
-  CHECK( p_model.scalar_size()     == sizeof( psmrts::PsmrtsDataModel<>::Scalar ) );
   CHECK( p_model.scalar_size()     == sizeof( psmrts::PsmrtsDataModel<>::value_type) );
 
   CHECK_THROWS( p_model.at( 0 ) );
@@ -27,8 +26,8 @@ TEST_CASE( "PsmrtsDataModel Protected API Default Test", "[datamodel][buffer][pr
   /** Create derived class to tests protected methods */
   class PsmrtsTestDataBuffer : public psmrts::PsmrtsDataModel<> {
     public:
-      typedef PsmrtsDataModel<>::Scalar      Scalar;
-      typedef PsmrtsDataModel<>::value_type  value_type;
+      typedef PsmrtsDataModel<>::data_type       data_type;
+      typedef PsmrtsDataModel<>::value_type      value_type;
 
       PsmrtsTestDataBuffer() { }
       ~PsmrtsTestDataBuffer() { }
@@ -41,11 +40,11 @@ TEST_CASE( "PsmrtsDataModel Protected API Default Test", "[datamodel][buffer][pr
         return ( this->data_index( index ) );
       }
 
-      inline const value_type *data_t( const int index ) const {
-        return ( this->data( index ) );
+      inline const value_type *get_data_t( const int index ) const {
+        return ( this->get_data_ref( index ) );
       }
-      inline value_type *data_t( const int index ) {
-        return ( this->data( index ) );
+      inline value_type *get_data_t( const int index ) {
+        return ( this->get_data_ref( index ) );
       }
 
       inline void init_t() {
@@ -69,7 +68,6 @@ TEST_CASE( "PsmrtsDataModel Protected API Default Test", "[datamodel][buffer][pr
 
   CHECK( p_model_t.scalar_size()     == 8 );
   CHECK( p_model_t.scalar_size()     == sizeof( double ) );
-  CHECK( p_model_t.scalar_size()     == sizeof( PsmrtsTestDataBuffer::Scalar ) );
   CHECK( p_model_t.scalar_size()     == sizeof( PsmrtsTestDataBuffer::value_type) );
 
   CHECK_THROWS( p_model_t.at( 0 ) );
@@ -77,8 +75,8 @@ TEST_CASE( "PsmrtsDataModel Protected API Default Test", "[datamodel][buffer][pr
 
   // Now check the protected API
   CHECK_THROWS( p_model_t.validate_t( 0 ) );
-  CHECK_THROWS( p_model_t.data_t( 0 ) );
-  CHECK_THROWS( p_model_t.data_t( 0 ) );
+  CHECK_THROWS( p_model_t.get_data_t( 0 ) );
+  CHECK_THROWS( p_model_t.get_data_t( 0 ) );
 
   // Lets allocate a small buffer
   size_t n_data  = 10;
@@ -112,9 +110,6 @@ TEST_CASE( "PsmrtsDataModel (double) Double Test", "[datamodel][buffer][double]"
 
   CHECK( p_model.scalar_size()     == 8 );
   CHECK( p_model.scalar_size()     == sizeof( double ) );
-  CHECK( p_model.scalar_size()     == sizeof( ObjVectorData::Scalar ) );
-  CHECK( p_model.scalar_size()     == sizeof( ObjVectorData::value_type ) );
-  CHECK( p_model.scalar_size()     == sizeof( ObjVectorData::Scalar ) );
   CHECK( p_model.scalar_size()     == sizeof( ObjVectorData::value_type) );
 
   CHECK_NOTHROW( p_model.at( 0 ) );
@@ -137,9 +132,6 @@ TEST_CASE( "PsmrtsDataModel (int) Integer Test", "[datamodel][buffer][integer]")
 
   CHECK( p_model.scalar_size()     == 4 );
   CHECK( p_model.scalar_size()     == sizeof( int ) );
-  CHECK( p_model.scalar_size()     == sizeof( ObjIndexData::Scalar ) );
-  CHECK( p_model.scalar_size()     == sizeof( ObjIndexData::value_type ) );
-  CHECK( p_model.scalar_size()     == sizeof( ObjIndexData::Scalar ) );
   CHECK( p_model.scalar_size()     == sizeof( ObjIndexData::value_type) );
 
   CHECK_NOTHROW( p_model.at( 0 ) );
@@ -162,9 +154,7 @@ TEST_CASE( "PsmrtsDataModel (unsigned char) Byte Test", "[datamodel][buffer][byt
 
   CHECK( p_model.scalar_size()     == 1 );
   CHECK( p_model.scalar_size()     == sizeof( unsigned char ) );
-  CHECK( p_model.scalar_size()     == sizeof( UCharType::Scalar ) );
   CHECK( p_model.scalar_size()     == sizeof( UCharType::value_type ) );
-  CHECK( p_model.scalar_size()     == sizeof( psmrts::PsmrtsDataModel<UCharType>::Scalar ) );
   CHECK( p_model.scalar_size()     == sizeof( psmrts::PsmrtsDataModel<UCharType>::value_type) );
 
   CHECK_NOTHROW( p_model.at( 0 ) );
@@ -186,34 +176,34 @@ TEST_CASE( "PsmrtsDataModel (double) Data Values Test", "[datamodel][buffer][dou
 
   double value = 1.0;
   for ( int n = 0 ; n < p_model.size() ; n++ ) {
-    ObjVectorData::Data data_t = p_model( n ); 
+    ObjVectorData::data_reference data_t = p_model( n ); 
     for ( int v = 0 ; v < data_t.size() ; v++ ) {
       data_t[v] = value++; 
     }
   }
 
-  ObjVectorData::Data data_0 = p_model( 0 ); 
+  ObjVectorData::data_reference data_0 = p_model( 0 ); 
   CHECK( data_0[0] == 1.0 ); 
   CHECK( data_0[1] == 2.0 ); 
   CHECK( data_0[2] == 3.0 ); 
   
-  ObjVectorData::Data data_1 = p_model( 1 ); 
+  ObjVectorData::data_reference data_1 = p_model( 1 ); 
   CHECK( data_1[0] == 4.0 ); 
   CHECK( data_1[1] == 5.0 ); 
   CHECK( data_1[2] == 6.0 ); 
 
-  ObjVectorData::Data data_n = p_model( n_data - 1 ); 
+  ObjVectorData::data_reference data_n = p_model( n_data - 1 ); 
   CHECK( data_n[0] == 28.0 ); 
   CHECK( data_n[1] == 29.0 ); 
   CHECK( data_n[2] == 30.0 ); 
 
   auto p_model_c = ObjVectorData( data_1.data(), 2);
-  ObjVectorData::Data data_c = p_model_c( 0 );
+  ObjVectorData::data_reference data_c = p_model_c( 0 );
   CHECK( data_c[0] == 4.0 ); 
   CHECK( data_c[1] == 5.0 ); 
   CHECK( data_c[2] == 6.0 ); 
 
-  ObjVectorData::Data data_c1 = p_model_c( 1 );
+  ObjVectorData::data_reference data_c1 = p_model_c( 1 );
   CHECK( data_c1[0] == 7.0 ); 
   CHECK( data_c1[1] == 8.0 ); 
   CHECK( data_c1[2] == 9.0 ); 

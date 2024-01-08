@@ -24,11 +24,11 @@ namespace psmrts {
   template <typename T = Eigen::Vector3d>
     class PsmrtsDataModel {
       public:
-        typedef typename T::Scalar   Scalar;
+        typedef T                    data_type;
         typedef typename T::Scalar   value_type;
 
-        typedef Eigen::Map<T>        Data;
-        typedef Eigen::Map<const T>  ConstData;
+        typedef Eigen::Map<T>        data_reference;
+        typedef Eigen::Map<const T>  const_data_reference;
 
         /** Default constructor */
         PsmrtsDataModel() {
@@ -42,7 +42,7 @@ namespace psmrts {
         }
 
         /** User defined map to n_data T values where total_allocated() = ( value_size() * size() )*/
-        PsmrtsDataModel( Scalar *data, const size_t n_data ) {
+        PsmrtsDataModel( value_type *data, const size_t n_data ) {
           init();
           m_data_ptr = data;
           m_t_size = n_data;
@@ -75,17 +75,17 @@ namespace psmrts {
 
         /** Returns a copy of the T value at the given index */
         inline T at( const int index ) const {
-          return ( T( data( index ) ) );
+          return ( T( get_data_ref( index ) ) );
         }
 
         /** Returns a modifiable reference to data at the give index */
-        inline Data operator()( const int index ) {
-          return ( Data( data( index ) ) );
+        inline data_reference operator()( const int index ) {
+          return ( data_reference( get_data_ref( index ) ) );
         }
 
         /** Returns a const reference to data at the give index */
-        inline ConstData operator()( const int index ) const {
-          return ( ConstData( data( index ) ) );
+        inline const_data_reference operator()( const int index ) const {
+          return ( const_data_reference( get_data_ref( index ) ) );
         }
 
       protected:
@@ -108,12 +108,12 @@ namespace psmrts {
         }
 
         /** Return modifiable memory reference of T at index */
-        inline value_type *data( const int index ) {
+        inline value_type *get_data_ref( const int index ) {
           return ( m_data_ptr + data_index( index ) );
         }
 
         /** Return const memory reference of T at index */
-        inline const value_type *data( const int index ) const {
+        inline const value_type *get_data_ref( const int index ) const {
           return ( m_data_ptr + data_index( index ) );
         }
 
