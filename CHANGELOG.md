@@ -34,6 +34,24 @@ release.
 
 ## TODO
 
+## [0.0.2] 2024-01-11
+- Added float test to test_PsmrtsDataModel.cpp
+- Few more data index changes for consistency
+- Fixed typedefs and cleaned up interface
+- Added additional tests for existing data
+- Fix mapping of existing data
+- Added additional tests
+- Add integrate of vcpkg install for efficiency
+- Add clean script
+- Add instructions to install pkg-config for MacOS
+- Fix passing of parameters to build scripts
+- Update PSMRTS README
+- Fix Catch2 test configuration and initial tests
+- Add spdlog and tinyobjloader dependencies
+- Container and tests for PSMRTS data
+- Build script for PSMRTS
+- Onboarding documentation for PSMRTS
+- Add options to build tests and extras
 
 ## [0.0.1] 2023-10-06
 ### Initial Version
