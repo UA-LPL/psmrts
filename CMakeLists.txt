@@ -25,6 +25,7 @@ set( PSMRTS_PROJECT_DIR  ${CMAKE_SOURCE_DIR} )
 # Set psmrts source and include directory
 set( PSMRTS_BUILD_DIR    ${CMAKE_BINARY_DIR} )
 include_directories( psmrts/src )
+include_directories( tracers/naifdsk/src )
 
 find_package( spdlog CONFIG REQUIRED )
 find_package( Eigen3 CONFIG REQUIRED )
@@ -41,6 +42,7 @@ find_library( SPICE_LIB cspice )
 # Optionally add unit tests of psmrts classes
 if( BUILD_TESTING )
   add_subdirectory( psmrts/tests )
+  add_subdirectory( tracers/naifdsk/tests )
   enable_testing()
 endif( BUILD_TESTING )
 
