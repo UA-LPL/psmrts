@@ -48,6 +48,15 @@ namespace naif {
         return ( Eigen::Vector3d( { a(), b(), c() } ) );
       }
 
+      inline double minimum_radius() const {
+        return ( std::min( a(), std::min( b(), c() ) ) );
+      }
+
+      inline double maximum_radius() const {
+        return ( std::max( a(), std::max( b(), c() ) ) );
+      }
+
+
       inline bool ray_trace( const Eigen::Vector3d &observer, const Eigen::Vector3d &lookdir,
                              Eigen::Vector3d &point) const {
         
