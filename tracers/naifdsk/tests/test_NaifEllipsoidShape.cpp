@@ -3,7 +3,7 @@
 
 #include <NaifEllipsoidShape.hpp>
 
-TEST_CASE( "NaifEllipsoidShape Default Test", "[naif][ellipsiod][default]") {
+TEST_CASE( "NaifEllipsoidShape Default Test", "[naif][ellipsoid][default]") {
 
   const double tolerance = 1.0e-6;
 

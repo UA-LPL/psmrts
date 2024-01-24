@@ -5,4 +5,8 @@
 #include <NaifUtilities.hpp>
 
 
-TEST_CASE ( "NAIF Utilities Test - )
+TEST_CASE ( "NAIF Utilities Test - Basics", "[naif][utilities]" ) {
+
+    CHECK_NOTHROW( naif::initKernelSystem() );
+    
+}
