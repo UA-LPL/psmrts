@@ -9,7 +9,8 @@ include_directories( ${PSMRTS_PROJECT_DIR}/psmrts/tests )
 
 # Build all-in-one renderer test application
 add_executable( naif_test_suite  naif_catch2_main.cpp
-                                 test_NaifEllipsoidShape.cpp )
+                                 test_NaifEllipsoidShape.cpp 
+                                 test_NaifUtilities.cpp )
 
 
 if( BUILD_COVERAGE )

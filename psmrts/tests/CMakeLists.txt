@@ -8,7 +8,8 @@ set( CMAKE_INCLUDE_CURRENT_DIR ON )
 
 # Build all-in-one renderer test application
 add_executable( psmrts_test_suite  psmrts_catch2_main.cpp
-                                   test_PsmrtsDataModel.cpp )
+                                   test_PsmrtsDataModel.cpp 
+                                   test_PsmrtsUtilities.cpp )
 
 
 if( BUILD_COVERAGE )
