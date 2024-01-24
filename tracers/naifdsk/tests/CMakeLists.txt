@@ -5,11 +5,12 @@ find_package( Catch2 CONFIG REQUIRED )
 
 # Add the test directory for includes
 set( CMAKE_INCLUDE_CURRENT_DIR ON )
+include_directories( ${PSMRTS_PROJECT_DIR}/psmrts/tests )
 
 # Build all-in-one renderer test application
-add_executable( psmrts_test_suite  psmrts_catch2_main.cpp
-                                   test_PsmrtsDataModel.cpp 
-                                   test_PsmrtsUtilities.cpp )
+add_executable( naif_test_suite  naif_catch2_main.cpp
+                                 test_NaifEllipsoidShape.cpp 
+                                 test_NaifUtilities.cpp )
 
 
 if( BUILD_COVERAGE )
@@ -22,13 +23,14 @@ if( BUILD_COVERAGE )
 endif()
 
 # Add required libraries as needed for psmrts_test_suite
-target_link_libraries( psmrts_test_suite PRIVATE Catch2::Catch2WithMain )
-target_link_libraries( psmrts_test_suite PRIVATE "${SPICE_LIB}" )
-target_link_libraries( psmrts_test_suite PRIVATE spdlog::spdlog_header_only )
+target_link_libraries( naif_test_suite PRIVATE Catch2::Catch2WithMain )
+target_link_libraries( naif_test_suite PRIVATE Eigen3::Eigen)
+target_link_libraries( naif_test_suite PRIVATE "${SPICE_LIB}" )
+target_link_libraries( naif_test_suite PRIVATE spdlog::spdlog_header_only )
 
 #  Add the tests to the system
 include( CTest )
 include( Catch )
 
 # Run ctest and all catch2 tests in the build directory!
-catch_discover_tests( psmrts_test_suite WORKING_DIRECTORY ${CMAKE_BINARY_DIR} )
+catch_discover_tests( naif_test_suite WORKING_DIRECTORY ${CMAKE_BINARY_DIR} )
