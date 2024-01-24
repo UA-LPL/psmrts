@@ -1,4 +1,4 @@
-// #define CATCH_CONFIG_MAIN
+
 #include <psmrts_catch2_environment.hpp>
 
 #include <NaifEllipsoidShape.hpp>

@@ -3,7 +3,7 @@
 
 #include <PsmrtsUtilities.hpp>
 
-TEST_CASE( "PSMRTS Longitude Domain Test - 360 to 180", "[utilities][longitude][values]" ) {
+TEST_CASE( "PSMRTS Longitude Domain Test - 360 to 180", "[utilities][longitude][180Domain]" ) {
 
     const double tolerance = 1.0e-6;
 
@@ -18,7 +18,7 @@ TEST_CASE( "PSMRTS Longitude Domain Test - 360 to 180", "[utilities][longitude][
 
 }
 
-TEST_CASE( "PSMRTS Longitude Domain Test - 180 to 360", "[utilities][longitude][values]") {
+TEST_CASE( "PSMRTS Longitude Domain Test - 180 to 360", "[utilities][longitude][360Domain]") {
 
     const double tolerance = 1.0e-6;
 
