@@ -78,3 +78,17 @@ TEST_CASE( "GENERATE Output Test", "[generate]") {
   CHECK_THAT( n_long, Catch::Matchers::WithinAbs(longitude, tolerance ));
   CHECK_THAT( n_rad, Catch::Matchers::WithinAbs(radius, tolerance ));
 }
+
+TEST_CASE( "NaifEllipsoidShape Maximum/Minimum Radius Test", "[naif][radius]" ) {
+  const double tolerance = 1.0e-6;
+
+  naif::NaifEllipsoidShape t_ellipse(1.0, 2.0, 3.0);
+
+  CHECK_THAT ( t_ellipse.a() , Catch::Matchers::WithinAbs(1.0, tolerance));
+  CHECK_THAT ( t_ellipse.b() , Catch::Matchers::WithinAbs(2.0, tolerance));
+  CHECK_THAT ( t_ellipse.c() , Catch::Matchers::WithinAbs(3.0, tolerance));
+
+  CHECK ( t_ellipse.c() == t_ellipse.maximum_radius() );
+  CHECK ( t_ellipse.a() == t_ellipse.minimum_radius() );
+}
+
