@@ -1,7 +1,10 @@
 #ifndef NaifUtilities_hpp
 #define NaifUtilities_hpp
 
+#include <iostream>
+
 #include <cspice/SpiceUsr.h>
+
 
 namespace naif {
 
@@ -55,7 +58,7 @@ namespace naif {
 
     // Check for an error condition                                  
     if ( !failed_c() ) return ( false );
-
+    std::cout << "Detected Naif Error" << std::endl;
     if ( throw_on_error ) {
       throw std::runtime_error( "*** NAIF::Error - " + get_error_msg() + " ***" );
     }
