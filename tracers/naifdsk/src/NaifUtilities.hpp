@@ -73,33 +73,6 @@ namespace naif {
     return ( et );
   }
 
-  typedef struct kernel_descriptor {
-    kernel_descriptor() : 
-                         m_kernel_file(),
-                         m_kernel_type(), 
-                         m_handle(-1),
-                         m_source(),
-                         m_found( 0 ) { }
-
-    std::string  m_kernel_file;
-    std::string  m_kernel_type;
-    SpiceInt     m_handle;
-    std::string  m_source;
-    SpiceBoolean m_found;
-
-    inline bool isgood() const {
-      return ( 0 != m_found );
-    }
-
-  } KernelDescriptor;
-
-
-  typedef struct dsk_segment {
-
-  } DskSegment;
-
-
-
 } // namespace naif
 
 #endif
