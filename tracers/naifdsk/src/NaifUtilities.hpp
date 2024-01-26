@@ -10,10 +10,6 @@ namespace naif {
 
 // #include <cspice/SpiceUsr.h>
 
-  inline void initKernelSystem() {
-    kclear_c();
-    return;
-  }
 
   inline void setReturnMode( ) {
     SpiceChar retmode[32] = { "RETURN"};
@@ -24,6 +20,13 @@ namespace naif {
   inline void setPrintMode( ) {
     SpiceChar prtmode[32] = { "NONE"};
     errprt_c( "SET", sizeof( prtmode ), prtmode );
+    return;
+  }
+
+  inline void initKernelSystem() {
+    kclear_c();
+    setReturnMode();
+    setPrintMode();
     return;
   }
 
