@@ -50,7 +50,6 @@ namespace naif {
   class KernelFileSystem {
     public:
 
-      // typedef naif::KernelDescriptor           KernelDescriptor;
       typedef std::vector<KernelDescriptor>     KernelFileList;
 
 
@@ -60,6 +59,8 @@ namespace naif {
 
       /**
        * @brief Retrives information for a NAIF kernel loaded with furnsh_c()
+       * 
+       * See https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/C/cspice/kinfo_c.html
        * 
        * @param kernelfile         Name of the kernel to find
        * @return KernelDescriptor  Structure containing results from NAIF file system
@@ -109,11 +110,14 @@ namespace naif {
       /**
        * @brief Retrieve a typed list of NAIF kernels currently loaded in NAIF
        * 
+       * See https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/C/cspice/kdata_c.html.
+       * 
        * @param kerneltypes Type of kernels to retrieve counts for. This can be
        *              list of types separated by spaces or a single string
        *              of the type to check. Default: "ALL".
        * 
-       * See also kernel_info(). 
+       * @see kernel_count()
+       * @see kernel_info()
        */
       static inline KernelFileList kernel_filetype_info( const std::string &kerneltypes = "ALL" ) {
 
