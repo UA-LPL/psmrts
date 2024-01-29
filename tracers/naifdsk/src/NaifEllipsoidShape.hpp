@@ -62,7 +62,8 @@ namespace naif {
         
         SpiceBoolean found;
         (void) surfpt_c( observer.data(), lookdir.data(), a(), b(), c(), point.data(), &found );
-        check_for_errors();
+        check_naif_errors();
+        
         return ( found != SPICEFALSE );
       }
 

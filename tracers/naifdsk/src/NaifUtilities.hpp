@@ -24,9 +24,13 @@ namespace naif {
   }
 
   inline void initKernelSystem() {
-    kclear_c();
     setReturnMode();
     setPrintMode();
+    return;
+  }
+
+  inline void clearKernelSystem() {
+    kclear_c();
     return;
   }
 
@@ -56,8 +60,8 @@ namespace naif {
    * @return true  If no errror occurs
    * @return false If an error occured
    */
-  inline bool check_for_errors( const bool b_reset = true,
-                                const bool throw_on_error = true ) {
+  inline bool check_naif_errors( const bool b_reset = true,
+                                 const bool throw_on_error = true ) {
 
     // Check for an error condition                                  
     if ( !failed_c() ) return ( false );

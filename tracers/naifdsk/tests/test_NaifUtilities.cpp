@@ -12,16 +12,16 @@ TEST_CASE ( "NAIF Utilities Test - Basics", "[naif][utilities]" ) {
 }
 
 TEST_CASE ( "NAIF Utilities Test - loading IK Kernal", "[naif][kernel]" ) {
-    std::string file = "../tracers/naifdsk/data/orx_ocams_v07.ti";
+    std::string file = psmrts_tracers_path( "/naifdsk/data/orx_ocams_v07.ti" );
     CHECK_NOTHROW ( naif::initKernelSystem() );
     CHECK_NOTHROW ( naif::load_kernel(file) );
-    CHECK_NOTHROW ( naif::check_for_errors() );
+    CHECK_NOTHROW ( naif::check_naif_errors() );
     CHECK_NOTHROW ( naif::unload_kernel(file) );
-    CHECK_NOTHROW ( naif::check_for_errors() );
+    CHECK_NOTHROW ( naif::check_naif_errors() );
 
     std::string bad_file = "../tracers/naifdsk/data/orx_ocams_v07.ti.DNE";
     CHECK_NOTHROW ( naif::initKernelSystem() );
     CHECK_NOTHROW ( naif::load_kernel(bad_file) );
-    CHECK_THROWS ( naif::check_for_errors() );
+    CHECK_THROWS ( naif::check_naif_errors() );
 
 }
