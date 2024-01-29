@@ -1,6 +1,7 @@
 #ifndef NaifUtilities_hpp
 #define NaifUtilities_hpp
 
+#include <string>
 #include <iostream>
 
 #include <cspice/SpiceUsr.h>
@@ -11,26 +12,42 @@ namespace naif {
 // #include <cspice/SpiceUsr.h>
 
 
-  inline void setReturnMode( ) {
-    SpiceChar retmode[32] = { "RETURN"};
-    erract_c( "SET", sizeof( retmode ), retmode );
+  inline void setReturnMode( const std::string &u_retmode = "RETURN" ) {
+
+    int retmode_len = u_retmode.size();
+    constexpr int MAXLEN = 1024;
+    SpiceChar retmode[MAXLEN];
+
+    int maxchars = std::min( retmode_len+1, MAXLEN-1 );
+    std::strncpy( retmode, u_retmode.c_str(), maxchars );
+
+    erract_c( "SET", MAXLEN, retmode );
     return;
   }
 
-  inline void setPrintMode( ) {
-    SpiceChar prtmode[32] = { "NONE"};
-    errprt_c( "SET", sizeof( prtmode ), prtmode );
-    return;
-  }
+  inline void setPrintMode( const std::string &u_prtmode = "NONE" ) {
 
-  inline void initKernelSystem() {
-    setReturnMode();
-    setPrintMode();
+    int prtmode_len = u_prtmode.size();
+
+    constexpr int MAXLEN = 1024;
+    SpiceChar prtmode[MAXLEN];
+
+    int maxchars = std::min( prtmode_len+1, MAXLEN-1 );
+    std::strncpy( prtmode, u_prtmode.c_str(), maxchars );
+  
+    errprt_c( "SET", MAXLEN, prtmode );
     return;
   }
 
   inline void clearKernelSystem() {
     kclear_c();
+    return;
+  }
+
+  inline void initKernelSystem( const bool clear_pool = true ) {
+    setReturnMode();
+    setPrintMode();
+    if ( clear_pool ) clearKernelSystem();
     return;
   }
 
@@ -42,7 +59,7 @@ namespace naif {
     unload_c( kfile.c_str() );
   }
 
-  inline std::string get_error_msg( ) {
+  inline std::string get_naif_error_msg( ) {
     const int NAIF_ERROR_STRING_SIZE = 2000;
     SpiceChar errmsg[NAIF_ERROR_STRING_SIZE];
     getmsg_c("LONG", NAIF_ERROR_STRING_SIZE, errmsg );
@@ -67,7 +84,7 @@ namespace naif {
     if ( !failed_c() ) return ( false );
 
     if ( throw_on_error ) {
-      throw std::runtime_error( "*** NAIF::Error - " + get_error_msg() + " ***" );
+      throw std::runtime_error( "*** NAIF::Error - " + get_naif_error_msg() + " ***" );
     }
 
     if ( b_reset ) {
