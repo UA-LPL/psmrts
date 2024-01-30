@@ -41,8 +41,8 @@ TEST_CASE( "GENERATE Output Test", "[generate]") {
   
   const double tolerance = 1.0e-6;
 
-  double lat_val = GENERATE( -90.0, -45.0, 0.0, 45.0, 90.0);
-  double long_val = GENERATE( -180.0, -90.0, 0.0, 45.0, 90.0, 180.0, 359.999);
+  double lat_val = GENERATE( -90.0, -45.0, 0.0, 45.0, 90.0 );
+  double long_val = GENERATE( -180.0, -90.0, 0.0, 45.0, 90.0, 180.0, 359.999 );
 
   if ( long_val > 180 ) { 
     long_val -= 360.0;
@@ -92,3 +92,36 @@ TEST_CASE( "NaifEllipsoidShape Maximum/Minimum Radius Test", "[naif][radius]" ) 
   CHECK ( t_ellipse.a() == t_ellipse.minimum_radius() );
 }
 
+
+TEST_CASE ( "NAIFEllipsoidShape Ray Trace Value Check", "[naif][ellipsoid][raytrace]" ) {
+
+const double tolerance = 1.0e-6;
+
+naif::NaifEllipsoidShape t_ellipse;
+
+Eigen::Vector3d obs;
+double radius = 1.0;
+double obs_long = 45.0 * rpd_c();
+double obs_lat = 45.0 * rpd_c();
+latrec_c ( radius, obs_long, obs_lat, obs.data() );
+obs = obs * 10.0;
+
+
+Eigen::Vector3d surf;
+double surf_long = 45.0 * rpd_c();
+double surf_lat = 50.0 * rpd_c();
+latrec_c ( radius, surf_long, surf_lat, surf.data() );
+
+
+Eigen::Vector3d lkdr = obs - surf;
+
+Eigen::Vector3d spt( { 0, 0, 0 } ) ;
+
+bool good = t_ellipse.ray_trace(-obs, lkdr, spt);
+
+CHECK ( good == true ); 
+CHECK_THAT ( spt[0] , Catch::Matchers::WithinAbs(-surf[0], tolerance));
+CHECK_THAT ( spt[1] , Catch::Matchers::WithinAbs(-surf[1], tolerance));
+CHECK_THAT ( spt[2] , Catch::Matchers::WithinAbs(-surf[2], tolerance));
+
+}
