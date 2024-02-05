@@ -125,3 +125,52 @@ CHECK_THAT ( spt[1] , Catch::Matchers::WithinAbs(-surf[1], tolerance));
 CHECK_THAT ( spt[2] , Catch::Matchers::WithinAbs(-surf[2], tolerance));
 
 }
+
+TEST_CASE ( "NAIFEllipsoidShape Ray Trace Value-Range Test", "[naif][raytrace][observer]") {
+  const double tolerance = 1.0e-6;
+
+  naif::NaifEllipsoidShape t_ellipse;
+
+  double long_val = GENERATE( -180.0, -140.0, -90.0, -45.0, 0.0, 45.0, 90.0, 140.0, 180.0); // create range - should check for 360? -180 - 180
+  double lat_val = GENERATE( -90.0, -45.0, 0.0, 45.0, 90.0 );// lat val -90 - 90.
+  // Need to use 
+
+  Eigen::Vector3d obs;
+  double radius = 1.0;
+  double obs_long = long_val * rpd_c();
+  double obs_lat = lat_val * rpd_c();
+  latrec_c ( radius, obs_long, obs_lat, obs.data() );
+  obs = obs * 10;
+
+  Eigen::Vector3d surf;
+  double surf_long = 45.0 * rpd_c();
+  double surf_lat = 50.0 * rpd_c(); 
+  latrec_c ( radius, surf_long, surf_lat, surf.data() );
+
+  Eigen::Vector3d lkdr = obs - surf;
+
+  Eigen::Vector3d spt ( { 0, 0, 0, } );
+
+  bool good = t_ellipse.ray_trace(-obs, lkdr, spt);
+  // call surfpt_c w/ parameters, declare bool - true vs 0. Found == 0, not found / or 1 if found 
+
+  Eigen::Vector3d naif_spt ( { 0, 0, 0, } );
+  Eigen::Vector3d observer = -obs;
+
+  SpiceBoolean found; 
+  surfpt_c( observer.data(), lkdr.data(), t_ellipse.a(), t_ellipse.b(), t_ellipse.c(), naif_spt.data(), &found );
+
+
+  CHECK ( good == (found == SPICETRUE ));
+
+  INFO( "Lon/Lat = " << long_val << ", " << lat_val );
+
+  CHECK ( good == true ); 
+  if ( good ) {
+    CHECK_THAT ( spt[0] , Catch::Matchers::WithinAbs( -surf[0], tolerance )); 
+    CHECK_THAT ( spt[1] , Catch::Matchers::WithinAbs( -surf[1], tolerance ));
+    CHECK_THAT ( spt[2] , Catch::Matchers::WithinAbs( -surf[2], tolerance ));
+  }
+  
+
+}

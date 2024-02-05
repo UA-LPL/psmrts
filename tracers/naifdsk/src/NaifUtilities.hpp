@@ -100,6 +100,12 @@ namespace naif {
     return ( et );
   }
 
+
+  inline std::string et_to_isoc( const double et, const int prec = 3 ) {
+    SpiceChar utc[80] ;
+    et2utc_c( et, "ISOC" , prec, sizeof(utc), utc);
+    return ( std::string (utc) );
+  }
 } // namespace naif
 
 #endif
