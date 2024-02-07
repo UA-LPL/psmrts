@@ -63,8 +63,8 @@ namespace naif {
         SpiceBoolean found;
         (void) surfpt_c( observer.data(), lookdir.data(), a(), b(), c(), point.data(), &found );
         check_naif_errors();
-        
-        return ( found != SPICEFALSE );
+
+        return ( found == SPICETRUE );
       }
 
       inline Eigen::Vector3d normal( const Eigen::Vector3d &point ) const {  
