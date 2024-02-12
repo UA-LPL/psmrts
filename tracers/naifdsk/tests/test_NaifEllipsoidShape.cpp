@@ -35,6 +35,28 @@ TEST_CASE( "NaifEllipsoidShape Default Test", "[naif][ellipsoid][default]") {
   CHECK_THAT( n_lat, Catch::Matchers::WithinAbs(latitude, tolerance));
   CHECK_THAT( n_long, Catch::Matchers::WithinAbs(longitude, tolerance ));
   CHECK_THAT( n_rad, Catch::Matchers::WithinAbs(radius, tolerance ));
+
+  CHECK_THROWS ( naif::NaifEllipsoidShape( -1.5 ) );
+  CHECK_THROWS ( naif::NaifEllipsoidShape( -1.0, -1.5 ) );
+  CHECK_THROWS ( naif::NaifEllipsoidShape ( -1.0, -1.0, -1.5) );
+
+  CHECK_THROWS ( naif::NaifEllipsoidShape( 1.0, -1.5 ) );
+  CHECK_THROWS ( naif::NaifEllipsoidShape( -1.0, 1.5 ) );
+
+  CHECK_THROWS ( naif::NaifEllipsoidShape ( 0.0 ) );
+  CHECK_THROWS ( naif::NaifEllipsoidShape ( 0.0, 0.0 ) );
+  CHECK_THROWS ( naif::NaifEllipsoidShape ( 0.0, 0.0, 0.0 ) );
+
+  CHECK_THROWS ( naif::NaifEllipsoidShape ( 0.0, 1.0 ) );
+  CHECK_THROWS ( naif::NaifEllipsoidShape ( 1.0, 0.0 ) );
+
+  CHECK_THROWS ( naif::NaifEllipsoidShape ( -1.0, 1.0, 1.0) );
+  CHECK_THROWS ( naif::NaifEllipsoidShape ( 1.0, -1.0, 1.0) );
+  CHECK_THROWS ( naif::NaifEllipsoidShape ( 1.0, 1.0, -1.0) );
+
+  CHECK_THROWS ( naif::NaifEllipsoidShape ( 0.0, 2.0, 3.0) );
+  CHECK_THROWS ( naif::NaifEllipsoidShape ( 1.25, 0.0, 100.0) );
+  CHECK_THROWS ( naif::NaifEllipsoidShape ( 3.0, 2.0, 0.0) );
 }
 
 TEST_CASE( "GENERATE Output Test", "[generate]") {

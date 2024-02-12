@@ -34,4 +34,12 @@ TEST_CASE( "PSMRTS Longitude Domain Test - 180 to 360", "[naif][utilities][longi
 TEST_CASE( "PSMRTS Make Path Test", "[naif][utilities][path]") {
 // Test psmrts_make_path --> string conversion for complete path
 
+std::string path = psmrts::psmrts_make_path( "tests", "test_PsmrtsUtilities.cpp" );
+std::string directory = psmrts::psmrts_make_path( "tests" );
+std::string path_only = psmrts::psmrts_make_path( "", "test_PsmrtsUtilities.cpp" );
+
+CHECK ( path == "tests/test_PsmrtsUtilities.cpp" );
+CHECK ( directory == "tests" );
+CHECK ( path_only == "test_PsmrtsUtilities.cpp" );
+
 }
