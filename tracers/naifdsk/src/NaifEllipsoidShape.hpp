@@ -90,7 +90,7 @@ namespace naif {
         if ( minimum_radius() <= 0.0 ) {
           std::string mess = "Invalid radii (" + std::to_string(a()) + "," + 
                               std::to_string(b()) + "," + std::to_string(c()) + " - must be > 0";
-          std::runtime_error( mess );
+          throw std::runtime_error( mess );
         }
         return;
       }
