@@ -1,26 +1,53 @@
 #ifndef NaifUtilities_hpp
 #define NaifUtilities_hpp
 
+#include <string>
+#include <iostream>
+
 #include <cspice/SpiceUsr.h>
+
 
 namespace naif {
 
 // #include <cspice/SpiceUsr.h>
 
-  inline void initKernelSystem() {
+
+  inline void setReturnMode( const std::string &u_retmode = "RETURN" ) {
+
+    int retmode_len = u_retmode.size();
+    constexpr int MAXLEN = 1024;
+    SpiceChar retmode[MAXLEN];
+
+    int maxchars = std::min( retmode_len+1, MAXLEN-1 );
+    std::strncpy( retmode, u_retmode.c_str(), maxchars );
+
+    erract_c( "SET", MAXLEN, retmode );
+    return;
+  }
+
+  inline void setPrintMode( const std::string &u_prtmode = "NONE" ) {
+
+    int prtmode_len = u_prtmode.size();
+
+    constexpr int MAXLEN = 1024;
+    SpiceChar prtmode[MAXLEN];
+
+    int maxchars = std::min( prtmode_len+1, MAXLEN-1 );
+    std::strncpy( prtmode, u_prtmode.c_str(), maxchars );
+  
+    errprt_c( "SET", MAXLEN, prtmode );
+    return;
+  }
+
+  inline void clearKernelSystem() {
     kclear_c();
     return;
   }
 
-  inline void setReturnMode( ) {
-    SpiceChar retmode[32] = { "RETURN"};
-    erract_c( "SET", sizeof( retmode ), retmode );
-    return;
-  }
-
-  inline void setPrintMode( ) {
-    SpiceChar prtmode[32] = { "NONE"};
-    errprt_c( "SET", sizeof( prtmode ), prtmode );
+  inline void initKernelSystem( const bool clear_pool = true ) {
+    setReturnMode();
+    setPrintMode();
+    if ( clear_pool ) clearKernelSystem();
     return;
   }
 
@@ -32,7 +59,7 @@ namespace naif {
     unload_c( kfile.c_str() );
   }
 
-  inline std::string get_error_msg( ) {
+  inline std::string get_naif_error_msg( ) {
     const int NAIF_ERROR_STRING_SIZE = 2000;
     SpiceChar errmsg[NAIF_ERROR_STRING_SIZE];
     getmsg_c("LONG", NAIF_ERROR_STRING_SIZE, errmsg );
@@ -50,14 +77,14 @@ namespace naif {
    * @return true  If no errror occurs
    * @return false If an error occured
    */
-  inline bool check_for_errors( const bool b_reset = true,
-                                const bool throw_on_error = true ) {
+  inline bool check_naif_errors( const bool b_reset = true,
+                                 const bool throw_on_error = true ) {
 
     // Check for an error condition                                  
     if ( !failed_c() ) return ( false );
 
     if ( throw_on_error ) {
-      throw std::runtime_error( "*** NAIF::Error - " + get_error_msg() + " ***" );
+      throw std::runtime_error( "*** NAIF::Error - " + get_naif_error_msg() + " ***" );
     }
 
     if ( b_reset ) {
@@ -73,33 +100,12 @@ namespace naif {
     return ( et );
   }
 
-  typedef struct kernel_descriptor {
-    kernel_descriptor() : 
-                         m_kernel_file(),
-                         m_kernel_type(), 
-                         m_handle(-1),
-                         m_source(),
-                         m_found( 0 ) { }
 
-    std::string  m_kernel_file;
-    std::string  m_kernel_type;
-    SpiceInt     m_handle;
-    std::string  m_source;
-    SpiceBoolean m_found;
-
-    inline bool isgood() const {
-      return ( 0 != m_found );
-    }
-
-  } KernelDescriptor;
-
-
-  typedef struct dsk_segment {
-
-  } DskSegment;
-
-
-
+  inline std::string et_to_isoc( const double et, const int prec = 3 ) {
+    SpiceChar utc[80] ;
+    et2utc_c( et, "ISOC" , prec, sizeof(utc), utc);
+    return ( std::string (utc) );
+  }
 } // namespace naif
 
 #endif

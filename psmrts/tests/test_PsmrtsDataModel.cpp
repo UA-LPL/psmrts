@@ -186,6 +186,7 @@ TEST_CASE( "PsmrtsDataModel (unsigned char) Byte Test", "[datamodel][buffer][byt
 
 }
 
+
 TEST_CASE( "PsmrtsDataModel (double) Data Values Test", "[datamodel][buffer][double][values]") {
 
   typedef psmrts::PsmrtsDataModel<Eigen::Vector3d> ObjVectorData;
@@ -208,12 +209,20 @@ TEST_CASE( "PsmrtsDataModel (double) Data Values Test", "[datamodel][buffer][dou
   ObjVectorData::data_reference data_0 = p_model( 0 ); 
   CHECK( data_0[0] == 1.0 ); 
   CHECK( data_0[1] == 2.0 ); 
-  CHECK( data_0[2] == 3.0 ); 
+  CHECK( data_0[2] == 3.0 );
+  // test at using same process
   
+  ObjVectorData::data_type at_0 = p_model.at( 0 ); 
+  CHECK( data_0[0] == at_0[0]); 
+  CHECK( data_0[1] == at_0[1] ); 
+  CHECK( data_0[2] == 3.0 );
+ // Look up Eigen::Map compared to Eigen::Vector3d 
+
   ObjVectorData::data_reference data_1 = p_model( 1 ); 
   CHECK( data_1[0] == 4.0 ); 
   CHECK( data_1[1] == 5.0 ); 
   CHECK( data_1[2] == 6.0 ); 
+  // test at using same process
 
   ObjVectorData::data_reference data_n = p_model( n_data - 1 ); 
   CHECK( data_n[0] == 28.0 ); 
@@ -232,4 +241,5 @@ TEST_CASE( "PsmrtsDataModel (double) Data Values Test", "[datamodel][buffer][dou
   CHECK( data_c1[2] == 9.0 ); 
 
   CHECK_THROWS( p_model_c(3) );
+  CHECK_THROWS ( p_model_c.at(3) );
 }

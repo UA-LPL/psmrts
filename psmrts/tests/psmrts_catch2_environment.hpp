@@ -1,12 +1,36 @@
 #ifndef psmrts_catch2_environment_hpp
 #define psmrts_catch2_environment_hpp
 
+#include <string>
+
 // include the Catch framework
 #include "catch.hpp"
 #include <catch2/catch_version.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <PsmrtsUtilities.hpp>
+
 #include <spdlog/spdlog.h>
+
+/** Root path which is directory above ./build */
+inline std::string psmrts_rootpath( ) {
+  return ( std::string( ".." ) );
+}
+
+/** Returns directory to the main ./psmrts system source directory with optional subdir/file */
+inline std::string psmrts_system_path( const std::string &subpart = "" ) {
+  return ( psmrts::psmrts_make_path( psmrts::psmrts_make_path( psmrts_rootpath(), "psmrts" ), subpart ) );
+}
+
+/** Returns directory to psmrts data directory with an optional subdir/file */
+inline std::string psmrts_data_path( const std::string &subpart = "" ) {
+  return ( psmrts::psmrts_make_path( psmrts_system_path( "data" ), subpart ) );
+}
+
+/** Returns directory to the main ./tracers source directory with optional subdir/file */
+inline std::string psmrts_tracers_path( const std::string &subpart = "" ) {
+  return ( psmrts::psmrts_make_path( psmrts::psmrts_make_path( psmrts_rootpath(), "tracers" ), subpart ) );
+}
 
 #endif

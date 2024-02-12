@@ -32,6 +32,30 @@ namespace psmrts {
     return ( lon_adj );
   }
 
+
+  /**
+   * @brief Constructs a path that is OS sensitive
+   * 
+   * @param directory    Top level directory 
+   * @param pathpart     An optional subdirectory for file
+   * @return std::string The constructed path
+   */
+  inline std::string psmrts_make_path( const std::string &directory, 
+                                        const std::string &pathpart = "" ) {
+
+    if ( pathpart.size() == 0 ) {
+      return ( directory );
+    }
+
+    if ( directory.size() == 0 ) {
+      return ( pathpart );
+    }
+
+    size_t dirlen = directory.size();
+    std::string dpathdelim = ( directory[dirlen-1] == '/' ) ? "" : "/";
+    return ( directory + dpathdelim + pathpart );
+  }
+
 } // namespace psmrts
 
 #endif

@@ -15,6 +15,12 @@
 #include <ftw.h>
 #include <string>
 
+/**
+ * @brief Provide a temporary directory sustem for Catch2 testing
+ * 
+ * See https://stackoverflow.com/a/18792526.
+ * 
+ */
 class TemporaryDirectoryFixture {
   public:
     TemporaryDirectoryFixture( ) : m_dirname( nullptr),
@@ -80,10 +86,10 @@ class TemporaryDirectoryFixture {
 
 
       /**
-       * @brief Create a temporary directory
+       * @brief Create a temporary directory for testing purposes
        *
-       * @param d_tmproot
-       * @return char*
+       * @param d_tmproot Base directory name of temporary directory
+       * @return char*    Returns full path to created temporary directory
        */
       char *make_tmp_directory( const std::string d_tmproot  = "psmrts_tmpdir" ) {
 

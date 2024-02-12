@@ -1,7 +1,7 @@
 # CMakeLists.txt
 
 cmake_minimum_required( VERSION 3.0 )
-set( CMAKE_CXX_STANDARD 14 )
+set( CMAKE_CXX_STANDARD 17 )
 
 # Add option to build tests and tools
 option( BUILD_TESTING   "Add PSMRTS unit tests"     OFF  )
