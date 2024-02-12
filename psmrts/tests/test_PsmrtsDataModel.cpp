@@ -186,7 +186,7 @@ TEST_CASE( "PsmrtsDataModel (unsigned char) Byte Test", "[datamodel][buffer][byt
 
 }
 
-/*
+
 TEST_CASE( "PsmrtsDataModel (double) Data Values Test", "[datamodel][buffer][double][values]") {
 
   typedef psmrts::PsmrtsDataModel<Eigen::Vector3d> ObjVectorData;
@@ -212,7 +212,7 @@ TEST_CASE( "PsmrtsDataModel (double) Data Values Test", "[datamodel][buffer][dou
   CHECK( data_0[2] == 3.0 );
   // test at using same process
   
-  ObjVectorData::data_reference at_0 = p_model.at( 0 ); 
+  ObjVectorData::data_type at_0 = p_model.at( 0 ); 
   CHECK( data_0[0] == at_0[0]); 
   CHECK( data_0[1] == at_0[1] ); 
   CHECK( data_0[2] == 3.0 );
@@ -241,7 +241,5 @@ TEST_CASE( "PsmrtsDataModel (double) Data Values Test", "[datamodel][buffer][dou
   CHECK( data_c1[2] == 9.0 ); 
 
   CHECK_THROWS( p_model_c(3) );
-  CHECK ( p_model_c.at() == 3);
+  CHECK_THROWS ( p_model_c.at(3) );
 }
-*/
-// at L#77 compared to operators (L#82, )
