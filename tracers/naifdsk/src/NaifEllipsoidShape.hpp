@@ -16,18 +16,26 @@ namespace naif {
       // Constructors
       NaifEllipsoidShape() : m_a_radius( 1.0), 
                              m_b_radius( 1.0 ), 
-                             m_c_radius( 1.0 ) { }
+                             m_c_radius( 1.0 ) {  }
       NaifEllipsoidShape(const Eigen::Vector3d &radii ) : m_a_radius( radii[0] ), 
                                                           m_b_radius( radii[1] ), 
-                                                          m_c_radius( radii[2] ) { }
+                                                          m_c_radius( radii[2] ) { 
+        validate();
+      }
       NaifEllipsoidShape(const double radius ) : m_a_radius( radius ), 
                                                  m_b_radius( radius ), 
-                                                 m_c_radius( radius ) { }
+                                                 m_c_radius( radius ) { 
+        validate();
+      }
       NaifEllipsoidShape(const double &a, const double &c ): m_a_radius( a ), 
                                                              m_b_radius( a ), 
-                                                             m_c_radius( c ) { }
+                                                             m_c_radius( c ) { 
+        validate();
+      }
       NaifEllipsoidShape(const double &a, const double &b, const double &c ) : 
-                         m_a_radius( a ), m_b_radius( b ), m_c_radius( c ) { }
+                         m_a_radius( a ), m_b_radius( b ), m_c_radius( c ) {  
+        validate();
+      }
 
       // Destructor
       virtual ~NaifEllipsoidShape() { }
@@ -77,6 +85,15 @@ namespace naif {
       double    m_a_radius;
       double    m_b_radius;
       double    m_c_radius;
+
+      inline void validate() const {
+        if ( minimum_radius() <= 0.0 ) {
+          std::string mess = "Invalid radii (" + std::to_string(a()) + "," + 
+                              std::to_string(b()) + "," + std::to_string(c()) + " - must be > 0";
+          std::runtime_error( mess );
+        }
+        return;
+      }
   };
 }
 
