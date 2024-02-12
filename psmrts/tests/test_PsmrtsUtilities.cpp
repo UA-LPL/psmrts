@@ -3,7 +3,7 @@
 
 #include <PsmrtsUtilities.hpp>
 
-TEST_CASE( "PSMRTS Longitude Domain Test - 360 to 180", "[utilities][longitude][180Domain]" ) {
+TEST_CASE( "PSMRTS Longitude Domain Test - 360 to 180", "[naif][utilities][longitude][180Domain]" ) {
 
     const double tolerance = 1.0e-6;
 
@@ -18,7 +18,7 @@ TEST_CASE( "PSMRTS Longitude Domain Test - 360 to 180", "[utilities][longitude][
 
 }
 
-TEST_CASE( "PSMRTS Longitude Domain Test - 180 to 360", "[utilities][longitude][360Domain]") {
+TEST_CASE( "PSMRTS Longitude Domain Test - 180 to 360", "[naif][utilities][longitude][360Domain]") {
 
     const double tolerance = 1.0e-6;
 
@@ -29,5 +29,9 @@ TEST_CASE( "PSMRTS Longitude Domain Test - 180 to 360", "[utilities][longitude][
     CHECK_THAT( psmrts::to360LongitudeDomain_d( -60.0 ), Catch::Matchers::WithinAbs( 300.0, tolerance ));
     CHECK_THAT( psmrts::to360LongitudeDomain_d( 1000.0 ), Catch::Matchers::WithinAbs( 280.0, tolerance ));
     // 1000 -> 280? Expected for this value?
+
+}
+TEST_CASE( "PSMRTS Make Path Test", "[naif][utilities][path]") {
+// Test psmrts_make_path --> string conversion for complete path
 
 }
