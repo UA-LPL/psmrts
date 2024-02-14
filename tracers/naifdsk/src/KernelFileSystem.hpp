@@ -33,7 +33,7 @@ namespace naif {
     SpiceBoolean m_found;
 
     inline bool isValid() const {
-      return ( 0 != m_found );
+      return ( SPICETRUE == m_found );
     }
 
     inline SpiceInt handle() const {
