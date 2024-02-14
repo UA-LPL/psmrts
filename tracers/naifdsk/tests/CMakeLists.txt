@@ -11,7 +11,8 @@ include_directories( ${PSMRTS_PROJECT_DIR}/psmrts/tests )
 add_executable( naif_test_suite  naif_catch2_main.cpp
                                  test_NaifEllipsoidShape.cpp 
                                  test_NaifUtilities.cpp 
-                                 test_KernelFileSystem.cpp)
+                                 test_KernelFileSystem.cpp
+                                 test_DskKernelModel.cpp )
 
 
 if( BUILD_COVERAGE )
