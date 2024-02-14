@@ -147,63 +147,7 @@ CHECK_THAT ( spt[1] , Catch::Matchers::WithinAbs(-surf[1], tolerance));
 CHECK_THAT ( spt[2] , Catch::Matchers::WithinAbs(-surf[2], tolerance));
 
 }
-/*
-TEST_CASE ( "NAIFEllipsoidShape Ray Trace Value-Range Test - Sphere", "[naif][raytrace][observer][sphere]") {
-  const double tolerance = 1.0e-9;
-  const double a_radius_val = 1.0;
-  // for ellipsoid set b_radius_val, and c_radius_val.
 
-  naif::NaifEllipsoidShape t_ellipse( a_radius_val );
-
-  double long_val = GENERATE( -180.0, -140.0, -90.0, -45.0, 0.0, 45.0, 90.0, 140.0, 180.0); // create range - should check for 360? -180 - 180
-  double lat_val = GENERATE( -90.0, -45.0, 0.0, 45.0, 90.0 );// lat val -90 - 90.
-
-  INFO( "Lon/Lat = " << long_val << ", " << lat_val );
-
-  Eigen::Vector3d observer;
-  double radius = t_ellipse.maximum_radius();
-  double obs_long = long_val * rpd_c();
-  double obs_lat = lat_val * rpd_c();
-  (void) latrec_c ( radius * 10.0, obs_long, obs_lat, observer.data() );
-
-  Eigen::Vector3d surflatlon;
-  double surf_long = 0.0 * rpd_c();
-  double surf_lat  = 0.0 * rpd_c(); 
-  (void) latrec_c ( radius, surf_long, surf_lat, surflatlon.data() );
-
-  Eigen::Vector3d lookdir  = surflatlon - observer;
-
-  Eigen::Vector3d spt ( { 0, 0, 0, } );
-
-  bool            good   = t_ellipse.ray_trace(observer, lookdir, spt);
-  Eigen::Vector3d normal = t_ellipse.normal( spt );
-  // call surfpt_c w/ parameters, declare bool - true vs 0. Found == 0, not found / or 1 if found 
-
-  Eigen::Vector3d naif_spt ( { 0, 0, 0, } );
-  SpiceBoolean found; 
-  (void) surfpt_c( observer.data(), lookdir.data(), t_ellipse.a(), t_ellipse.b(), t_ellipse.c(), naif_spt.data(), &found );
-
-  Eigen::Vector3d naif_normal ( { 0, 0, 0, } );
-  (void) surfnm_c( radius, radius, radius, naif_spt.data(), naif_normal.data() );
-
-  CHECK( good   == true );
-  CHECK( found  == SPICETRUE );
-  CHECK( normal == naif_normal );
-
-  double emission = vsep_c( observer.data(), spt.data() ) * dpr_c();
-  INFO( "Emission Angle = " << emission );
-
-  double surfsep = vsep_c( naif_spt.data(), spt.data() ) * dpr_c();
-  INFO( "Surfpt Angle   = " << surfsep );
-
-  CHECK_THAT ( spt[0] , Catch::Matchers::WithinAbs( naif_spt[0], tolerance )); 
-  CHECK_THAT ( spt[1] , Catch::Matchers::WithinAbs( naif_spt[1], tolerance ));
-  CHECK_THAT ( spt[2] , Catch::Matchers::WithinAbs( naif_spt[2], tolerance ));
-
-}
-*/
-
-// Ellipsoid loops similar to above, going through ellipse(a), ellipse(a, b), ellipse(a, b, c)
 
 TEST_CASE ( "NAIFEllipsoidShape Ray Trace Value-Range Test - Spheroid/Ellipsoid", "[naif][raytrace][observer][spheroid][triaxial][ellipsoid]") {
   const double tolerance = 1.0e-6;
