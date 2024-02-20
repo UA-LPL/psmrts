@@ -221,12 +221,12 @@ namespace naif {
         return ( true );
       }
 
-      inline DskKernelModel create_from_bodyid( const int bodyid ) const {
+      inline DskKernelModel create_from_surfaceid( const int surfaceid ) const {
 
-        const DskSegment *segment = get_by_bodyid( bodyid );
+        const DskSegment *segment = get_by_surfaceid( surfaceid);
         if ( nullptr == segment ) {
-          std::string mess = "Cannot find segment with body id " + 
-                              std::to_string( bodyid ) + " to create new model";
+          std::string mess = "Cannot find segment with surface id " + 
+                              std::to_string( surfaceid ) + " to create new model";
           throw std::runtime_error( mess );
         }
 
@@ -266,20 +266,20 @@ namespace naif {
         throw std::runtime_error( mess );
       }
 
-      inline std::vector<SpiceInt> get_bodyid_list() const {
-        std::vector<SpiceInt> bodyid_list;
+      inline std::vector<SpiceInt> get_surfaceid_list() const {
+        std::vector<SpiceInt> surfaceid_list;
 
         for ( auto const &segment : segments() ) {
-          bodyid_list.push_back( segment.bodyid() );
+          surfaceid_list.push_back( segment.surfaceid() );
         }
         
-        return ( bodyid_list );
+        return ( surfaceid_list );
       }
 
-      inline const DskSegment *get_by_bodyid( const int bodyid ) const {
+      inline const DskSegment *get_by_surfaceid( const int surfaceid ) const {
         for ( auto const &segment : segments() ) {
 
-          if ( segment.bodyid() == bodyid ) {
+          if ( segment.surfaceid() == surfaceid ) {
             return ( &segment );
           }
 
@@ -302,6 +302,7 @@ namespace naif {
       }
 
     private:
+      std::shared_ptr<std::mutex>  m_mutex;  // Mutex to manage threading
       KernelDescriptor    m_kernel_descriptor;
       DskSegmentList      m_segments;
       size_t              m_total_plates;
