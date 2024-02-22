@@ -3,7 +3,9 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
+#include <PsmrtsUtilities.hpp>
 #include <NaifUtilities.hpp>
 
 namespace naif {
@@ -32,12 +34,28 @@ namespace naif {
     SpiceInt     m_handle;
     SpiceBoolean m_found;
 
-    inline bool isValid() const {
+    inline bool found() const {
       return ( SPICETRUE == m_found );
+    }
+
+    inline bool isValid() const {
+      return ( found() );
     }
 
     inline SpiceInt handle() const {
       return ( m_handle );
+    }
+
+    inline const std::string &filename() const {
+      return ( m_kernel_file );
+    }
+
+    inline const std::string &source() const {
+      return ( m_source_file );
+    }
+
+    inline const std::string &type() const {
+      return ( m_kernel_type );
     }
 
   } KernelDescriptor;
@@ -49,13 +67,12 @@ namespace naif {
    */
   class KernelFileSystem {
     public:
-
-      typedef std::vector<KernelDescriptor>     KernelFileList;
-
+      typedef psmrts::DatumMutexWrapper<KernelDescriptor>  SharedDskDescriptor;
+      typedef std::map<std::string, SharedDskDescriptor>   KernelInventory;
+      typedef std::vector<KernelDescriptor>                KernelFileList;
 
       KernelFileSystem() { }
       virtual ~KernelFileSystem() { }
-
 
       /**
        * @brief Retrives information for a NAIF kernel loaded with furnsh_c()
@@ -146,6 +163,79 @@ namespace naif {
 
         return ( k_list );
       }
+
+      static void open_kernel( const std::string &kfile ) {
+        if ( !KernelFileSystem::has_kernel( kfile ) ) {
+          load_kernel( kfile.c_str() );
+        }
+      }
+
+      static void close_kernel( const std::string &kfile ) {
+        // If its not in the inventory, unload it
+        if ( !KernelFileSystem::has_kernel( kfile ) ) {
+          unload_kernel( kfile.c_str() );
+        }
+      }
+
+      //***** Shared Kernel Descriptor APi *****
+      static size_t size( ) {
+        return ( s_kernel_inventory.size() );
+      }
+
+      static bool has_kernel( const std::string &kernelfile ) {
+        auto kern = s_kernel_inventory.find( kernelfile );
+        return ( kern != s_kernel_inventory.end() );
+      }
+
+      static SharedDskDescriptor get_shared_descriptor( const std::string &kernelfile ) {
+
+        // Check to see if it exists
+        auto kern = s_kernel_inventory.find( kernelfile );
+
+        if ( s_kernel_inventory.end() == kern ) {
+
+          // Not in inventory, see if its open and put a wrapper about it
+          KernelDescriptor kdescr = KernelFileSystem::kernel_info( kernelfile );
+          if ( !kdescr.isValid() ) {
+            // Load it a get a new descriptor for it
+            KernelFileSystem::open_kernel( kernelfile );
+            check_naif_errors();
+
+            kdescr = KernelFileSystem::kernel_info( kernelfile );
+          }
+
+          // If its not valid here the file cannot be found
+          if ( !kdescr.isValid() ) {
+            std::string mess = "*** ERROR: KernelFileSystem::get_shared_descriptor() - Kernel file " + kernelfile + " does not exist of is invalid";
+            throw std::runtime_error( mess );
+          }
+
+          // Insert the kernel descriptor in the inventory
+          auto kernresult = s_kernel_inventory.insert_or_assign( kernelfile, SharedDskDescriptor( kdescr ) );
+          kern = kernresult.first;
+        }
+
+        return ( kern->second );
+      }
+
+      static bool safe_disposal_of( const std::string &kfile ) {
+
+        // Check to see if it exists and unload only if there are no references
+        auto kern = s_kernel_inventory.find( kfile );
+        if ( kern != s_kernel_inventory.end() ) {
+          if ( kern->second.use_count() == 1 ) {
+            s_kernel_inventory.erase( kern );
+            KernelFileSystem::close_kernel( kfile );
+            return ( true );
+          }
+        }
+
+        // returns find status
+        return ( false );
+      }
+
+    private:
+      inline static KernelInventory s_kernel_inventory =  { };
 
   };
 
