@@ -2,6 +2,7 @@
 #define PsmrtsUtilities_hpp
 
 #include <functional>
+#include <mutex>
 namespace psmrts {
 
 
@@ -55,6 +56,53 @@ namespace psmrts {
     std::string dpathdelim = ( directory[dirlen-1] == '/' ) ? "" : "/";
     return ( directory + dpathdelim + pathpart );
   }
+
+  template <typename Datum> 
+    class DatumMutexWrapper {
+      public:
+        DatumMutexWrapper( ) {
+          init();
+        }
+        DatumMutexWrapper( const Datum &datum ) {
+          init( datum );
+        }
+        DatumMutexWrapper( const DatumMutexWrapper &dmm ) :
+                          m_mutex( dmm.m_mutex),
+                          m_datum( dmm.m_datum ) { }
+
+        DatumMutexWrapper( const std::shared_ptr<std::mutex> &p_mutex, 
+                          const Datum &p_datum ) :
+                          m_mutex( p_mutex ), m_datum( p_datum ) { }
+
+        ~DatumMutexWrapper()  { }
+
+        inline std::mutex &mutex() const {
+          return ( *m_mutex );
+        }
+
+        inline Datum &datum() {
+          return ( m_datum );
+        }
+
+        inline const Datum &datum() const {
+          return ( m_datum );
+        }
+
+        inline size_t use_count() const {
+          return ( m_mutex.use_count() );
+        }
+
+      private:
+        // Needs to be mutable to lock in const methods
+        mutable std::shared_ptr<std::mutex> m_mutex;
+        Datum                       m_datum;
+
+        void init( const Datum &datum = Datum() ) {
+          m_mutex.reset( new std::mutex() );
+          m_datum = datum;
+          return;
+        }
+    };
 
 } // namespace psmrts
 
