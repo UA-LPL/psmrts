@@ -70,12 +70,13 @@ namespace naif {
    * @brief Check for NAIF errors with behavior control
    * 
    * This function will check for a NAIF error and take requested action.
-   * @see get_error_msg()
    * 
-   * @param b_reset       If an error has occurred, reset the error system
+   * @see get_naif_error_msg()
+   * 
+   * @param b_reset        If an error has occurred, reset the error system
    * @param throw_on_error Throw a runtime_error if an error occured
-   * @return true  If no errror occurs
-   * @return false If an error occured
+   * @return true          If no errror occurs
+   * @return false         If an error occured
    */
   inline bool check_naif_errors( const bool b_reset = true,
                                  const bool throw_on_error = true ) {
@@ -83,13 +84,16 @@ namespace naif {
     // Check for an error condition                                  
     if ( !failed_c() ) return ( false );
 
-    if ( throw_on_error ) {
-      throw std::runtime_error( "*** NAIF::Error - " + get_naif_error_msg() + " ***" );
-    }
-
+    // Reset the system
+    std::string naif_error = get_naif_error_msg();
     if ( b_reset ) {
       reset_c();
     }
+
+    if ( throw_on_error ) {
+      throw std::runtime_error( "*** NAIF::Error - " + naif_error + " ***" );
+    }
+
     return ( true );
   }
 
