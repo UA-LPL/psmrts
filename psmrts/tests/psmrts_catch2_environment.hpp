@@ -9,13 +9,16 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <psmrts_version.h>
+#include <psmrts_test_config.h>
+
 #include <PsmrtsUtilities.hpp>
 
 #include <spdlog/spdlog.h>
 
 /** Root path which is directory above ./build */
 inline std::string psmrts_rootpath( ) {
-  return ( std::string( ".." ) );
+  return ( std::string( PSMRTS_PROJECT_DIR ) );
 }
 
 /** Returns directory to the main ./psmrts system source directory with optional subdir/file */

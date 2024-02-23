@@ -3,6 +3,8 @@
 
 #include <functional>
 #include <mutex>
+
+#include <psmrts_version.h>
 namespace psmrts {
 
 
