@@ -108,24 +108,24 @@ namespace naif {
 
       /** Body ID, typically a NAIF FRAME ID */
       inline SpiceInt bodyid() const {
-        return ( m_dsk_descr.center );
+        return ( dskdsc().center );
       }
 
       /** Unique surface identifier, typically a NAIF FRAME ID */
       inline SpiceInt surfaceid() const {
-        return ( m_dsk_descr.surfce );
+        return ( dskdsc().surfce );
       }
 
       inline SpiceInt frameid() const {
-        return ( m_dsk_descr.frmcde );
+        return ( dskdsc().frmcde );
       }
 
       inline SpiceInt dtype() const {
-        return ( m_dsk_descr.dtype );
+        return ( dskdsc().dtype );
       }
 
       inline SpiceInt dclass() const {
-        return ( m_dsk_descr.dclass );
+        return ( dskdsc().dclass );
       }
 
     private:

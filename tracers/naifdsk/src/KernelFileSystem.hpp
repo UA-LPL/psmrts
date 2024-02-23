@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <mutex>
 
 #include <PsmrtsUtilities.hpp>
 #include <NaifUtilities.hpp>
@@ -164,12 +165,22 @@ namespace naif {
         return ( k_list );
       }
 
+      /**
+       * @brief Open a kernel that does not exist in the managed (DSK) pool
+       * 
+       * @param kfile 
+       */
       static void open_kernel( const std::string &kfile ) {
         if ( !KernelFileSystem::has_kernel( kfile ) ) {
           load_kernel( kfile.c_str() );
         }
       }
 
+      /**
+       * @brief Close a kernel that is not in the managed (DSK) pool
+       * 
+       * @param kfile 
+       */
       static void close_kernel( const std::string &kfile ) {
         // If its not in the inventory, unload it
         if ( !KernelFileSystem::has_kernel( kfile ) ) {
@@ -182,12 +193,28 @@ namespace naif {
         return ( s_kernel_inventory.size() );
       }
 
+      /**
+       * @brief Open or share an existing NAIF descriptor for a kernel with handles
+       * 
+       * This method may need thread locking since it searches the inventory that is
+       * thread volatile. Currently, locking here will deadlock the application.
+       * 
+       * @param kernelfile 
+       * @return true 
+       * @return false 
+       */
       static bool has_kernel( const std::string &kernelfile ) {
+        // Lock up inventory access for thread safety ( >=c++17 )
+        // std::scoped_lock mylocker( s_mutex );  
+
         auto kern = s_kernel_inventory.find( kernelfile );
         return ( kern != s_kernel_inventory.end() );
       }
 
       static SharedDskDescriptor get_shared_descriptor( const std::string &kernelfile ) {
+
+        // Lock up inventory access for thread safety ( >=c++17 )
+        std::scoped_lock mylocker( s_mutex );  
 
         // Check to see if it exists
         auto kern = s_kernel_inventory.find( kernelfile );
@@ -220,6 +247,9 @@ namespace naif {
 
       static bool safe_disposal_of( const std::string &kfile ) {
 
+        // Lock up inventory access for thread safety ( >=c++17 )
+        std::scoped_lock mylocker( s_mutex );           
+
         // Check to see if it exists and unload only if there are no references
         auto kern = s_kernel_inventory.find( kfile );
         if ( kern != s_kernel_inventory.end() ) {
@@ -235,6 +265,7 @@ namespace naif {
       }
 
     private:
+      inline static std::mutex      s_mutex = { };
       inline static KernelInventory s_kernel_inventory =  { };
 
   };
