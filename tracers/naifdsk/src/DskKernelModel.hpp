@@ -4,6 +4,8 @@
 #include <exception>
 #include <string>
 #include <vector>
+#include <map>
+#include <mutex>
 
 #include <Eigen/Geometry>
 
@@ -496,6 +498,59 @@ namespace naif {
         init( KernelFileSystem::get_shared_descriptor( dskfile ) );
         return;
       }
+
+    // This class maintains its own inventory. Here is the implementation of
+    // that API
+    private:
+      typedef std::map<std::string, DskKernelModel>   DskShapeInventory;
+      inline static std::mutex        s_mutex = {};
+      inline static DskShapeInventory s_dsk_shape_inventory = {};
+
+    public:
+
+      inline static bool has_dsk_shape( const std::string &dskfile ) {
+        std::scoped_lock mylocker( s_mutex );  
+        auto dsk = s_dsk_shape_inventory.find( dskfile );
+        return ( dsk != s_dsk_shape_inventory.end() );        
+      }
+
+      inline static DskKernelModel get_dsk_shape( const std::string &dskfile ) {
+        std::scoped_lock mylocker( s_mutex );  
+        auto dsk = s_dsk_shape_inventory.find( dskfile );
+        if ( s_dsk_shape_inventory.end() == dsk ) {
+          DskKernelModel dskmodel( KernelFileSystem::get_shared_descriptor( dskfile ) );
+          auto dsk_result = s_dsk_shape_inventory.insert_or_assign( dskfile, dskmodel );
+          dsk = dsk_result.first;
+        }
+
+        return ( dsk->second );        
+      }      
+
+      inline static DskKernelModel get_dsk_shape_with_id( const std::string &dskfile, const int id ) {
+        return ( DskKernelModel( get_dsk_shape( dskfile ).create_from_id( id ) ) );
+      }      
+
+
+      inline static bool remove_dsk_shape( const std::string &dskfile ) {
+        std::scoped_lock mylocker( s_mutex );  
+        auto dsk = s_dsk_shape_inventory.find( dskfile );
+        if  ( s_dsk_shape_inventory.end() != dsk ) {
+          s_dsk_shape_inventory.erase( dskfile );
+          KernelFileSystem::safe_disposal_of( dskfile );
+          return ( true );
+        }
+        return ( false );
+      }
+
+      inline static std::vector<std::string> get_dsk_shape_inventory_list() {
+        std::vector<std::string> v_dsk_files;
+        std::scoped_lock mylocker( s_mutex ); 
+        for ( auto const &dsk : s_dsk_shape_inventory ) {
+          v_dsk_files.push_back( dsk.first );
+        } 
+        return ( v_dsk_files );
+      }
+
 
   };
 
