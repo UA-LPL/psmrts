@@ -47,8 +47,8 @@ namespace naif {
       }
 
       /** Open new or use existing DSK file */
-      DskKernelModel( const std::string  &k_dskfile ) {
-        init( k_dskfile );
+      DskKernelModel( const std::string  &dskfile ) {
+        init( dskfile );
       }
 
       /** Initialize with a unique NAIF DSK file descriptor */
@@ -487,6 +487,15 @@ namespace naif {
       }
 
       /** Intialize with an opened DSK file and single segment from that DSK */
+      inline void init( const DskKernelModel &model ) {
+        m_dsk_descriptor = model.m_dsk_descriptor;
+        m_segments       = model.m_segments;
+        m_total_plates   = model.m_total_plates;
+        m_total_vertices = model.m_total_vertices;
+        return;
+      }
+
+      /** Intialize with an opened DSK file and single segment from that DSK */
       inline void init( const SharedDskDescriptor &kdescr, 
                         const DskSegment &segment ) {
         reset( &kdescr );
@@ -495,7 +504,7 @@ namespace naif {
 
       /** Open or share a DSK file using a thread-safe secure procedure */
       inline void init( const std::string &dskfile ) {
-        init( KernelFileSystem::get_shared_descriptor( dskfile ) );
+        init( DskKernelModel::get_dsk_shape( dskfile ) );
         return;
       }
 
@@ -527,7 +536,7 @@ namespace naif {
       }      
 
       inline static DskKernelModel get_dsk_shape_with_id( const std::string &dskfile, const int id ) {
-        return ( DskKernelModel( get_dsk_shape( dskfile ).create_from_id( id ) ) );
+        return ( get_dsk_shape( dskfile ).create_from_id( id ) );
       }      
 
 
