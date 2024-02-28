@@ -24,6 +24,9 @@ TEST_CASE ( "NAIF Utilities Test - loading IK Kernal", "[naif][kernel]" ) {
     CHECK_NOTHROW ( naif::load_kernel(bad_file) );
     CHECK_THROWS ( naif::check_naif_errors() );
 
+    // Replace load / unload with open / close functions for files in KernelFileSystem.hpp class
+    // In KernelFileSystem:: - reference to methods, use size() to check for # of files in inventory
+
 }
 
 TEST_CASE ( "NAIF Utilities Test - isoc to ephemeris time ", "[naif][kernel][ephemeris]") {
