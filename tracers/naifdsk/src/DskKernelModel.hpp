@@ -41,6 +41,21 @@ namespace naif {
       typedef psmrts::PsmrtsDataModel<Eigen::Vector3i> DskIndexDataModel;
       typedef psmrts::PsmrtsDataModel<Eigen::Vector3d> DskVectorDataModel;
 
+      inline std::string tracer_model_type() const {
+        return ( std::string( "naifdsk" ) );
+      }
+
+      inline std::string tracer_model_name() const {
+        return ( std::string( "DskKernelModel" )) ;
+      }
+
+      inline std::string shape_tracer_id() const {
+        std::string shapename = dskfile();
+        if ( shapename.length() == 0 ) shapename = "none";
+        return ( tracer_model_type() + "::" + tracer_model_name() + "::" + shapename );
+      }
+
+
       /** Default constructor */
       DskKernelModel( ) {
         reset();
