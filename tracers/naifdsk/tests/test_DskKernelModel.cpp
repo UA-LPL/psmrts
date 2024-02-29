@@ -27,8 +27,8 @@ TEST_CASE ( "DSK Model Test - Basic Load/Init Tests", "[kernel][dsk][shape]" ) {
 
     naif::DskKernelModel dsk( dskfile );
     CHECK_NOTHROW( naif::check_naif_errors() ); 
-    CHECK ( naif::KernelFileSystem::kernel_count() == 1 ); 
-    CHECK( dsk.use_count() == 2 );
+    CHECK ( naif::KernelFileSystem::kernel_count() == 1 ); // should be 3, (Protected kernel, copy for dsk system, then copy of that)
+    CHECK( dsk.use_count() == 3 );
 
     CHECK( dsk.isValid() == true );
 
@@ -36,7 +36,7 @@ TEST_CASE ( "DSK Model Test - Basic Load/Init Tests", "[kernel][dsk][shape]" ) {
     CHECK_NOTHROW( naif::check_naif_errors() ); 
     CHECK ( naif::KernelFileSystem::kernel_count() == 1 );    
     CHECK ( naif::KernelFileSystem::size() == 1 );    
-    CHECK( dsk2.use_count() == 3 );
+    CHECK( dsk2.use_count() == 4 );
 
     CHECK( dsk.handle()           == dsk2.handle() );
     CHECK( dsk.n_total_vertices() == dsk2.n_total_vertices() );
@@ -124,6 +124,11 @@ TEST_CASE ( "DSK Model Test - Multi-Load/Init/Shared Tests", "[kernel][dsk][shap
     REQUIRE ( dsk.isValid() == true );
     REQUIRE ( dsk.n_dsk_segments() == 1 );
     CHECK ( dsk.dskfile() == dskfile );
+    CHECK ( dsk.handle() == 1 );
+    //CHECK_THROWS( dsk.handle() == 123 ); // Doesnt seem to throw error (resulting in test failure)
+    // CHECK ( dsk.handle() != 0 );
+    // how does system handle non-existing handle calls?
+
     // Since only one segment, should be same as below values for ie n_vertices(), n_plates(), etc
 
     // Test first segment of an open DSK kernel
@@ -157,9 +162,53 @@ TEST_CASE ( "DSK Model Test - Multi-Load/Init/Shared Tests", "[kernel][dsk][shap
     CHECK ( dsk.get_segment_with_id( 2101955 )->frameid() == segment.frameid() );
     CHECK ( dsk.get_segment_with_id( 12345 ) == nullptr );
 
+    CHECK ( dsk.use_count() == 3 ); 
+
     naif::DskKernelModel dsk2;
     CHECK_THROWS ( dsk.create_from_id( 1 ) );
     CHECK_NOTHROW ( dsk2 = dsk.create_from_id( 2101955 ) );
 
+    CHECK ( dsk2.use_count() == 4 ); 
 
+    
+}
+
+TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][facet]") {
+    const double tolerance = 1.0e-9;
+
+    std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
+ 
+    CHECK_NOTHROW ( naif::initKernelSystem() );
+
+    naif::DskKernelModel dsk( dskfile );
+    CHECK_NOTHROW( naif::check_naif_errors() );
+    naif::DskSegment segment = dsk.segment();
+    CHECK_NOTHROW( naif::check_naif_errors() );
+
+    CHECK ( dsk.use_count() == 3 ); 
+
+
+    Eigen::Vector3d obs;
+    double radius = 1.0;
+    double obs_long = 45.0 * rpd_c();
+    double obs_lat = 45.0 * rpd_c();
+    latrec_c ( radius, obs_long, obs_lat, obs.data() );
+    obs = obs * 10.0;
+
+
+    Eigen::Vector3d surf;
+    double surf_long = 45.0 * rpd_c();
+    double surf_lat = 50.0 * rpd_c();
+    latrec_c ( radius, surf_long, surf_lat, surf.data() );
+
+
+    Eigen::Vector3d lkdr = obs - surf;
+
+    // intercept() - bool, needs observer, lookdir, segment, ray trace (from psmrts) addresses?
+    //CHECK ( dsk.intercept(-obs, lkdr, segment, psmrts::RayTrace(obs, lkdr)) == true );
+    // get_facet(ray trace address, facet address?)
+
+    // load_facet_indexes ( segment )
+
+    // load_facet_vectors( segment ) 
 }
