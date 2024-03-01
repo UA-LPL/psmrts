@@ -1,0 +1,583 @@
+#ifndef DskKernelModel_hpp
+#define DskKernelModel_hpp
+
+#include <exception>
+#include <string>
+#include <vector>
+#include <map>
+#include <mutex>
+
+#include <Eigen/Geometry>
+
+#include <PsmrtsUtilities.hpp>
+#include <PsmrtsDataModel.hpp>
+#include <RayTrace.hpp>
+#include <NaifUtilities.hpp>
+#include <DskSegment.hpp>
+#include <KernelFileSystem.hpp>
+
+namespace naif {
+
+
+  /**
+   * @brief Implementation of DSK model support and security
+   * 
+   * This class manages access to a DSK. Since the NAIF system does not 
+   * allow a file to opened more than once, access must be managed
+   * per DSK in this class. 
+   * 
+   * @author 2024-02-19 Kris J. Becker
+   */
+  class DskKernelModel {
+    
+    public:
+      // SharedDskDescriptor is the unique thread safe latch on the NAIF DSK file
+      typedef KernelFileSystem::SharedDskDescriptor    SharedDskDescriptor;
+
+      // List of DSK segments in the file
+      typedef std::vector<DskSegment>                  DskSegmentList;
+
+      // Data types/representations for the indexes and facet vectors/DSK segment
+      typedef psmrts::PsmrtsDataModel<Eigen::Vector3i> DskIndexDataModel;
+      typedef psmrts::PsmrtsDataModel<Eigen::Vector3d> DskVectorDataModel;
+
+      inline std::string tracer_model_type() const {
+        return ( std::string( "naifdsk" ) );
+      }
+
+      inline std::string tracer_model_name() const {
+        return ( std::string( "DskKernelModel" )) ;
+      }
+
+      inline std::string shape_tracer_id() const {
+        std::string shapename = dskfile();
+        if ( shapename.length() == 0 ) shapename = "none";
+        return ( tracer_model_type() + "::" + tracer_model_name() + "::" + shapename );
+      }
+
+
+      /** Default constructor */
+      DskKernelModel( ) {
+        reset();
+      }
+
+      /** Open new or use existing DSK file */
+      DskKernelModel( const std::string  &dskfile ) {
+        init( dskfile );
+      }
+
+      /** Initialize with a unique NAIF DSK file descriptor */
+      DskKernelModel( const SharedDskDescriptor &k_descr ) {
+        init( k_descr );
+      }
+
+      /** Destructor */
+      virtual ~DskKernelModel() { }
+
+      /**
+       * @brief Check validity of DSK
+       * 
+       * In order to be a valid DSK, there must be a valid kernel descriptor,
+       * at least one segment and must contain plates and vertices.
+       * 
+       * @return true   If valid
+       * @return false  if invalid
+       */
+      inline bool isValid( ) const {
+        if ( !kernel().found() )       return ( false );
+        if ( n_dsk_segments()   <= 0 ) return ( false );
+        if ( n_total_plates()   <= 0 ) return ( false );
+        if ( n_total_vertices() <= 0 ) return ( false );
+        return ( true );
+      }
+
+      /**
+       * @brief Create a DskKernelModel from only one segment
+       * 
+       * This method constructor will search this DSK for a segment defined
+       * for the given surface id. This is typically a NAIF code, but essentially
+       * is a unique value contained in each segments DSK des
+       * 
+       * @param surfaceid 
+       * @return DskKernelModel 
+       */
+      inline DskKernelModel create_from_id( const int surfaceid ) const {
+
+        const DskSegment *segment = get_segment_with_id( surfaceid );
+        if ( nullptr == segment ) {
+          std::string mess = "Cannot find segment with (surface) id " + 
+                              std::to_string( surfaceid ) + " to create new model";
+          throw std::runtime_error( mess );
+        }
+
+        // We have a valid segment
+        return ( DskKernelModel( *this, *segment ) );
+      }
+
+      /** Return the name of the NAIF DSK kernel file */
+      inline const std::string &dskfile() const {
+        return ( kernel().m_kernel_file );
+      }
+
+      /** Return the DSK file handle for the kernel */
+      SpiceInt handle() const {
+        return ( kernel().handle() );
+      }
+
+      /** Return total vertices in all DSK segments */
+      inline size_t n_total_vertices() const {
+        return ( m_total_vertices );
+      }
+
+      /** Return to tal number of facets/plates in all DSK segments */
+      inline size_t n_total_plates() const {
+        return ( m_total_plates );
+      }
+
+      /** Returns the number of DSKs contained in this object */
+      inline size_t n_dsk_segments() const {
+        return ( m_segments.size() );
+      }
+
+      /** Returns reference to list of DSK segments */
+      inline const DskSegmentList &segments() const {
+        return ( m_segments );
+      }
+
+      /** Returns a refernce to the nth DSK segment. Exceptions are thrown for bad index */
+      inline const DskSegment &segment( const int segnum = 0 ) const {
+        for ( auto const &segment : segments() ) {
+          if ( segment.segment_number() == segnum ) {
+            return ( segment );
+          }
+        }
+
+        // Not found so throw an error
+        std::string mess = "*** ERROR - [naif::DskKernelModel] - DSK segment " + std::to_string( segnum ) + " does not exist";
+        throw std::runtime_error( mess );
+      }
+
+      /** Returns list of all DSK segment ids in this object */
+      inline std::vector<SpiceInt> get_id_list() const {
+        std::vector<SpiceInt> sid_list;
+
+        for ( auto const &segment : segments() ) {
+          sid_list.push_back( segment.id() );
+        }
+        
+        return ( sid_list );
+      }
+
+      /** Returns pointer to segment with a specifed id, or nullptr if it doesn't exist */
+      inline const DskSegment *get_segment_with_id( const int surfaceid ) const {
+        for ( auto const &segment : segments() ) {
+          if ( segment.id() == surfaceid ) {
+            return ( &segment );
+          }
+        }
+        
+        // Segment does not exist with that surface id
+        return ( nullptr );
+      }
+
+      /** Returns the number of shared instances exist for this DSK file */
+      inline size_t use_count() const {
+        return ( m_dsk_descriptor.use_count() );
+      }
+
+      //-----> Ray Tracing routines <------
+
+     /**
+      * @brief Trace a look vector from an observer in the DSK segment
+      * 
+      * This method will trace a ray defined as a look direction , from
+      * an observer location within a given segment in the DSK file.
+      * 
+      * @param observer 
+      * @param lookdir 
+      * @param segment 
+      * @param raytrace 
+      * @return true 
+      * @return false 
+      */
+      inline bool ray_trace( const Eigen::Vector3d &observer, 
+                             const Eigen::Vector3d &lookdir,
+                             const DskSegment &segment, 
+                             psmrts::RayTrace::RayTraceDatum &raytrace ) const {
+
+        // Lock up NAIF file I/O for thread safety ( >=c++17 )
+        std::scoped_lock mylocker( this->mutex() );
+
+        raytrace.reset();
+        raytrace.m_observer = observer;
+        raytrace.m_lookdir  = lookdir;
+        raytrace.m_segment  = segment.id();
+
+        SpiceBoolean found;
+        (void) dskx02_c( kernel().handle(), segment.dladsc_ptr(), 
+                         raytrace.m_observer.data(), raytrace.m_lookdir.data(),
+                         &raytrace.m_plateid, raytrace.m_xyz.data(), &found);
+        check_naif_errors();
+        
+        raytrace.m_hit = ( SPICETRUE == found );
+
+        // Only get the normal if has intercept
+        if ( raytrace.hasHit() ) {
+           (void) dskn02_c( kernel().handle(), segment.dladsc_ptr(), 
+                            raytrace.m_plateid, raytrace.m_normal.data() );
+            check_naif_errors();
+        }
+
+        return ( raytrace.hasHit() );
+      }
+
+      /**
+       * @brief Get the facet for the specified plateid and segment
+       * 
+       * This method can be used to read a facet from the 
+       * 
+       * @param raytrace 
+       * @param facet 
+       * @return true 
+       * @return false 
+       */
+      inline bool get_facet( const psmrts::RayTrace::RayTraceDatum &raytrace,
+                             psmrts::RayTrace::FacetDatum &facet ) {
+                
+        // Sanity check validity of raytrace
+        facet.m_has_facet = false;
+
+        if ( raytrace.hasHit() ) {
+
+          const DskSegment *segment = get_segment_with_id( raytrace.m_segment );
+          if ( nullptr != segment ) {
+            // Lock up NAIF file I/O for thread safety ( >=c++17 )
+            std::scoped_lock mylocker( this->mutex() );
+
+            // Fetch the indexes of the facet vectors
+            SpiceInt n;
+            SpiceInt indexes[3];
+            (void) dskp02_c( kernel().handle(), segment->dladsc_ptr(),
+                             raytrace.m_plateid, 1, &n, ( SpiceInt (*)[3] ) ( indexes ) );
+            check_naif_errors();
+            facet.m_indexes = { indexes[0], indexes[1], indexes[2] };
+
+            // Fetch each vector in the facet
+            SpiceDouble vector[3];
+            (void) dskv02_c( kernel().handle(), segment->dladsc_ptr(),
+                             indexes[0], 1, &n, (SpiceDouble (*)[3]) ( vector ) ); 
+            check_naif_errors();
+            facet.m_vector1 = { vector[0], vector[1], vector[2] };
+
+            (void) dskv02_c( kernel().handle(), segment->dladsc_ptr(),
+                             indexes[1], 1, &n, (SpiceDouble (*)[3]) ( vector ) ); 
+            check_naif_errors();
+            facet.m_vector2 = { vector[0], vector[1], vector[2] };
+
+            (void) dskv02_c( kernel().handle(), segment->dladsc_ptr(),
+                             indexes[2], 1, &n, (SpiceDouble (*)[3]) ( vector ) ); 
+            check_naif_errors();
+            facet.m_vector3 = { vector[0], vector[1], vector[2] };
+
+            facet.m_has_facet = true;
+          }
+        }
+
+        return ( facet.m_has_facet );
+      }
+
+      /**
+       * @brief Trace a look vector from an observer location in all DSK segments
+       * 
+       * 
+       * @param observer 
+       * @param lookdir 
+       * @param raytrace 
+       * @return true 
+       * @return false 
+       */
+      inline bool ray_trace( const Eigen::Vector3d &observer, 
+                             const Eigen::Vector3d &lookdir,
+                             psmrts::RayTrace::RayTraceDatum &raytrace ) const {
+
+        for ( auto const &segment : segments() ) {
+          bool has_hit = ray_trace( observer, lookdir, segment, raytrace );
+          if ( true == has_hit ) {
+            return ( has_hit );
+          }
+        }
+
+        // No intercept found in any segment
+        return ( false );
+      }
+
+
+      /**
+       * @brief Read all facet indexes from a DSK segment
+       * 
+       * @param dsksegment 
+       * @return DskIndexDataModel 
+       */
+      inline DskIndexDataModel load_facet_indexes( const DskSegment *dsksegment = nullptr ) const {
+
+        const DskSegment &segref = ( nullptr != dsksegment ) ? *dsksegment : this->segment();
+        DskIndexDataModel dskndx( segref.n_vertices() );
+
+        // Lock up NAIF file I/O for thread safety ( >=c++17 )
+        std::scoped_lock mylocker( this->mutex() );        
+
+        SpiceInt n;
+        SpiceInt start = 1;
+        (void) dskp02_c( kernel().handle(), segref.dladsc_ptr(),
+                         start, segref.n_vertices(), &n, 
+                         ( SpiceInt (*)[3] ) ( dskndx(0).data() ) );
+        check_naif_errors();
+
+        // Sanity check on the return count
+        if ( segref.n_vertices() != n ) {
+          std::string mess = "*** ERROR - [naif::DskKernelModel::load_facet_indexes] Expected " + 
+                             std::to_string( segref.n_vertices() ) + " but read " + std::to_string( n );
+          throw std::runtime_error( mess );
+        }
+
+        return ( dskndx );
+      }
+
+      /**
+       * @brief Read all facet vectors from a DSK segment
+       * 
+       * @param dsksegment 
+       * @return DskVectorDataModel 
+       */
+      inline DskVectorDataModel load_facet_vectors( const DskSegment *dsksegment = nullptr ) const {
+
+        const DskSegment &segref = ( nullptr != dsksegment ) ? *dsksegment : this->segment();
+
+        // For 1-baaed indexing into the vectors
+        DskVectorDataModel dskvec( segref.n_vectors() + 1 );
+
+        // Lock up NAIF file I/O for thread safety ( >=c++17 )
+        std::scoped_lock mylocker( this->mutex() );        
+
+        SpiceInt n;
+        SpiceInt start = 1;
+        (void) dskv02_c( kernel().handle(), segref.dladsc_ptr(),
+                         start, segref.n_vectors(), &n, 
+                         ( SpiceDouble (*)[3] ) ( dskvec(start).data() ) );
+        check_naif_errors();
+
+        // Sanity check on the return count
+        if ( segref.n_vectors() != n ) {
+          std::string mess = "*** ERROR - [naif::DskKernelModel::load_facet_vectors] Expected " + 
+                             std::to_string( segref.n_vectors() ) + " but read " + std::to_string( n );
+          throw std::runtime_error( mess );
+        }
+        
+        return ( dskvec );
+      }
+
+
+      
+    protected:
+
+      /** This is a protected constructor as it requires the segment to be in the DSK */
+      DskKernelModel( const DskKernelModel &model, const DskSegment &segment ) {  
+        reset( &model.dskdsc() );
+        add_segment( segment );
+        return;
+      }
+
+      /** Return a reference to the NAIF SpiceDSKDescr for the NAIF DSK file */
+      inline const SharedDskDescriptor &dskdsc() const {
+        return ( m_dsk_descriptor );
+      }
+
+      /** Return reference to shared mutex for strategic NAIF file I/O locking. See DskSegment.hpp */
+      inline std::mutex &mutex() const {
+        return ( dskdsc().mutex() );
+      }      
+
+      /** Return reference to NAIF DSK kernel descriptor. See DskSegment.hpp */
+      inline const KernelDescriptor &kernel() const {
+        return ( dskdsc().datum() );
+      }
+
+    private:
+      SharedDskDescriptor m_dsk_descriptor;
+      DskSegmentList      m_segments;
+      size_t              m_total_plates;
+      size_t              m_total_vertices;
+
+
+      /** Reset DSK model to default state */
+      inline void reset( const SharedDskDescriptor *dskdsc = nullptr ) {
+        if ( dskdsc != nullptr ) {
+          m_dsk_descriptor = *dskdsc;
+        }
+        else {
+          m_dsk_descriptor = SharedDskDescriptor();
+        }
+
+        m_segments.clear();
+        m_total_plates = 0;
+        m_total_vertices = 0;
+
+        return;
+      }
+
+
+      /** Add a segment to the DSK model */
+      inline void add_segment( const DskSegment &segment ) {
+          m_total_vertices += segment.n_vertices();
+          m_total_plates   += segment.n_plates();
+
+          // Done with this segment so save it!
+          m_segments.push_back( segment );
+          return;
+      }
+
+      /**
+       * @brief Initialize the DSK using the kernel descriptpr
+       * 
+       * See https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/C/cspice/dskgd_c.html.
+       * 
+       * @param k_descr Unique NAIF kernel descriptor to initialize object instance
+       */
+      inline void init( const SharedDskDescriptor &k_descr ) {
+       
+        // Completely reset with this descriptor
+        reset( &k_descr );
+
+        // Check to ensure the file is open
+        if ( !k_descr.datum().found() ) {
+          std::string mess = "*** ERROR - [naif::DskKernelModel] DSK file " + k_descr.datum().filename() + " is not valid or open";
+          throw std::runtime_error( mess );
+        }
+
+        // Lock up NAIF file I/O for thread safety ( >=c++17 )
+        std::scoped_lock mylocker( this->mutex() );
+
+        // Get the first segment
+        SpiceDLADescr v_dladsc;
+        SpiceBoolean  v_found;
+        dlabfs_c( kernel().handle(), &v_dladsc, &v_found );
+        check_naif_errors();
+
+        // Check to ensure the file is open
+        if ( !v_found ) {
+          std::string mess = "*** ERROR - [naif::DskKernelModel] DSK file " + kernel().filename() + " is not valid/open";
+          throw std::runtime_error( mess );
+        }
+
+        // Read/process each DSK segment
+        SpiceDSKDescr  v_dskdsc;
+        SpiceInt       v_plates;
+        SpiceInt       v_vertices;      
+        int segnum = 0;
+        while ( v_found ) {
+
+          // Get the DSK descriptor
+          (void) dskgd_c( kernel().handle(), &v_dladsc, &v_dskdsc);
+          check_naif_errors();
+
+          // Get the number of verticies and plates
+          (void) dskz02_c( kernel().handle(), &v_dladsc, &v_vertices, &v_plates );
+          check_naif_errors();
+
+          // Construct/add the segment
+          DskSegment v_segment( v_dladsc, v_dskdsc, v_vertices, v_plates, segnum );
+          add_segment( v_segment );
+
+          // Get next DSK segment
+          (void) dlafns_c( kernel().handle(),
+                           v_segment.dladsc_ptr(),
+                           &v_dladsc, &v_found );
+          check_naif_errors();
+
+          segnum++;
+        }
+
+        return;
+
+      }
+
+      /** Intialize with an opened DSK file and single segment from that DSK */
+      inline void init( const DskKernelModel &model ) {
+        m_dsk_descriptor = model.m_dsk_descriptor;
+        m_segments       = model.m_segments;
+        m_total_plates   = model.m_total_plates;
+        m_total_vertices = model.m_total_vertices;
+        return;
+      }
+
+      /** Intialize with an opened DSK file and single segment from that DSK */
+      inline void init( const SharedDskDescriptor &kdescr, 
+                        const DskSegment &segment ) {
+        reset( &kdescr );
+        add_segment( segment );
+      }
+
+      /** Open or share a DSK file using a thread-safe secure procedure */
+      inline void init( const std::string &dskfile ) {
+        init( DskKernelModel::get_dsk_shape( dskfile ) );
+        return;
+      }
+
+    // This class maintains its own inventory. Here is the implementation of
+    // that API
+    private:
+      typedef std::map<std::string, DskKernelModel>   DskShapeInventory;
+      inline static std::mutex        s_mutex = {};
+      inline static DskShapeInventory s_dsk_shape_inventory = {};
+
+    public:
+
+      inline static bool has_dsk_shape( const std::string &dskfile ) {
+        std::scoped_lock mylocker( s_mutex );  
+        auto dsk = s_dsk_shape_inventory.find( dskfile );
+        return ( dsk != s_dsk_shape_inventory.end() );        
+      }
+
+      inline static DskKernelModel get_dsk_shape( const std::string &dskfile ) {
+        std::scoped_lock mylocker( s_mutex );  
+        auto dsk = s_dsk_shape_inventory.find( dskfile );
+        if ( s_dsk_shape_inventory.end() == dsk ) {
+          DskKernelModel dskmodel( KernelFileSystem::get_shared_descriptor( dskfile ) );
+          auto dsk_result = s_dsk_shape_inventory.insert_or_assign( dskfile, dskmodel );
+          dsk = dsk_result.first;
+        }
+
+        return ( dsk->second );        
+      }      
+
+      inline static DskKernelModel get_dsk_shape_with_id( const std::string &dskfile, const int id ) {
+        return ( get_dsk_shape( dskfile ).create_from_id( id ) );
+      }      
+
+
+      inline static bool remove_dsk_shape( const std::string &dskfile ) {
+        std::scoped_lock mylocker( s_mutex );  
+        auto dsk = s_dsk_shape_inventory.find( dskfile );
+        if  ( s_dsk_shape_inventory.end() != dsk ) {
+          s_dsk_shape_inventory.erase( dskfile );
+          KernelFileSystem::safe_disposal_of( dskfile );
+          return ( true );
+        }
+        return ( false );
+      }
+
+      inline static std::vector<std::string> get_dsk_shape_inventory_list() {
+        std::vector<std::string> v_dsk_files;
+        std::scoped_lock mylocker( s_mutex ); 
+        for ( auto const &dsk : s_dsk_shape_inventory ) {
+          v_dsk_files.push_back( dsk.first );
+        } 
+        return ( v_dsk_files );
+      }
+
+
+  };
+
+} // namespace naif
+
+#endif

@@ -20,7 +20,19 @@ set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${other_flags}" )
 
 # This is PROJECT_SOURCE_DIR=psmrts
 project( psmrts )
+
 set( PSMRTS_PROJECT_DIR  ${CMAKE_SOURCE_DIR} )
+set( PSMRTS_DIR          ${CMAKE_SOURCE_DIR}/psmrts )
+set( PSMRTS_TEST_DIR     ${CMAKE_SOURCE_DIR}/psmrts/tests )
+set( PSMRTS_DATA_DIR     ${CMAKE_SOURCE_DIR}/data )
+set( PSMRTS_TRACER_DIR   ${CMAKE_SOURCE_DIR}/tracers )
+
+set( VERSION_MAJOR 0)
+set( VERSION_MINOR 1)
+set( VERSION_PATCH 0)
+
+# Configure the project include files
+configure_file( psmrts_version.h.in ${PSMRTS_DIR}/src/psmrts_version.h @ONLY )
 
 # Set psmrts source and include directory
 set( PSMRTS_BUILD_DIR    ${CMAKE_BINARY_DIR} )
@@ -41,6 +53,7 @@ find_library( SPICE_LIB cspice )
 
 # Optionally add unit tests of psmrts classes
 if( BUILD_TESTING )
+  configure_file( ${PSMRTS_TEST_DIR}/psmrts_test_config.h.in ${PSMRTS_TEST_DIR}/psmrts_test_config.h @ONLY )
   add_subdirectory( psmrts/tests )
   add_subdirectory( tracers/naifdsk/tests )
   enable_testing()

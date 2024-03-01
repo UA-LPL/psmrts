@@ -4,3 +4,5 @@
 vcpkg
 vcpkg_installed
 build
+psmrts_version.h
+psmrts_test_config.h
