@@ -264,6 +264,20 @@ namespace naif {
         return ( false );
       }
 
+      /** Reset the entire Kernel pool system, which closes all kernels and flushes pool */
+      static void reset_kernel_system() {
+
+        const bool ResetPoolSystem = true;
+
+        // Lock up inventory access for thread safety ( >=c++17 )
+        std::scoped_lock mylocker( s_mutex );
+
+        s_kernel_inventory.clear();
+        initKernelSystem( ResetPoolSystem );
+
+        return;
+      }
+
     private:
       inline static std::mutex      s_mutex = { };
       inline static KernelInventory s_kernel_inventory =  { };

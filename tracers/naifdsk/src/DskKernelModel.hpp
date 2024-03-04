@@ -575,6 +575,33 @@ namespace naif {
         return ( v_dsk_files );
       }
 
+      /**
+       * @brief Resets the DSK file inventory
+       * 
+       * This method empties the maintained DSK shared inventory. You may
+       * want to do this periodically but certainly must be done when
+       * a kclear_c() is called.
+       * 
+       * Note that the entire NAIF SPICE Kernel pool is *NOT* reset by this
+       * function. That will result in Very Bad Things and break existing
+       * instances of DSK kernel models.
+       * 
+       * Essentially, calling this and then reopening a new DSK without
+       * clearing the kernel pool (via naif::initKernelSystem( true) ) will
+       * retrieve a KernelDescriptor for the file, open it if needed,
+       * reread the DSK segments in the file, and then add that DskKernelModel
+       * instance to the DSK shape inventory, thus starting over.
+       * 
+       * This management is critical in testing as each Catch2 TEST_CASE must
+       * reset both the DSK kernel and NAIF SPICE kernel pool systems.
+       * 
+       * @history 2024-03-04 Kris J. Becker Original Version
+       */
+      inline static void reset_dsk_system( ) {
+        std::scoped_lock mylocker( s_mutex );  
+        s_dsk_shape_inventory.clear();
+        return;
+      }
 
   };
 
