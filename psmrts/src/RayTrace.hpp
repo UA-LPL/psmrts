@@ -6,8 +6,6 @@
 #include <exception>
 #include <Eigen/Geometry>
 
-#include <NaifUtilities.hpp>
-
 namespace psmrts {
 
   class RayTrace {
