@@ -2,6 +2,7 @@
 
 cmake_minimum_required( VERSION 3.0 )
 set( CMAKE_CXX_STANDARD 17 )
+set( CMAKE_CXX_STANDARD_REQUIRED True )
 
 # Add option to build tests and tools
 option( BUILD_TESTING   "Add PSMRTS unit tests"     OFF  )
@@ -41,10 +42,12 @@ include_directories( tracers/naifdsk/src )
 
 find_package( spdlog CONFIG REQUIRED )
 find_package( Eigen3 CONFIG REQUIRED )
-find_package( args CONFIG REQUIRED )
 find_library( SPICE_LIB cspice )
 
-# Add psmrts application
+# find_package( args CONFIG REQUIRED )
+
+
+# Add psmrts interface
 # add_executable(psmrts src/psmrts.cpp)
 
 # target_link_libraries(psmrts PRIVATE taywee::args)
