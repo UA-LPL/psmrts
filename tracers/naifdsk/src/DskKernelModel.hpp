@@ -575,8 +575,6 @@ namespace naif {
         return ( v_dsk_files );
       }
 
-      /** Resets the DSK file system but not the whole */
-
       /**
        * @brief Resets the DSK file inventory
        * 
