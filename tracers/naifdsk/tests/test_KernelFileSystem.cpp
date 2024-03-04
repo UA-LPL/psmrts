@@ -9,7 +9,8 @@
 TEST_CASE ( "Kernel File System Test - kernel_info description return", "[kernel][info]" ) {
     std::string file = psmrts_tracers_path( "/naifdsk/data/orx_ocams_v07.ti" );
     
-    CHECK_NOTHROW ( naif::initKernelSystem() ); // Initializes the kernel system
+    CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() ); // Reset/Initialize the kernel system
+
     CHECK ( naif::KernelFileSystem::kernel_count() == 0 ); // Should be zero, as we have yet to load any
     CHECK_NOTHROW ( naif::load_kernel(file) ); // Load the file/directory to be used
     CHECK_NOTHROW( naif::check_naif_errors() ); // Check for loading errors
@@ -23,6 +24,8 @@ TEST_CASE ( "Kernel File System Test - kernel_info description return", "[kernel
 
     CHECK ( kdscr.isValid() == true ); 
     CHECK ( kdscr.m_handle == kdscr.handle() ); 
+
+    CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() ); // Reset/Initialize the kernel system
 }
 
 TEST_CASE ( "Kernel File System Test - kernel_count return", "[kernel][directory][count]" ) {
@@ -45,12 +48,14 @@ TEST_CASE ( "Kernel File System Test - kernel_count return", "[kernel][directory
     CHECK ( naif::KernelFileSystem::kernel_count("EK") == 0  );
     CHECK ( naif::KernelFileSystem::kernel_count("META") == 0  );
     CHECK ( naif::KernelFileSystem::kernel_count("ALL") == 1  ); // Checks for all types / total
+    CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() ); // Reset/Initialize the kernel system
+
 }
 
 TEST_CASE ( "Kernel File System Test - kernel_filetype_info return", "[kernel][filetype]") {
     std::string file = psmrts_tracers_path( "naifdsk/data/orx_ocams_v07.ti" ); 
 
-    CHECK_NOTHROW ( naif::initKernelSystem() ); // Initializes the kernel system
+    CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() ); // Reset/Initialize the kernel system
     CHECK ( naif::KernelFileSystem::kernel_count() == 0 ); // Should be zero, as we have yet to load any
     CHECK_NOTHROW ( naif::load_kernel(file) ); // Load the file/directory to be used
     CHECK_NOTHROW( naif::check_naif_errors() ); // Check for loading errors
@@ -58,4 +63,6 @@ TEST_CASE ( "Kernel File System Test - kernel_filetype_info return", "[kernel][f
     auto k_info = naif::KernelFileSystem::kernel_filetype_info( "ALL" );
 
     CHECK ( k_info.size() == 1 );
+    CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() ); // Reset/Initialize the kernel system
+
 }

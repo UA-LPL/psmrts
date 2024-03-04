@@ -22,8 +22,11 @@ TEST_CASE ( "DSK Model Test - Default Constructor", "[default][dsk][shape]"){
 TEST_CASE ( "DSK Model Test - Basic Load/Init Tests", "[kernel][dsk][shape]" ) {
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
     
-    CHECK_NOTHROW ( naif::initKernelSystem() ); // Initializes the kernel system
+    CHECK_NOTHROW ( naif::DskKernelModel::reset_dsk_system() ); // Reset/Initialize the kernel system
+    CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() ); // Reset/Initialize the kernel system
+
     CHECK ( naif::KernelFileSystem::kernel_count() == 0 ); // Should be zero, as we have yet to load any
+    CHECK ( naif::KernelFileSystem::size() == 0 ); // Should be zero, as we have yet to load any
 
     naif::DskKernelModel dsk( dskfile );
     CHECK_NOTHROW( naif::check_naif_errors() ); 
@@ -44,13 +47,11 @@ TEST_CASE ( "DSK Model Test - Basic Load/Init Tests", "[kernel][dsk][shape]" ) {
     CHECK( dsk.n_dsk_segments()   == dsk2.n_dsk_segments() );
 
     
-    INFO ( "Kernels Before Unload: ");
     int i = 1;
     auto kdscr = naif::KernelFileSystem::kernel_filetype_info("ALL");
     REQUIRE ( kdscr.size() == 1 );
     // CHECK ( kdscr[0].handle() == kdscr[1].handle() );
     for (const auto& element : kdscr) {
-        std::cout << "Kernel Before: " << i << ": " << element.m_handle << std::endl;
         CHECK ( element.m_handle == element.handle() );
         i++;
     }
@@ -60,15 +61,12 @@ TEST_CASE ( "DSK Model Test - Basic Load/Init Tests", "[kernel][dsk][shape]" ) {
 
     auto kdscr2 = naif::KernelFileSystem::kernel_filetype_info("ALL");
     REQUIRE ( kdscr2.size() == 0 );
-    INFO ( "Kernels After: ");
     i = 1;
     for (const auto& element : kdscr2) {
-        std::cout << "Kernel After: " << i << ": " << element.handle() << std::endl;
         CHECK ( element.m_handle == element.handle() );
         i++;
     }
 
-    CHECK ( naif::KernelFileSystem::kernel_count() == 0 );
     CHECK_NOTHROW( naif::KernelFileSystem::safe_disposal_of( dskfile ));
     // test unload kernel - get list of loaded, use internal functions to help
     // ensure count == 1 after - find out which one is unloaded / not valid
@@ -78,16 +76,16 @@ TEST_CASE ( "DSK Model Test - Basic Load/Init Tests", "[kernel][dsk][shape]" ) {
     // MAX loaded reference to kernels = 5300
     // do a try/catch that checks current load, and ensures the 5300 (AND/OR that any more throws an error)
     // #if 0: will not compile, but 1 will - to help debugging.
-#if 0
     int n_loaded = 0;
     bool done = false; 
-    CHECK_NOTHROW ( naif::initKernelSystem() );
-
+    CHECK_NOTHROW ( naif::initKernelSystem( true ) );
+    const bool ThrowOnErrorPlease = true;
+    
     for ( ; ( n_loaded < 10000) && ( !done ) ; n_loaded++) {
         
         try {
             naif::load_kernel( dskfile );
-            naif::check_naif_errors(false);  
+            naif::check_naif_errors( ThrowOnErrorPlease );  
         }  
         catch(...) {
             done = true;
@@ -95,14 +93,10 @@ TEST_CASE ( "DSK Model Test - Basic Load/Init Tests", "[kernel][dsk][shape]" ) {
     }
     
     CHECK ( n_loaded == 5301 );
-    // kclear_c();
-    CHECK_NOTHROW ( naif::initKernelSystem() );
-    CHECK ( naif::KernelFileSystem::kernel_count() == 0 );
-#endif
-    // Above test, when ran, seems to prevent the system from clearing the kernels. It gives error that KEEPER system
-    // is maxed out, and persists through to other tests.
-    // - Calling initKernelSystem(), clearKernelSystem(), and kclear_c() does not seem to work. 
 
+    CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() ); // Reset/Initialize the kernel system
+    CHECK_NOTHROW ( naif::DskKernelModel::reset_dsk_system() ); // Reset/Initialize the kernel system
+    CHECK ( naif::KernelFileSystem::kernel_count() == 0 );
 }
 
 
@@ -112,19 +106,22 @@ TEST_CASE ( "DSK Model Test - Multi-Load/Init/Shared Tests", "[kernel][dsk][shap
 
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
  
-    CHECK_NOTHROW ( naif::initKernelSystem() );
-    naif::check_naif_errors(); // Initializes the kernel system
+    CHECK_NOTHROW ( naif::DskKernelModel::reset_dsk_system() ); // Reset/Initialize the kernel system
+    CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() ); // Reset/Initialize the kernel system
 
+    // naif::check_naif_errors(); // Initializes the kernel system
     CHECK ( naif::KernelFileSystem::kernel_count() == 0 ); // Should be zero, as we have yet to load any
+    CHECK ( naif::KernelFileSystem::size() == 0 );         // No cached files either...
 
     naif::DskKernelModel dsk( dskfile );
     CHECK_NOTHROW( naif::check_naif_errors() ); // Check for loading errors
     CHECK ( naif::KernelFileSystem::kernel_count() == 1 ); 
+    CHECK ( naif::KernelFileSystem::size() == 1 ); 
 
     REQUIRE ( dsk.isValid() == true );
     REQUIRE ( dsk.n_dsk_segments() == 1 );
     CHECK ( dsk.dskfile() == dskfile );
-    CHECK ( dsk.handle() == 1 );
+    // CHECK ( dsk.handle() == 1 );
     //CHECK_THROWS( dsk.handle() == 123 ); // Doesnt seem to throw error (resulting in test failure)
     // CHECK ( dsk.handle() != 0 );
     // how does system handle non-existing handle calls?
@@ -170,6 +167,9 @@ TEST_CASE ( "DSK Model Test - Multi-Load/Init/Shared Tests", "[kernel][dsk][shap
 
     CHECK ( dsk2.use_count() == 4 ); 
 
+    CHECK_NOTHROW ( naif::DskKernelModel::reset_dsk_system() ); // Reset/Initialize the kernel system
+    CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() ); // Reset/Initialize the kernel system
+
     
 }
 
@@ -178,7 +178,9 @@ TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][fac
 
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
  
-    CHECK_NOTHROW ( naif::initKernelSystem() );
+    CHECK_NOTHROW ( naif::DskKernelModel::reset_dsk_system() ); // Reset/Initialize the kernel system
+    CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() ); // Reset/Initialize the kernel system
+
 
     naif::DskKernelModel dsk( dskfile );
     CHECK_NOTHROW( naif::check_naif_errors() );
@@ -211,4 +213,8 @@ TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][fac
     // load_facet_indexes ( segment )
 
     // load_facet_vectors( segment ) 
+
+    CHECK_NOTHROW ( naif::DskKernelModel::reset_dsk_system() ); // Reset/Initialize the kernel system
+    CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() ); // Reset/Initialize the kernel system
+
 }

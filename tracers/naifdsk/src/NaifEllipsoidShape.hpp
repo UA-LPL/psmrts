@@ -7,6 +7,7 @@
 #include <Eigen/Geometry>
 
 #include <NaifUtilities.hpp>
+#include <RayTrace.hpp>
 
 namespace naif {
 
@@ -80,6 +81,26 @@ namespace naif {
         (void) surfnm_c( a(), b(), c(), point.data(), normvec.data() );
         return ( normvec );
       }
+
+      inline bool ray_trace( const Eigen::Vector3d &observer, 
+                             const Eigen::Vector3d &lookdir,
+                             psmrts::RayTrace::RayTraceDatum &raytrace ) const {
+
+        raytrace.reset();
+        raytrace.m_observer = observer;
+        raytrace.m_lookdir  = lookdir;
+        raytrace.m_segment  = 0;
+        raytrace.m_plateid  = 0;
+
+        raytrace.m_hit = this->ray_trace( observer, lookdir, raytrace.m_xyz );
+        if ( raytrace.hasHit() ) {
+          raytrace.m_normal = this->normal( raytrace.m_xyz );
+        }
+
+        // Returns intercept state
+        return ( raytrace.hasHit() );
+      }
+
 
     private:
       double    m_a_radius;
