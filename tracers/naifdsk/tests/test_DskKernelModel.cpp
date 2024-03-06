@@ -56,6 +56,8 @@ TEST_CASE ( "DSK Model Test - Basic Load/Init Tests", "[kernel][dsk][shape]" ) {
         i++;
     }
 
+    // DO NOT USE unload_kernel() to clean working inventory/pool - bypasses intended handling
+    // and can cause multiple issues. Use: remove_dsk_shape() instead.
     CHECK_NOTHROW( naif::unload_kernel( dskfile ));
     CHECK ( naif::KernelFileSystem::size() == 1 );    
 
@@ -70,7 +72,7 @@ TEST_CASE ( "DSK Model Test - Basic Load/Init Tests", "[kernel][dsk][shape]" ) {
     CHECK_NOTHROW( naif::KernelFileSystem::safe_disposal_of( dskfile ));
     // test unload kernel - get list of loaded, use internal functions to help
     // ensure count == 1 after - find out which one is unloaded / not valid
-    // test loading same kernel multiple times. (2/19)
+
 
  
     // MAX loaded reference to kernels = 5300
@@ -97,6 +99,8 @@ TEST_CASE ( "DSK Model Test - Basic Load/Init Tests", "[kernel][dsk][shape]" ) {
     CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() ); // Reset/Initialize the kernel system
     CHECK_NOTHROW ( naif::DskKernelModel::reset_dsk_system() ); // Reset/Initialize the kernel system
     CHECK ( naif::KernelFileSystem::kernel_count() == 0 );
+    CHECK ( naif::KernelFileSystem::size() == 0 );
+
 }
 
 
@@ -121,10 +125,6 @@ TEST_CASE ( "DSK Model Test - Multi-Load/Init/Shared Tests", "[kernel][dsk][shap
     REQUIRE ( dsk.isValid() == true );
     REQUIRE ( dsk.n_dsk_segments() == 1 );
     CHECK ( dsk.dskfile() == dskfile );
-    // CHECK ( dsk.handle() == 1 );
-    //CHECK_THROWS( dsk.handle() == 123 ); // Doesnt seem to throw error (resulting in test failure)
-    // CHECK ( dsk.handle() != 0 );
-    // how does system handle non-existing handle calls?
 
     // Since only one segment, should be same as below values for ie n_vertices(), n_plates(), etc
 
@@ -169,6 +169,7 @@ TEST_CASE ( "DSK Model Test - Multi-Load/Init/Shared Tests", "[kernel][dsk][shap
 
     CHECK_NOTHROW ( naif::DskKernelModel::reset_dsk_system() ); // Reset/Initialize the kernel system
     CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() ); // Reset/Initialize the kernel system
+    CHECK ( naif::KernelFileSystem::size() == 0 );
 
     
 }
@@ -206,15 +207,40 @@ TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][fac
 
     Eigen::Vector3d lkdr = obs - surf;
 
+    //CHECK ( naif::DskKernelModel::ray_trace(obs, lkdr, segment) == true );
+
     // intercept() - bool, needs observer, lookdir, segment, ray trace (from psmrts) addresses?
     //CHECK ( dsk.intercept(-obs, lkdr, segment, psmrts::RayTrace(obs, lkdr)) == true );
     // get_facet(ray trace address, facet address?)
 
-    // load_facet_indexes ( segment )
+    // load_facet_indexes ( segment ) / load_facet_vectors( segment ) 
+    naif::DskKernelModel::DskIndexDataModel indexes = dsk.load_facet_indexes();
+    naif::DskKernelModel::DskVectorDataModel vectors = dsk.load_facet_vectors();
+    psmrts::RayTrace::FacetDatum target_facet;
+    psmrts::RayTrace::RayTraceDatum raytrace;
+    
+    raytrace.m_hit = true;
+    raytrace.m_segment = 0; 
+    raytrace.m_plateid = 1;
 
-    // load_facet_vectors( segment ) 
+    for (int i = 0; i < dsk.n_total_plates(); i++) {
+        raytrace.m_plateid = i+1; 
+        dsk.get_facet( raytrace, target_facet ); 
+        CHECK ( vectors(indexes(i)[0]) == target_facet.m_vector1 );
+        CHECK ( vectors(indexes(i)[1]) == target_facet.m_vector2 );
+        CHECK ( vectors(indexes(i)[2]) == target_facet.m_vector1 );
+    };
+
+    
+    // Check individual facet extraction with indices and vector data
+
+
+   
+
+    
 
     CHECK_NOTHROW ( naif::DskKernelModel::reset_dsk_system() ); // Reset/Initialize the kernel system
     CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() ); // Reset/Initialize the kernel system
+    CHECK ( naif::KernelFileSystem::size() == 0 );
 
 }
