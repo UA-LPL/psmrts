@@ -126,6 +126,13 @@ TEST_CASE ( "DSK Model Test - Multi-Load/Init/Shared Tests", "[kernel][dsk][shap
     REQUIRE ( dsk.n_dsk_segments() == 1 );
     CHECK ( dsk.dskfile() == dskfile );
 
+    // ** Added tracer name checks **
+    CHECK ( dsk.tracer_model_type() == "naifdsk" );
+    CHECK ( dsk.tracer_model_name() == "DskKernelModel" );
+    CHECK ( dsk.shape_tracer_id() == "naifdsk::DskKernelModel::" + dsk.dskfile());
+    // check the file - pathing for me is: /Users/kabecker/PSMRTS/GitCheckouts/NAIFtesting/
+    //psmrts/tracers/naifdsk/data/bennu_20facets.bds
+
     // Since only one segment, should be same as below values for ie n_vertices(), n_plates(), etc
 
     // Test first segment of an open DSK kernel
@@ -206,6 +213,30 @@ TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][fac
 
 
     Eigen::Vector3d lkdr = obs - surf;
+    psmrts::RayTrace::RayTraceDatum raytrace1;
+    raytrace1.m_segment = 0;
+    raytrace1.m_plateid = 1;
+
+    CHECK ( dsk.ray_trace(obs, lkdr, raytrace1) == false );
+    
+    // tried a few different variations of above values, had trouble finding a hit - values could be wonky
+    for (int i = 0; i < dsk.n_total_plates(); i++ ) {
+        raytrace1.m_plateid = i + 1;
+        if (dsk.ray_trace(obs, lkdr, raytrace1) == true) {
+            //INFO ( "Successful plate id: " << raytrace1.m_plateid);
+            CHECK ( dsk.ray_trace(obs, lkdr, raytrace1) == false ); // Check for output to see which plate hits
+        }
+        else {
+            //INFO ("Failed plate id: " << raytrace1.m_plateid);
+            // CHECK ( dsk.ray_trace(obs, lkdr, raytrace1) == true ); - this was to check how many plates were run
+            continue;
+
+        }
+
+    }
+    
+    
+    
 
     //CHECK ( naif::DskKernelModel::ray_trace(obs, lkdr, segment) == true );
 
@@ -214,6 +245,7 @@ TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][fac
     // get_facet(ray trace address, facet address?)
 
     // load_facet_indexes ( segment ) / load_facet_vectors( segment ) 
+    // Check individual facet extraction with indices and vector data
     naif::DskKernelModel::DskIndexDataModel indexes = dsk.load_facet_indexes();
     naif::DskKernelModel::DskVectorDataModel vectors = dsk.load_facet_vectors();
     psmrts::RayTrace::FacetDatum target_facet;
@@ -230,12 +262,6 @@ TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][fac
         CHECK ( vectors(indexes(i)[1]) == target_facet.m_vector2 );
         CHECK ( vectors(indexes(i)[2]) == target_facet.m_vector1 );
     };
-
-    
-    // Check individual facet extraction with indices and vector data
-
-
-   
 
     
 
