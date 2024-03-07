@@ -182,7 +182,7 @@ TEST_CASE ( "DSK Model Test - Multi-Load/Init/Shared Tests", "[kernel][dsk][shap
 }
 
 TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][facet]") {
-    const double tolerance = 1.0e-9;
+    const double tolerance_r = 1.0e-6; // MM Precision
 
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
  
@@ -196,15 +196,15 @@ TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][fac
     CHECK_NOTHROW( naif::check_naif_errors() );
 
     CHECK ( dsk.use_count() == 3 ); 
-
+    
 
     Eigen::Vector3d obs;
-    double radius = 1.0;
+    double radius = segment.maximum_radius();
     double obs_long = 45.0 * rpd_c();
     double obs_lat = 45.0 * rpd_c();
     latrec_c ( radius, obs_long, obs_lat, obs.data() );
     obs = obs * 10.0;
-
+    
 
     Eigen::Vector3d surf;
     double surf_long = 45.0 * rpd_c();
@@ -212,14 +212,18 @@ TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][fac
     latrec_c ( radius, surf_long, surf_lat, surf.data() );
 
 
-    Eigen::Vector3d lkdr = obs - surf;
-    psmrts::RayTrace::RayTraceDatum raytrace1;
-    raytrace1.m_segment = 0;
-    raytrace1.m_plateid = 1;
+    Eigen::Vector3d lkdr = surf - obs;
+    psmrts::RayTrace ray(obs, lkdr);
 
-    CHECK ( dsk.ray_trace(obs, lkdr, raytrace1) == false );
-    
+    psmrts::RayTrace::RayTraceDatum &raytrace1 = ray.datum(); 
+    CHECK ( dsk.ray_trace(obs, lkdr, raytrace1) == true );
+    CHECK ( lkdr == ray.surfpt() );
+    CHECK ( surf == ray.xyz() );
+    double sep_ang = vsep_c(lkdr.data(), ray.surfpt().data());
+    //CHECK_THAT ( sep_ang == 0.0 ); 
+    CHECK_THAT( sep_ang, Catch::Matchers::WithinAbs(0.0, tolerance_r ));
     // tried a few different variations of above values, had trouble finding a hit - values could be wonky
+    /*
     for (int i = 0; i < dsk.n_total_plates(); i++ ) {
         raytrace1.m_plateid = i + 1;
         if (dsk.ray_trace(obs, lkdr, raytrace1) == true) {
@@ -234,20 +238,34 @@ TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][fac
         }
 
     }
+    */
     
-    
-    
-
-    //CHECK ( naif::DskKernelModel::ray_trace(obs, lkdr, segment) == true );
-
-    // intercept() - bool, needs observer, lookdir, segment, ray trace (from psmrts) addresses?
-    //CHECK ( dsk.intercept(-obs, lkdr, segment, psmrts::RayTrace(obs, lkdr)) == true );
-    // get_facet(ray trace address, facet address?)
 
     // load_facet_indexes ( segment ) / load_facet_vectors( segment ) 
     // Check individual facet extraction with indices and vector data
     naif::DskKernelModel::DskIndexDataModel indexes = dsk.load_facet_indexes();
     naif::DskKernelModel::DskVectorDataModel vectors = dsk.load_facet_vectors();
+    CHECK ( indexes(0) == Eigen::Vector3i::Zero() );
+    CHECK ( indexes(1) == Eigen::Vector3i::Zero() );
+    CHECK ( indexes(2) == Eigen::Vector3i::Zero() );
+    CHECK ( indexes(dsk.n_total_plates() - 3) == Eigen::Vector3i::Zero() );
+    CHECK ( indexes(dsk.n_total_plates() - 2) == Eigen::Vector3i::Zero() );
+    CHECK ( indexes(dsk.n_total_plates() - 1) == Eigen::Vector3i::Zero() );
+
+
+    CHECK ( vectors(0) == Eigen::Vector3d::Zero() );
+    CHECK ( vectors(1) == Eigen::Vector3d::Zero() );
+    CHECK ( vectors(2) == Eigen::Vector3d::Zero() );
+    CHECK ( vectors(vectors.size() - 2) == Eigen::Vector3d::Zero() );
+    CHECK ( vectors(vectors.size() - 1) == Eigen::Vector3d::Zero() );
+
+    CHECK ( dsk.n_total_plates() == 0); 
+    CHECK ( dsk.n_total_vertices() == 0);
+    CHECK ( vectors.size() == 0 ); 
+    CHECK ( indexes.size() == 0 );
+    
+
+
     psmrts::RayTrace::FacetDatum target_facet;
     psmrts::RayTrace::RayTraceDatum raytrace;
     
@@ -257,7 +275,12 @@ TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][fac
 
     for (int i = 0; i < dsk.n_total_plates(); i++) {
         raytrace.m_plateid = i+1; 
-        dsk.get_facet( raytrace, target_facet ); 
+        dsk.get_facet( raytrace, target_facet );
+        CHECK ( target_facet.m_has_facet == true ); 
+        if ( target_facet.m_has_facet == false ) {
+            CHECK ( i == -1 ); 
+        }
+        CHECK ( indexes(i) == target_facet.m_indexes );  
         CHECK ( vectors(indexes(i)[0]) == target_facet.m_vector1 );
         CHECK ( vectors(indexes(i)[1]) == target_facet.m_vector2 );
         CHECK ( vectors(indexes(i)[2]) == target_facet.m_vector1 );
