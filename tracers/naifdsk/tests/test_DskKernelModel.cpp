@@ -130,8 +130,7 @@ TEST_CASE ( "DSK Model Test - Multi-Load/Init/Shared Tests", "[kernel][dsk][shap
     CHECK ( dsk.tracer_model_type() == "naifdsk" );
     CHECK ( dsk.tracer_model_name() == "DskKernelModel" );
     CHECK ( dsk.shape_tracer_id() == "naifdsk::DskKernelModel::" + dsk.dskfile());
-    // check the file - pathing for me is: /Users/kabecker/PSMRTS/GitCheckouts/NAIFtesting/
-    //psmrts/tracers/naifdsk/data/bennu_20facets.bds
+ 
 
     // Since only one segment, should be same as below values for ie n_vertices(), n_plates(), etc
 
@@ -181,6 +180,43 @@ TEST_CASE ( "DSK Model Test - Multi-Load/Init/Shared Tests", "[kernel][dsk][shap
     
 }
 
+
+TEST_CASE ( "DSK Model Test - Dsk File API Tests", "[kernel][dsk][inventory][api]" ) {
+    
+    CHECK_NOTHROW ( naif::DskKernelModel::reset_dsk_system() );
+    CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() );
+    REQUIRE ( naif::KernelFileSystem::size() == 0 );  
+
+    std::string dsk_test_file = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
+
+    naif::DskKernelModel dsk_test( dsk_test_file );
+
+    // has_dsk_shape(file) - returns bool
+    CHECK ( dsk_test.has_dsk_shape( dsk_test_file ) == true ); 
+
+    // get_dsk_shape(file) - returns a DskKernelModel, use 
+    naif::DskKernelModel dsk_test2 = dsk_test.get_dsk_shape( dsk_test_file );
+    CHECK ( dsk_test2.dskfile() == dsk_test.dskfile());
+    CHECK ( dsk_test.use_count() == 4 ); //tracks # of mutex locks, actual number being used
+
+    // get_dsk_shape_with_id(file, id) - id = 2101955;
+    naif::DskKernelModel dsk_test3 = dsk_test.get_dsk_shape_with_id( dsk_test_file, 2101955 );
+    CHECK ( dsk_test3.dskfile() == dsk_test.dskfile() );
+    CHECK ( dsk_test3.use_count() == 5 );
+
+    // get_dsk_shape_inventory_list()  should be the file, and only one (should be same as size())
+    auto dsk_inv = dsk_test.get_dsk_shape_inventory_list();
+    CHECK ( dsk_inv.size() == 1 ); 
+
+    // remove_dsk_shape() should removes from inventory
+    dsk_test3.remove_dsk_shape( dsk_test_file );
+    CHECK ( dsk_test.use_count() == 4 );
+   
+
+    CHECK_NOTHROW ( naif::DskKernelModel::reset_dsk_system() );
+    CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() );
+}
+
 TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][facet]") {
     const double tolerance_r = 1.0e-6; // MM Precision
 
@@ -212,7 +248,7 @@ TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][fac
     double surf_long = 45.0 * rpd_c();
     double surf_lat = 50.0 * rpd_c();
     latrec_c ( radius, surf_long, surf_lat, surf.data() );
-
+    // Attempt setting for sun, long 80 / lat 45 but with FAR distance (*100000).
 
     Eigen::Vector3d lkdr = surf - obs;
     psmrts::RayTrace ray(obs, lkdr);
@@ -224,32 +260,12 @@ TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][fac
     Eigen::Vector3d lkdr_norm = lkdr.normalized();
     Eigen::Vector3d sfpt_norm = ray.surfpt().normalized();
 
-    // CHECK ( lkdr.normalized() == ray.surfpt().normalized() );
     CHECK_THAT( lkdr_norm[0], Catch::Matchers::WithinAbs(sfpt_norm[0], tolerance_r ));
     CHECK_THAT( lkdr_norm[1], Catch::Matchers::WithinAbs(sfpt_norm[1], tolerance_r ));
     CHECK_THAT( lkdr_norm[2], Catch::Matchers::WithinAbs(sfpt_norm[2], tolerance_r ));
 
     double sep_ang = vsep_c(lkdr.data(), ray.surfpt().data());
     CHECK_THAT( sep_ang, Catch::Matchers::WithinAbs(0.0, tolerance_r ));
-
-    // tried a few different variations of above values, had trouble finding a hit - values could be wonky
-    /*
-    for (int i = 0; i < dsk.n_total_plates(); i++ ) {
-        raytrace1.m_plateid = i + 1;
-        if (dsk.ray_trace(obs, lkdr, raytrace1) == true) {
-            //INFO ( "Successful plate id: " << raytrace1.m_plateid);
-            CHECK ( dsk.ray_trace(obs, lkdr, raytrace1) == false ); // Check for output to see which plate hits
-        }
-        else {
-            //INFO ("Failed plate id: " << raytrace1.m_plateid);
-            // CHECK ( dsk.ray_trace(obs, lkdr, raytrace1) == true ); - this was to check how many plates were run
-            continue;
-
-        }
-
-    }
-    */
-
 
     
     // load_facet_indexes ( segment ) / load_facet_vectors( segment ) 
@@ -285,3 +301,12 @@ TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][fac
     CHECK ( naif::KernelFileSystem::size() == 0 );
 
 }
+
+
+// Ray Trace, test case -- create new test file for RayTrace: test_RayTrace.cpp
+// has_dsk_shape(file) - returns bool
+// get_dsk_shape(file) - returns a DskKernelModel, use 
+// get_dsk_shape_with_id(file, id) - id = 2101955;
+// remove_dsk_shape() should removes from inventory
+// get_dsk_shape_inventory_list()  should be the file, and only one (should be same as size())
+// 
