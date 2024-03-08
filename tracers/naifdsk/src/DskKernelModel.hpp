@@ -246,12 +246,6 @@ namespace naif {
                 
         // Sanity check validity of raytrace
         facet.m_has_facet = false;
-        std::cout << "get_facet: " << raytrace.hasHit() << std::endl;
-        std::cout << "Segment ID: " << raytrace.m_segment << std::endl;
-        std::cout << "Plate ID: " << raytrace.m_plateid << std::endl;
-        std::cout << "Kernel Handle: " << kernel().handle() << std::endl;
-
-
         if ( raytrace.hasHit() ) {
 
           const DskSegment *segment = get_segment_with_id( raytrace.m_segment );
