@@ -56,6 +56,8 @@ TEST_CASE ( "DSK Model Test - Basic Load/Init Tests", "[kernel][dsk][shape]" ) {
         i++;
     }
 
+    // DO NOT USE unload_kernel() to clean working inventory/pool - bypasses intended handling
+    // and can cause multiple issues. Use: remove_dsk_shape() instead.
     CHECK_NOTHROW( naif::unload_kernel( dskfile ));
     CHECK ( naif::KernelFileSystem::size() == 1 );    
 
@@ -70,7 +72,7 @@ TEST_CASE ( "DSK Model Test - Basic Load/Init Tests", "[kernel][dsk][shape]" ) {
     CHECK_NOTHROW( naif::KernelFileSystem::safe_disposal_of( dskfile ));
     // test unload kernel - get list of loaded, use internal functions to help
     // ensure count == 1 after - find out which one is unloaded / not valid
-    // test loading same kernel multiple times. (2/19)
+
 
  
     // MAX loaded reference to kernels = 5300
@@ -97,6 +99,8 @@ TEST_CASE ( "DSK Model Test - Basic Load/Init Tests", "[kernel][dsk][shape]" ) {
     CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() ); // Reset/Initialize the kernel system
     CHECK_NOTHROW ( naif::DskKernelModel::reset_dsk_system() ); // Reset/Initialize the kernel system
     CHECK ( naif::KernelFileSystem::kernel_count() == 0 );
+    CHECK ( naif::KernelFileSystem::size() == 0 );
+
 }
 
 
@@ -121,10 +125,12 @@ TEST_CASE ( "DSK Model Test - Multi-Load/Init/Shared Tests", "[kernel][dsk][shap
     REQUIRE ( dsk.isValid() == true );
     REQUIRE ( dsk.n_dsk_segments() == 1 );
     CHECK ( dsk.dskfile() == dskfile );
-    // CHECK ( dsk.handle() == 1 );
-    //CHECK_THROWS( dsk.handle() == 123 ); // Doesnt seem to throw error (resulting in test failure)
-    // CHECK ( dsk.handle() != 0 );
-    // how does system handle non-existing handle calls?
+
+    // ** Added tracer name checks **
+    CHECK ( dsk.tracer_model_type() == "naifdsk" );
+    CHECK ( dsk.tracer_model_name() == "DskKernelModel" );
+    CHECK ( dsk.shape_tracer_id() == "naifdsk::DskKernelModel::" + dsk.dskfile());
+ 
 
     // Since only one segment, should be same as below values for ie n_vertices(), n_plates(), etc
 
@@ -169,18 +175,58 @@ TEST_CASE ( "DSK Model Test - Multi-Load/Init/Shared Tests", "[kernel][dsk][shap
 
     CHECK_NOTHROW ( naif::DskKernelModel::reset_dsk_system() ); // Reset/Initialize the kernel system
     CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() ); // Reset/Initialize the kernel system
+    CHECK ( naif::KernelFileSystem::size() == 0 );
 
     
 }
 
+
+TEST_CASE ( "DSK Model Test - Dsk File API Tests", "[kernel][dsk][inventory][api]" ) {
+    
+    CHECK_NOTHROW ( naif::DskKernelModel::reset_dsk_system() );
+    CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() );
+    REQUIRE ( naif::KernelFileSystem::size() == 0 );  
+
+    std::string dsk_test_file = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
+
+    naif::DskKernelModel dsk_test( dsk_test_file );
+
+    // has_dsk_shape(file) - returns bool
+    CHECK ( dsk_test.has_dsk_shape( dsk_test_file ) == true ); 
+
+    // get_dsk_shape(file) - returns a DskKernelModel, use 
+    naif::DskKernelModel dsk_test2 = dsk_test.get_dsk_shape( dsk_test_file );
+    CHECK ( dsk_test2.dskfile() == dsk_test.dskfile());
+    CHECK ( dsk_test.use_count() == 4 ); //tracks # of mutex locks, actual number being used
+
+    // get_dsk_shape_with_id(file, id) - id = 2101955;
+    naif::DskKernelModel dsk_test3 = dsk_test.get_dsk_shape_with_id( dsk_test_file, 2101955 );
+    CHECK ( dsk_test3.dskfile() == dsk_test.dskfile() );
+    CHECK ( dsk_test3.use_count() == 5 );
+
+    // get_dsk_shape_inventory_list()  should be the file, and only one (should be same as size())
+    auto dsk_inv = dsk_test.get_dsk_shape_inventory_list();
+    CHECK ( dsk_inv.size() == 1 ); 
+
+    // remove_dsk_shape() should removes from inventory
+    dsk_test3.remove_dsk_shape( dsk_test_file );
+    CHECK ( dsk_test.use_count() == 4 );
+   
+
+    CHECK_NOTHROW ( naif::DskKernelModel::reset_dsk_system() );
+    CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() );
+}
+
 TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][facet]") {
-    const double tolerance = 1.0e-9;
+    const double tolerance_r = 1.0e-6; // MM Precision
 
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
  
     CHECK_NOTHROW ( naif::DskKernelModel::reset_dsk_system() ); // Reset/Initialize the kernel system
     CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() ); // Reset/Initialize the kernel system
 
+    CHECK ( naif::KernelFileSystem::kernel_count() == 0 ); // Should be zero, as we have yet to load any
+    CHECK ( naif::KernelFileSystem::size() == 0 );         // No cached files either...
 
     naif::DskKernelModel dsk( dskfile );
     CHECK_NOTHROW( naif::check_naif_errors() );
@@ -188,33 +234,79 @@ TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][fac
     CHECK_NOTHROW( naif::check_naif_errors() );
 
     CHECK ( dsk.use_count() == 3 ); 
-
+    
 
     Eigen::Vector3d obs;
-    double radius = 1.0;
+    double radius = segment.maximum_radius();
     double obs_long = 45.0 * rpd_c();
     double obs_lat = 45.0 * rpd_c();
     latrec_c ( radius, obs_long, obs_lat, obs.data() );
     obs = obs * 10.0;
-
+    
 
     Eigen::Vector3d surf;
     double surf_long = 45.0 * rpd_c();
     double surf_lat = 50.0 * rpd_c();
     latrec_c ( radius, surf_long, surf_lat, surf.data() );
+    // Attempt setting for sun, long 80 / lat 45 but with FAR distance (*100000).
 
+    Eigen::Vector3d lkdr = surf - obs;
+    psmrts::RayTrace ray(obs, lkdr);
 
-    Eigen::Vector3d lkdr = obs - surf;
+    // Holds reference to RayTrace structure and updates on write
+    psmrts::RayTrace::RayTraceDatum &raytrace1 = ray.datum(); 
+    CHECK ( dsk.ray_trace(obs, lkdr, raytrace1) == true );
 
-    // intercept() - bool, needs observer, lookdir, segment, ray trace (from psmrts) addresses?
-    //CHECK ( dsk.intercept(-obs, lkdr, segment, psmrts::RayTrace(obs, lkdr)) == true );
-    // get_facet(ray trace address, facet address?)
+    Eigen::Vector3d lkdr_norm = lkdr.normalized();
+    Eigen::Vector3d sfpt_norm = ray.surfpt().normalized();
 
-    // load_facet_indexes ( segment )
+    CHECK_THAT( lkdr_norm[0], Catch::Matchers::WithinAbs(sfpt_norm[0], tolerance_r ));
+    CHECK_THAT( lkdr_norm[1], Catch::Matchers::WithinAbs(sfpt_norm[1], tolerance_r ));
+    CHECK_THAT( lkdr_norm[2], Catch::Matchers::WithinAbs(sfpt_norm[2], tolerance_r ));
 
-    // load_facet_vectors( segment ) 
+    double sep_ang = vsep_c(lkdr.data(), ray.surfpt().data());
+    CHECK_THAT( sep_ang, Catch::Matchers::WithinAbs(0.0, tolerance_r ));
+
+    
+    // load_facet_indexes ( segment ) / load_facet_vectors( segment ) 
+    // Check individual facet extraction with indices and vector data
+    naif::DskKernelModel::DskIndexDataModel indexes = dsk.load_facet_indexes();
+    naif::DskKernelModel::DskVectorDataModel vectors = dsk.load_facet_vectors();
+    
+    CHECK ( dsk.n_total_plates()   == indexes.size() ); 
+    CHECK ( dsk.n_total_vertices() == ( vectors.size() - 1 ));
+
+    psmrts::RayTrace::FacetDatum target_facet;
+    psmrts::RayTrace::RayTraceDatum raytrace;
+    
+    raytrace.m_hit = true;
+    raytrace.m_segment = segment.surfaceid(); 
+    raytrace.m_plateid = 1;
+
+    for (int i = 0; i < dsk.n_total_plates(); i++) {
+        raytrace.m_plateid = i+1; 
+        dsk.get_facet( raytrace, target_facet );
+        CHECK ( target_facet.m_has_facet == true ); 
+        if ( target_facet.m_has_facet == false ) {
+            CHECK ( i == -1 ); 
+        }
+        CHECK ( indexes(i) == target_facet.m_indexes );  
+        CHECK ( vectors(indexes(i)[0]) == target_facet.m_vector1 );
+        CHECK ( vectors(indexes(i)[1]) == target_facet.m_vector2 );
+        CHECK ( vectors(indexes(i)[2]) == target_facet.m_vector3 );
+    };
 
     CHECK_NOTHROW ( naif::DskKernelModel::reset_dsk_system() ); // Reset/Initialize the kernel system
     CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() ); // Reset/Initialize the kernel system
+    CHECK ( naif::KernelFileSystem::size() == 0 );
 
 }
+
+
+// Ray Trace, test case -- create new test file for RayTrace: test_RayTrace.cpp
+// has_dsk_shape(file) - returns bool
+// get_dsk_shape(file) - returns a DskKernelModel, use 
+// get_dsk_shape_with_id(file, id) - id = 2101955;
+// remove_dsk_shape() should removes from inventory
+// get_dsk_shape_inventory_list()  should be the file, and only one (should be same as size())
+// 

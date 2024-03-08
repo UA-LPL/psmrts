@@ -70,7 +70,7 @@ namespace naif {
       }
 
       inline SpiceInt n_vectors() const {
-        return ( n_plates() );
+        return ( n_vertices() );
       }      
            
       inline const SpiceDLADescr &dladsc() const {

@@ -246,7 +246,6 @@ namespace naif {
                 
         // Sanity check validity of raytrace
         facet.m_has_facet = false;
-
         if ( raytrace.hasHit() ) {
 
           const DskSegment *segment = get_segment_with_id( raytrace.m_segment );
@@ -313,7 +312,7 @@ namespace naif {
 
 
       /**
-       * @brief Read all facet indexes from a DSK segment
+       * @brief Read all facet plate indexes from a DSK segment
        * 
        * @param dsksegment 
        * @return DskIndexDataModel 
@@ -321,7 +320,7 @@ namespace naif {
       inline DskIndexDataModel load_facet_indexes( const DskSegment *dsksegment = nullptr ) const {
 
         const DskSegment &segref = ( nullptr != dsksegment ) ? *dsksegment : this->segment();
-        DskIndexDataModel dskndx( segref.n_vertices() );
+        DskIndexDataModel dskndx( segref.n_plates() );
 
         // Lock up NAIF file I/O for thread safety ( >=c++17 )
         std::scoped_lock mylocker( this->mutex() );        
@@ -329,14 +328,14 @@ namespace naif {
         SpiceInt n;
         SpiceInt start = 1;
         (void) dskp02_c( kernel().handle(), segref.dladsc_ptr(),
-                         start, segref.n_vertices(), &n, 
+                         start, segref.n_plates(), &n, 
                          ( SpiceInt (*)[3] ) ( dskndx(0).data() ) );
         check_naif_errors();
 
         // Sanity check on the return count
-        if ( segref.n_vertices() != n ) {
+        if ( segref.n_plates() != n ) {
           std::string mess = "*** ERROR - [naif::DskKernelModel::load_facet_indexes] Expected " + 
-                             std::to_string( segref.n_vertices() ) + " but read " + std::to_string( n );
+                             std::to_string( segref.n_plates() ) + " but read " + std::to_string( n );
           throw std::runtime_error( mess );
         }
 

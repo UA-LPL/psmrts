@@ -133,7 +133,7 @@ namespace psmrts {
           try {
             size_t v_alloc = n_data * m_values_size;
 
-            m_data = std::shared_ptr<value_type> ( new value_type(v_alloc),
+            m_data = std::shared_ptr<value_type> ( new value_type[v_alloc],
                                                    std::default_delete<value_type[]>() );
             m_data_ptr    = m_data.get();
 
