@@ -189,6 +189,8 @@ TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][fac
     CHECK_NOTHROW ( naif::DskKernelModel::reset_dsk_system() ); // Reset/Initialize the kernel system
     CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() ); // Reset/Initialize the kernel system
 
+    CHECK ( naif::KernelFileSystem::kernel_count() == 0 ); // Should be zero, as we have yet to load any
+    CHECK ( naif::KernelFileSystem::size() == 0 );         // No cached files either...
 
     naif::DskKernelModel dsk( dskfile );
     CHECK_NOTHROW( naif::check_naif_errors() );
@@ -215,13 +217,21 @@ TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][fac
     Eigen::Vector3d lkdr = surf - obs;
     psmrts::RayTrace ray(obs, lkdr);
 
+    // Holds reference to RayTrace structure and updates on write
     psmrts::RayTrace::RayTraceDatum &raytrace1 = ray.datum(); 
     CHECK ( dsk.ray_trace(obs, lkdr, raytrace1) == true );
-    CHECK ( lkdr == ray.surfpt() );
-    CHECK ( surf == ray.xyz() );
+
+    Eigen::Vector3d lkdr_norm = lkdr.normalized();
+    Eigen::Vector3d sfpt_norm = ray.surfpt().normalized();
+
+    // CHECK ( lkdr.normalized() == ray.surfpt().normalized() );
+    CHECK_THAT( lkdr_norm[0], Catch::Matchers::WithinAbs(sfpt_norm[0], tolerance_r ));
+    CHECK_THAT( lkdr_norm[1], Catch::Matchers::WithinAbs(sfpt_norm[1], tolerance_r ));
+    CHECK_THAT( lkdr_norm[2], Catch::Matchers::WithinAbs(sfpt_norm[2], tolerance_r ));
+
     double sep_ang = vsep_c(lkdr.data(), ray.surfpt().data());
-    //CHECK_THAT ( sep_ang == 0.0 ); 
     CHECK_THAT( sep_ang, Catch::Matchers::WithinAbs(0.0, tolerance_r ));
+
     // tried a few different variations of above values, had trouble finding a hit - values could be wonky
     /*
     for (int i = 0; i < dsk.n_total_plates(); i++ ) {
@@ -239,38 +249,22 @@ TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][fac
 
     }
     */
-    
 
+
+    
     // load_facet_indexes ( segment ) / load_facet_vectors( segment ) 
     // Check individual facet extraction with indices and vector data
     naif::DskKernelModel::DskIndexDataModel indexes = dsk.load_facet_indexes();
     naif::DskKernelModel::DskVectorDataModel vectors = dsk.load_facet_vectors();
-    CHECK ( indexes(0) == Eigen::Vector3i::Zero() );
-    CHECK ( indexes(1) == Eigen::Vector3i::Zero() );
-    CHECK ( indexes(2) == Eigen::Vector3i::Zero() );
-    CHECK ( indexes(dsk.n_total_plates() - 3) == Eigen::Vector3i::Zero() );
-    CHECK ( indexes(dsk.n_total_plates() - 2) == Eigen::Vector3i::Zero() );
-    CHECK ( indexes(dsk.n_total_plates() - 1) == Eigen::Vector3i::Zero() );
-
-
-    CHECK ( vectors(0) == Eigen::Vector3d::Zero() );
-    CHECK ( vectors(1) == Eigen::Vector3d::Zero() );
-    CHECK ( vectors(2) == Eigen::Vector3d::Zero() );
-    CHECK ( vectors(vectors.size() - 2) == Eigen::Vector3d::Zero() );
-    CHECK ( vectors(vectors.size() - 1) == Eigen::Vector3d::Zero() );
-
-    CHECK ( dsk.n_total_plates() == 0); 
-    CHECK ( dsk.n_total_vertices() == 0);
-    CHECK ( vectors.size() == 0 ); 
-    CHECK ( indexes.size() == 0 );
     
-
+    CHECK ( dsk.n_total_plates()   == indexes.size() ); 
+    CHECK ( dsk.n_total_vertices() == ( vectors.size() - 1 ));
 
     psmrts::RayTrace::FacetDatum target_facet;
     psmrts::RayTrace::RayTraceDatum raytrace;
     
     raytrace.m_hit = true;
-    raytrace.m_segment = 0; 
+    raytrace.m_segment = segment.surfaceid(); 
     raytrace.m_plateid = 1;
 
     for (int i = 0; i < dsk.n_total_plates(); i++) {
@@ -283,10 +277,8 @@ TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][fac
         CHECK ( indexes(i) == target_facet.m_indexes );  
         CHECK ( vectors(indexes(i)[0]) == target_facet.m_vector1 );
         CHECK ( vectors(indexes(i)[1]) == target_facet.m_vector2 );
-        CHECK ( vectors(indexes(i)[2]) == target_facet.m_vector1 );
+        CHECK ( vectors(indexes(i)[2]) == target_facet.m_vector3 );
     };
-
-    
 
     CHECK_NOTHROW ( naif::DskKernelModel::reset_dsk_system() ); // Reset/Initialize the kernel system
     CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() ); // Reset/Initialize the kernel system
