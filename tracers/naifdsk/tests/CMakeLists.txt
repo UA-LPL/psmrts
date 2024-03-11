@@ -21,10 +21,11 @@ if( BUILD_COVERAGE )
   # append_coverage_compiler_flags()
   # set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-arcs -ftest-coverage" )
   # set( CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage" )
-  # setup_target_for_coverage_lcov( NAME coverage EXECUTABLE  psmrts_test_suite )
+  # setup_target_for_coverage_lcov( NAME coverage EXECUTABLE  naif_test_suite )
 endif()
 
 # Add required libraries as needed for psmrts_test_suite
+target_link_libraries( naif_test_suite PRIVATE psmrts )
 target_link_libraries( naif_test_suite PRIVATE Catch2::Catch2WithMain )
 target_link_libraries( naif_test_suite PRIVATE Eigen3::Eigen)
 target_link_libraries( naif_test_suite PRIVATE "${SPICE_LIB}" )

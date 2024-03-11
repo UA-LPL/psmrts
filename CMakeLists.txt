@@ -37,8 +37,10 @@ configure_file( psmrts_version.h.in ${PSMRTS_DIR}/src/psmrts_version.h @ONLY )
 
 # Set psmrts source and include directory
 set( PSMRTS_BUILD_DIR    ${CMAKE_BINARY_DIR} )
-include_directories( psmrts/src )
-include_directories( tracers/naifdsk/src )
+#include_directories( psmrts/src )
+#include_directories( tracers/naifdsk/src )
+add_library(psmrts INTERFACE)
+target_include_directories(psmrts INTERFACE ${PSMRTS_DIR}/src ${PSMRTS_TRACER_DIR}/naifdsk/src )
 
 find_package( spdlog CONFIG REQUIRED )
 find_package( Eigen3 CONFIG REQUIRED )

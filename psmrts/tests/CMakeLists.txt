@@ -23,8 +23,8 @@ if( BUILD_COVERAGE )
 endif()
 
 # Add required libraries as needed for psmrts_test_suite
+target_link_libraries( psmrts_test_suite PRIVATE psmrts )
 target_link_libraries( psmrts_test_suite PRIVATE Catch2::Catch2WithMain )
-#target_link_libraries( psmrts_test_suite PRIVATE "${SPICE_LIB}" )
 target_link_libraries( psmrts_test_suite PRIVATE spdlog::spdlog_header_only )
 
 #  Add the tests to the system
