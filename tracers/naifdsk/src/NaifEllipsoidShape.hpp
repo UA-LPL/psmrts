@@ -8,6 +8,7 @@
 
 #include <NaifUtilities.hpp>
 #include <RayTrace.hpp>
+#include <PsmrtsTracerModel.hpp>
 
 namespace naif {
 
@@ -18,7 +19,7 @@ namespace naif {
       NaifEllipsoidShape() : m_a_radius( 1.0), 
                              m_b_radius( 1.0 ), 
                              m_c_radius( 1.0 ) {  }
-      NaifEllipsoidShape(const Eigen::Vector3d &radii ) : m_a_radius( radii[0] ), 
+      NaifEllipsoidShape( const Eigen::Vector3d &radii ) : m_a_radius( radii[0] ), 
                                                           m_b_radius( radii[1] ), 
                                                           m_c_radius( radii[2] ) { 
         validate();
@@ -40,6 +41,24 @@ namespace naif {
 
       // Destructor
       virtual ~NaifEllipsoidShape() { }
+
+      inline std::string tracer_model_type() const {
+        return ( std::string( "psmrts" ) );
+      }
+
+      inline std::string tracer_model_name() const {
+        return ( std::string( "NaifEllipsoid" )) ;
+      }
+
+      inline std::string shape_tracer_id() const {
+        std::string shapename = shapefile();
+        if ( shapename.length() == 0 ) shapename = "none";
+        return ( tracer_model_type() + "::" + tracer_model_name() + "::" + shapename );
+      }      
+
+      inline std::string shapefile() const {
+        return ( "ellipsoid" );
+      }
 
       const double &a() const {
         return ( m_a_radius );
@@ -84,28 +103,26 @@ namespace naif {
 
       inline bool ray_trace( const Eigen::Vector3d &observer, 
                              const Eigen::Vector3d &lookdir,
-                             psmrts::RayTrace::RayTraceDatum &raytrace ) const {
+                             psmrts::RayTrace &ray ) const {
 
-        raytrace.reset();
-        raytrace.m_observer = observer;
-        raytrace.m_lookdir  = lookdir;
-        raytrace.m_segment  = 0;
-        raytrace.m_plateid  = 0;
+        ray.reset( observer, lookdir );
+        psmrts::RayTrace::RayTraceDatum &datum_r = ray.datum();
 
-        raytrace.m_hit = this->ray_trace( observer, lookdir, raytrace.m_xyz );
-        if ( raytrace.hasHit() ) {
-          raytrace.m_normal = this->normal( raytrace.m_xyz );
+        datum_r.m_hit = this->ray_trace( observer, lookdir, datum_r.m_xyz );
+        if ( datum_r.hasHit() ) {
+          datum_r.m_normal = this->normal( datum_r.m_xyz );
         }
 
         // Returns intercept state
-        return ( raytrace.hasHit() );
+        return ( ray.hasHit() );
       }
 
 
     private:
-      double    m_a_radius;
-      double    m_b_radius;
-      double    m_c_radius;
+      double      m_a_radius;
+      double      m_b_radius;
+      double      m_c_radius;
+      std::string m_body;
 
       inline void validate() const {
         if ( minimum_radius() <= 0.0 ) {

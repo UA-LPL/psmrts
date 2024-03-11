@@ -11,6 +11,7 @@
 
 #include <PsmrtsUtilities.hpp>
 #include <PsmrtsDataModel.hpp>
+#include <PsmrtsTracerModel.hpp>
 #include <RayTrace.hpp>
 #include <NaifUtilities.hpp>
 #include <DskSegment.hpp>
@@ -50,7 +51,7 @@ namespace naif {
       }
 
       inline std::string shape_tracer_id() const {
-        std::string shapename = dskfile();
+        std::string shapename = shapefile();
         if ( shapename.length() == 0 ) shapename = "none";
         return ( tracer_model_type() + "::" + tracer_model_name() + "::" + shapename );
       }
@@ -115,7 +116,7 @@ namespace naif {
       }
 
       /** Return the name of the NAIF DSK kernel file */
-      inline const std::string &dskfile() const {
+      inline std::string shapefile() const {
         return ( kernel().m_kernel_file );
       }
 
@@ -129,11 +130,18 @@ namespace naif {
         return ( m_total_vertices );
       }
 
+      inline size_t vertex_count() const {
+        return ( this->n_total_vertices() );
+      }
+
       /** Return to tal number of facets/plates in all DSK segments */
       inline size_t n_total_plates() const {
         return ( m_total_plates );
       }
 
+      inline size_t plate_count() const {
+        return ( n_total_plates() );
+      }
       /** Returns the number of DSKs contained in this object */
       inline size_t n_dsk_segments() const {
         return ( m_segments.size() );
@@ -208,9 +216,7 @@ namespace naif {
         // Lock up NAIF file I/O for thread safety ( >=c++17 )
         std::scoped_lock mylocker( this->mutex() );
 
-        raytrace.reset();
-        raytrace.m_observer = observer;
-        raytrace.m_lookdir  = lookdir;
+        raytrace.reset( observer, lookdir );
         raytrace.m_segment  = segment.id();
 
         SpiceBoolean found;
@@ -242,7 +248,7 @@ namespace naif {
        * @return false 
        */
       inline bool get_facet( const psmrts::RayTrace::RayTraceDatum &raytrace,
-                             psmrts::RayTrace::FacetDatum &facet ) {
+                             psmrts::RayTrace::FacetDatum &facet ) const {
                 
         // Sanity check validity of raytrace
         facet.m_has_facet = false;
@@ -376,7 +382,16 @@ namespace naif {
       }
 
 
-      
+#if 0
+      inline psmrts::PsmrtsTracerModel *clone() const {
+        return ( new DskShapeModel( *this ) );
+      }
+
+      inline psmrts::PsmrtsTracerModel *ellipsoid() const {
+        return ( new NaifEllipsoidShape(  ))
+      }
+#endif
+
     protected:
 
       /** This is a protected constructor as it requires the segment to be in the DSK */
