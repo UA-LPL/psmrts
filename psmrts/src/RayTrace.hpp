@@ -1,7 +1,7 @@
 #ifndef RayTrace_hpp
 #define RayTrace_hpp
 
-
+#include <cmath>
 #include <string>
 #include <exception>
 #include <Eigen/Geometry>
@@ -43,6 +43,13 @@ namespace psmrts {
           inline void reset() {
             init( );
           }
+
+          inline void reset( const Eigen::Vector3d &observer, 
+                             const Eigen::Vector3d &lookdir ) {
+            init( );
+            m_observer = observer;
+            m_lookdir  = lookdir;
+          }          
 
         private:
           /** Initialize */
@@ -99,6 +106,69 @@ namespace psmrts {
         return ( datum().m_xyz );
       }
 
+      inline double slant_distance() const {
+        return ( surfpt().norm() );
+      }
+
+      inline double distance( const RayTrace &other ) const {
+        return ( ( xyz() - other.xyz() ).norm() );
+      }
+
+      static inline double separation_angle( const Eigen::Vector3d &v1, 
+                                             const Eigen::Vector3d &v2 ) {
+
+        Eigen::Vector3d v1_n = v1.normalized();
+        if ( v1_n.norm() == 0.0 ) {
+          return ( 0.0 );
+        }
+
+        Eigen::Vector3d v2_n = v2.normalized();
+        if ( v2_n.norm() == 0.0 ) {
+          return ( 0.0 );
+        }
+
+        double v_dot = v1_n.dot( v2_n );
+        if ( v_dot > 0.0 ) {
+          return ( 2.0 * std::asin( 0.5 * ( v1_n - v2_n).norm() ) );
+        }
+        else if ( v_dot < 0.0 ) {
+          return ( M_PI - ( 2.0 * std::asin( 0.5 * ( v1_n - v2_n).norm() ) ) );
+        }
+        
+        // ( v_dot == 0.0 ) == M_PI2
+        return ( M_PI_2 );
+      }
+
+      inline bool isNear( const RayTrace &other,
+                          const double tolerance_km = 1.0e-3 ) const {
+        if ( !hasHit() )       { return ( false );  }
+        if ( !other.hasHit() ) { return ( false );  }
+
+        return ( distance( other ) <= tolerance_km );
+      }
+
+      inline double incidence( const RayTrace &other,
+                               const double invalid = null() ) const {
+        if ( !hasHit() )       { return ( invalid );  }
+        if ( !other.hasHit() ) { return ( invalid );  }
+
+        return ( separation_angle( this->normal(), -other.lookdir() ) );
+      }
+
+      inline double emission( const double invalid = null() ) const {
+        if ( !hasHit() )       { return ( invalid );  }
+        return ( separation_angle( this->normal(), -this->lookdir() ) );
+      }
+
+      /** Compute the phase angle from a surface point (lookdirs) to two observer positions */
+      inline double phase( const RayTrace &other,
+                           const double invalid = null() ) const {
+        if ( !hasHit() )       { return ( invalid );  }
+        if ( !other.hasHit() ) { return ( invalid );  }
+
+        return ( separation_angle( -this->lookdir(), -other.lookdir() ) );
+      }
+
       inline int plateid( ) const {
         return ( datum().m_plateid );
       }
@@ -113,6 +183,11 @@ namespace psmrts {
 
       inline RayTraceDatum &datum() {
         return ( m_trace_datum );
+      }
+
+      inline void reset( const Eigen::Vector3d &observer, 
+                         const Eigen::Vector3d &lookdir ) {
+        datum().reset( observer, lookdir );
       }
 
     private:
