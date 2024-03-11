@@ -2,11 +2,31 @@
 #define PsmrtsUtilities_hpp
 
 #include <functional>
+#include <cmath>
+#include <limits>
 #include <mutex>
 
 #include <psmrts_version.h>
 namespace psmrts {
 
+
+  /** Standardize the double NULL value*/
+  inline double null() {
+    return ( std::numeric_limits<double>::quiet_NaN() );
+  }
+
+  /** Test for the NULL value */
+  inline bool isnull( const double &v ) {
+    return ( std::isnan( v ) );
+  }
+
+  inline double degrees_to_radians( const double v_d ) {
+    return ( ( v_d / 180.0 * M_PI ) );
+  }
+
+  inline double radians_to_degrees( const double v_r ) {
+    return ( ( v_r / M_PI * 180.0 ) );
+  }
 
   /** Convert a date string to ephemeris time */
   inline double to360LongitudeDomain_d( const double longitude_d ) {
