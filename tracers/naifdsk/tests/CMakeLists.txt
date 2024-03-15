@@ -12,7 +12,9 @@ add_executable( naif_test_suite  naif_catch2_main.cpp
                                  test_NaifEllipsoidShape.cpp 
                                  test_NaifUtilities.cpp 
                                  test_KernelFileSystem.cpp
-                                 test_DskKernelModel.cpp )
+                                 test_DskKernelModel.cpp
+                                 test_NaifShapeTracerAdapter.cpp
+                                 test_NaifPsmrtsPriorityTracer.cpp )
 
 
 if( BUILD_COVERAGE )
