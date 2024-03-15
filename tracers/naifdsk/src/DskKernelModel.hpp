@@ -382,10 +382,10 @@ namespace naif {
       }
 
 
-#if 0
-      inline psmrts::PsmrtsTracerModel *clone() const {
-        return ( new DskShapeModel( *this ) );
+      inline DskKernelModel clone() const {
+        return ( *this );
       }
+#if 0
 
       inline psmrts::PsmrtsTracerModel *ellipsoid() const {
         return ( new NaifEllipsoidShape(  ))

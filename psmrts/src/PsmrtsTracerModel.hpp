@@ -27,7 +27,7 @@ namespace psmrts {
 
       virtual bool ray_trace( const Eigen::Vector3d &observer,
                              const Eigen::Vector3d &lookdir,
-                             RayTrace &ray  ) const = 0;
+                             RayTrace &ray ) const = 0;
 
       virtual PsmrtsTracerModel *clone() const = 0;
       virtual PsmrtsTracerModel *ellipsoid() const = 0;

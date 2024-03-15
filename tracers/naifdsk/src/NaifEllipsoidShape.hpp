@@ -85,7 +85,8 @@ namespace naif {
       }
 
 
-      inline bool ray_trace( const Eigen::Vector3d &observer, const Eigen::Vector3d &lookdir,
+      inline bool ray_trace( const Eigen::Vector3d &observer,
+                             const Eigen::Vector3d &lookdir,
                              Eigen::Vector3d &point) const {
         
         SpiceBoolean found;
