@@ -2,6 +2,8 @@
 
 # this is heuristically generated, and may not be correct
 find_package( Catch2 CONFIG REQUIRED )
+find_package( spdlog CONFIG REQUIRED )
+
 
 # Add the test directory for includes
 set( CMAKE_INCLUDE_CURRENT_DIR ON )
