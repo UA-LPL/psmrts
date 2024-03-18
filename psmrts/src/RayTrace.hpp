@@ -6,6 +6,8 @@
 #include <exception>
 #include <Eigen/Geometry>
 
+#include <PsmrtsUtilities.hpp>
+
 namespace psmrts {
 
   class RayTrace {
@@ -152,14 +154,14 @@ namespace psmrts {
       }
 
       inline double incidence( const RayTrace &other,
-                               const double invalid = null() ) const {
+                               const double invalid = psmrts::null() ) const {
         if ( !hasHit() )       { return ( invalid );  }
         if ( !other.hasHit() ) { return ( invalid );  }
 
         return ( separation_angle( this->normal(), -other.lookdir() ) );
       }
 
-      inline double emission( const double invalid = null() ) const {
+      inline double emission( const double invalid = psmrts::null() ) const {
         if ( !hasHit() )       { return ( invalid );  }
         return ( separation_angle( this->normal(), -this->lookdir() ) );
       }
@@ -187,6 +189,10 @@ namespace psmrts {
 
       inline RayTraceDatum &datum() {
         return ( m_trace_datum );
+      }
+
+      inline void reset( ) {
+        datum().reset( );
       }
 
       inline void reset( const Eigen::Vector3d &observer, 

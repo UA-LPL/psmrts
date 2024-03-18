@@ -56,7 +56,7 @@ namespace psmrts {
         virtual bool ray_trace( const Eigen::Vector3d &observer,
                                 const Eigen::Vector3d &lookdir,
                                 RayTrace &ray ) const  {
-          return ( m_model_pst.ray_trace(  observer, lookdir, ray.datum() ) );
+          return ( m_model_pst.ray_trace(  observer, lookdir, ray ) );
         }
 
         virtual PsmrtsTracerModel *clone() const  {
