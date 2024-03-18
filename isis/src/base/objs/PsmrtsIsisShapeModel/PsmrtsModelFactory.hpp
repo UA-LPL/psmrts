@@ -2,8 +2,6 @@
 #define PsmrtsModelFactory_h
 
 #include <QMap>
-#include <QMutex>
-#include <QSharedPointer>
 
 #include "Pvl.h"
 #include "PvlKeyword.h"
@@ -47,8 +45,6 @@ class Target;
     public:
       typedef psmrts::PsmrtsShapeTracerAdapter<naif::DskKernelModel> PsmrtsAdaptedDskShape;
 
-      static PsmrtsModelFactory *getInstance();
-
       inline static psmrts::PsmrtsPriorityTracer make_tracer() {
         return ( psmrts::PsmrtsPriorityTracer() );
       }
@@ -86,7 +82,7 @@ class Target;
 
         QStringList xfiles = xfile_parm.allValues( "ShapeModel" );
         for ( auto const &fname : xfiles ) {
-          s_tracer.add_tracer( new PsmrtsAdaptedDskShape( FileName( fname ).expanded() )) );
+          s_tracer.add_tracer( new PsmrtsAdaptedDskShape( FileName( fname ).expanded().toStdString() ) );
         }
 
         // Do this here, otherwise default behavior will ensue from here on out
@@ -94,7 +90,7 @@ class Target;
 
         return ( s_tracer );        
       }
-
-};
+  };
+}
 
 #endif

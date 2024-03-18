@@ -84,7 +84,7 @@ namespace Isis {
   }
 
   PsmrtsIsisShapeModel::PsmrtsIsisShapeModel( const psmrts::PsmrtsPriorityTracer &tracer,
-                                              Target *target, Pvl *pvl) : 
+                                              Target *target, Pvl *pvl ) : 
                                               ShapeModel( target ) {
                                                 
     reset_psmrts_tracer();
