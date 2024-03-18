@@ -31,6 +31,7 @@ set( PSMRTS_TRACER_DIR   ${CMAKE_SOURCE_DIR}/tracers )
 set( VERSION_MAJOR 0)
 set( VERSION_MINOR 1)
 set( VERSION_PATCH 0)
+# set( PSMRTS_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 # Configure the project include files
 configure_file( psmrts_version.h.in ${PSMRTS_DIR}/src/psmrts_version.h @ONLY )
@@ -42,7 +43,7 @@ set( PSMRTS_BUILD_DIR    ${CMAKE_BINARY_DIR} )
 add_library(psmrts INTERFACE)
 target_include_directories(psmrts INTERFACE ${PSMRTS_DIR}/src ${PSMRTS_TRACER_DIR}/naifdsk/src )
 
-find_package( spdlog CONFIG REQUIRED )
+#find_package( spdlog CONFIG REQUIRED )
 find_package( Eigen3 CONFIG REQUIRED )
 find_library( SPICE_LIB cspice )
 
