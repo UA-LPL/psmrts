@@ -13,6 +13,7 @@ find files of those names at the top level of this repository. **/
 #include <PsmrtsUtilities.hpp>
 #include <PsmrtsTracerModel.hpp>
 #include <PsmrtsShapeTracerAdapter.hpp>
+#include <PsmrtsPriorityTracer.hpp>
 #include <NaifEllipsoidShape.hpp>
 
 
@@ -34,7 +35,7 @@ namespace Isis {
        /** Constructors */ 
       PsmrtsIsisShapeModel( );
       PsmrtsIsisShapeModel( Target *target, Pvl &pvl );
-      PsmrtsIsisShapeModel( const psmrts::PsmrtsTracerModel *model,
+      PsmrtsIsisShapeModel( psmrts::PsmrtsTracerModel *model,
                             Target *target = nullptr, Pvl *pvl = nullptr );
       // PsmrtsIsisShapeModel( const json &psmrts_config );
 
@@ -94,7 +95,7 @@ namespace Isis {
       virtual bool isDEM() const;
 
       // Set current surface point
-      virtual void setSurfacePoint( const SurfacePoint &surfacePoint );
+      // virtual void setSurfacePoint( const SurfacePoint &surfacePoint );
 
       // Return the normal (surface or local) of the current intersection point
       virtual std::vector<double>  normal();
@@ -111,7 +112,7 @@ namespace Isis {
         return ( m_priority_tracer );
       }
 
-      inline const psmrts::PsmrtsPriorityTracer &ellipsoid() const {
+      inline const psmrts::PsmrtsTracerModel &ellipsoid() const {
         return ( m_ellipsoid_tracer );
       }
 
@@ -140,8 +141,8 @@ namespace Isis {
       }
 
       inline SurfacePoint init_isis_surface_point_from_ray( const psmrts::RayTrace &ray ) const {
-        SurfacePoint &point;
-        point.FromNaifArray( ray.xyz().data );
+        SurfacePoint point;
+        point.FromNaifArray( ray.xyz().data() );
         return ( point );
       }
       
@@ -150,8 +151,8 @@ namespace Isis {
                                                   const Eigen::Vector3d &lookdir ) {
 
         if ( !ray.hasHit() )                                    return ( false ); 
-        if ( !psmrts::isEqual( ray.observer(), observer_pos ) ) return ( false );
-        if ( !psmrts::isEqual( ray.lookdir(),  obslookdir   ) ) return ( false );                                                  
+        if ( !psmrts::isEqual( ray.observer(), observer ) ) return ( false );
+        if ( !psmrts::isEqual( ray.lookdir(),  lookdir   ) ) return ( false );                                                  
         return ( true );  // Looks good!
       }
 
@@ -166,7 +167,7 @@ namespace Isis {
         return ( isis_v );
       }
 
-      inline std::vector<double> isis_normal(const RayTrace &ray ) const {
+      inline std::vector<double> isis_normal(const psmrts::RayTrace &ray ) const {
         return ( isis_std_vector( ray.normal() ) );
       }
 
@@ -186,14 +187,15 @@ namespace Isis {
         ActiveNormal current_s = m_active_normal;
         m_active_normal = actor;
         return ( current_s ); 
+      }
 
     protected:
     // This routine is actually intersectEllipsoid()...
-      RayTrace run_ellipsoid_trace( const RayTrace &ray ) const;        
+      psmrts::RayTrace run_ellipsoid_trace( const psmrts::RayTrace &ray ) const;        
 
 
     private:
-      typedef psmrts::PsmrtsShapeTracerAdapter<psmrts::NaifEllipsoidShape> PsmrtsAdaptedEllipsoidShape;
+      typedef psmrts::PsmrtsShapeTracerAdapter<naif::NaifEllipsoidShape> PsmrtsAdaptedEllipsoidShape;
 
       psmrts::PsmrtsPriorityTracer m_priority_tracer;
       PsmrtsAdaptedEllipsoidShape  m_ellipsoid_tracer;
@@ -228,21 +230,21 @@ namespace Isis {
       }
 
 
-      inline const RayTrace &get_active_trace( ) const {
+      inline const psmrts::RayTrace &get_active_trace( ) const {
         if ( ObserverNormal    == this->whos_active() ) {  return ( this->observer_ray() ); }
         if ( EllipsoidNormal   == this->whos_active() ) {  return ( this->ellipsoid_ray() ); }
         if ( LightSourceNormal == this->whos_active() ) {  return ( this->light_source_ray() ); }
-        if ( BackCheckNormal   == this->whos_active() ) {  return ( this->back_check_ray() ); }
+        if ( BackCheckNormal   == this->whos_active() ) {  return ( this->backcheck_ray() ); }
         return ( this->observer_ray() );
       } 
 
       bool update_target_intersection( const psmrts::RayTrace &raytrace, 
-                                       const PsmrtsTracerModel *model_used,
-                                       const ActiveNormal activate = true );
+                                       const psmrts::PsmrtsTracerModel *model_used,
+                                       const bool activate = true );
 
       bool update_ellipsoid_intersection( const psmrts::RayTrace &raytrace,
-                                          const PsmrtsTracerModel *model_used,
-                                          const ActiveNormal activate = true );
+                                          const psmrts::PsmrtsTracerModel *model_used,
+                                          const bool activate = true );
       
   };
 };

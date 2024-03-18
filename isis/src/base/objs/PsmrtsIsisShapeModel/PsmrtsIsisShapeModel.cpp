@@ -6,7 +6,6 @@ find files of those names at the top level of this repository. **/
 /* SPDX-License-Identifier: CC0-1.0 */
 
 
-
 #include "ShapeModel.h"
 
 #include <algorithm>
@@ -57,8 +56,8 @@ namespace Isis {
     // Lambda extracts Isis::Distances from a std::vector and returns an Eigen vector
     auto get_radii_vector = [] ( const std::vector<Distance> &d3 ) -> Eigen::Vector3d {
       return ( Eigen::Vector3d( { d3[0].kilometers(), d3[1].kilometers(), d3[2].kilometers() } ) );
-    }
-    m_ellipsoid_tracer = PsmrtsEllipsoidShape( get_radii_vector( target->radii() ) );
+    };
+    m_ellipsoid_tracer = PsmrtsAdaptedEllipsoidShape( get_radii_vector( target->radii() ) );
   }
 
   /**
@@ -68,7 +67,7 @@ namespace Isis {
    * @param target 
    * @param pvl 
    */
-  PsmrtsIsisShapeModel::PsmrtsIsisShapeModel( const psmrts::PsmrtsTracerModel *model,
+  PsmrtsIsisShapeModel::PsmrtsIsisShapeModel( psmrts::PsmrtsTracerModel *model,
                                               Target *target, Pvl *pvl) : 
                                               ShapeModel( target ) {
                                                 
@@ -80,8 +79,8 @@ namespace Isis {
     // Lambda extracts Isis::Distances from a std::vector and returns an Eigen vector
     auto get_radii_vector = [] ( const std::vector<Distance> &d3 ) -> Eigen::Vector3d {
       return ( Eigen::Vector3d( { d3[0].kilometers(), d3[1].kilometers(), d3[2].kilometers() } ) );
-    }
-    m_ellipsoid_tracer = PsmrtsEllipsoidShape( get_radii_vector( target->radii() ) );
+    };
+    m_ellipsoid_tracer = PsmrtsAdaptedEllipsoidShape( get_radii_vector( target->radii() ) );
   }
 
 
@@ -90,7 +89,7 @@ namespace Isis {
   PsmrtsIsisShapeModel::~PsmrtsIsisShapeModel() {  }
 
 
-  bool iPsmrtsIsisShapeModel::intersectSurface( std::vector<double> observerPos,
+  bool PsmrtsIsisShapeModel::intersectSurface( std::vector<double> observerPos,
                                                 std::vector<double> lookDirection) {
 
     
@@ -128,7 +127,7 @@ namespace Isis {
 
     this->clearSurfacePoint();
     
-    SurfacePoint s_point( lat, lon, Distance( ).setkilometers( this->ellipsoid().max_radius() ) );
+    SurfacePoint s_point( lat, lon, Distance( this->ellipsoid().maximum_radius(), Distance::Kilometers ) );
     Eigen::Vector3d observer_pos = this->get_xyz_vector( s_point ) * 2.0;
     Eigen::Vector3d lookdir      = -observer_pos;
 
@@ -141,8 +140,8 @@ namespace Isis {
 
     if ( ( true == status_t ) && ( true == backCheck ) ) {
       Eigen::Vector3d b_observer( observerPos.data() );      
-      Eigen::Vector3d b_lookdir = observer().xyz() - b_observer;
-      auto bc_model_used = this->tracer().ray_trace( b_observer, b_lookdir, m_backcheck_trace );  
+      Eigen::Vector3d b_lookdir = this->observer_ray().xyz() - b_observer;
+      this->tracer().ray_trace( b_observer, b_lookdir, m_backcheck_trace );  
 
       // Does this intercept become the final observer intersection??
       status_t =  this->backcheck_ray().hasHit();       
@@ -190,8 +189,8 @@ namespace Isis {
 
       if ( (true == status_t ) && ( true == backCheck ) ) {
         Eigen::Vector3d b_observer( observerPos.data() );      
-        Eigen::Vector3d b_lookdir = observer().xyz() - b_observer;
-        auto bc_model_used = this->tracer().ray_trace( b_observer, b_lookdir, m_backcheck_trace );  
+        Eigen::Vector3d b_lookdir = this->observer_ray().xyz() - b_observer;
+        this->tracer().ray_trace( b_observer, b_lookdir, m_backcheck_trace );  
         status_t =  this->backcheck_ray().hasHit(); 
       }   
       
@@ -204,16 +203,16 @@ namespace Isis {
 
   void PsmrtsIsisShapeModel::calculateDefaultNormal() {
     this->set_active( EllipsoidNormal );
-    setNormal( this->isis_normal( this->get_active_trace() ) );    
-    setHasNormal( this->ellipsoid_ray().hasHit() );
+    this->setNormal( this->isis_normal( this->get_active_trace() ) );    
+    this->setHasNormal( this->ellipsoid_ray().hasHit() );
     return;
   }
 
 
   void PsmrtsIsisShapeModel::calculateLocalNormal(QVector<double *> neighborPoints) {
     this->set_active( ObserverNormal );
-    setNormal( this->isis_normal( this->get_active_trace() ) );
-    setHasNormal( this->observer_ray().hasHit() );
+    this->setNormal( this->isis_normal( this->get_active_trace() ) );
+    this->setHasNormal( this->observer_ray().hasHit() );
     return;
   }
 
@@ -226,7 +225,7 @@ namespace Isis {
    * Clears or resets the current surface point.
    */
   void PsmrtsIsisShapeModel::clearSurfacePoint() {
-    ShapeModel::clearSurfacePoint()    
+    ShapeModel::clearSurfacePoint();    
     this->reset_all_tracers();
   }
 
@@ -252,7 +251,7 @@ namespace Isis {
   double PsmrtsIsisShapeModel::emissionAngle(const std::vector<double> &observerBodyFixedPosition) {
 
     Eigen::Vector3d observer_pos( observerBodyFixedPosition.data() );
-    Eigen::Vector3d obslookdir = this->ray().xyz() - observer_pos;
+    Eigen::Vector3d obslookdir = this->observer_ray().xyz() - observer_pos;
 
     double phase = psmrts::RayTrace::separation_angle( this->observer_ray().normal(), -obslookdir );
 
@@ -305,10 +304,10 @@ namespace Isis {
     Eigen::Vector3d observer_pos( observerBodyFixedPosition.data() );
     Eigen::Vector3d light_source_pos( illuminatorBodyFixedPosition.data() );
 
-    Eigen::Vector3d obs_lookdir = this->ray().xyz() - observer_pos;
-    Eigen::Vector3d sun_lookdir = this->ray().xyz() - light_source_pos;
+    Eigen::Vector3d obs_lookdir = this->observer_ray().xyz() - observer_pos;
+    Eigen::Vector3d sun_lookdir = this->observer_ray().xyz() - light_source_pos;
 
-    double phase = psmrts::RayTrace::separation_angle( -obs_lookdir, -sunlookdir );
+    double phase = psmrts::RayTrace::separation_angle( -obs_lookdir, -sun_lookdir );
 
     return ( psmrts::radians_to_degrees( phase ) );
   }
@@ -323,15 +322,14 @@ namespace Isis {
    */
   Distance PsmrtsIsisShapeModel::localRadius(const Latitude &lat, const Longitude &lon) {
 
-    Distance l_radius;  // Sets up return condition as well
-    l_radius.setKilometers( this->ellipsoid().max_radius() );
+    Distance l_radius( this->ellipsoid().maximum_radius(), Distance::Kilometers );
 
     SurfacePoint s_point( lat, lon, l_radius );
     Eigen::Vector3d observer_pos = this->get_xyz_vector( s_point ) * 2.0;
     Eigen::Vector3d lookdir      = -observer_pos;
 
     psmrts::RayTrace raytrace;
-    auto v_model_used = this->tracer().ray_trace( observer_pos, lookdir, raytrace );
+    this->tracer().ray_trace( observer_pos, lookdir, raytrace );
 
     // If we got a hit, set the radius
     if ( raytrace.hasHit() ) {
@@ -351,7 +349,7 @@ namespace Isis {
   }
 
   /** Returns the normal of the currently active trace */
-  std::vector<double>  PsmrtsIsisShapeModel:normal() {
+  std::vector<double>  PsmrtsIsisShapeModel::normal() {
     return ( this->isis_std_vector( this->get_active_trace().normal() ) ) ;
   }
 
@@ -380,13 +378,12 @@ namespace Isis {
 
     bool isvisible = false;
 
-    const psmrts::RayTrace &back_check_ray( this->backcheck_ray() );
     if ( this->observer_ray().hasHit() ) {
       Eigen::Vector3d observer_pos( observerPos.data() );
       Eigen::Vector3d obslookdir( lookDirection.data() );
 
-      if ( !compare_ray_initial_conditions( back_check_ray(), observer_pos, obslookdir ) ) {
-        auto model = this->tracer().ray_trace( observer_pos, obslookdir, m_backcheck_trace );
+      if ( !compare_ray_initial_conditions( this->backcheck_ray(), observer_pos, obslookdir ) ) {
+        this->tracer().ray_trace( observer_pos, obslookdir, m_backcheck_trace );
       }
 
       const double InterceptTolerance_mm = 1.0e-6;
@@ -394,7 +391,7 @@ namespace Isis {
     }
 
     // Return status
-    return ( isvisble );
+    return ( isvisible );
   }
 
 
@@ -410,11 +407,11 @@ namespace Isis {
    *
    * @return @b bool Indicates whether this shape model found a valid ellipsoid intersection.
    */
-  psmrts::RayTrace PsmrtsIsisShapeModel::run_ellipsoid_trace( const RayTrace &ray ) {
+  psmrts::RayTrace PsmrtsIsisShapeModel::run_ellipsoid_trace( const psmrts::RayTrace &ray ) const {
 
     psmrts::RayTrace ray_e( ray.observer(), ray.lookdir() );
     if ( ray.hasHit() ) {
-      auto model = this->ellipsoid().ray_trace( ray.observer(), ray.lookdir(), ray_e );
+      this->ellipsoid().ray_trace( ray.observer(), ray.lookdir(), ray_e );
     }
 
     return ( ray_e );
@@ -422,22 +419,22 @@ namespace Isis {
 
   bool PsmrtsIsisShapeModel::update_target_intersection( const psmrts::RayTrace &raytrace, 
                                                          const psmrts::PsmrtsTracerModel *model_used,
-                                                         const ActiveNormal activate ) {
+                                                         const bool activate ) {
 
     m_observer_to_target_trace = raytrace;
-    setHasIntersection( raytrace.hasHit() );
-    setSurfacePoint( this->init_isis_surface_point_from_ray( raytrace ));
+    this->setHasIntersection( raytrace.hasHit() );
+    this->setSurfacePoint( this->init_isis_surface_point_from_ray( raytrace ));
 
     if ( activate ) this->set_active( ObserverNormal );
 
-    const bool DoNotActiveTrace = false;
+    const bool DoNotActivateTrace = false;
     this->update_ellipsoid_intersection( run_ellipsoid_trace( raytrace ), nullptr, DoNotActivateTrace );
     return ( raytrace.hasHit() );
   }
 
   bool PsmrtsIsisShapeModel::update_ellipsoid_intersection( const psmrts::RayTrace &raytrace,
                                                             const psmrts::PsmrtsTracerModel *model_used,
-                                                            const ActiveNormal activate ) {
+                                                            const bool activate ) {
 
     m_ellipsoid_trace = raytrace;
     if ( activate ) this->set_active( EllipsoidNormal );
