@@ -49,6 +49,10 @@ namespace psmrts {
           return ( m_model_pst.vertex_count() );
         }
 
+        virtual double maximum_radius() const {
+          return ( m_model_pst.maximum_radius() );
+        }
+
         virtual size_t use_count() const {
           return ( m_model_pst.use_count() );
         }        

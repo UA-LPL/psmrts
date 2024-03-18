@@ -219,30 +219,31 @@ namespace naif {
       inline bool ray_trace( const Eigen::Vector3d &observer, 
                              const Eigen::Vector3d &lookdir,
                              const DskSegment &segment, 
-                             psmrts::RayTrace::RayTraceDatum &raytrace ) const {
+                             psmrts::RayTrace &ray ) const {
 
         // Lock up NAIF file I/O for thread safety ( >=c++17 )
         std::scoped_lock mylocker( this->mutex() );
 
-        raytrace.reset( observer, lookdir );
-        raytrace.m_segment  = segment.id();
+        ray.reset( observer, lookdir );
+        psmrts::RayTrace::RayTraceDatum &datum_r = ray.datum();
+        datum_r.m_segment  = segment.id();
 
         SpiceBoolean found;
         (void) dskx02_c( kernel().handle(), segment.dladsc_ptr(), 
-                         raytrace.m_observer.data(), raytrace.m_lookdir.data(),
-                         &raytrace.m_plateid, raytrace.m_xyz.data(), &found);
+                         datum_r.m_observer.data(), datum_r.m_lookdir.data(),
+                         &datum_r.m_plateid, datum_r.m_xyz.data(), &found);
         check_naif_errors();
         
-        raytrace.m_hit = ( SPICETRUE == found );
+        datum_r.m_hit = ( SPICETRUE == found );
 
         // Only get the normal if has intercept
-        if ( raytrace.hasHit() ) {
+        if ( datum_r.hasHit() ) {
            (void) dskn02_c( kernel().handle(), segment.dladsc_ptr(), 
-                            raytrace.m_plateid, raytrace.m_normal.data() );
+                            datum_r.m_plateid, datum_r.m_normal.data() );
             check_naif_errors();
         }
 
-        return ( raytrace.hasHit() );
+        return ( ray.hasHit() );
       }
 
       /**
@@ -311,10 +312,10 @@ namespace naif {
        */
       inline bool ray_trace( const Eigen::Vector3d &observer, 
                              const Eigen::Vector3d &lookdir,
-                             psmrts::RayTrace::RayTraceDatum &raytrace ) const {
+                             psmrts::RayTrace &ray ) const {
 
         for ( auto const &segment : segments() ) {
-          bool has_hit = ray_trace( observer, lookdir, segment, raytrace );
+          bool has_hit = ray_trace( observer, lookdir, segment, ray );
           if ( true == has_hit ) {
             return ( has_hit );
           }

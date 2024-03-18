@@ -254,8 +254,7 @@ TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][fac
     psmrts::RayTrace ray(obs, lkdr);
 
     // Holds reference to RayTrace structure and updates on write
-    psmrts::RayTrace::RayTraceDatum &raytrace1 = ray.datum(); 
-    CHECK ( dsk.ray_trace(obs, lkdr, raytrace1) == true );
+    CHECK ( dsk.ray_trace(obs, lkdr, ray) == true );
 
     Eigen::Vector3d lkdr_norm = lkdr.normalized();
     Eigen::Vector3d sfpt_norm = ray.surfpt().normalized();

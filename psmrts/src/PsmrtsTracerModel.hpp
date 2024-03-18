@@ -25,6 +25,8 @@ namespace psmrts {
       virtual size_t plate_count()  const = 0;
       virtual size_t vertex_count() const = 0;
 
+      virtual double maximum_radius() const = 0;
+
       virtual bool ray_trace( const Eigen::Vector3d &observer,
                              const Eigen::Vector3d &lookdir,
                              RayTrace &ray ) const = 0;
