@@ -17,10 +17,12 @@ namespace psmrts {
   class PsmrtsPriorityTracer {
     public:
       PsmrtsPriorityTracer( ) { init(); }
-      PsmrtsPriorityTracer( const PsmrtsTracerModel *tracer ) { 
+      
+      PsmrtsPriorityTracer( PsmrtsTracerModel *tracer ) { 
         init(); 
         add_tracer( tracer );
       }
+
       PsmrtsPriorityTracer( const std::shared_ptr<PsmrtsTracerModel>  &tracer ) { 
         init();
         m_tracers.push_back( tracer );
@@ -36,7 +38,7 @@ namespace psmrts {
         return ( tracers().size() );
       }
 
-      inline void add_tracer( const PsmrtsTracerModel *tracer ) {
+      inline void add_tracer( PsmrtsTracerModel *tracer ) {
         m_tracers.push_back( this->make_shared( tracer ) );
       }
 
@@ -86,8 +88,8 @@ namespace psmrts {
       }
 
     protected:
-      typedef std::shared_ptr<const PsmrtsTracerModel>   SharedTracerModel;
-      typedef std::vector<SharedTracerModel>       TracerModelList;
+      typedef std::shared_ptr<PsmrtsTracerModel>  SharedTracerModel;
+      typedef std::vector<SharedTracerModel>      TracerModelList;
 
       inline const TracerModelList &tracers() const {
         return ( m_tracers );
@@ -100,7 +102,7 @@ namespace psmrts {
         m_tracers.clear();
       }
 
-      inline SharedTracerModel make_shared( const PsmrtsTracerModel *tracer ) const {
+      inline SharedTracerModel make_shared( PsmrtsTracerModel *tracer ) const {
         return ( SharedTracerModel ( tracer ) );
       }
   };

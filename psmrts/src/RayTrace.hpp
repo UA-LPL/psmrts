@@ -106,6 +106,10 @@ namespace psmrts {
         return ( datum().m_xyz );
       }
 
+      inline double radius() const {
+        return ( xyz().norm() );
+      }
+
       inline double slant_distance() const {
         return ( surfpt().norm() );
       }

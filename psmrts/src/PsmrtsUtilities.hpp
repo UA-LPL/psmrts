@@ -6,6 +6,8 @@
 #include <limits>
 #include <mutex>
 
+#include <Eigen/Geometry>
+
 #include <psmrts_version.h>
 namespace psmrts {
 
@@ -20,10 +22,12 @@ namespace psmrts {
     return ( std::isnan( v ) );
   }
 
+  /** Convert degrees to radians */
   inline double degrees_to_radians( const double v_d ) {
     return ( ( v_d / 180.0 * M_PI ) );
   }
 
+  /** Convert radians to degrees */
   inline double radians_to_degrees( const double v_r ) {
     return ( ( v_r / M_PI * 180.0 ) );
   }
@@ -55,6 +59,11 @@ namespace psmrts {
     return ( lon_adj );
   }
 
+  inline bool isEqual( const Eigen::Vector3d &v1, 
+                       const Eigen::Vector3d &v2,
+                       const double v_tolerance = 1.0e-12 ) {
+    return ( v1.isApprox( v2, v_tolerance ) );                    
+  }
 
   /**
    * @brief Constructs a path that is OS sensitive

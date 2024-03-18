@@ -17,8 +17,12 @@ namespace psmrts {
       public:
         PsmrtsShapeTracerAdapter( ) {  }
         
+        PsmrtsShapeTracerAdapter( const std::string &source ) {  
+          m_model_pst = MODEL( source );  // Must provide a string-type constructor
+        }
+
         PsmrtsShapeTracerAdapter( const MODEL &model ) {  
-          m_model_pst = model;
+          m_model_pst = model;  // Must be copyable and recommended to have a small footprint
         }
 
         virtual ~PsmrtsShapeTracerAdapter() { }
@@ -70,8 +74,6 @@ namespace psmrts {
 
         private:
           MODEL   m_model_pst;
-
-
       
     };
 
