@@ -84,6 +84,13 @@ namespace naif {
         return ( std::max( a(), std::max( b(), c() ) ) );
       }
 
+      inline size_t plate_count() const {
+        return ( 0 );
+      }
+
+      inline size_t vertex_count() const {
+        return ( 0 );
+      }
 
       inline bool ray_trace( const Eigen::Vector3d &observer,
                              const Eigen::Vector3d &lookdir,
@@ -118,6 +125,21 @@ namespace naif {
         return ( ray.hasHit() );
       }
 
+      inline NaifEllipsoidShape clone() const {
+        return ( *this );
+      }
+
+#if 0
+
+      inline psmrts::PsmrtsTracerModel *ellipsoid() const {
+        return ( new NaifEllipsoidShape(  ))
+      }
+#endif
+
+      /** There are no shared instances */
+      inline size_t use_count() const {
+        return (0 );
+      }
 
     private:
       double      m_a_radius;

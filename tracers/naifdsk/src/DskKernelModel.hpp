@@ -188,6 +188,14 @@ namespace naif {
         return ( nullptr );
       }
 
+      inline double minimum_radius() const {
+        return ( this->segment().maximum_radius() );
+      }
+
+      inline double maximum_radius() const {
+        return ( this->segment().minimum_radius() );
+      }
+
       /** Returns the number of shared instances exist for this DSK file */
       inline size_t use_count() const {
         return ( m_dsk_descriptor.use_count() );
