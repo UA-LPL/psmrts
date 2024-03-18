@@ -54,7 +54,7 @@ class Target;
       }
 
 
-      inline static PvlFlatMap extract_shapemodel_list( const QString &shapefile ) const {
+      inline static PvlFlatMap extract_shapemodel_list( const QString &shapefile ) {
 
         // IF the shapefile is not valid, throw an execption right now!
         if ( shapefile.isEmpty() ) {
@@ -84,14 +84,9 @@ class Target;
         psmrts::PsmrtsPriorityTracer s_tracer = PsmrtsModelFactory::make_tracer();
         PvlFlatMap xfile_parm = PsmrtsModelFactory::extract_shapemodel_list( shapeFile );
 
-        QStringList xfiles = xfile_parm.values( "ShapeModel" );
+        QStringList xfiles = xfile_parm.allValues( "ShapeModel" );
         for ( auto const &fname : xfiles ) {
-           FileName( fname ).expanded() );
-        }
-
-        // Currently load all the NAIF dsks
-        for ( auto const &filename : xfile_list ) {
-          s_tracer.add_tracer( new PsmrtsAdaptedDskShape( filename ) );
+          s_tracer.add_tracer( new PsmrtsAdaptedDskShape( FileName( fname ).expanded() )) );
         }
 
         // Do this here, otherwise default behavior will ensue from here on out
