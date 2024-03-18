@@ -315,7 +315,7 @@ namespace naif {
                              psmrts::RayTrace &ray ) const {
 
         for ( auto const &segment : segments() ) {
-          bool has_hit = ray_trace( observer, lookdir, segment, ray );
+          bool has_hit = this->ray_trace( observer, lookdir, segment, ray );
           if ( true == has_hit ) {
             return ( has_hit );
           }

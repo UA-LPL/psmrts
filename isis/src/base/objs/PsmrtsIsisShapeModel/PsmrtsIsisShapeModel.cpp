@@ -83,6 +83,21 @@ namespace Isis {
     m_ellipsoid_tracer = PsmrtsAdaptedEllipsoidShape( get_radii_vector( target->radii() ) );
   }
 
+  PsmrtsIsisShapeModel::PsmrtsIsisShapeModel( const psmrts::PsmrtsPriorityTracer &tracer,
+                                              Target *target, Pvl *pvl) : 
+                                              ShapeModel( target ) {
+                                                
+    reset_psmrts_tracer();
+
+    // Set the tracer
+    m_priority_tracer = tracer;
+
+    // Lambda extracts Isis::Distances from a std::vector and returns an Eigen vector
+    auto get_radii_vector = [] ( const std::vector<Distance> &d3 ) -> Eigen::Vector3d {
+      return ( Eigen::Vector3d( { d3[0].kilometers(), d3[1].kilometers(), d3[2].kilometers() } ) );
+    };
+    m_ellipsoid_tracer = PsmrtsAdaptedEllipsoidShape( get_radii_vector( target->radii() ) );
+  }
 
 
   //! Virtual destructor to destroy the PsmrtsIsisShapeModel object.

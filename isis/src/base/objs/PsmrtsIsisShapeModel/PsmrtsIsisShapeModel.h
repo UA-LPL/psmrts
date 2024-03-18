@@ -37,6 +37,8 @@ namespace Isis {
       PsmrtsIsisShapeModel( Target *target, Pvl &pvl );
       PsmrtsIsisShapeModel( psmrts::PsmrtsTracerModel *model,
                             Target *target = nullptr, Pvl *pvl = nullptr );
+      PsmrtsIsisShapeModel( const psmrts::PsmrtsPriorityTracer &tracer,
+                            Target *target = nullptr, Pvl *pvl = nullptr );                            
       // PsmrtsIsisShapeModel( const json &psmrts_config );
 
 
