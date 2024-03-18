@@ -15,9 +15,9 @@ endif()
 
 # See https://github.com/Microsoft/vcpkg/issues/4497 as to why this
 # is needed. Its a conflict with proj and nlohmann_json.
-set( other_flags "${other_flags} -frtti -fvisibility-inlines-hidden" )
-set( other_flags "${other_flags} -fvisibility=hidden" )
-set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${other_flags}" )
+#set( other_flags "${other_flags} -frtti -fvisibility-inlines-hidden" )
+#set( other_flags "${other_flags} -fvisibility=hidden" )
+#set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${other_flags}" )
 
 # This is PROJECT_SOURCE_DIR=psmrts
 project( psmrts )
