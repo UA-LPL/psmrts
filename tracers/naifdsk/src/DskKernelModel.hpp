@@ -67,6 +67,12 @@ namespace naif {
         init( dskfile );
       }
 
+      DskKernelModel( const std::string  &dskfile, 
+                      const Eigen::Vector3d &radii ) {
+        init( dskfile );
+        m_radii = radii;
+      }
+
       /** Initialize with a unique NAIF DSK file descriptor */
       DskKernelModel( const SharedDskDescriptor &k_descr ) {
         init( k_descr );
@@ -197,7 +203,7 @@ namespace naif {
       }
 
       inline Eigen::Vector3d radii() const {
-        return ( this->segment().radii() );
+        return ( m_radii );
       }      
 
       /** Returns the number of shared instances exist for this DSK file */
@@ -434,6 +440,7 @@ namespace naif {
       DskSegmentList      m_segments;
       size_t              m_total_plates;
       size_t              m_total_vertices;
+      Eigen::Vector3d     m_radii;
 
 
       /** Reset DSK model to default state */
@@ -448,6 +455,7 @@ namespace naif {
         m_segments.clear();
         m_total_plates = 0;
         m_total_vertices = 0;
+        m_radii = Eigen::Vector3d::Zero();
 
         return;
       }
@@ -457,6 +465,11 @@ namespace naif {
       inline void add_segment( const DskSegment &segment ) {
           m_total_vertices += segment.n_vertices();
           m_total_plates   += segment.n_plates();
+
+          // Just use the first segment as the radii. Note this is likely an
+          // issue for multiple segments with different bodies or a situation
+          // where the segment does not have global coverage!
+          if ( this->n_dsk_segments() == 0 ) { m_radii = segment.radii(); }
 
           // Done with this segment so save it!
           m_segments.push_back( segment );
@@ -534,6 +547,7 @@ namespace naif {
         m_segments       = model.m_segments;
         m_total_plates   = model.m_total_plates;
         m_total_vertices = model.m_total_vertices;
+        m_radii          = model.m_radii;
         return;
       }
 
