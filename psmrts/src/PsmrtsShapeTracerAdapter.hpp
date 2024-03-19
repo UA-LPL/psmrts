@@ -21,6 +21,10 @@ namespace psmrts {
           m_model_pst = MODEL( source );  // Must provide a string-type constructor
         }
 
+        PsmrtsShapeTracerAdapter( const std::string &source, const Eigen::Vector3d &radii ) {  
+          m_model_pst = MODEL( source, radii );  // Must provide a string-type constructor with radii
+        }
+
         PsmrtsShapeTracerAdapter( const MODEL &model ) {  
           m_model_pst = model;  // Must be copyable and recommended to have a small footprint
         }

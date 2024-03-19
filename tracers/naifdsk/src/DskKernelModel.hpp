@@ -196,6 +196,10 @@ namespace naif {
         return ( this->segment().minimum_radius() );
       }
 
+      inline Eigen::Vector3d radii() const {
+        return ( this->segment().radii() );
+      }      
+
       /** Returns the number of shared instances exist for this DSK file */
       inline size_t use_count() const {
         return ( m_dsk_descriptor.use_count() );

@@ -39,8 +39,8 @@ namespace naif {
         m_vertices  = nvertices;
         m_plates    = nplates;
 
-        // Compute radii extremes
-        compute_min_max_radii( m_min_radius, m_max_radius );
+        // Compute radii/extremes
+        m_radii = compute_min_max_radii( m_min_radius, m_max_radius );
         return;
       }
 
@@ -97,6 +97,10 @@ namespace naif {
       inline const SpiceDSKDescr *dskdsc_ptr() const {
         return ( &m_dsk_descr );
       }
+      
+      inline Eigen::Vector3d radii( ) const {
+        return ( m_radii );
+      }
 
       inline double minimum_radius( ) const {
         return ( m_min_radius );
@@ -130,28 +134,30 @@ namespace naif {
 
     private:
       // DSK Parameters
-      int            m_segnum;
-      SpiceDLADescr  m_dla_descr;
-      SpiceDSKDescr  m_dsk_descr;
-      SpiceInt       m_plates;
-      SpiceInt       m_vertices;
-      double         m_min_radius;
-      double         m_max_radius;
+      int             m_segnum;
+      SpiceDLADescr   m_dla_descr;
+      SpiceDSKDescr   m_dsk_descr;
+      SpiceInt        m_plates;
+      SpiceInt        m_vertices;
+      Eigen::Vector3d m_radii;
+      double          m_min_radius;
+      double          m_max_radius;
 
       /** Initialize the DSK structure */
       inline void init( ) {
-        m_segnum    = -1;
-        m_dla_descr = { 0 };
-        m_dsk_descr = { 0 };
-        m_plates    = 0;
-        m_vertices  = 0;
+        m_segnum     = -1;
+        m_dla_descr  = { 0 };
+        m_dsk_descr  = { 0 };
+        m_plates     = 0;
+        m_vertices   = 0;
+        m_radii      = Eigen::Vector3d::Zero();
         m_min_radius = 0.0;
         m_max_radius = 0.0;
       }
 
-      inline void compute_min_max_radii( double &minrad, double &maxrad ) 
-                                         const {
+      inline Eigen::Vector3d compute_min_max_radii(double &minrad, double &maxrad ) const {
         minrad = maxrad = 0.0;
+        Eigen::Vector3d v_radii = Eigen::Vector3d::Zero();
 
         if ( dskdsc().corsys  == SPICE_DSK_PDTSYS ) {
           double re = dskdsc().corpar[0];  // Equitorial radius
@@ -159,16 +165,19 @@ namespace naif {
           double rp = re * ( 1.0 - f );    // Polar radius 
           minrad = std::min( re, rp );
           maxrad = std::max( re, rp );
+          v_radii = { re, re, rp };
         }
         else if ( dskdsc().corsys  == SPICE_DSK_LATSYS ) {
           minrad = dskdsc().co3min;
           maxrad = dskdsc().co3max;
+          v_radii = { maxrad, maxrad, maxrad };
         }
         else if (dskdsc().corsys  == SPICE_DSK_RECSYS ) { 
           Eigen::Vector3d vradmin( { dskdsc().co1min, dskdsc().co2min, dskdsc().co3min } );
           Eigen::Vector3d vradmax( { dskdsc().co1max, dskdsc().co2max, dskdsc().co3max } );
           minrad = vradmin.norm();
           maxrad = vradmax.norm();
+          v_radii = vradmax;
         }
         else {
           std::string mess = "DSK Segment type " + std::to_string( dskdsc().corsys ) +
@@ -176,7 +185,7 @@ namespace naif {
           throw std::runtime_error( mess );
         }
 
-        return;
+        return ( v_radii );
       }
   };
 
