@@ -107,7 +107,6 @@ namespace Isis {
   bool PsmrtsIsisShapeModel::intersectSurface( std::vector<double> observerPos,
                                                 std::vector<double> lookDirection) {
 
-    
     this->clearSurfacePoint();
 
     psmrts::RayTrace raytrace;
@@ -159,7 +158,7 @@ namespace Isis {
       this->tracer().ray_trace( b_observer, b_lookdir, m_backcheck_trace );  
 
       // Does this intercept become the final observer intersection??
-      status_t =  this->backcheck_ray().hasHit();       
+      status_t = this->observer_ray().isNear( this->backcheck_ray(), m_intercept_tolerance_km );         
     }
 
     return ( status_t );
@@ -205,8 +204,8 @@ namespace Isis {
       if ( (true == status_t ) && ( true == backCheck ) ) {
         Eigen::Vector3d b_observer( observerPos.data() );      
         Eigen::Vector3d b_lookdir = this->observer_ray().xyz() - b_observer;
-        this->tracer().ray_trace( b_observer, b_lookdir, m_backcheck_trace );  
-        status_t =  this->backcheck_ray().hasHit(); 
+        this->tracer().ray_trace( b_observer, b_lookdir, m_backcheck_trace );
+        status_t = this->observer_ray().isNear( this->backcheck_ray(), m_intercept_tolerance_km );        
       }   
       
     }
@@ -401,8 +400,7 @@ namespace Isis {
         this->tracer().ray_trace( observer_pos, obslookdir, m_backcheck_trace );
       }
 
-      const double InterceptTolerance_mm = 1.0e-6;
-      isvisible = this->observer_ray().isNear( this->backcheck_ray(), InterceptTolerance_mm );
+      isvisible = this->observer_ray().isNear( this->backcheck_ray(), m_intercept_tolerance_km );
     }
 
     // Return status

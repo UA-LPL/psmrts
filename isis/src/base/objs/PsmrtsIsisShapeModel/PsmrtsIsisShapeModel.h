@@ -118,6 +118,16 @@ namespace Isis {
         return ( m_ellipsoid_tracer );
       }
 
+      inline double tolerance() const {
+        return ( m_intercept_tolerance_km );
+      }
+
+      inline double set_tolerance( const double intercept_precision = InterceptTolerance_km ) {
+        double old_tolerance = m_intercept_tolerance_km;
+        m_intercept_tolerance_km = intercept_precision;
+        return ( old_tolerance );
+      }
+
       inline const psmrts::PsmrtsTracerModel *surface_model_with_intercept() const {
         return ( m_model_used );
       }
@@ -198,10 +208,12 @@ namespace Isis {
 
     private:
       typedef psmrts::PsmrtsShapeTracerAdapter<naif::NaifEllipsoidShape> PsmrtsAdaptedEllipsoidShape;
+      inline static const double InterceptTolerance_km = 1.0e-6;
 
       psmrts::PsmrtsPriorityTracer m_priority_tracer;
       PsmrtsAdaptedEllipsoidShape  m_ellipsoid_tracer;
       psmrts::PsmrtsTracerModel    *m_model_used;
+      double                       m_intercept_tolerance_km;
 
       psmrts::RayTrace             m_observer_to_target_trace;
       psmrts::RayTrace             m_light_source_trace;
@@ -220,10 +232,11 @@ namespace Isis {
         return;
       }
 
-
       inline void reset_psmrts_tracer( ) {
         m_priority_tracer  = psmrts::PsmrtsPriorityTracer();
         m_ellipsoid_tracer = PsmrtsAdaptedEllipsoidShape();
+        m_intercept_tolerance_km = InterceptTolerance_km;
+
         reset_all_tracers();
 
         // Now some ISIS internals
