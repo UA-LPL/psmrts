@@ -18,6 +18,9 @@ find files of those names at the top level of this repository. **/
 
 
 namespace Isis {
+
+  class Target;
+
   /**
    * @brief PSMRTS Shape Model & Ray Trace Implementation in ISIS
    *
@@ -200,6 +203,9 @@ namespace Isis {
         m_active_normal = actor;
         return ( current_s ); 
       }
+
+      /** Get target radii, which is sometime unreliable from Target */
+      Eigen::Vector3d get_target_radii( Target *target, Pvl *pvl );
 
     protected:
     // This routine is actually intersectEllipsoid()...

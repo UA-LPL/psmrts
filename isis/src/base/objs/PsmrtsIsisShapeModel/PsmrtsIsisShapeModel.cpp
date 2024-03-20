@@ -23,6 +23,8 @@ find files of those names at the top level of this repository. **/
 #include "NaifStatus.h"
 #include "Spice.h"
 #include "Target.h"
+#include "SpecialPixel.h"
+
 
 #include "PsmrtsIsisShapeModel.h"
 
@@ -53,11 +55,8 @@ namespace Isis {
 
     reset_psmrts_tracer();
 
-    // Lambda extracts Isis::Distances from a std::vector and returns an Eigen vector
-    auto get_radii_vector = [] ( const std::vector<Distance> &d3 ) -> Eigen::Vector3d {
-      return ( Eigen::Vector3d( { d3[0].kilometers(), d3[1].kilometers(), d3[2].kilometers() } ) );
-    };
-    m_ellipsoid_tracer = PsmrtsAdaptedEllipsoidShape( get_radii_vector( target->radii() ) );
+    Eigen::Vector3d v_radii = PsmrtsIsisShapeModel::get_target_radii( target, &pvl );
+    m_ellipsoid_tracer = PsmrtsAdaptedEllipsoidShape( v_radii );
   }
 
   /**
@@ -76,11 +75,8 @@ namespace Isis {
     // Add the model to the priorty tracer
     m_priority_tracer.add_tracer( model );
 
-    // Lambda extracts Isis::Distances from a std::vector and returns an Eigen vector
-    auto get_radii_vector = [] ( const std::vector<Distance> &d3 ) -> Eigen::Vector3d {
-      return ( Eigen::Vector3d( { d3[0].kilometers(), d3[1].kilometers(), d3[2].kilometers() } ) );
-    };
-    m_ellipsoid_tracer = PsmrtsAdaptedEllipsoidShape( get_radii_vector( target->radii() ) );
+    Eigen::Vector3d v_radii = PsmrtsIsisShapeModel::get_target_radii( target, pvl );
+    m_ellipsoid_tracer = PsmrtsAdaptedEllipsoidShape( v_radii );
   }
 
   PsmrtsIsisShapeModel::PsmrtsIsisShapeModel( const psmrts::PsmrtsPriorityTracer &tracer,
@@ -92,11 +88,8 @@ namespace Isis {
     // Set the tracer
     m_priority_tracer = tracer;
 
-    // Lambda extracts Isis::Distances from a std::vector and returns an Eigen vector
-    auto get_radii_vector = [] ( const std::vector<Distance> &d3 ) -> Eigen::Vector3d {
-      return ( Eigen::Vector3d( { d3[0].kilometers(), d3[1].kilometers(), d3[2].kilometers() } ) );
-    };
-    m_ellipsoid_tracer = PsmrtsAdaptedEllipsoidShape( get_radii_vector( target->radii() ) );
+    Eigen::Vector3d v_radii = PsmrtsIsisShapeModel::get_target_radii( target, pvl );
+    m_ellipsoid_tracer = PsmrtsAdaptedEllipsoidShape( v_radii );
   }
 
 
@@ -408,6 +401,117 @@ namespace Isis {
   }
 
 
+  Eigen::Vector3d PsmrtsIsisShapeModel::get_target_radii( Target *target, Pvl *pvl ) {
+#if defined(DEBUG_MISSING_RADII)    
+    std::cout << "Getting Radii from Target!" << std::endl;
+    std::cout << "Valid Target?       " << toString( target != nullptr ) << std::endl;
+    std::cout << "Valid Spice?       " << toString( target != nullptr ) << std::endl;
+#endif
+    // Lambda extracts Isis::Distances from a std::vector and returns an Eigen vector
+    auto get_radii_vector = [] ( const std::vector<Distance> &d3 ) -> Eigen::Vector3d {
+      return ( Eigen::Vector3d( { d3[0].kilometers(), d3[1].kilometers(), d3[2].kilometers() } ) );
+    };
+  
+    // Try first from shapmodel itself
+    Eigen::Vector3d v_radii = get_radii_vector( this->targetRadii() );
+    if ( !IsSpecial(v_radii[0] ) ) {
+#if defined(DEBUG_MISSING_RADII)    
+      std::cout << "Got Radii from targetRadii()..." << std::endl;          
+#endif
+      return ( v_radii );
+    }
+
+    // First check to see if the target is valid
+    if ( nullptr != target ) {
+#if defined(DEBUG_MISSING_RADII)    
+      std::cout << "Try from Target..." << std::endl;
+#endif
+      std::vector<Distance> radii_t = target->radii();
+      if ( ( radii_t[0].isValid() ) && !IsSpecial( radii_t[0].kilometers() ) ) {
+#if defined(DEBUG_MISSING_RADII)    
+        std::cout << "Got Radii from Target..." << std::endl;
+#endif        
+        v_radii = get_radii_vector( radii_t );
+      }
+      else if ( nullptr != pvl ) {
+        // Don't know what to do at this point
+#if defined(DEBUG_MISSING_RADII)
+        std::cout << "No valid Target, trying pvl..." << std::endl;
+#endif
+        try {
+          PvlObject naifKeywords = pvl->findObject("NaifKeywords");
+          QString radiiKeyword = "BODY" + toString( int( target->naifBodyCode()) ) + "_RADII";
+          PvlKeyword radii_p =  naifKeywords.findKeyword(radiiKeyword);
+          v_radii = { toDouble( radii_p[0] ) , toDouble( radii_p[1] ), toDouble( radii_p[2] ) };
+#if defined(DEBUG_MISSING_RADII)
+          std::cout << "Got Radii from Pvl Label..." << std::endl;
+#endif                   
+        }
+        catch(...) {
+#if defined(DEBUG_MISSING_RADII)
+           std::cout << "Failed from Pvl...That is all!" << std::endl;
+#endif           
+        }
+      }
+#if 0
+      // Spice gets its radii from Target - won't be any different 
+      else if ( nullptr != target->spice() ) {
+        std::cout << "Getting Radii from Spice..." << std::endl;
+        target->spice()->radii( radii_t.data() );
+        std::cout << "IsValid:                 " <<  !IsSpecial( radii_t[0].kilometers() ) << std::endl;
+        v_radii = get_radii_vector( radii_t );
+      }
+#endif
+      else {
+        // Try directly from kernels...
+#if defined(DEBUG_MISSING_RADII)
+        std::cout << "Try Naif directly..." << std::endl;
+#endif        
+        SpiceInt n;
+        SpiceDouble s_radii[3];
+        bodvar_c( target->naifBodyCode(), "RADII", &n, s_radii );
+        try {
+        
+          NaifStatus::CheckErrors();
+
+          // Got it from NAIF!
+          v_radii = { s_radii[0], s_radii[1], s_radii[2] };
+#if defined(DEBUG_MISSING_RADII)
+          std::cout << "Got Radii from NAIF..." << std::endl;   
+#endif       
+        }
+        catch (...) {
+#if defined(DEBUG_MISSING_RADII)
+          std::cout << "Failed from Naif...OUT OF OPTIONS" << std::endl;
+#endif          
+        }
+      }
+    } 
+    else if ( nullptr != pvl ) {
+      // Don't know what to do at this point
+#if defined(DEBUG_MISSING_RADII)
+      std::cout << "No valid Target, trying pvl..." << std::endl;
+#endif      
+      try {
+        PvlObject naifKeywords = pvl->findObject("NaifKeywords");
+        QString radiiKeyword = "BODY" + toString(int( target->naifBodyCode()) ) + "_RADII";
+        PvlKeyword radii_p =  naifKeywords.findKeyword(radiiKeyword);
+        v_radii = { toDouble( radii_p[0] ) , toDouble( radii_p[1] ), toDouble( radii_p[2] ) };
+#if defined(DEBUG_MISSING_RADII)
+        std::cout << "Got Radii from Pvl Label..." << std::endl;
+#endif        
+      }
+      catch(...) {
+#if defined(DEBUG_MISSING_RADII)
+          std::cout << "Failed from Pvl..." << std::endl;
+#endif          
+          v_radii = { 1.0, 1.0, 1.0 };
+      }
+    }
+
+    return ( v_radii );
+  }
+
   /**
    * Finds the intersection point on the ellipsoid model using the given
    * position of the observer (spacecraft) and direction vector from the
@@ -436,7 +540,10 @@ namespace Isis {
 
     m_observer_to_target_trace = raytrace;
     this->setHasIntersection( raytrace.hasHit() );
-    this->setSurfacePoint( this->init_isis_surface_point_from_ray( raytrace ));
+    if ( raytrace.hasHit() ) { 
+      this->setSurfacePoint( this->init_isis_surface_point_from_ray( raytrace ) );
+      this->setNormal( this->isis_normal( raytrace ) );  
+    }
 
     if ( activate ) this->set_active( ObserverNormal );
 
@@ -451,7 +558,12 @@ namespace Isis {
 
     m_ellipsoid_trace = raytrace;
     if ( activate ) this->set_active( EllipsoidNormal );
-
+    if ( raytrace.hasHit() ) { 
+      this->setLocalNormal( this->isis_normal( raytrace ) );
+    }
+ 
     return ( raytrace.hasHit() );
   }
+
+
 }
