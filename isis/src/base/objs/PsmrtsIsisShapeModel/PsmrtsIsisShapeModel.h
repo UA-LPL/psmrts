@@ -103,7 +103,8 @@ namespace Isis {
       // virtual void setSurfacePoint( const SurfacePoint &surfacePoint );
 
       // Return the normal (surface or local) of the current intersection point
-      virtual std::vector<double>  normal();
+      virtual std::vector<double> normal();
+      virtual std::vector<double> localNormal();
 
       // Determine if the internal intercept is occluded from the observer/lookdir
       virtual bool isVisibleFrom( const std::vector<double> observerPos,
@@ -157,7 +158,7 @@ namespace Isis {
 
       inline SurfacePoint init_isis_surface_point_from_ray( const psmrts::RayTrace &ray ) const {
         SurfacePoint point;
-        point.FromNaifArray( ray.xyz().data() );
+        if ( ray.hasHit() ) { point.FromNaifArray( ray.xyz().data() );  }
         return ( point );
       }
       
@@ -205,7 +206,7 @@ namespace Isis {
       }
 
       /** Get target radii, which is sometime unreliable from Target */
-      Eigen::Vector3d get_target_radii( Target *target, Pvl *pvl );
+      Eigen::Vector3d get_target_radii( Target *target, Pvl *pvl ) const;
 
     protected:
     // This routine is actually intersectEllipsoid()...

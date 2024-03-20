@@ -56,7 +56,7 @@ namespace Isis {
 
     reset_psmrts_tracer();
 
-    Eigen::Vector3d v_radii = PsmrtsIsisShapeModel::get_target_radii( target, &pvl );
+    Eigen::Vector3d v_radii = this->get_target_radii( target, &pvl );
     m_ellipsoid_tracer = PsmrtsAdaptedEllipsoidShape( v_radii );
   }
 
@@ -76,7 +76,7 @@ namespace Isis {
     // Add the model to the priorty tracer
     m_priority_tracer.add_tracer( model );
 
-    Eigen::Vector3d v_radii = PsmrtsIsisShapeModel::get_target_radii( target, pvl );
+    Eigen::Vector3d v_radii = this->get_target_radii( target, pvl );
     m_ellipsoid_tracer = PsmrtsAdaptedEllipsoidShape( v_radii );
   }
 
@@ -89,7 +89,7 @@ namespace Isis {
     // Set the tracer
     m_priority_tracer = tracer;
 
-    Eigen::Vector3d v_radii = PsmrtsIsisShapeModel::get_target_radii( target, pvl );
+    Eigen::Vector3d v_radii = this->get_target_radii( target, pvl );
     m_ellipsoid_tracer = PsmrtsAdaptedEllipsoidShape( v_radii );
   }
 
@@ -211,7 +211,7 @@ namespace Isis {
 
   void PsmrtsIsisShapeModel::calculateDefaultNormal() {
     this->set_active( EllipsoidNormal );
-    this->setNormal( this->isis_normal( this->get_active_trace() ) );    
+    this->setNormal( this->isis_normal( this->ellipsoid_ray() ) );    
     this->setHasNormal( this->ellipsoid_ray().hasHit() );
     return;
   }
@@ -219,8 +219,8 @@ namespace Isis {
 
   void PsmrtsIsisShapeModel::calculateLocalNormal(QVector<double *> neighborPoints) {
     this->set_active( ObserverNormal );
-    this->setNormal( this->isis_normal( this->get_active_trace() ) );
-    this->setHasNormal( this->observer_ray().hasHit() );
+    this->setLocalNormal( this->isis_normal( this->observer_normal() ) );
+    this->setHasLocalNormal( this->observer_ray().hasHit() );
     return;
   }
 
@@ -358,9 +358,15 @@ namespace Isis {
 
   /** Returns the normal of the currently active trace */
   std::vector<double>  PsmrtsIsisShapeModel::normal() {
-    return ( this->isis_std_vector( this->get_active_trace().normal() ) ) ;
+    // This is the normal intercept, right?
+    return ( this->ellipsoid_normal()) ) ;
   }
 
+  /** Returns the normal of the currently active trace */
+  std::vector<double>  PsmrtsIsisShapeModel::localNormal() {
+    // This is the normal on the surface shape model, right?
+    return ( this->observer_normal() );
+  }
 
 /**
  * @brief Default occulsion implementation
@@ -386,6 +392,7 @@ namespace Isis {
 
     bool isvisible = false;
 
+    // This must be the observer local surface point, right?
     if ( this->observer_ray().hasHit() ) {
       Eigen::Vector3d observer_pos( observerPos.data() );
       Eigen::Vector3d obslookdir( lookDirection.data() );
@@ -402,7 +409,28 @@ namespace Isis {
   }
 
 
-  Eigen::Vector3d PsmrtsIsisShapeModel::get_target_radii( Target *target, Pvl *pvl ) {
+  /**
+   * @brief Get the darn radii!
+   * 
+   * This appears to be a major effort! It is severly broken in this implementation and I don't
+   * know why. 
+   * 
+   * The radii from all sources but the Pvl label are Null() and crash PSMRTS/ISIS. This because
+   * an ellipsoid shape model is instantiated from the Target. I thought I would try the Spice
+   * object but it gets its radii from Target and is also Null(). I then try to use NAIF with
+   * a direct call to `bodvar` and it also fails. The only work around is to extract the radii
+   * from the ISIS label provide by pvl.
+   * 
+   * To invoke the print statements, uncomment the "#define DEBUG_MISSING_RADII 1" at the top
+   * of this source file.
+   * 
+   * Its a mystery!
+   * 
+   * @param target            Target object for body
+   * @param pvl               Presumed to be an ISIS cube label
+   * @return Eigen::Vector3d  Returns the radii or Null() if invalid.
+   */
+  Eigen::Vector3d PsmrtsIsisShapeModel::get_target_radii( Target *target, Pvl *pvl ) const {
 #if defined(DEBUG_MISSING_RADII)    
     std::cout << "Getting Radii from Target!" << std::endl;
     std::cout << "Valid Target?       " << toString( target != nullptr ) << std::endl;
@@ -443,7 +471,7 @@ namespace Isis {
           PvlObject naifKeywords = pvl->findObject("NaifKeywords");
           QString radiiKeyword = "BODY" + toString( int( target->naifBodyCode()) ) + "_RADII";
           PvlKeyword radii_p =  naifKeywords.findKeyword(radiiKeyword);
-          v_radii = { toDouble( radii_p[0] ) , toDouble( radii_p[1] ), toDouble( radii_p[2] ) };
+          v_radii = { toDouble( radii_p[0] ), toDouble( radii_p[1] ), toDouble( radii_p[2] ) };
 #if defined(DEBUG_MISSING_RADII)
           std::cout << "Got Radii from Pvl Label..." << std::endl;
 #endif                   
@@ -540,13 +568,17 @@ namespace Isis {
                                                          const bool activate ) {
 
     m_observer_to_target_trace = raytrace;
+
+    // Order is important here
+    this->setSurfacePoint( this->init_isis_surface_point_from_ray( raytrace ) );
     this->setHasIntersection( raytrace.hasHit() );
+
+    // This is the local normal intersection right?
     if ( raytrace.hasHit() ) { 
-      this->setSurfacePoint( this->init_isis_surface_point_from_ray( raytrace ) );
-      this->setNormal( this->isis_normal( raytrace ) );  
+      this->setLocalNormal( this->isis_normal( raytrace ) );  
     }
 
-    if ( activate ) this->set_active( ObserverNormal );
+    // if ( activate ) this->set_active( ObserverNormal );
 
     const bool DoNotActivateTrace = false;
     this->update_ellipsoid_intersection( run_ellipsoid_trace( raytrace ), nullptr, DoNotActivateTrace );
@@ -558,10 +590,13 @@ namespace Isis {
                                                             const bool activate ) {
 
     m_ellipsoid_trace = raytrace;
-    if ( activate ) this->set_active( EllipsoidNormal );
+
+    // This is the normal intersection right? What's the difference between the
+    // hasEllipsoidIntersection(), hasNormal() and hasLocalNormal()?
     if ( raytrace.hasHit() ) { 
-      this->setLocalNormal( this->isis_normal( raytrace ) );
+      this->setNormal( this->isis_normal( raytrace ) );
     }
+    // if ( activate ) this->set_active( EllipsoidNormal );
  
     return ( raytrace.hasHit() );
   }
