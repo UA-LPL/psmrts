@@ -28,6 +28,7 @@ find files of those names at the top level of this repository. **/
 
 #include "PsmrtsIsisShapeModel.h"
 
+// #define DEBUG_MISSING_RADII 1
 namespace Isis {
   /**
    * Default constructor creates ShapeModel object, initializing name to an
