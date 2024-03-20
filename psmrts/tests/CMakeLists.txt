@@ -2,7 +2,7 @@
 
 # this is heuristically generated, and may not be correct
 find_package( Catch2 CONFIG REQUIRED )
-find_package( spdlog CONFIG REQUIRED )
+# find_package( spdlog CONFIG REQUIRED )
 
 # Add the test directory for includes
 set( CMAKE_INCLUDE_CURRENT_DIR ON )
@@ -25,7 +25,7 @@ endif()
 # Add required libraries as needed for psmrts_test_suite
 target_link_libraries( psmrts_test_suite PRIVATE psmrts )
 target_link_libraries( psmrts_test_suite PRIVATE Catch2::Catch2WithMain )
-target_link_libraries( psmrts_test_suite PRIVATE spdlog::spdlog_header_only )
+# target_link_libraries( psmrts_test_suite PRIVATE spdlog::spdlog_header_only )
 
 #  Add the tests to the system
 include( CTest )

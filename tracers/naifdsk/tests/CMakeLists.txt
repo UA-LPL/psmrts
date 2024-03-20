@@ -2,7 +2,7 @@
 
 # this is heuristically generated, and may not be correct
 find_package( Catch2 CONFIG REQUIRED )
-find_package( spdlog CONFIG REQUIRED )
+# find_package( spdlog CONFIG REQUIRED )
 
 
 # Add the test directory for includes
@@ -33,7 +33,7 @@ target_link_libraries( naif_test_suite PRIVATE psmrts )
 target_link_libraries( naif_test_suite PRIVATE Catch2::Catch2WithMain )
 target_link_libraries( naif_test_suite PRIVATE Eigen3::Eigen)
 target_link_libraries( naif_test_suite PRIVATE "${SPICE_LIB}" )
-target_link_libraries( naif_test_suite PRIVATE spdlog::spdlog_header_only )
+# target_link_libraries( naif_test_suite PRIVATE spdlog::spdlog_header_only )
 
 #  Add the tests to the system
 include( CTest )
