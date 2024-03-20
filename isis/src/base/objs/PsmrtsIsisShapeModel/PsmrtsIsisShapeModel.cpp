@@ -211,7 +211,7 @@ namespace Isis {
 
   void PsmrtsIsisShapeModel::calculateDefaultNormal() {
     this->set_active( EllipsoidNormal );
-    this->setNormal( this->isis_normal( this->ellipsoid_ray() ) );    
+    this->setNormal( this->ellipsoid_normal() );    
     this->setHasNormal( this->ellipsoid_ray().hasHit() );
     return;
   }
@@ -219,7 +219,7 @@ namespace Isis {
 
   void PsmrtsIsisShapeModel::calculateLocalNormal(QVector<double *> neighborPoints) {
     this->set_active( ObserverNormal );
-    this->setLocalNormal( this->isis_normal( this->observer_normal() ) );
+    this->setLocalNormal( this->observer_normal() );
     this->setHasLocalNormal( this->observer_ray().hasHit() );
     return;
   }
@@ -359,7 +359,7 @@ namespace Isis {
   /** Returns the normal of the currently active trace */
   std::vector<double>  PsmrtsIsisShapeModel::normal() {
     // This is the normal intercept, right?
-    return ( this->ellipsoid_normal()) ) ;
+    return ( this->ellipsoid_normal() );
   }
 
   /** Returns the normal of the currently active trace */
