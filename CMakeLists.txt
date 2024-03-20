@@ -49,7 +49,7 @@ find_library( SPICE_LIB cspice )
 
 # Optionally add unit tests of psmrts classes
 if( BUILD_TESTING )
-  configure_file( ${PSMRTS_TEST_DIR}/psmrts_test_config.h.in ${PSMRTS_TEST_DIR}/psmrts_test_config.h @ONLY )
+  configure_file( ../psmrts/psmrts/tests/psmrts_test_config.h.in ../psmrts/psmrts/tests/psmrts_test_config.h @ONLY )
   add_subdirectory( psmrts/tests )
   add_subdirectory( tracers/naifdsk/tests )
   enable_testing()
