@@ -34,7 +34,7 @@ set( VERSION_PATCH 0)
 # set( PSMRTS_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 # Configure the project include files
-configure_file( psmrts_version.h.in ${PSMRTS_DIR}/src/psmrts_version.h @ONLY )
+configure_file( psmrts_version.h.in ../psmrts/src/psmrts_version.h @ONLY )
 
 # Set psmrts source and include directory
 set( PSMRTS_BUILD_DIR    ${CMAKE_BINARY_DIR} )
