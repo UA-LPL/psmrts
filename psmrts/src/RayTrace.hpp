@@ -10,9 +10,20 @@
 
 namespace psmrts {
 
+/**
+ * @brief Ray trace result status class
+ * 
+ * This class is used to retain the state of a ray trace issued by a PSMRTS
+ * ray tracer. This container is designed to retain the state of a ray
+ * trace from an observer sufficient to compute other useful parameters.
+ * 
+ * It is mainly use for tessellated plate/facet model based shapes.
+ */
   class RayTrace {
     public:
 
+
+      /** Facet data struture contains the elements defining a single facet */
       typedef struct facet_datum {
         bool            m_has_facet;
         Eigen::Vector3i m_indexes;
@@ -21,31 +32,35 @@ namespace psmrts {
         Eigen::Vector3d m_vector3;
       } FacetDatum;
 
+      /** Fundamental ray trace data structure for a trace result */
       typedef struct ray_trace_datum {
         public:
-          bool            m_hit;
+          bool            m_hit;      //! Records if the ray intersects the target
 
-          Eigen::Vector3d m_observer;
-          Eigen::Vector3d m_lookdir;
+          Eigen::Vector3d m_observer; //! Position of observer (s/c) in body-fixed
+          Eigen::Vector3d m_lookdir;  //! Look direction of ray from observer
 
-          Eigen::Vector3d m_xyz;
-          Eigen::Vector3d m_normal;
+          Eigen::Vector3d m_xyz;      //! XYZ coordinate in shape model of intersection
+          Eigen::Vector3d m_normal;   //! Surface normal at surface intercept
 
-          int             m_plateid;
-          int             m_segment;
+          int             m_plateid;  //! 1-baed plate id/index of facet intercepted
+          int             m_segment;  //! Segement (DSK)/identifier of shape source
 
-          /** Generatized initialization */
+          /** Generalized initialization */
           ray_trace_datum() { init( ); }
           ~ray_trace_datum() { } 
 
+          /** Returns true ray contains an intercept on the shape */
           inline bool hasHit() const {
             return ( m_hit );
           }
 
+          /** Resets the state to a default condition of no intercept */
           inline void reset() {
             init( );
           }
 
+          /** Resets the state to with observer and look direction vectors */
           inline void reset( const Eigen::Vector3d &observer, 
                              const Eigen::Vector3d &lookdir ) {
             init( );
@@ -54,7 +69,7 @@ namespace psmrts {
           }          
 
         private:
-          /** Initialize */
+          /** Initialize the datum to default condition */
           inline void init( ) {
 
             m_hit      = false;
@@ -82,44 +97,55 @@ namespace psmrts {
         m_trace_datum.m_lookdir  = lookdir;
       }
       RayTrace(const RayTraceDatum &ray_t ) : m_trace_datum( ray_t ) { }
+
       virtual ~RayTrace( ) {  }
 
+      /** Returns true if the trace intercepted the target, false if no intersection */
       inline bool hasHit() const {
         return ( datum().hasHit() );
       }
 
+      /** Returns the position of the observer in bodyfixed frame */
       inline const Eigen::Vector3d &observer( ) const {
         return ( datum().m_observer );
       }
       
+      /** Returns the look direction from the observer in bodyfixed frame */
       inline const Eigen::Vector3d &lookdir( ) const {
         return ( datum().m_lookdir );
       }
 
+      /** Returns the normal if the ray trace has an intercept */
       inline const Eigen::Vector3d &normal( ) const {
         return ( datum().m_normal );
       }
 
+      /** Returns vector along look direction to surface */
       inline const Eigen::Vector3d surfpt( ) const {
         return ( xyz() - observer() );
       }
 
+      /** Returns the surface point of intercept relative to body origin */
       inline const Eigen::Vector3d &xyz( ) const {
         return ( datum().m_xyz );
       }
 
+      /** Returns the radius of the surface intercept point */
       inline double radius() const {
         return ( xyz().norm() );
       }
 
+      /** Slant distance is distance from observer to surface intercept point */
       inline double slant_distance() const {
         return ( surfpt().norm() );
       }
 
+      /** Compute the distance between to surface ray trace intercepts */
       inline double distance( const RayTrace &other ) const {
         return ( ( xyz() - other.xyz() ).norm() );
       }
 
+      /** Compute the angle of separation between two vectors */
       static inline double separation_angle( const Eigen::Vector3d &v1, 
                                              const Eigen::Vector3d &v2 ) {
 
@@ -145,6 +171,7 @@ namespace psmrts {
         return ( M_PI_2 );
       }
 
+      /** Determines if two surface intercept points are sufficiently near one another */
       inline bool isNear( const RayTrace &other,
                           const double tolerance_km = 1.0e-3 ) const {
         if ( !hasHit() )       { return ( false );  }
@@ -153,6 +180,7 @@ namespace psmrts {
         return ( distance( other ) <= tolerance_km );
       }
 
+      /** Computes the incidence angle (radians) between two traces */
       inline double incidence( const RayTrace &other,
                                const double invalid = psmrts::null() ) const {
         if ( !hasHit() )       { return ( invalid );  }
@@ -161,6 +189,7 @@ namespace psmrts {
         return ( separation_angle( this->normal(), -other.lookdir() ) );
       }
 
+      /** Computes the emission angle at the surface point intercept */
       inline double emission( const double invalid = psmrts::null() ) const {
         if ( !hasHit() )       { return ( invalid );  }
         return ( separation_angle( this->normal(), -this->lookdir() ) );
@@ -175,33 +204,39 @@ namespace psmrts {
         return ( separation_angle( -this->lookdir(), -other.lookdir() ) );
       }
 
+      /** Returns the id of the plate/facet of intercept */
       inline int plateid( ) const {
         return ( datum().m_plateid );
       }
 
+      /** Returns the segment or partition of the target body of intercept */
       inline int segment_number( ) const {
         return ( datum().m_segment );
       }      
 
+      /** Return a const reference to the ray trace data */
       inline const RayTraceDatum &datum() const {
         return ( m_trace_datum );
       }
 
+      /** Return a reference to the ray trace data */
       inline RayTraceDatum &datum() {
         return ( m_trace_datum );
       }
 
+      /** Resets/clears the last result and sets to default state */
       inline void reset( ) {
         datum().reset( );
       }
 
+      /** Resets/clears the last result and sets to observer state */
       inline void reset( const Eigen::Vector3d &observer, 
                          const Eigen::Vector3d &lookdir ) {
         datum().reset( observer, lookdir );
       }
 
     private:
-      RayTraceDatum m_trace_datum;
+      RayTraceDatum m_trace_datum;    //!! The ray trace data
 
   };
 }

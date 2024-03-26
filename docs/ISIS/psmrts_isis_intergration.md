@@ -146,7 +146,7 @@ It is recommended to create a dedicated directory to contain all ISIS working de
 
 You should set `ISISDATA` and `ISISTESTDATA` as it exists in your development enviornment.
 
-This configuration is integrated into version 8.1 pulled from `dev`, on March 19, 2024. You should be able to merge this branch with any other ensuing ISIS version, but that has not be tested. Yout may certainly encounter merge conflicts.
+This configuration is integrated into version 8.1 pulled from `dev`, on March 19, 2024. You should be able to merge this branch with any other ensuing ISIS version, but that has not be tested. You may certainly encounter merge conflicts.
 
 You can also use the following command to clone a clean version of `PSMRTS` and run the Catch2 tests. Note these instructions build `PSMRTS` using the current conda ISIS configured environment. 
 

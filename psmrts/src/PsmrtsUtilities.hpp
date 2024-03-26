@@ -88,6 +88,19 @@ namespace psmrts {
     return ( directory + dpathdelim + pathpart );
   }
 
+/**
+ * @brief Mutex wrapper for arbitrary data type
+ * 
+ * This template class provides a copyable (i.e., shared) class object that
+ * is designed to help manage data that needs to exist in a threaded
+ * environment. 
+ * 
+ * The Datum type is retained in a local copy within this class. In addtion,
+ * a shared mutex is allocated in this class. Any copies of the class will
+ * copy both the Datum instance and the shared pointer to the mutex.
+ * 
+ * @tparam Datum Data type to store and associate with a shared thread locker
+ */
   template <typename Datum> 
     class DatumMutexWrapper {
       public:
@@ -107,18 +120,22 @@ namespace psmrts {
 
         ~DatumMutexWrapper()  { }
 
+        /** Return a reference to the mutex for locking purposes */
         inline std::mutex &mutex() const {
           return ( *m_mutex );
         }
 
+        /** Return a reference to the stored Datum */
         inline Datum &datum() {
           return ( m_datum );
         }
 
+        /** Return a const refernce to the stored Datum */
         inline const Datum &datum() const {
           return ( m_datum );
         }
 
+        /** Returns the use count of the shared mutex */
         inline size_t use_count() const {
           return ( m_mutex.use_count() );
         }
@@ -128,6 +145,7 @@ namespace psmrts {
         mutable std::shared_ptr<std::mutex> m_mutex;
         Datum                       m_datum;
 
+        /** Fundamental initialization of the object */
         void init( const Datum &datum = Datum() ) {
           m_mutex.reset( new std::mutex() );
           m_datum = datum;
