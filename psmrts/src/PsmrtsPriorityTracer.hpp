@@ -42,6 +42,10 @@ namespace psmrts {
         m_tracers.push_back( this->make_shared( tracer ) );
       }
 
+      inline void add_tracer( const std::shared_ptr<PsmrtsTracerModel>  &tracer ) {
+        m_tracers.push_back(  tracer );
+      }
+      
       inline const PsmrtsTracerModel *ray_trace( const Eigen::Vector3d &observer,
                                                  const Eigen::Vector3d &lookdir,
                                                  RayTrace &ray ) const {
