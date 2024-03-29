@@ -91,6 +91,11 @@ namespace psmrts {
         return ( model_files );
       }
 
+      inline void clear() {
+        m_tracers.clear();
+      }
+
+      
     protected:
       typedef std::shared_ptr<PsmrtsTracerModel>  SharedTracerModel;
       typedef std::vector<SharedTracerModel>      TracerModelList;

@@ -19,10 +19,14 @@ TEST_CASE( "Naif Priority Tracer Default Test", "[priority][tracer][default]") {
 
     naif::NaifEllipsoidShape s_ellipse( 1.0, 2.0, 3.0, "small" );
     SharedTracerModel small_ellipsoid(new PsmrtsAdaptedEllipsoidShape( s_ellipse ));
+    CHECK ( s_ellipse.shapefile() == "small" );
+    CHECK ( small_ellipsoid->shapefile() ==  "small" );
     
 
     naif::NaifEllipsoidShape l_ellipse( 10.0, 20.0, 30.0, "large" );
     SharedTracerModel large_ellipsoid(new PsmrtsAdaptedEllipsoidShape( l_ellipse ));
+    CHECK ( l_ellipse.shapefile() == "large" );
+    CHECK ( large_ellipsoid->shapefile() == "large" );
    
 
     Eigen::Vector3d obs;
@@ -44,9 +48,43 @@ TEST_CASE( "Naif Priority Tracer Default Test", "[priority][tracer][default]") {
     REQUIRE ( large_ellipsoid->ray_trace(obs, lkdr, large_spt) == true );
 
     psmrts::PsmrtsPriorityTracer test_tracers;
+    CHECK ( test_tracers.isValid() == false );
+
     test_tracers.add_tracer( small_ellipsoid );
     test_tracers.add_tracer( large_ellipsoid );
     
+    CHECK ( test_tracers.isValid() == true );
+    CHECK ( test_tracers.size() == 2 );
     
-    
+    auto small_ptr = test_tracers.find_model_by_name("small");
+    REQUIRE( small_ptr != nullptr );
+    CHECK ( small_ptr->shapefile() == "small" );
+
+    auto large_ptr = test_tracers.find_model_by_name("large");
+    REQUIRE( large_ptr != nullptr );
+    CHECK ( large_ptr->shapefile() == "large" );
+
+
+    auto small_id_ptr = test_tracers.find_model_by_id( "psmrts::NaifEllipsoid::small" );
+    REQUIRE ( small_id_ptr != nullptr );
+    CHECK ( small_id_ptr->shapefile() == "small" );
+
+    auto large_id_ptr = test_tracers.find_model_by_id( "psmrts::NaifEllipsoid::large" );
+    REQUIRE ( large_id_ptr != nullptr );
+    CHECK ( large_id_ptr->shapefile() == "large" );
+
+
+    std::vector<std::string> shape_list = test_tracers.get_shapefile_names("psmrts", "NaifEllipsoid"); 
+    CHECK ( shape_list.size() == 2 );
+    CHECK ( shape_list[0] == "small" );
+    CHECK ( shape_list[1] == "large" );
+
+    test_tracers.clear();
+    REQUIRE( test_tracers.size() == 0 );
+
+
+    // wait for addition of .clear() function to clear out tracers, make sure 
+    // original adapted shapes still have base values, then add a ray trace
+    // that'll hit one but not the other, add them to a new tracer, and make
+    // sure the one that'll get hit is returned by the priority function.
 }
