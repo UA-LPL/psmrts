@@ -14,8 +14,6 @@
 
 #include <PsmrtsUtilities.hpp>
 
-#include <spdlog/spdlog.h>
-
 /** Root path which is directory above ./build */
 inline std::string psmrts_rootpath( ) {
   return ( std::string( PSMRTS_PROJECT_DIR ) );

@@ -124,12 +124,12 @@ TEST_CASE ( "DSK Model Test - Multi-Load/Init/Shared Tests", "[kernel][dsk][shap
 
     REQUIRE ( dsk.isValid() == true );
     REQUIRE ( dsk.n_dsk_segments() == 1 );
-    CHECK ( dsk.dskfile() == dskfile );
+    CHECK ( dsk.shapefile() == dskfile );
 
     // ** Added tracer name checks **
     CHECK ( dsk.tracer_model_type() == "naifdsk" );
     CHECK ( dsk.tracer_model_name() == "DskKernelModel" );
-    CHECK ( dsk.shape_tracer_id() == "naifdsk::DskKernelModel::" + dsk.dskfile());
+    CHECK ( dsk.shape_tracer_id() == "naifdsk::DskKernelModel::" + dsk.shapefile());
  
 
     // Since only one segment, should be same as below values for ie n_vertices(), n_plates(), etc
@@ -196,12 +196,12 @@ TEST_CASE ( "DSK Model Test - Dsk File API Tests", "[kernel][dsk][inventory][api
 
     // get_dsk_shape(file) - returns a DskKernelModel, use 
     naif::DskKernelModel dsk_test2 = dsk_test.get_dsk_shape( dsk_test_file );
-    CHECK ( dsk_test2.dskfile() == dsk_test.dskfile());
+    CHECK ( dsk_test2.shapefile() == dsk_test.shapefile());
     CHECK ( dsk_test.use_count() == 4 ); //tracks # of mutex locks, actual number being used
 
     // get_dsk_shape_with_id(file, id) - id = 2101955;
     naif::DskKernelModel dsk_test3 = dsk_test.get_dsk_shape_with_id( dsk_test_file, 2101955 );
-    CHECK ( dsk_test3.dskfile() == dsk_test.dskfile() );
+    CHECK ( dsk_test3.shapefile() == dsk_test.shapefile() );
     CHECK ( dsk_test3.use_count() == 5 );
 
     // get_dsk_shape_inventory_list()  should be the file, and only one (should be same as size())
@@ -254,8 +254,7 @@ TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][fac
     psmrts::RayTrace ray(obs, lkdr);
 
     // Holds reference to RayTrace structure and updates on write
-    psmrts::RayTrace::RayTraceDatum &raytrace1 = ray.datum(); 
-    CHECK ( dsk.ray_trace(obs, lkdr, raytrace1) == true );
+    CHECK ( dsk.ray_trace(obs, lkdr, ray) == true );
 
     Eigen::Vector3d lkdr_norm = lkdr.normalized();
     Eigen::Vector3d sfpt_norm = ray.surfpt().normalized();

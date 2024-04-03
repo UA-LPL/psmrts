@@ -11,6 +11,7 @@
 
 #include <PsmrtsUtilities.hpp>
 #include <PsmrtsDataModel.hpp>
+#include <PsmrtsTracerModel.hpp>
 #include <RayTrace.hpp>
 #include <NaifUtilities.hpp>
 #include <DskSegment.hpp>
@@ -50,7 +51,7 @@ namespace naif {
       }
 
       inline std::string shape_tracer_id() const {
-        std::string shapename = dskfile();
+        std::string shapename = shapefile();
         if ( shapename.length() == 0 ) shapename = "none";
         return ( tracer_model_type() + "::" + tracer_model_name() + "::" + shapename );
       }
@@ -64,6 +65,12 @@ namespace naif {
       /** Open new or use existing DSK file */
       DskKernelModel( const std::string  &dskfile ) {
         init( dskfile );
+      }
+
+      DskKernelModel( const std::string  &dskfile, 
+                      const Eigen::Vector3d &radii ) {
+        init( dskfile );
+        m_radii = radii;
       }
 
       /** Initialize with a unique NAIF DSK file descriptor */
@@ -115,7 +122,7 @@ namespace naif {
       }
 
       /** Return the name of the NAIF DSK kernel file */
-      inline const std::string &dskfile() const {
+      inline std::string shapefile() const {
         return ( kernel().m_kernel_file );
       }
 
@@ -129,11 +136,18 @@ namespace naif {
         return ( m_total_vertices );
       }
 
+      inline size_t vertex_count() const {
+        return ( this->n_total_vertices() );
+      }
+
       /** Return to tal number of facets/plates in all DSK segments */
       inline size_t n_total_plates() const {
         return ( m_total_plates );
       }
 
+      inline size_t plate_count() const {
+        return ( n_total_plates() );
+      }
       /** Returns the number of DSKs contained in this object */
       inline size_t n_dsk_segments() const {
         return ( m_segments.size() );
@@ -180,6 +194,18 @@ namespace naif {
         return ( nullptr );
       }
 
+      inline double minimum_radius() const {
+        return ( this->segment().maximum_radius() );
+      }
+
+      inline double maximum_radius() const {
+        return ( this->segment().minimum_radius() );
+      }
+
+      inline Eigen::Vector3d radii() const {
+        return ( m_radii );
+      }      
+
       /** Returns the number of shared instances exist for this DSK file */
       inline size_t use_count() const {
         return ( m_dsk_descriptor.use_count() );
@@ -203,32 +229,31 @@ namespace naif {
       inline bool ray_trace( const Eigen::Vector3d &observer, 
                              const Eigen::Vector3d &lookdir,
                              const DskSegment &segment, 
-                             psmrts::RayTrace::RayTraceDatum &raytrace ) const {
+                             psmrts::RayTrace &ray ) const {
 
         // Lock up NAIF file I/O for thread safety ( >=c++17 )
         std::scoped_lock mylocker( this->mutex() );
 
-        raytrace.reset();
-        raytrace.m_observer = observer;
-        raytrace.m_lookdir  = lookdir;
-        raytrace.m_segment  = segment.id();
+        ray.reset( observer, lookdir );
+        psmrts::RayTrace::RayTraceDatum &datum_r = ray.datum();
+        datum_r.m_segment  = segment.id();
 
         SpiceBoolean found;
         (void) dskx02_c( kernel().handle(), segment.dladsc_ptr(), 
-                         raytrace.m_observer.data(), raytrace.m_lookdir.data(),
-                         &raytrace.m_plateid, raytrace.m_xyz.data(), &found);
+                         datum_r.m_observer.data(), datum_r.m_lookdir.data(),
+                         &datum_r.m_plateid, datum_r.m_xyz.data(), &found);
         check_naif_errors();
         
-        raytrace.m_hit = ( SPICETRUE == found );
+        datum_r.m_hit = ( SPICETRUE == found );
 
         // Only get the normal if has intercept
-        if ( raytrace.hasHit() ) {
+        if ( datum_r.hasHit() ) {
            (void) dskn02_c( kernel().handle(), segment.dladsc_ptr(), 
-                            raytrace.m_plateid, raytrace.m_normal.data() );
+                            datum_r.m_plateid, datum_r.m_normal.data() );
             check_naif_errors();
         }
 
-        return ( raytrace.hasHit() );
+        return ( ray.hasHit() );
       }
 
       /**
@@ -242,7 +267,7 @@ namespace naif {
        * @return false 
        */
       inline bool get_facet( const psmrts::RayTrace::RayTraceDatum &raytrace,
-                             psmrts::RayTrace::FacetDatum &facet ) {
+                             psmrts::RayTrace::FacetDatum &facet ) const {
                 
         // Sanity check validity of raytrace
         facet.m_has_facet = false;
@@ -297,10 +322,10 @@ namespace naif {
        */
       inline bool ray_trace( const Eigen::Vector3d &observer, 
                              const Eigen::Vector3d &lookdir,
-                             psmrts::RayTrace::RayTraceDatum &raytrace ) const {
+                             psmrts::RayTrace &ray ) const {
 
         for ( auto const &segment : segments() ) {
-          bool has_hit = ray_trace( observer, lookdir, segment, raytrace );
+          bool has_hit = this->ray_trace( observer, lookdir, segment, ray );
           if ( true == has_hit ) {
             return ( has_hit );
           }
@@ -376,7 +401,16 @@ namespace naif {
       }
 
 
-      
+      inline DskKernelModel clone() const {
+        return ( *this );
+      }
+#if 0
+
+      inline psmrts::PsmrtsTracerModel *ellipsoid() const {
+        return ( new NaifEllipsoidShape(  ))
+      }
+#endif
+
     protected:
 
       /** This is a protected constructor as it requires the segment to be in the DSK */
@@ -406,6 +440,7 @@ namespace naif {
       DskSegmentList      m_segments;
       size_t              m_total_plates;
       size_t              m_total_vertices;
+      Eigen::Vector3d     m_radii;
 
 
       /** Reset DSK model to default state */
@@ -420,6 +455,7 @@ namespace naif {
         m_segments.clear();
         m_total_plates = 0;
         m_total_vertices = 0;
+        m_radii = Eigen::Vector3d::Zero();
 
         return;
       }
@@ -429,6 +465,11 @@ namespace naif {
       inline void add_segment( const DskSegment &segment ) {
           m_total_vertices += segment.n_vertices();
           m_total_plates   += segment.n_plates();
+
+          // Just use the first segment as the radii. Note this is likely an
+          // issue for multiple segments with different bodies or a situation
+          // where the segment does not have global coverage!
+          if ( this->n_dsk_segments() == 0 ) { m_radii = segment.radii(); }
 
           // Done with this segment so save it!
           m_segments.push_back( segment );
@@ -506,6 +547,7 @@ namespace naif {
         m_segments       = model.m_segments;
         m_total_plates   = model.m_total_plates;
         m_total_vertices = model.m_total_vertices;
+        m_radii          = model.m_radii;
         return;
       }
 

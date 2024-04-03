@@ -6,7 +6,7 @@ static const std::string test_version = "0.1.0";
 TEST_CASE( "naif test suite", "[naif][introduction]") {
 
   auto version = test_version;
-  spdlog::info("naif Catch Test Suite version {}", version );
+  // spdlog::info("naif Catch Test Suite version {}", version );
   INFO("naif Catch Test Suite version " << test_version);
   REQUIRE( version == test_version );
 

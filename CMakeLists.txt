@@ -1,6 +1,6 @@
 # CMakeLists.txt
 
-cmake_minimum_required( VERSION 3.0 )
+cmake_minimum_required( VERSION 3.11 )
 set( CMAKE_CXX_STANDARD 17 )
 set( CMAKE_CXX_STANDARD_REQUIRED True )
 
@@ -15,9 +15,9 @@ endif()
 
 # See https://github.com/Microsoft/vcpkg/issues/4497 as to why this
 # is needed. Its a conflict with proj and nlohmann_json.
-set( other_flags "${other_flags} -frtti -fvisibility-inlines-hidden" )
-set( other_flags "${other_flags} -fvisibility=hidden" )
-set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${other_flags}" )
+#set( other_flags "${other_flags} -frtti -fvisibility-inlines-hidden" )
+#set( other_flags "${other_flags} -fvisibility=hidden" )
+#set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${other_flags}" )
 
 # This is PROJECT_SOURCE_DIR=psmrts
 project( psmrts )
@@ -31,32 +31,26 @@ set( PSMRTS_TRACER_DIR   ${CMAKE_SOURCE_DIR}/tracers )
 set( VERSION_MAJOR 0)
 set( VERSION_MINOR 1)
 set( VERSION_PATCH 0)
+# set( PSMRTS_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 # Configure the project include files
-configure_file( psmrts_version.h.in ${PSMRTS_DIR}/src/psmrts_version.h @ONLY )
+configure_file( psmrts_version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/psmrts/src/psmrts_version.h @ONLY )
 
 # Set psmrts source and include directory
 set( PSMRTS_BUILD_DIR    ${CMAKE_BINARY_DIR} )
-include_directories( psmrts/src )
-include_directories( tracers/naifdsk/src )
+add_library(psmrts INTERFACE)
+target_include_directories(psmrts INTERFACE ${PSMRTS_DIR}/src ${PSMRTS_TRACER_DIR}/naifdsk/src )
 
-find_package( spdlog CONFIG REQUIRED )
+#find_package( spdlog CONFIG REQUIRED )
 find_package( Eigen3 CONFIG REQUIRED )
 find_library( SPICE_LIB cspice )
 
-# find_package( args CONFIG REQUIRED )
-
-
-# Add psmrts interface
 # add_executable(psmrts src/psmrts.cpp)
-
-# target_link_libraries(psmrts PRIVATE taywee::args)
-# target_link_libraries(psmrts PRIVATE "${SPICE_LIB}")
-# target_link_libraries(psmrts PRIVATE Eigen3::Eigen)
 
 # Optionally add unit tests of psmrts classes
 if( BUILD_TESTING )
-  configure_file( ${PSMRTS_TEST_DIR}/psmrts_test_config.h.in ${PSMRTS_TEST_DIR}/psmrts_test_config.h @ONLY )
+  configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/psmrts/tests/psmrts_test_config.h.in 
+                  ${CMAKE_CURRENT_SOURCE_DIR}/psmrts/tests/psmrts_test_config.h @ONLY )
   add_subdirectory( psmrts/tests )
   add_subdirectory( tracers/naifdsk/tests )
   enable_testing()
