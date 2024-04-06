@@ -18,7 +18,8 @@ add_executable( naif_test_suite  naif_catch2_main.cpp
                                  test_NaifShapeTracerAdapter.cpp
                                  test_NaifPsmrtsPriorityTracer.cpp
                                  test_PsmrtsShapeTracerAdapter.cpp
-                                 test_PsmrtsPriorityTracer.cpp )
+                                 test_PsmrtsPriorityTracer.cpp 
+                                 test_RayTrace.cpp )
 
 
 if( BUILD_COVERAGE )

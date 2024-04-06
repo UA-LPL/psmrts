@@ -10,8 +10,10 @@
 #include <PsmrtsPriorityTracer.hpp>
 #include <PsmrtsShapeTracerAdapter.hpp>
 #include <NaifEllipsoidShape.hpp>
+#include <DskKernelModel.hpp>
 
 typedef psmrts::PsmrtsShapeTracerAdapter<naif::NaifEllipsoidShape> PsmrtsAdaptedEllipsoidShape;
+typedef psmrts::PsmrtsShapeTracerAdapter<naif::DskKernelModel>   NaifShapeTracer;
 typedef std::shared_ptr<psmrts::PsmrtsTracerModel>  SharedTracerModel;
 
 TEST_CASE( "Naif Priority Tracer Default Test", "[priority][tracer][default]") {
@@ -82,9 +84,124 @@ TEST_CASE( "Naif Priority Tracer Default Test", "[priority][tracer][default]") {
     test_tracers.clear();
     REQUIRE( test_tracers.size() == 0 );
 
-
-    // wait for addition of .clear() function to clear out tracers, make sure 
-    // original adapted shapes still have base values, then add a ray trace
+    CHECK ( small_ellipsoid->shape_tracer_id() == "psmrts::NaifEllipsoid::small" );
+    CHECK ( large_ellipsoid->shape_tracer_id() == "psmrts::NaifEllipsoid::large" ); 
+    
+    // add a ray trace
     // that'll hit one but not the other, add them to a new tracer, and make
     // sure the one that'll get hit is returned by the priority function.
+
+    // 
+}
+
+TEST_CASE( "Priority Tracer Ray Trace Test", "[priority][tracer][dsk][naif]") {
+    // Objects added to Tracer
+    naif::NaifEllipsoidShape s_ellipse( 0.1 ); //Small body radius: 0.1 KM
+    SharedTracerModel small_ellipsoid( new PsmrtsAdaptedEllipsoidShape( s_ellipse ));
+
+    std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" ); // Avg Radius: 0.25 KM
+    naif::DskKernelModel dsk( dskfile );
+    std::shared_ptr<NaifShapeTracer> dsk_adaptor( new NaifShapeTracer( dsk ) ); 
+
+    Eigen::Vector3d obs = {0.0, 10.0, 0.0};
+    /*
+    double radius = 0.1;
+    double obs_long = 45.0 * rpd_c();
+    double obs_lat = 45.0 * rpd_c();
+    latrec_c ( radius, obs_long, obs_lat, obs.data() );
+    obs = obs * 10.0;   
+    */
+    Eigen::Vector3d lkdr = -obs + Eigen::Vector3d({0.0, 0.0, 0.10});
+    
+    double lat, lon, rad;
+    reclat_c(obs.data(), &rad, &lon, &lat); 
+    lon = lon * dpr_c(); 
+    lat = lat * dpr_c();
+    CHECK ( rad == 10 );
+    CHECK ( lon == 90 );
+    CHECK ( lat == 0 );
+
+
+    // Tracer settup
+    psmrts::PsmrtsPriorityTracer test_tracers;
+    test_tracers.add_tracer( small_ellipsoid );
+    test_tracers.add_tracer( dsk_adaptor );
+
+    psmrts::RayTrace ray;
+
+    auto shape_t = test_tracers.ray_trace(obs, lkdr, ray);
+    REQUIRE ( ray.hasHit() == true );
+    REQUIRE ( shape_t != nullptr );
+    CHECK ( shape_t->shapefile() == small_ellipsoid->shapefile() );
+    
+    // loop through cases, if z value in lkdr for any values greater than ellipsoid radius (0.1)
+    // should return ptr at bennu facet.
+    Eigen::Vector3d observer;
+    double radius = 0.1;
+    double obs_long = 90.0 * rpd_c();// Direct View
+    double obs_lat = 0.0 * rpd_c();
+    latrec_c ( radius, obs_long, obs_lat, observer.data() );
+    observer = observer * 10.0;  
+    
+    std::vector<double> z_list = {0.05, 0.08, 0.10, 0.11, 0.12, 0.15, 0.20};
+
+    psmrts::PsmrtsPriorityTracer next_tracer;
+    next_tracer.add_tracer( small_ellipsoid );
+    next_tracer.add_tracer( dsk_adaptor );
+
+    for ( auto z_value: z_list ) {
+        Eigen::Vector3d lkdr = -observer + Eigen::Vector3d({0.0, 0.0, z_value});
+
+        psmrts::RayTrace raytrace;
+
+        auto shape_trace = next_tracer.ray_trace(observer, lkdr, raytrace);
+        REQUIRE( raytrace.hasHit() == true);
+        REQUIRE( shape_trace != nullptr);
+        
+        // Anything larger than the ellipse (Radius 0.10), should return the 
+        // DSK file (Avg. 0.250 radius). Any values outside of ones tested 
+        // above (Long, Lat values, and radii) will result in failed tests 
+        // unless previously computed correctly.
+        if (z_value > 0.10) { // at these values, goes to 0.11 z value before favoring larger body
+            CHECK (shape_trace->shapefile() == dsk_adaptor->shapefile()); 
+        }
+        else {
+            CHECK (shape_trace->shapefile() == small_ellipsoid->shapefile());
+        }
+    }
+
+    next_tracer.clear();
+    CHECK ( next_tracer.size() == 0 );
+    next_tracer.add_tracer( dsk_adaptor );
+    next_tracer.add_tracer( small_ellipsoid );
+    CHECK ( next_tracer.size() == 2 );
+
+    for ( auto const &z_value: z_list ) {
+        Eigen::Vector3d lkdr = -observer + Eigen::Vector3d({0.0, 0.0, z_value});
+
+        psmrts::RayTrace raytrace;
+
+        auto shape_trace = next_tracer.ray_trace(observer, lkdr, raytrace);
+        REQUIRE( raytrace.hasHit() == true);
+        REQUIRE( shape_trace != nullptr);
+        // Order of adding the tracer matters, should always intercept the dsk in this case.
+        CHECK (shape_trace->shapefile() == dsk_adaptor->shapefile()); 
+
+    }
+
+    next_tracer.clear();
+    REQUIRE ( next_tracer.size() == 0);
+
+    // Check for empty tracer - no priority
+    for ( auto const &z_value: z_list ) {
+        Eigen::Vector3d lkdr = -observer + Eigen::Vector3d({0.0, 0.0, z_value});
+
+        psmrts::RayTrace raytrace;
+
+        auto shape_trace = next_tracer.ray_trace(observer, lkdr, raytrace);
+        REQUIRE( raytrace.hasHit() == false);
+        REQUIRE( shape_trace == nullptr);
+
+    }
+    
 }
