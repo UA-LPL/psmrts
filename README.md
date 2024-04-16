@@ -52,3 +52,24 @@ cd $PROJECT_ROOT/psmrts
 cd build
 ctest
 ```
+
+#### Code Coverage in PSMRTS
+
+Code coverage can be ran on psmrts code by providing the `-c` flag to the PSMRTS build scripts. PSMRTS uses a custom CMake code coverage script called [CodeCoverage.cmake](https://github.com/bilke/cmake-modules/blob/master/CodeCoverage.cmake). This file is included in the code repository in the `./cmake` directory.
+
+There are prerequisites for running code coverate on PSMRTS that may need to be installed prior to using this option to build PSMRTS. The [gcovr](https://gcovr.com/en/stable/) utility is used to generate HTML based reports. This utility uses the gcov and lcov scripts to produce HTML based reports that neatly summarizes how many of the lines of code in the current PSMRTS system has been executed. 
+
+For Linux systems, these code coverage utilities are typically installed, however, if the PSMRTS CMake build part of the system fails during configuration/build, then you may need to install these utilities.
+
+For Mac platforms, these utilities are typically not available and need to be installed. You could use [homebrew](https://formulae.brew.sh/formula/gcovr) to install the gcovr/gcov/lcov utilities. I use Minconda to install these utilities on the Mac. You must first install [Miniconda](https://docs.anaconda.com/free/miniconda/miniconda-install/) and then run **conda install gcovr lcov**. You can then run the CMake build to activate code coverage using the `-c` switch while in the conda environment using the following commands:
+
+```
+./make_psmrts.sh -t -c
+cd build
+make coverage
+open ./coverage/index.html.
+```
+
+The open command will load the HTML code coverage report that you can then use to look at each code file.
+
+

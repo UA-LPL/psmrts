@@ -1,12 +1,13 @@
 # CMakeLists.txt
 
-cmake_minimum_required( VERSION 3.11 )
+cmake_minimum_required( VERSION 3.20 )
 set( CMAKE_CXX_STANDARD 17 )
 set( CMAKE_CXX_STANDARD_REQUIRED True )
 
 # Add option to build tests and tools
 option( BUILD_TESTING   "Add PSMRTS unit tests"     OFF  )
 option( BUILD_EXTRAS    "Add PSMRTS tools/extras"   OFF  )
+option( BUILD_COVERAGE  "Build with code coverage"  OFF  )
 
 if( DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE )
   set( CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
@@ -29,8 +30,8 @@ set( PSMRTS_DATA_DIR     ${CMAKE_SOURCE_DIR}/data )
 set( PSMRTS_TRACER_DIR   ${CMAKE_SOURCE_DIR}/tracers )
 
 set( VERSION_MAJOR 0)
-set( VERSION_MINOR 1)
-set( VERSION_PATCH 0)
+set( VERSION_MINOR 0)
+set( VERSION_PATCH 3)
 # set( PSMRTS_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 # Configure the project include files
@@ -51,6 +52,21 @@ find_library( SPICE_LIB cspice )
 if( BUILD_TESTING )
   configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/psmrts/tests/psmrts_test_config.h.in 
                   ${CMAKE_CURRENT_SOURCE_DIR}/psmrts/tests/psmrts_test_config.h @ONLY )
+
+  # Now check for code coverage. Note this must be done
+  # before adding the subdirectories!
+  if(BUILD_COVERAGE)
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+    include(CodeCoverage)
+    append_coverage_compiler_flags()
+    setup_target_for_coverage_gcovr_html(
+      NAME coverage
+      EXECUTABLE ctest --schedule-random
+      DEPENDENCIES psmrts_test_suite naif_test_suite
+      EXCLUDE "build/vcpkg_installed/*"
+    )
+  endif(BUILD_COVERAGE)
+
   add_subdirectory( psmrts/tests )
   add_subdirectory( tracers/naifdsk/tests )
   enable_testing()
