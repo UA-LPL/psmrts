@@ -31,7 +31,8 @@ set( PSMRTS_TRACER_DIR   ${CMAKE_SOURCE_DIR}/tracers )
 
 set( VERSION_MAJOR 0)
 set( VERSION_MINOR 0)
-set( VERSION_PATCH 3)
+set( VERSION_PATCH 5)
+set( VERSION_DATE  "2024-04-23")
 # set( PSMRTS_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 # Configure the project include files
