@@ -24,8 +24,11 @@ TEST_CASE ( "Kernel File System Test - kernel_info description return", "[kernel
 
     CHECK ( kdscr.isValid() == true ); 
     CHECK ( kdscr.m_handle == kdscr.handle() ); 
+    CHECK ( kdscr.filename() == file );
 
+    CHECK_NOTHROW ( naif::KernelFileSystem::close_kernel( file )); // for Code Coverage *****
     CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() ); // Reset/Initialize the kernel system
+    CHECK_NOTHROW ( naif::KernelFileSystem::get_shared_descriptor( file )); // for Code Coverage *****
 }
 
 TEST_CASE ( "Kernel File System Test - kernel_count return", "[kernel][directory][count]" ) {
@@ -48,6 +51,11 @@ TEST_CASE ( "Kernel File System Test - kernel_count return", "[kernel][directory
     CHECK ( naif::KernelFileSystem::kernel_count("EK") == 0  );
     CHECK ( naif::KernelFileSystem::kernel_count("META") == 0  );
     CHECK ( naif::KernelFileSystem::kernel_count("ALL") == 1  ); // Checks for all types / total
+
+    auto file_info = naif::KernelFileSystem::kernel_info( file );
+    CHECK ( file_info.found() == true );
+
+    CHECK ( naif::KernelFileSystem::safe_disposal_of( file ) == true ); // For Code Coverage ***** - needs to be a dsk file .bds, cannot be a .ti
     CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() ); // Reset/Initialize the kernel system
 
 }
