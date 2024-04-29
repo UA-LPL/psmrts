@@ -73,7 +73,7 @@ open ./coverage/index.html.
 The open command will load the HTML code coverage report that you can then use to look at each code file.
 
 
-#### Running Code Coverage  -- Kyle's Version
+#### Running Code Coverage
 
 Activating Code Coverage capabilities for any PSMRTS build first requires a pre-download of gcovr / lcov utilities. Linux based systems will generally have the lcovr utilities already installed. Mac users can check if it is already available by running `which gcovr` or `which lcov` commands in the terminal. These utilities can be downloaded through Miniconda by running the `conda install gcovr lcov` command. The utility [gcovr](https://gcovr.com/en/stable/), and its' Linux extension lcov, is used to create HTML-based Coverage visualizations for each file, function, and line coded into the PSMRTS system, presented via the user's default browser. Users can get in-depth breakdowns for each file by clicking on their individually designated links in the generated browser window.
 
@@ -99,7 +99,7 @@ firefox ./coverage/index.html
 Be advised that at the time of these directions, attempting to run multiple ctests with code changes saved between them results in unavoidable errors. Once a correction has been made and saved, you must remove the build directory and rerun the make_psmrts.sh command before another ctest - commands shown below: 
 
 ```
-cd .. (to psmrts directory, if currently in build directory)
+cd ..  # (to psmrts directory, if currently in build directory)
 /bin/rm -rf build
 ./build_psmrts.sh -t -c -d
 cd build

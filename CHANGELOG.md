@@ -33,7 +33,9 @@ release.
 -->
 
 ## TODO
-## [0.0.5] 2024-04-23
+
+
+## [0.0.5] 2024-04-26
 - Add code coverage using GCOVR and [CodeCoverage.cmake](https://github.com/bilke/cmake-modules/blob/master/CodeCoverage.cmake).
 - Revisted PSMRTS version and added VERSION_DATE ot CMakeList.txt
 
