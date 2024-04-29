@@ -21,7 +21,7 @@ while getopts ":htcdx" o; do
             extraopts="-DBUILD_EXTRAS=ON"
             ;;
         d)
-            extraopts="-DCMAKE_BUILD_TYPE=Debug"
+            buildopts="-DCMAKE_BUILD_TYPE=Debug"
             ;;
         *)
             echo "Usage: $0 [-t] [-c] [-x]"
