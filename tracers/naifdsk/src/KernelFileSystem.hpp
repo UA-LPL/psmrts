@@ -259,7 +259,13 @@ namespace naif {
             return ( true );
           }
         }
-
+        else {
+          auto file_info = naif::KernelFileSystem::kernel_info( kfile );
+          if ( file_info.found() == true ) {
+            KernelFileSystem::close_kernel( kfile );
+            return ( true );
+          }
+        }
         // returns find status
         return ( false );
       }

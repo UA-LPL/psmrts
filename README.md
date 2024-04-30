@@ -52,3 +52,57 @@ cd $PROJECT_ROOT/psmrts
 cd build
 ctest
 ```
+
+#### Code Coverage in PSMRTS
+
+Code coverage can be ran on psmrts code by providing the `-c` flag to the PSMRTS build scripts. PSMRTS uses a custom CMake code coverage script called [CodeCoverage.cmake](https://github.com/bilke/cmake-modules/blob/master/CodeCoverage.cmake). This file is included in the code repository in the `./cmake` directory.
+
+There are prerequisites for running code coverate on PSMRTS that may need to be installed prior to using this option to build PSMRTS. The [gcovr](https://gcovr.com/en/stable/) utility is used to generate HTML based reports. This utility uses the gcov and lcov scripts to produce HTML based reports that neatly summarizes how many of the lines of code in the current PSMRTS system has been executed. 
+
+For Linux systems, these code coverage utilities are typically installed, however, if the PSMRTS CMake build part of the system fails during configuration/build, then you may need to install these utilities.
+
+For Mac platforms, these utilities are typically not available and need to be installed. You could use [homebrew](https://formulae.brew.sh/formula/gcovr) to install the gcovr/gcov/lcov utilities. I use Minconda to install these utilities on the Mac. You must first install [Miniconda](https://docs.anaconda.com/free/miniconda/miniconda-install/) and then run **conda install gcovr lcov**. You can then run the CMake build to activate code coverage using the `-c` switch while in the conda environment using the following commands:
+
+```
+./make_psmrts.sh -t -c
+cd build
+make coverage
+open ./coverage/index.html.
+```
+
+The open command will load the HTML code coverage report that you can then use to look at each code file.
+
+
+#### Running Code Coverage
+
+Activating Code Coverage capabilities for any PSMRTS build first requires a pre-download of gcovr / lcov utilities. Linux based systems will generally have the lcovr utilities already installed. Mac users can check if it is already available by running `which gcovr` or `which lcov` commands in the terminal. These utilities can be downloaded through Miniconda by running the `conda install gcovr lcov` command. The utility [gcovr](https://gcovr.com/en/stable/), and its' Linux extension lcov, is used to create HTML-based Coverage visualizations for each file, function, and line coded into the PSMRTS system, presented via the user's default browser. Users can get in-depth breakdowns for each file by clicking on their individually designated links in the generated browser window.
+
+Enabling gcovr / lcov for any builds requires the addition of `-c` and `-d` in the following command during the cloning process:
+
+```
+./make_psmrts.sh -t -c -d
+```
+
+To prompt creation of the Coverage report, user must be in the resulting build directory with the `cd build` command and enter the commands below:
+
+```
+make coverage
+open ./coverage/index.html
+```
+
+Linux users may need to rely on alternative open commands, depending on personal browser settings, such as: 
+
+```
+firefox ./coverage/index.html
+```
+
+Be advised that at the time of these directions, attempting to run multiple ctests with code changes saved between them results in unavoidable errors. Once a correction has been made and saved, you must remove the build directory and rerun the make_psmrts.sh command before another ctest - commands shown below: 
+
+```
+cd ..  # (to psmrts directory, if currently in build directory)
+/bin/rm -rf build
+./build_psmrts.sh -t -c -d
+cd build
+```
+
+User can then proceed with another ctest.
