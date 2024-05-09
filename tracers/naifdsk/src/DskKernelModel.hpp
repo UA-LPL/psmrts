@@ -339,8 +339,29 @@ namespace naif {
       /**
        * @brief Read all facet plate indexes from a DSK segment
        * 
-       * @param dsksegment 
-       * @return DskIndexDataModel 
+       * This loads all the vector indexes that make a 3-vector facet corner.
+       * 
+       * In the NAIF system, these are 1-based array indexes. Since this is an
+       * export operation, the indexes are convert to 0-based indexes
+       * prior to returning the array. This conforms with most other readers.
+       * 
+       * To get the actual facet vectors, use load_facet_vectors( dsksegment ).
+       * 
+       * To loop through all facets:
+       * @code
+       *  auto indexes = load_facet_indexes();
+       *  auto vectors = load_facet_vectors();
+       * 
+       * for ( size_t facet = 0 ; facet < indices.size() ; facet++ ) {
+       *    Eigen::Vector3d v0 = vectors( indexes(facet)[0] );
+       *    Eigen::Vector3d v1 = vectors( indexes(facet)[1] );
+       *    Eigen::Vector3d v2 = vectors( indexes(facet)[2] );
+       * }
+       * @endcode
+       * 
+       * @param dsksegment          Optional or first DSK segment to read the data
+       * @return DskIndexDataModel  The index data array providing a 3 element
+       *                              index into the vector array.
        */
       inline DskIndexDataModel load_facet_indexes( const DskSegment *dsksegment = nullptr ) const {
 
@@ -364,21 +385,30 @@ namespace naif {
           throw std::runtime_error( mess );
         }
 
+        // The facet indexes in NAIF are 1-based. Convert them to 0-based here!
+        DskIndexDataModel::data_type ones = DskIndexDataModel::data_type::Ones();
+        for ( int i = 0 ; i < dskndx.size() ; i++ ) {
+          dskndx( i ) = dskndx( i ) - ones;
+        }
+
         return ( dskndx );
       }
 
       /**
        * @brief Read all facet vectors from a DSK segment
        * 
-       * @param dsksegment 
-       * @return DskVectorDataModel 
+       * This method reads the entire set of shape vectors into a data buffer.
+       * 
+       * @param dsksegment          Optional or first segment to get the
+       *                              vectors from
+       * @return DskVectorDataModel Returns the data as a 3-vector buffer
        */
       inline DskVectorDataModel load_facet_vectors( const DskSegment *dsksegment = nullptr ) const {
 
         const DskSegment &segref = ( nullptr != dsksegment ) ? *dsksegment : this->segment();
 
         // For 1-baaed indexing into the vectors
-        DskVectorDataModel dskvec( segref.n_vectors() + 1 );
+        DskVectorDataModel dskvec( segref.n_vectors() );
 
         // Lock up NAIF file I/O for thread safety ( >=c++17 )
         std::scoped_lock mylocker( this->mutex() );        
@@ -387,7 +417,7 @@ namespace naif {
         SpiceInt start = 1;
         (void) dskv02_c( kernel().handle(), segref.dladsc_ptr(),
                          start, segref.n_vectors(), &n, 
-                         ( SpiceDouble (*)[3] ) ( dskvec(start).data() ) );
+                         ( SpiceDouble (*)[3] ) ( dskvec(0).data() ) );
         check_naif_errors();
 
         // Sanity check on the return count
