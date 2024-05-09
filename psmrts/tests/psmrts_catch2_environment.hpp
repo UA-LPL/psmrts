@@ -34,4 +34,9 @@ inline std::string psmrts_tracers_path( const std::string &subpart = "" ) {
   return ( psmrts::psmrts_make_path( psmrts::psmrts_make_path( psmrts_rootpath(), "tracers" ), subpart ) );
 }
 
+/** Returns directory to the main ./tracers source directory with optional subdir/file */
+inline std::string psmrts_formats_path( const std::string &subpart = "" ) {
+  return ( psmrts::psmrts_make_path( psmrts::psmrts_make_path( psmrts_rootpath(), "formats" ), subpart ) );
+}
+
 #endif

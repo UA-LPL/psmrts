@@ -28,6 +28,7 @@ set( PSMRTS_DIR          ${CMAKE_SOURCE_DIR}/psmrts )
 set( PSMRTS_TEST_DIR     ${CMAKE_SOURCE_DIR}/psmrts/tests )
 set( PSMRTS_DATA_DIR     ${CMAKE_SOURCE_DIR}/data )
 set( PSMRTS_TRACER_DIR   ${CMAKE_SOURCE_DIR}/tracers )
+set( PSMRTS_FORMAT_DIR   ${CMAKE_SOURCE_DIR}/formats )
 
 set( VERSION_MAJOR 0)
 set( VERSION_MINOR 0)
@@ -41,7 +42,9 @@ configure_file( psmrts_version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/psmrts/src/psmrt
 # Set psmrts source and include directory
 set( PSMRTS_BUILD_DIR    ${CMAKE_BINARY_DIR} )
 add_library(psmrts INTERFACE)
-target_include_directories(psmrts INTERFACE ${PSMRTS_DIR}/src ${PSMRTS_TRACER_DIR}/naifdsk/src )
+target_include_directories(psmrts INTERFACE ${PSMRTS_DIR}/src 
+                                            ${PSMRTS_TRACER_DIR}/naifdsk/src
+                                            ${PSMRTS_FORMAT_DIR}/obj/src)
 
 #find_package( spdlog CONFIG REQUIRED )
 find_package( Eigen3 CONFIG REQUIRED )
@@ -70,6 +73,7 @@ if( BUILD_TESTING )
 
   add_subdirectory( psmrts/tests )
   add_subdirectory( tracers/naifdsk/tests )
+  add_subdirectory( formats/obj/tests )
   enable_testing()
 endif( BUILD_TESTING )
 
