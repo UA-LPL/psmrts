@@ -49,6 +49,35 @@ namespace psmrts {
           m_volume_size = n_data * data_size();
         }
 
+        /** Construct a safe slice with no new memory allocation into original data buffer */
+        PsmrtsDataModel( const PsmrtsDataModel &data, 
+                         const size_t start_index, 
+                         const size_t n_data = 0 ) :
+                         m_data( data.m_data ),
+                         m_data_ptr( data.m_data_ptr ),
+                         m_t_size( data.m_t_size ),
+                         m_values_size( data.m_values_size ),
+                         m_volume_size( data.m_volume_size ) {
+
+          // Determine the number of values to map
+          size_t n_values = n_data;
+          if ( 0 == n_values ) n_values = data.size() - start_index;
+
+          // Validate and update map
+          try {
+            data.validate( start_index );
+            data.validate( start_index + n_values - 1 );
+          }
+          catch ( const std::runtime_error &e ) {
+            std::string msg = "Invalid segment into data slice!\n" + std::string( e.what() );
+            throw std::runtime_error( msg );
+          }
+
+          // Ok, it checks out. adjust the required parameters
+          m_data_ptr = data.get_data_ref( start_index );
+          m_t_size = n_values;
+        }
+
         /** Destructor */
         virtual ~PsmrtsDataModel() { }
 
@@ -86,6 +115,28 @@ namespace psmrts {
         /** Returns a const reference to data at the give index */
         inline const_data_reference operator()( const int index ) const {
           return ( const_data_reference( get_data_ref( index ) ) );
+        }
+
+        /** Extract a slice from the original dataset */
+        inline PsmrtsDataModel slice( const size_t start_index, 
+                                      const size_t n_data = 0 ) const {
+          return ( PsmrtsDataModel( *this, start_index, n_data ) );
+        }
+
+        /** Get a deep copy of the buffer */
+        inline  PsmrtsDataModel deep_copy( ) const {
+          PsmrtsDataModel copy_t( this->size() );
+          for ( size_t n = 0 ; n < this->size() ; n++ ) {
+            copy_t( n ) = (*this)( n );
+          }
+          return ( copy_t );
+        }
+
+        /** Compute distance of index to origin of the dataset in type indexes */
+        inline int distance( const int index ) const {
+          const value_type *origin = ( nullptr != m_data.get() ) ? m_data.get() : m_data_ptr;
+          const value_type *offset = get_data_index( index ) - origin;
+          return ( offset / this->data_size() );
         }
 
       protected:

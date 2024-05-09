@@ -33,7 +33,7 @@ namespace psmrts {
         typedef typename MeshVectorData::data_type   MeshFacetVector;
 
         typedef typename MeshFacetIndex::value_type  index_type;
-        typedef typename MeshFacetVector::value_type  vector_type;
+        typedef typename MeshFacetVector::value_type vector_type;
 
         typedef RayTrace::FacetDatum                 MeshFacet;
 
@@ -47,7 +47,9 @@ namespace psmrts {
                         const MeshVectorData  &mesh_vectors ) :
                         m_mesh_indexes( mesh_indexes ), 
                         m_mesh_vectors( mesh_vectors ),
-                        m_base_index ( 0 ), 
+                        m_base_index ( 0 ),
+                        m_min_axes( { 0.0, 0.0, 0.0 } ),
+                        m_max_axes( { 0.0, 0.0, 0.0 } ), 
                         m_min_radius( 0.0 ),
                         m_max_radius( 0.0 ) {
           init( mesh_indexes, mesh_vectors );
@@ -56,17 +58,31 @@ namespace psmrts {
         /** Construct an array of values */
         PsmrtsMeshData( const MeshIndexData &mesh_indexes, 
                         const MeshVectorData  &mesh_vectors,
-                        const int start_index ) :
-                        m_mesh_indexes( mesh_indexes ), 
+                        const size_t start_index,
+                        const size_t n_data = 0 ) :
+                        m_mesh_indexes( mesh_indexes.slice( start_index, n_data ) ), 
                         m_mesh_vectors( mesh_vectors ),
-                        m_base_index ( start_index ), 
+                        m_base_index( 0 ),
+                        m_min_axes(  {0.0, 0.0, 0.0 } ),
+                        m_max_axes( { 0.0, 0.0, 0.0 } ),
                         m_min_radius( 0.0 ),
-                        m_max_radius( 0.0 ) {
+                        m_max_radius( 0.0 ) { 
           init( mesh_indexes, mesh_vectors );
-          m_base_index = start_index;
         }
         
-  
+        PsmrtsMeshData( const PsmrtsMeshData &mesh, 
+                        const size_t start_index, 
+                        const size_t n_data = 0 ) : 
+                        m_mesh_indexes( mesh.m_mesh_indexes.slice( start_index, n_data ) ),
+                        m_mesh_vectors( mesh.m_mesh_vectors ),
+                        m_base_index( 0 ),
+                        m_min_axes( mesh.m_min_axes ),
+                        m_max_axes( mesh.m_max_axes ),
+                        m_min_radius( mesh.m_min_radius ),
+                        m_max_radius( mesh.m_max_radius ) {
+            init( m_mesh_indexes, m_mesh_vectors );
+          }
+
         /** Destructor */
         virtual ~PsmrtsMeshData() { }
 
@@ -112,7 +128,7 @@ namespace psmrts {
             mf.m_indexes = toStdVector( vndx );
             mf.m_vector1 = toStdVector( get_vector( vndx[0] ) );
             mf.m_vector2 = toStdVector( get_vector( vndx[1] ) );
-            mf.m_vector3 = toStdVector( get_vector( vndx[2] )) ;
+            mf.m_vector3 = toStdVector( get_vector( vndx[2] ) );
             mf.m_normal  = facet_normal( mf );
             mf.m_has_facet = true;
             return ( mf );
@@ -128,6 +144,45 @@ namespace psmrts {
 
         inline const MeshVectorData vectors() const {
           return ( m_mesh_vectors );
+        }
+
+        /**
+         * @brief Construct a segment of the mesh data 
+         * 
+         * This method extracts a segement or slice of the facet indexes.
+         * One of its primary purposes is to map multiple shapes within a
+         * data format efficiently using virtual mapping through shared
+         * slicing. 
+         * 
+         * This method produces a mapped slice of the facet indexes
+         * to aid in efficient segmentation. A physical copy can be
+         * made using deep_copy().
+         * 
+         * @param start_index   Starting index range from 0 to size()-1
+         * @param n_indexes     Number of indexes to map. If 0, it will
+         *                       compute the number using size() - start_index
+         * @return PsmrtsMeshData Mesh data segment with shared data references
+         */
+        inline PsmrtsMeshData mesh_segment( const size_t start_index,
+                                            const size_t n_indexes ) const {
+                                        
+          // Sanity checks are in the vector data
+          return ( PsmrtsMeshData( *this, start_index, n_indexes ) );
+        }
+
+        /**
+         * @brief Generate a deep copy of the mesh data
+         * 
+         * This method will allocate a new buffer and make a new copy of this
+         * data buffer. There are no shared data resources from this object.
+         * 
+         * This is a convient way to create separate data areas from virtual
+         * slices/segments.
+         * 
+         * @return PsmrtsMeshData Copy of this mesh dataset
+         */
+        inline PsmrtsMeshData deep_copy() const {
+          return ( PsmrtsMeshData( this->m_mesh_indexes.deep_copy(), this->m_mesh_vectors.deep_copy() ) );
         }
 
       private:
