@@ -1,6 +1,7 @@
 #ifndef PsmrtsDataModel_hpp
 #define PsmrtsDataModel_hpp
 
+#include <cstddef>
 #include <string>
 #include <memory>
 #include <exception>
@@ -133,10 +134,16 @@ namespace psmrts {
         }
 
         /** Compute distance of index to origin of the dataset in type indexes */
-        inline int distance( const int index ) const {
+        inline std::ptrdiff_t distance( const int index ) const {
+          // Must account for virtual mapping
           const value_type *origin = ( nullptr != m_data.get() ) ? m_data.get() : m_data_ptr;
-          const value_type *offset = get_data_index( index ) - origin;
-          return ( offset / this->data_size() );
+
+          // Difference is in sizeof( T::Scalar ), e.g., Eigen::Vector3d::Scalar = double
+          std::ptrdiff_t offset    = this->get_data_ref( index ) - origin;
+
+          // Offset to origin index is [ offset / sizeof( T::size() ) ].
+          // Or [ offset / this->data_size() ].
+          return ( offset );
         }
 
       protected:

@@ -24,7 +24,7 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Basic Load/Init Tests", "[obj][shape][bennu
 
     CHECK( t_loader.obj_source()        == objfile );
     CHECK( t_loader.nShapes()           == 1 );
-    CHECK( t_loader.nVertexes()         == 60 );
+    CHECK( t_loader.nVertexes()         == 20 );
     CHECK( t_loader.shape_facet_count() == 36 );
     CHECK( t_loader.nMaterials()        == 0 );
 }
@@ -43,7 +43,7 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Huge OBJ Tests", "[obj][shape][hugeone]" ) 
 
     CHECK( t_loader.obj_source()        == objfile );
     CHECK( t_loader.nShapes()           == 1 );
-    CHECK( t_loader.nVertexes()         == 6445368 );
+    CHECK( t_loader.nVertexes()         == 2148456 );
     CHECK( t_loader.nIndexes()          == 4289659 );
     CHECK( t_loader.shape_facet_count() == 4289659 );
     CHECK( t_loader.nMaterials()        == 0 );

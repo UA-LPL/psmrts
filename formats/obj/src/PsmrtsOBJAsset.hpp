@@ -26,6 +26,11 @@ namespace psmrts {
    */
   class PsmrtsOBJAsset {
     public:
+      typedef  Eigen::Vector<tinyobj::real_t, 3>   ObjVectorType;
+      typedef  Eigen::Vector3i                     ObjIndexType;
+
+      typedef PsmrtsDataModel<ObjVectorType>       ObjVectorData;
+      typedef PsmrtsDataModel<ObjIndexType>        ObjIndexData;
 
       /** Default constructor */
       PsmrtsOBJAsset() : m_obj_source(), m_obj_config(), m_obj_reader() { }
@@ -65,6 +70,7 @@ namespace psmrts {
         return ( true );
       }
 
+      /** The OBJ data source */
       inline const std::string &obj_source() const {
         return ( m_obj_source );
       }
@@ -81,6 +87,7 @@ namespace psmrts {
         return ( m_obj_reader->GetShapes()[nthShape].mesh.num_face_vertices.size() );
       }
 
+      /* Return count of all facets in all shapes */
       inline size_t shape_facet_count(  ) const {
         if ( !this->isValid() ) return ( 0 );
         return ( count_facets() );
@@ -89,7 +96,7 @@ namespace psmrts {
       /** A single buffer of verticies that are 0-based */
       inline size_t nVertexes( ) const {
         if ( !this->isValid() ) return ( 0 );
-        return ( m_obj_reader->GetAttrib().vertices.size() );
+        return ( m_obj_reader->GetAttrib().vertices.size() / 3 );
       }
 
       /** Any materials that were loaded */
@@ -100,6 +107,7 @@ namespace psmrts {
 
       /** Return pointer to OBJ reader object - could be nullptr */
       inline const tinyobj::ObjReader *shape() const {
+        // Use to access the data within the reader...
         return ( m_obj_reader.get() );
       }
       

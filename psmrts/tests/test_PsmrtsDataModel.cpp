@@ -116,6 +116,11 @@ TEST_CASE( "PsmrtsDataModel (double) Double Test", "[datamodel][buffer][double]"
   CHECK_NOTHROW( p_model( 0 ) );
   CHECK_NOTHROW( p_model( n_data - 1 ) );
 
+  CHECK( p_model.distance( 0 ) == 0 );
+  CHECK( p_model.distance( 1 ) == 3 );
+  CHECK( p_model.distance( 10 ) == 30 );
+  CHECK( p_model.distance( n_data - 1 ) == ( ( n_data - 1 ) * p_model.data_size() ) );
+
 }
 
 TEST_CASE( "PsmrtsDataModel (int) Integer Test", "[datamodel][buffer][integer]") {
