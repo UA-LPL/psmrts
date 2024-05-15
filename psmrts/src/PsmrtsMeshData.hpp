@@ -268,6 +268,11 @@ namespace psmrts {
 
         }
     };
+
+    // A few convenient typedef types
+    typedef PsmrtsMeshData<Eigen::Vector3i, Eigen::Vector3d>   PsmrtsDoubleMeshData;
+    typedef PsmrtsMeshData<Eigen::Vector3i, Eigen::Vector3f>   PsmrtsFloatMeshData;
+
 }  // namespace psmrts
 
 #endif // PsmrtsMeshData_hpp
