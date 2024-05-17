@@ -254,6 +254,46 @@ namespace psmrts {
         return ( true );
       } 
 
+
+      template <typename T> 
+        inline T get_vectors(  ) const {
+          ObjVectorData bt_vector_map( &this->shape()->GetAttrib().vertices[0], this->nVertexes() );
+          T out_vectors( bt_vector_map.size() );
+          for ( size_t i = 0 ; i < bt_vector_map.size() ; i++ ) {
+            auto iVec = bt_vector_map( i );
+            out_vectors( i ) = T::data_type( { iVec[0], iVec[1], iVec[2] } );
+          }
+
+          return ( out_vectors );
+        }
+
+      template <typename T> 
+        inline T get_indexes( ) const {
+          
+          T out_indexes( this->count_facets() );
+
+          size_t ondx = 0;
+          for ( auto const &shape : m_obj_reader->GetShapes() ) {
+            size_t index_offset = 0;
+
+            for ( size_t f = 0 ; f < shape.mesh.num_face_vertices.size() : f++ ) {
+              size_t fv = size_t( shape.mesh.num_face_vertices[f] );
+              size_t fv3 = std::min( 3, fv );
+              size_t v_ndxs[3] = { 0, 0, 0 };
+              for (size_t v = 0; v < fv3 ; v++) {  
+                size_t v_index = ( 3 * size_t( shapes[s].mesh.indices[index_offset + v].vertex_index ) );
+                v_ndx[v] = v_index;
+              }
+
+              // Set the ondx facet index
+              out_indexes( ondx++ ) = T::data_type( { v_ndx[0], v_ndx[1], v_ndx[2] } );
+              index_offset += fv;
+            }
+          }
+          return ( out_indexes );
+        }
+
+
     protected:
 
       inline size_t count_facets( ) const {
