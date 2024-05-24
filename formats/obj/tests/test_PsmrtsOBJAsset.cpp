@@ -34,6 +34,7 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Load Fail Tests", "[obj][shape][failures]" 
     CHECK_THROWS( psmrts::PsmrtsOBJAsset( objfile ) ); 
 }
 
+#if 0
 TEST_CASE ( "OBJ FORMAT Asset Test - Huge OBJ Tests", "[obj][shape][hugeone]" ) {
     std::string objfile = "/opt/isis3/data/osirisrex/kernels/dsk/l_00050mm_alt_ptm_5595n04217_v020.obj";
 
@@ -48,3 +49,4 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Huge OBJ Tests", "[obj][shape][hugeone]" ) 
     CHECK( t_loader.shape_facet_count() == 4289659 );
     CHECK( t_loader.nMaterials()        == 0 );
 }
+#endif

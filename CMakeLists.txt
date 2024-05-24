@@ -44,10 +44,12 @@ set( PSMRTS_BUILD_DIR    ${CMAKE_BINARY_DIR} )
 add_library(psmrts INTERFACE)
 target_include_directories(psmrts INTERFACE ${PSMRTS_DIR}/src 
                                             ${PSMRTS_TRACER_DIR}/naifdsk/src
+                                            ${PSMRTS_TRACER_DIR}/bullet/src
                                             ${PSMRTS_FORMAT_DIR}/obj/src)
 
 #find_package( spdlog CONFIG REQUIRED )
 find_package( Eigen3 CONFIG REQUIRED )
+find_package( Bullet CONFIG REQUIRED )
 find_library( SPICE_LIB cspice )
 
 # add_executable(psmrts src/psmrts.cpp)
@@ -66,13 +68,14 @@ if( BUILD_TESTING )
     setup_target_for_coverage_gcovr_html(
       NAME coverage
       EXECUTABLE ctest --schedule-random
-      DEPENDENCIES psmrts_test_suite naif_test_suite
+      DEPENDENCIES psmrts_test_suite naif_test_suite bullet_test_suite
       EXCLUDE "build/vcpkg_installed/*"
     )
   endif(BUILD_COVERAGE)
 
   add_subdirectory( psmrts/tests )
   add_subdirectory( tracers/naifdsk/tests )
+  add_subdirectory( tracers/bullet/tests )
   add_subdirectory( formats/obj/tests )
   enable_testing()
 endif( BUILD_TESTING )
