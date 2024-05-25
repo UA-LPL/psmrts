@@ -43,7 +43,7 @@ namespace psmrts {
         }
 
         /** User defined map to n_data T values where total_allocated() = ( value_size() * size() )*/
-        PsmrtsDataModel( value_type *data, const size_t n_data ) {
+        PsmrtsDataModel( const value_type *data, const size_t n_data ) {
           init();
           m_data_ptr = data;
           m_t_size = n_data;
@@ -167,7 +167,7 @@ namespace psmrts {
 
         /** Return modifiable memory reference of T at index */
         inline value_type *get_data_ref( const int index ) {
-          return ( m_data_ptr + get_data_index( index ) );
+          return ( const_cast<value_type *> ( m_data_ptr + get_data_index( index ) ) );
         }
 
         /** Return const memory reference of T at index */
@@ -212,7 +212,7 @@ namespace psmrts {
 
       private:
         std::shared_ptr<value_type> m_data;        // Data array T scalar values
-        value_type                 *m_data_ptr;   // This will allow for 1-based
+        const value_type           *m_data_ptr;   // This will allow for 1-based
                                                    // and user defined data access
         size_t                      m_values_size; // Number of value_types per T
         size_t                      m_t_size;      // Number of values of T

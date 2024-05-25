@@ -276,17 +276,17 @@ namespace psmrts {
           for ( auto const &shape : m_obj_reader->GetShapes() ) {
             size_t index_offset = 0;
 
-            for ( size_t f = 0 ; f < shape.mesh.num_face_vertices.size() : f++ ) {
+            for ( size_t f = 0 ; f < shape.mesh.num_face_vertices.size() ; f++ ) {
               size_t fv = size_t( shape.mesh.num_face_vertices[f] );
-              size_t fv3 = std::min( 3, fv );
+              size_t fv3 = std::min( size_t( 3 ), fv );
               size_t v_ndxs[3] = { 0, 0, 0 };
               for (size_t v = 0; v < fv3 ; v++) {  
-                size_t v_index = ( 3 * size_t( shapes[s].mesh.indices[index_offset + v].vertex_index ) );
-                v_ndx[v] = v_index;
+                size_t v_index = ( 3 * size_t( shape.mesh.indices[index_offset + v].vertex_index ) );
+                v_ndxs[v] = v_index;
               }
 
               // Set the ondx facet index
-              out_indexes( ondx++ ) = T::data_type( { v_ndx[0], v_ndx[1], v_ndx[2] } );
+              out_indexes( ondx++ ) = T::data_type( { v_ndxs[0], v_ndxs[1], v_ndxs[2] } );
               index_offset += fv;
             }
           }
