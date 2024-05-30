@@ -4,6 +4,7 @@
 #include <string>
 #include <memory>
 #include <exception>
+
 #include <Eigen/Geometry>
 
 #include <PsmrtsDataModel.hpp>
@@ -32,8 +33,8 @@ namespace psmrts {
         typedef typename MeshIndexData::data_type    MeshFacetIndex;
         typedef typename MeshVectorData::data_type   MeshFacetVector;
 
-        typedef typename MeshFacetIndex::value_type  index_type;
-        typedef typename MeshFacetVector::value_type vector_type;
+        typedef typename MeshIndexData::value_type   index_type;
+        typedef typename MeshVectorData::value_type  vector_type;
 
         typedef RayTrace::FacetDatum                 MeshFacet;
 
@@ -104,7 +105,7 @@ namespace psmrts {
           return ( Eigen::Vector3d( { v[0], v[1], v[2] } ) );
         }
 
-        inline Eigen::Vector3i toStdVector( const MeshFacetIndex &v )  const {
+        inline Eigen::Vector3i toStdIndex( const MeshFacetIndex &v )  const {
           return ( Eigen::Vector3i( { v[0], v[1], v[2] } ) );
         }
 
@@ -125,7 +126,7 @@ namespace psmrts {
         inline MeshFacet get_facet( const int nth ) const {
             MeshFacet mf;
             const MeshFacetIndex &vndx = get_index( nth );
-            mf.m_indexes = toStdVector( vndx );
+            mf.m_indexes = toStdIndex( vndx );
             mf.m_vector1 = toStdVector( get_vector( vndx[0] ) );
             mf.m_vector2 = toStdVector( get_vector( vndx[1] ) );
             mf.m_vector3 = toStdVector( get_vector( vndx[2] ) );

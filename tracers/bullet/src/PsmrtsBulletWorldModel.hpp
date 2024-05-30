@@ -4,10 +4,12 @@
 #include <string>
 #include <memory>
 #include <exception>
+
 #include <Eigen/Geometry>
 
-#include <PsmrtsDataModel.hpp>
 #include <RayTrace.hpp>
+#include <PsmrtsDataModel.hpp>
+#include <PsmrtsBulletMeshMap.hpp>
 
 namespace psmrts {
   namespace bullet {
@@ -31,6 +33,12 @@ namespace psmrts {
           init( );
         }
 
+        PsmrtsBulletWorldModel( const PsmrtsBulletMeshMap &mesh, 
+                                const std::string &name ) {
+          init( );
+          add_body( mesh );
+        }
+
         /** Destructor - order of destruction is important here */
         virtual ~PsmrtsBulletWorldModel() { 
           m_collision.reset();
@@ -39,6 +47,11 @@ namespace psmrts {
           m_world.reset();
           m_mutex.reset();
         }
+
+        inline add_body( const PsmrtsBulletShape &shape ) {
+
+        }
+
 
         inline bool ray_trace( const Eigen::Vector3d &observer, 
                                 const Eigen::Vector3d &lookdir,
@@ -52,6 +65,8 @@ namespace psmrts {
         }
 
 
+      private:
+        std::deque<PsmrtBulletMeshMap> m_mesh_bodies;
 
         /// Variables for the Bullet system
         std::string            m_name; /**! The name of the Bullet world. */
@@ -72,6 +87,18 @@ namespace psmrts {
         std::shared_ptr<std::mutex>                      m_mutex;     //!< Mutex for thread safety
 
 
+          /** Initialize a new Bullet world structure   */
+          void initWorld(const std::string &name = "Body-Fixed-Coordinate-System") { 
+            m_name = name;   
+            m_collision.reset( new btDefaultCollisionConfiguration() );
+            m_dispatcher.reset(new btCollisionDispatcher( m_collision ) );
+            m_broadphase.reset( new btDbvtBroadphase() );  // Could also be an AxisSweep
+            m_world.reset( new btCollisionWorld( m_dispatcher, 
+                                                 m_broadphase, 
+                                                 m_collision ) );
+            m_mutex.reset( new QMutex() );
+            m_mesh_bodies.clear(); 
+          }
 
     };
   }  // namespace bullet  
