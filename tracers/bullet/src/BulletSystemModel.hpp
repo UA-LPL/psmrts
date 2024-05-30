@@ -51,60 +51,62 @@
 // universally. 
 #include <btBulletDynamicsCommon.h>
 
-/** Namespace for Bullet specific routines   */
-namespace bullet {
+namespace psmrts {
+  /** Namespace for Bullet specific routines   */
+  namespace bullet {
 
-  /**
-   * Maximum number of parts/object
-   * 
-   * @return @b int The maximum number of parts allowed in each collision objects.
-   */
-  inline size_t bt_MaxBodyParts() {
-  return ( 1<<MAX_NUM_PARTS_IN_BITS );
-  }
-
-
-  /**
-   * Maximum number of triangles/part
-   * 
-   * @return @b long The maximum number of triangles allowed in each collision objects.
-   */
-  inline size_t bt_MaxTrianglesPerPart() {
-  return ( 1<<(31-MAX_NUM_PARTS_IN_BITS) );
-  }
+    /**
+     * Maximum number of parts/object
+     * 
+     * @return @b int The maximum number of parts allowed in each collision objects.
+     */
+    inline size_t bt_MaxBodyParts() {
+    return ( 1<<MAX_NUM_PARTS_IN_BITS );
+    }
 
 
-  /**
-   * Maximum number of parts/object in the Bullet 3 API
-   * 
-   * @return @b int The maximum number of parts allowed in each collision objects.
-   */
-  inline size_t b3_MaxBodyParts() {
-  return ( bt_MaxBodyParts() );
-  }
+    /**
+     * Maximum number of triangles/part
+     * 
+     * @return @b long The maximum number of triangles allowed in each collision objects.
+     */
+    inline size_t bt_MaxTrianglesPerPart() {
+    return ( 1<<(31-MAX_NUM_PARTS_IN_BITS) );
+    }
 
 
-  /**
-   * Maximum number of triangles/part in the Bullet 3 API
-   * 
-   * @return @b long The maximum number of triangles allowed in each collision objects.
-   */
-  inline size_t b3_MaxTrianglesPerPart() {
-  return ( bt_MaxTrianglesPerPart() );
-  }
+    /**
+     * Maximum number of parts/object in the Bullet 3 API
+     * 
+     * @return @b int The maximum number of parts allowed in each collision objects.
+     */
+    inline size_t b3_MaxBodyParts() {
+    return ( bt_MaxBodyParts() );
+    }
 
-  inline PHY_ScalarType bt_type_code( const double *bt_t ) {
-    return ( PHY_DOUBLE );
-  }
 
-  inline PHY_ScalarType bt_type_code( const float *bt_t ) {
-    return ( PHY_FLOAT );
-  }
+    /**
+     * Maximum number of triangles/part in the Bullet 3 API
+     * 
+     * @return @b long The maximum number of triangles allowed in each collision objects.
+     */
+    inline size_t b3_MaxTrianglesPerPart() {
+    return ( bt_MaxTrianglesPerPart() );
+    }
 
-  inline PHY_ScalarType bt_type_code( const int *bt_t ) {
-    return ( PHY_INTEGER );
-  }
+    inline PHY_ScalarType bt_type_code( const double *bt_t ) {
+      return ( PHY_DOUBLE );
+    }
 
-} // namespace bullet
+    inline PHY_ScalarType bt_type_code( const float *bt_t ) {
+      return ( PHY_FLOAT );
+    }
 
+    inline PHY_ScalarType bt_type_code( const int *bt_t ) {
+      return ( PHY_INTEGER );
+    }
+
+  } // namespace bullet
+
+} // psmrts
 #endif
