@@ -37,16 +37,16 @@ namespace psmrts {
   template <typename MeshIndexType, typename MeshVectorType>
     class PsmrtsMeshData {
       public:
-        typedef PsmrtsDataModel<MeshIndexType>       MeshIndexData;
-        typedef PsmrtsDataModel<MeshVectorType>      MeshVectorData;
+        typedef PsmrtsDataModel<MeshIndexType>                MeshIndexData;
+        typedef PsmrtsDataModel<MeshVectorType>               MeshVectorData;
 
-        typedef typename MeshIndexData::vector_type  index_type;
-        typedef typename MeshVectorData::vector_type vector_type;
+        typedef typename MeshIndexData::vector_type           index_type;
+        typedef typename MeshVectorData::vector_type          vector_type;
 
         typedef typename MeshIndexData::const_data_reference  const_index_reference;
         typedef typename MeshVectorData::const_data_reference const_vector_reference;
 
-        typedef RayTrace::FacetDatum                MeshFacet;
+        typedef RayTrace::FacetDatum                          MeshFacet;
 
         /** Default constructor */
         PsmrtsMeshData() {
@@ -230,6 +230,9 @@ namespace psmrts {
 
           // Initialize parameters
           init();
+
+          m_mesh_indexes = indexes;
+          m_mesh_vectors = vectors;
 
           // Set up vectors
           if ( vectors.size() > 0 ) {

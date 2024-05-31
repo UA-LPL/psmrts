@@ -68,17 +68,10 @@ namespace psmrts {
           /** Construct an array of values */
           PsmrtsBulletMeshMap( const MODEL &mesh, const std::string &name, 
                                const int mesh_id, const int partno = 0 ) {
-            std::cout << "PsmrtsBulletMeshMap(mesh,,,)..." << std::endl;
             init( name, mesh_id, partno );
-            std::cout << "Default init..." << std::endl;
             m_mesh_data = mesh;
-            std::cout << "Assign mesh data..." << std::endl;
-            std::cout << " nVectors = " << mesh.nvectors() << "..." << std::endl;
-            std::cout << " nfacets = " << mesh.nfacets() << "..." << std::endl;
             m_bullet_mesh.reset( create_map_mesh( m_mesh_data ) );
-            std::cout << "Created map_mesh...with address (" << m_bullet_mesh.get() << ")..." << std::endl;
             m_bullet_shape.reset( create_collision_object( m_bullet_mesh.get() ) );
-            std::cout << "Created collision body...done." << std::endl;
           }
 
           PsmrtsBulletMeshMap( const PsmrtsOBJAsset &obj_t ) {
@@ -198,7 +191,7 @@ namespace psmrts {
               std::string mess = "PsmrtsBulletMeshMap::create_collision_body - provided mesh is invalid/null";
               throw std::runtime_error( mess );
             }
-            
+
             // Creates compressed and optimized Bullet meshes
             return ( new btBvhTriangleMeshShape( mesh, useCompression, buildBvh ) );
           }

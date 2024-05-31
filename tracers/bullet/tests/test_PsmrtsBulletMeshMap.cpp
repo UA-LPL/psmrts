@@ -19,8 +19,8 @@ TEST_CASE ( "Bullet Mesh Map Test - Default Constructor", "[default][bullet][mes
 
 TEST_CASE ( "Bullet Mesh Map Test - Small Dataset", "[bullet][mesh]" ) {
 
-    typedef psmrts::bullet::BulletInternalMeshModel             BulletMeshData;
-    typedef psmrts::bullet::PsmrtsBulletMeshMap<BulletMeshData> BulletShape;
+    typedef psmrts::bullet::BulletInternalMeshModel              BulletMeshModel;
+    typedef psmrts::bullet::PsmrtsBulletMeshMap<BulletMeshModel> BulletShape;
 
     std::string objfile = psmrts_formats_path( "obj/data/bennu_20facets.obj" );
     psmrts::PsmrtsOBJAsset t_loader( objfile );
@@ -28,8 +28,16 @@ TEST_CASE ( "Bullet Mesh Map Test - Small Dataset", "[bullet][mesh]" ) {
     CHECK( t_loader.nVertexes() == 20 );
 
     // BulletShape bt_mesh( t_loader );
-    BulletShape bt_mesh( BulletMeshData( t_loader.get_indexes<int>(), t_loader.get_vectors<double>() ), 
-                         "bennu_20facets.obj", 0, 0  );
+    auto indexes =  t_loader.get_indexes<int>();
+    auto vectors = t_loader.get_vectors<double>();
+
+    CHECK( indexes.size()   == 36 );
+    CHECK( vectors.size()  == 20 );
+    BulletMeshModel bt_data( indexes, vectors );
+    CHECK( bt_data.nfacets()  ==  36 );
+    CHECK( bt_data.nvectors() ==  20 );
+
+    BulletShape bt_mesh( bt_data, objfile, 0, 0  );
     CHECK ( bt_mesh.isValid() == true );
     CHECK ( bt_mesh.name()    == t_loader.obj_source() );
     CHECK ( bt_mesh.id()      == 0 );
