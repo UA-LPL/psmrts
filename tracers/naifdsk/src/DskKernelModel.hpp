@@ -33,14 +33,14 @@ namespace naif {
     
     public:
       // SharedDskDescriptor is the unique thread safe latch on the NAIF DSK file
-      typedef KernelFileSystem::SharedDskDescriptor    SharedDskDescriptor;
+      typedef KernelFileSystem::SharedDskDescriptor   SharedDskDescriptor;
 
       // List of DSK segments in the file
-      typedef std::vector<DskSegment>                  DskSegmentList;
+      typedef std::vector<DskSegment>                 DskSegmentList;
 
       // Data types/representations for the indexes and facet vectors/DSK segment
-      typedef psmrts::PsmrtsDataModel<Eigen::Vector3i> DskIndexDataModel;
-      typedef psmrts::PsmrtsDataModel<Eigen::Vector3d> DskVectorDataModel;
+      typedef psmrts::PsmrtsDataModel<int>            DskIndexDataModel;
+      typedef psmrts::PsmrtsDataModel<double>         DskVectorDataModel;
 
       inline std::string tracer_model_type() const {
         return ( std::string( "naifdsk" ) );
@@ -386,7 +386,7 @@ namespace naif {
         }
 
         // The facet indexes in NAIF are 1-based. Convert them to 0-based here!
-        DskIndexDataModel::data_type ones = DskIndexDataModel::data_type::Ones();
+        DskIndexDataModel::vector_type ones = DskIndexDataModel::vector_type::Ones();
         for ( int i = 0 ; i < dskndx.size() ; i++ ) {
           dskndx( i ) = dskndx( i ) - ones;
         }

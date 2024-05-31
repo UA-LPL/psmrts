@@ -22,14 +22,15 @@ namespace psmrts {
  * @history 2023-12-12 Kris J. Becker  Original Version
  */
 
-  template <typename T = Eigen::Vector3d>
+  template <typename T = double>
     class PsmrtsDataModel {
       public:
-        typedef T                    data_type;
-        typedef typename T::Scalar   value_type;
+        typedef T                                       data_type;
+        typedef typename Eigen::Vector3<data_type>      vector_type;
+        typedef typename vector_type::Scalar            value_type;
 
-        typedef Eigen::Map<T>        data_reference;
-        typedef Eigen::Map<const T>  const_data_reference;
+        typedef typename Eigen::Map<vector_type>        data_reference;
+        typedef typename Eigen::Map<const vector_type>  const_data_reference;
 
         /** Default constructor */
         PsmrtsDataModel() {
@@ -104,8 +105,8 @@ namespace psmrts {
 
 
         /** Returns a copy of the T value at the given index */
-        inline T at( const int index ) const {
-          return ( T( get_data_ref( index ) ) );
+        inline vector_type at( const int index ) const {
+          return ( vector_type( get_data_ref( index ) ) );
         }
 
         /** Returns a modifiable reference to data at the give index */
@@ -113,11 +114,19 @@ namespace psmrts {
           return ( data_reference( get_data_ref( index ) ) );
         }
 
+        /** Returns a modifiable reference to data at the give index */
+        inline data_reference ref( const int index ) {
+          return ( data_reference( get_data_ref( index ) ) );
+        }
         /** Returns a const reference to data at the give index */
         inline const_data_reference operator()( const int index ) const {
           return ( const_data_reference( get_data_ref( index ) ) );
         }
 
+        /** Returns a const reference to data at the give index */
+        inline const_data_reference ref( const int index ) const {
+          return ( const_data_reference( get_data_ref( index ) ) );
+        }
         /** Extract a slice from the original dataset */
         inline PsmrtsDataModel slice( const size_t start_index, 
                                       const size_t n_data = 0 ) const {
@@ -180,7 +189,7 @@ namespace psmrts {
           m_data.reset();
           m_data_ptr    = m_data.get();
 
-          m_values_size = T().size();
+          m_values_size = vector_type().size();
           m_t_size      = 0;
           m_volume_size = 0;
           return;

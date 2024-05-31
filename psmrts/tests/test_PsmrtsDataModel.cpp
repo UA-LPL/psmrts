@@ -98,7 +98,7 @@ TEST_CASE( "PsmrtsDataModel Protected API Default Test", "[datamodel][buffer][pr
 
 TEST_CASE( "PsmrtsDataModel (double) Double Test", "[datamodel][buffer][double]") {
 
-  typedef psmrts::PsmrtsDataModel<Eigen::Vector3d> ObjVectorData;
+  typedef psmrts::PsmrtsDataModel<double> ObjVectorData;
 
   const size_t n_data = 100;
   auto p_model  = ObjVectorData( n_data );
@@ -125,7 +125,7 @@ TEST_CASE( "PsmrtsDataModel (double) Double Test", "[datamodel][buffer][double]"
 
 TEST_CASE( "PsmrtsDataModel (int) Integer Test", "[datamodel][buffer][integer]") {
 
-  typedef psmrts::PsmrtsDataModel<Eigen::Vector3i> ObjIndexData;
+  typedef psmrts::PsmrtsDataModel<int> ObjIndexData;
 
   const size_t n_data = 100;
   auto p_model  = ObjIndexData( n_data );
@@ -148,7 +148,7 @@ TEST_CASE( "PsmrtsDataModel (int) Integer Test", "[datamodel][buffer][integer]")
 
 TEST_CASE( "PsmrtsDataModel (float) Float Test", "[datamodel][buffer][float]") {
 
-  typedef psmrts::PsmrtsDataModel<Eigen::Vector3f> ObjIndexData;
+  typedef psmrts::PsmrtsDataModel<float> ObjIndexData;
 
   const size_t n_data = 100;
   auto p_model  = ObjIndexData( n_data );
@@ -170,7 +170,7 @@ TEST_CASE( "PsmrtsDataModel (float) Float Test", "[datamodel][buffer][float]") {
 
 TEST_CASE( "PsmrtsDataModel (unsigned char) Byte Test", "[datamodel][buffer][byte]") {
 
-  typedef Eigen::Vector<unsigned char, 3>   UCharType;
+  typedef unsigned char  UCharType;
 
   const size_t n_data = 100;
   auto p_model  = psmrts::PsmrtsDataModel<UCharType>( n_data );
@@ -182,7 +182,7 @@ TEST_CASE( "PsmrtsDataModel (unsigned char) Byte Test", "[datamodel][buffer][byt
 
   CHECK( p_model.scalar_size()     == 1 );
   CHECK( p_model.scalar_size()     == sizeof( unsigned char ) );
-  CHECK( p_model.scalar_size()     == sizeof( UCharType::value_type ) );
+  CHECK( p_model.scalar_size()     == sizeof( UCharType) );
   CHECK( p_model.scalar_size()     == sizeof( psmrts::PsmrtsDataModel<UCharType>::value_type) );
 
   CHECK_NOTHROW( p_model.at( 0 ) );
@@ -194,7 +194,7 @@ TEST_CASE( "PsmrtsDataModel (unsigned char) Byte Test", "[datamodel][buffer][byt
 
 TEST_CASE( "PsmrtsDataModel (double) Data Values Test", "[datamodel][buffer][double][values]") {
 
-  typedef psmrts::PsmrtsDataModel<Eigen::Vector3d> ObjVectorData;
+  typedef psmrts::PsmrtsDataModel<double> ObjVectorData;
 
   const size_t n_data = 10;
   auto p_model  = ObjVectorData( n_data );
@@ -217,7 +217,7 @@ TEST_CASE( "PsmrtsDataModel (double) Data Values Test", "[datamodel][buffer][dou
   CHECK( data_0[2] == 3.0 );
   // test at using same process
   
-  ObjVectorData::data_type at_0 = p_model.at( 0 ); 
+  ObjVectorData::vector_type at_0 = p_model.at( 0 ); 
   CHECK( data_0[0] == at_0[0]); 
   CHECK( data_0[1] == at_0[1] ); 
   CHECK( data_0[2] == 3.0 );

@@ -10,8 +10,8 @@ include_directories ( ${PSMRTS_PROJECT_DIR}/psmrts/tests )
 
 # Build all-in-one renderer test application
 add_executable( bullet_test_suite  bullet_catch2_main.cpp
-                                   test_BulletSystemModel.cpp )
-#                                   test_PsmrtsBulletMeshMap.cpp )  
+                                   test_BulletSystemModel.cpp
+                                   test_PsmrtsBulletMeshMap.cpp )  
 
 # Add required libraries as needed fo psmrts_test_suite
 target_link_libraries( bullet_test_suite PRIVATE psmrts )

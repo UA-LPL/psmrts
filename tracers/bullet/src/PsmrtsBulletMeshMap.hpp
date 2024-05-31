@@ -18,13 +18,9 @@ namespace psmrts {
   namespace bullet {
 
     /**! Special definitions of the Bullet configuration */
-    typedef btScalar                                 BulletInternalVertexType;
-    typedef int                                      BulletInternalIndexType;
-    typedef Eigen::Vector3<BulletInternalVertexType> BulletInternalVector;
-    typedef Eigen::Vector3<BulletInternalIndexType>  BulletInternalIndex;
-    typedef PsmrtsDataModel<BulletInternalIndex>     BulletInternalIndexArray;
-    typedef PsmrtsDataModel<BulletInternalVector>    BulletInternalVertexArray;
-    typedef PsmrtsMeshData<BulletInternalIndexArray, BulletInternalVertexArray> BulletInternalMeshModel;
+    typedef int                                       BulletInternalIndexType;
+    typedef btScalar                                  BulletInternalVertexType;
+    typedef PsmrtsMeshData<BulletInternalIndexType, BulletInternalVertexType> BulletInternalMeshModel;
 
   /**
    * @brief PsmrtsBulletMeshMap provides a Bullet mesh interface
@@ -50,7 +46,7 @@ namespace psmrts {
    * @author Kris J. Becker, University of Arizona
    * @history 2024-05-15 Kris J. Becker  Original Version
    */
-    template <typename MODEL = BulletInternalMeshModel> 
+    template <typename MODEL> 
       class PsmrtsBulletMeshMap {
         public:
           // The native Bullet mesh types
@@ -58,11 +54,11 @@ namespace psmrts {
           typedef btCollisionShape           BulletMeshShape; /**! Bullet mesh shape type */
 
           // The desired data buffer type to map to a Bullet indexed mesh
-          typedef typename MODEL::MeshFacetIndex    MeshFacetIndex;
-          typedef typename MODEL::MeshFacetVector   MeshFacetVector;
+          typedef typename MODEL::index_type       MeshFacetIndex;
+          typedef typename MODEL::vector_type      MeshFacetVector;
 
-          typedef typename MeshFacetIndex::value_type   index_type;
-          typedef typename MeshFacetVector::value_type  vector_type;
+          typedef typename MODEL::const_index_reference  const_index_reference;
+          typedef typename MODEL::const_vector_reference const_vector_reference;
 
           /** Default constructor */
           PsmrtsBulletMeshMap( ) {
@@ -70,19 +66,26 @@ namespace psmrts {
           }
 
           /** Construct an array of values */
-          PsmrtsBulletMeshMap( const MODEL &mesh, std::string &name, 
+          PsmrtsBulletMeshMap( const MODEL &mesh, const std::string &name, 
                                const int mesh_id, const int partno = 0 ) {
+            std::cout << "PsmrtsBulletMeshMap(mesh,,,)..." << std::endl;
             init( name, mesh_id, partno );
+            std::cout << "Default init..." << std::endl;
             m_mesh_data = mesh;
+            std::cout << "Assign mesh data..." << std::endl;
+            std::cout << " nVectors = " << mesh.nvectors() << "..." << std::endl;
+            std::cout << " nfacets = " << mesh.nfacets() << "..." << std::endl;
             m_bullet_mesh.reset( create_map_mesh( m_mesh_data ) );
-            m_bullet_shape.reset( create_collision_body( m_bullet_mesh.get() ) );
+            std::cout << "Created map_mesh...with address (" << m_bullet_mesh.get() << ")..." << std::endl;
+            m_bullet_shape.reset( create_collision_object( m_bullet_mesh.get() ) );
+            std::cout << "Created collision body...done." << std::endl;
           }
 
           PsmrtsBulletMeshMap( const PsmrtsOBJAsset &obj_t ) {
             init( obj_t.obj_source() );
             m_mesh_data = MODEL( obj_t.get_indexes<MeshFacetIndex>( ), obj_t.get_vectors<MeshFacetVector>() );
             m_bullet_mesh.reset( create_map_mesh( m_mesh_data ) );
-            m_bullet_shape.reset( create_collision_body( m_bullet_mesh.get() ) );
+            m_bullet_shape.reset( create_collision_object( m_bullet_mesh.get() ) );
           }
 
           /** Destructor */
@@ -144,7 +147,7 @@ namespace psmrts {
             std::unique_ptr<btTriangleIndexVertexArray> bt_mesh;
             
             // Process if valid
-            if ( m_mesh_data.isValid() ) {
+            if ( 0 < mesh.nfacets() ) {
 
               // Allocate a new mesh map
               bt_mesh.reset( new btTriangleIndexVertexArray() );
@@ -166,12 +169,12 @@ namespace psmrts {
                 // Set up acess to range of triangle mesh indexes
                 mesh_t.m_numTriangles        = n_indexes;
                 mesh_t.m_triangleIndexStride = mesh.indexes().data_size() * mesh.indexes().scalar_size();
-                mesh_t.m_triangleIndexBase   = mesh.get_index( index ).data();
+                mesh_t.m_triangleIndexBase   = reinterpret_cast<const unsigned char *> ( mesh.get_index( index ).data() );
                 mesh_t.m_indexType           = bt_type_code( mesh.get_index( index ).data() );
 
                 // The full number of vertexs are used for every part
                 mesh_t.m_numVertices  = mesh.nvectors();
-                mesh_t.m_vertexBase   = mesh.get_vector( 0 ).data();
+                mesh_t.m_vertexBase   = reinterpret_cast<const unsigned char *> ( mesh.get_vector( 0 ).data() );
                 mesh_t.m_vertexStride = mesh.vectors().data_size() * mesh.vectors().scalar_size();
                 mesh_t.m_vertexType   = bt_type_code( mesh.get_vector( 0 ).data() );
 
@@ -216,9 +219,6 @@ namespace psmrts {
 
     // Convenience declarations
     typedef PsmrtsBulletMeshMap<BulletInternalMeshModel>  NativeBulletMesh;
-
-    typedef PsmrtsDoubleMeshData                          DefaultPsmrtsBulletMesh;
-    typedef PsmrtsBulletMeshMap<DefaultPsmrtsBulletMesh>  DefaultBulletMesh;
 
   }  // namespace bullet  
 } // namespace psmrts

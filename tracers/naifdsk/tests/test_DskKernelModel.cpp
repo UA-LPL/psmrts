@@ -282,7 +282,7 @@ TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][fac
     raytrace.m_segment = segment.surfaceid(); 
     raytrace.m_plateid = 1;
 
-    naif::DskKernelModel::DskIndexDataModel::data_type ones = naif::DskKernelModel::DskIndexDataModel::data_type::Ones();
+    naif::DskKernelModel::DskIndexDataModel::vector_type ones = naif::DskKernelModel::DskIndexDataModel::vector_type::Ones();
     for (int i = 0; i < dsk.n_total_plates(); i++) {
         raytrace.m_plateid = i+1; 
         dsk.get_facet( raytrace, target_facet );
@@ -292,7 +292,7 @@ TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][fac
         }
 
         // Exporting of a NAIF DSK segment converts indexes to 0-based array references.
-        naif::DskKernelModel::DskIndexDataModel::data_type indexes_plus_1 = indexes(i) + ones;
+        naif::DskKernelModel::DskIndexDataModel::vector_type indexes_plus_1 = indexes(i) + ones;
         CHECK ( indexes_plus_1 == target_facet.m_indexes );  
 
         CHECK ( vectors( indexes(i)[0] ) == target_facet.m_vector1 );

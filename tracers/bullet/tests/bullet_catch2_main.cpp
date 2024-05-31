@@ -1,5 +1,6 @@
 #define CATCH_CONFIG_MAIN
 #include <psmrts_catch2_environment.hpp>
+#include <PsmrtsOBJImplementation.hpp>
 
 static const std::string test_version = "0.1.0";
 

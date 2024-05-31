@@ -12,11 +12,8 @@
 #include <PsmrtsMeshData.hpp>
 #include <RayTrace.hpp>
 
-#define TINYOBJLOADER_IMPLEMENTATION
-// #define TINYOBJLOADER_USE_MAPBOX_EARCUT
+// See PsmrtsOBJImplementation.hpp for defining the tinyobj implemantion in your main
 #include "tiny_obj_loader.h"
-
-
 namespace psmrts {
   /**
    * @brief PsmrtsOBJAsset contains tools for OBJ file format I/O
@@ -26,11 +23,11 @@ namespace psmrts {
    */
   class PsmrtsOBJAsset {
     public:
-      typedef  Eigen::Vector<tinyobj::real_t, 3>   ObjVectorType;
-      typedef  Eigen::Vector3i                     ObjIndexType;
+      typedef PsmrtsDataModel<tinyobj::real_t>     ObjVectorData;
+      typedef PsmrtsDataModel<int>                 ObjIndexData;
 
-      typedef PsmrtsDataModel<ObjVectorType>       ObjVectorData;
-      typedef PsmrtsDataModel<ObjIndexType>        ObjIndexData;
+      typedef  ObjVectorData::vector_type          ObjVectorType;
+      typedef  ObjIndexData::vector_type           ObjIndexType;
 
       /** Default constructor */
       PsmrtsOBJAsset() : m_obj_source(), m_obj_config(), m_obj_reader() { }
@@ -256,21 +253,26 @@ namespace psmrts {
 
 
       template <typename T> 
-        inline T get_vectors(  ) const {
+        inline PsmrtsDataModel<T> get_vectors(  ) const {
+
+          typedef typename PsmrtsDataModel<T>::vector_type vector_type;
+
           ObjVectorData bt_vector_map( &this->shape()->GetAttrib().vertices[0], this->nVertexes() );
-          T out_vectors( bt_vector_map.size() );
+          PsmrtsDataModel<T> out_vectors( bt_vector_map.size() );
+
           for ( size_t i = 0 ; i < bt_vector_map.size() ; i++ ) {
             auto iVec = bt_vector_map( i );
-            out_vectors( i ) = T::data_type( { iVec[0], iVec[1], iVec[2] } );
+            out_vectors( i ) = vector_type( { iVec[0], iVec[1], iVec[2] } );
           }
 
           return ( out_vectors );
         }
 
       template <typename T> 
-        inline T get_indexes( ) const {
-          
-          T out_indexes( this->count_facets() );
+        inline PsmrtsDataModel<T> get_indexes( ) const {
+          typedef typename PsmrtsDataModel<T>::vector_type vector_type;
+
+          PsmrtsDataModel<T> out_indexes( this->count_facets() );
 
           size_t ondx = 0;
           for ( auto const &shape : m_obj_reader->GetShapes() ) {
@@ -286,7 +288,7 @@ namespace psmrts {
               }
 
               // Set the ondx facet index
-              out_indexes( ondx++ ) = T::data_type( { v_ndxs[0], v_ndxs[1], v_ndxs[2] } );
+              out_indexes( ondx++ ) = vector_type( { v_ndxs[0], v_ndxs[1], v_ndxs[2] } );
               index_offset += fv;
             }
           }

@@ -11,6 +11,7 @@
 #include <RayTrace.hpp>
 
 namespace psmrts {
+
 /**
  * @brief PsmrtsMeshData provides general storage for facet shape models
  *
@@ -21,22 +22,31 @@ namespace psmrts {
  * This design uses the Eigen data type to map the second dimension to make
  * it usable directly in vector oriented systems.
  *
+ * The default expected types are:
+ * @code
+ * typedef Eigen::Vector3i   MeshIndexType;
+ * typedef Eigen::Vector3d   MeshVectorType;
+ * 
+ * # Alternatively, Bullet can also do float data types as well
+ * # typedef Eighen::Vector3f   MeshVectorType
+ * @endcode
+ * 
  * @author Kris J. Becker, University of Arizona
  * @history 2024-04-25 Kris J. Becker  Original Version
  */
-
-  template < typename MeshIndexData = PsmrtsDataModel<Eigen::Vector3i>,
-             typename MeshVectorData = PsmrtsDataModel<Eigen::Vector3d>
-           >
+  template <typename MeshIndexType, typename MeshVectorType>
     class PsmrtsMeshData {
       public:
-        typedef typename MeshIndexData::data_type    MeshFacetIndex;
-        typedef typename MeshVectorData::data_type   MeshFacetVector;
+        typedef PsmrtsDataModel<MeshIndexType>       MeshIndexData;
+        typedef PsmrtsDataModel<MeshVectorType>      MeshVectorData;
 
-        typedef typename MeshIndexData::value_type   index_type;
-        typedef typename MeshVectorData::value_type  vector_type;
+        typedef typename MeshIndexData::vector_type  index_type;
+        typedef typename MeshVectorData::vector_type vector_type;
 
-        typedef RayTrace::FacetDatum                 MeshFacet;
+        typedef typename MeshIndexData::const_data_reference  const_index_reference;
+        typedef typename MeshVectorData::const_data_reference const_vector_reference;
+
+        typedef RayTrace::FacetDatum                MeshFacet;
 
         /** Default constructor */
         PsmrtsMeshData() {
@@ -97,24 +107,24 @@ namespace psmrts {
           return ( m_mesh_indexes.size() );
         }
 
-        inline size_t real_index( const index_type &index ) const {
+        inline size_t real_index( const MeshIndexType index ) const {
           return ( index - m_base_index );
         }
 
-        inline Eigen::Vector3d toStdVector( const MeshFacetVector &v )  const {
+        inline Eigen::Vector3d toStdVector( const MeshVectorType &v )  const {
           return ( Eigen::Vector3d( { v[0], v[1], v[2] } ) );
         }
 
-        inline Eigen::Vector3i toStdIndex( const MeshFacetIndex &v )  const {
+        inline Eigen::Vector3i toStdIndex( const MeshIndexType &v )  const {
           return ( Eigen::Vector3i( { v[0], v[1], v[2] } ) );
         }
 
-        inline MeshFacetIndex &get_index( const index_type nth ) const {
-          return ( this->indexes( nth ) );
+        inline const_index_reference get_index( const MeshIndexType nth ) const {
+          return ( this->indexes( ).ref( nth ) );
         }
 
-        inline MeshFacetVector &get_vector( const index_type raw_index ) const {
-          return ( this->vectors( real_index( raw_index ) ) );
+        inline const_vector_reference get_vector( const MeshIndexType raw_index ) const {
+          return ( this->vectors( ).ref( real_index( raw_index ) ) );
         }
 
         inline static Eigen::Vector3d facet_normal( const MeshFacet &facet ) {
@@ -125,7 +135,7 @@ namespace psmrts {
 
         inline MeshFacet get_facet( const int nth ) const {
             MeshFacet mf;
-            const MeshFacetIndex &vndx = get_index( nth );
+            const_index_reference vndx = get_index( nth );
             mf.m_indexes = toStdIndex( vndx );
             mf.m_vector1 = toStdVector( get_vector( vndx[0] ) );
             mf.m_vector2 = toStdVector( get_vector( vndx[1] ) );
@@ -143,7 +153,7 @@ namespace psmrts {
           return ( m_mesh_indexes );
         }
 
-        inline const MeshVectorData vectors() const {
+        inline const MeshVectorData &vectors() const {
           return ( m_mesh_vectors );
         }
 
@@ -200,8 +210,8 @@ namespace psmrts {
 
         /** Initialize the object */
         inline void init() {
-          m_mesh_indexes = MeshFacetIndex();
-          m_mesh_vectors = MeshFacetVector();
+          m_mesh_indexes = MeshIndexData();
+          m_mesh_vectors = MeshVectorData();
 
           m_base_index = 0;
 
@@ -271,8 +281,8 @@ namespace psmrts {
     };
 
     // A few convenient typedef types
-    typedef PsmrtsMeshData<Eigen::Vector3i, Eigen::Vector3d>   PsmrtsDoubleMeshData;
-    typedef PsmrtsMeshData<Eigen::Vector3i, Eigen::Vector3f>   PsmrtsFloatMeshData;
+    typedef PsmrtsMeshData<int, double>   PsmrtsDoubleMeshData;
+    typedef PsmrtsMeshData<int, float>    PsmrtsFloatMeshData;
 
 }  // namespace psmrts
 

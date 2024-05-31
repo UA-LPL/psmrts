@@ -21,4 +21,5 @@ TEST_CASE ( "Bullet System Info", "[bullet][system]" ) {
   int  *i_none = nullptr;
   CHECK( psmrts::bullet::bt_type_code ( i_none ) == PHY_INTEGER);    
 
+  CHECK (sizeof( btScalar ) == 8 );
 }
