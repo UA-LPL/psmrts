@@ -193,7 +193,13 @@ namespace psmrts {
                                                                          const bool useCompression = true,
                                                                          const bool buildBvh = true ) const {
 
-            // Note btCollisionBody is a 
+            // Sanity check on pointer
+            if ( nullptr == mesh ) {
+              std::string mess = "PsmrtsBulletMeshMap::create_collision_body - provided mesh is invalid/null";
+              throw std::runtime_error( mess );
+            }
+            
+            // Creates compressed and optimized Bullet meshes
             return ( new btBvhTriangleMeshShape( mesh, useCompression, buildBvh ) );
           }
 
