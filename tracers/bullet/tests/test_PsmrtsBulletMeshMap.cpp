@@ -82,8 +82,6 @@ TEST_CASE ( "Bullet Mesh Map Test - Small Dataset", "[bullet][mesh]" ) {
 TEST_CASE ( "Bullet Mesh Map OBJ/DSK Comparison - Bullet == NaifDSK ", "[bullet][obj][dsk]" ) {
 
     // @TODO Setup for DSK ( this should be a fixture!)
-    typedef psmrts::PsmrtsShapeTracerAdapter<naif::DskKernelModel>   NaifShapeTracer;
-
     CHECK_NOTHROW ( naif::DskKernelModel::reset_dsk_system() ); // Reset/Initialize the kernel system
     CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() ); // Reset/Initialize the kernel system
 
@@ -107,7 +105,7 @@ TEST_CASE ( "Bullet Mesh Map OBJ/DSK Comparison - Bullet == NaifDSK ", "[bullet]
 
     // Complete tests below...
     const bool NotImplemented = true;
-    REQURE( false == NotImplemented );  // Remove when implemented
+    REQUIRE( false == NotImplemented );  // Remove when implemented
 
     // Compare sizes
 

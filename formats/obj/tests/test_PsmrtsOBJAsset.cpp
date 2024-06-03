@@ -42,14 +42,14 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Text OBJ Load", "[format][obj][shape][text]
     REQUIRE( nullptr != t_obj );
     
     psmrts::PsmrtsOBJAsset t_loader;
-    CHECK_NOTHROW( t_loader = psmrts::PsmrtsOBJAsset( t_obj ) );
+    CHECK_NOTHROW( t_loader = psmrts::PsmrtsOBJAsset( t_obj, objtext ) );
     const bool DoNotThrowFlag = false;
     CHECK( t_loader.check_obj_errors( "*** PsmrtsOBJAsset::Bad String", DoNotThrowFlag ) );
     CHECK_NOTHROW( t_loader.check_obj_errors() );
 
     // Test contents with string objtext contents. Use get_indexes() and get_vectors().
     const bool NotImplemented = true;
-    REQURE( false == NotImplemented );  // Remove when implemented
+    REQUIRE( false == NotImplemented );  // Remove when implemented
 }
 
 
@@ -63,13 +63,14 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Data Export Tests", "[format][obj][shape][b
 
     // Test content of get_indexes() and get_vectors() directly with sources in *shape().
     const bool NotImplemented = true;
-    REQURE( false == NotImplemented );  // Remove when implemented
+    REQUIRE( false == NotImplemented );  // Remove when implemented
 }
 
 
 #if 0
 TEST_CASE ( "OBJ FORMAT Asset Test - Huge OBJ Tests", "[format][obj][shape][hugeone]" ) {
-    std::string objfile = "/opt/isis3/data/osirisrex/kernels/dsk/l_00050mm_alt_ptm_5595n04217_v020.obj";
+    //std::string objfile = "/opt/isis3/data/osirisrex/kernels/dsk/l_00050mm_alt_ptm_5595n04217_v020.obj";
+    std::string objfile = "watermarkRedTest1.obj";
 
     psmrts::PsmrtsOBJAsset t_loader( objfile );
     CHECK_NOTHROW( t_loader.check_obj_errors() ); 
