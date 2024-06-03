@@ -24,8 +24,8 @@ namespace psmrts {
  *
  * The default expected types are:
  * @code
- * typedef Eigen::Vector3i   MeshIndexType;
- * typedef Eigen::Vector3d   MeshVectorType;
+ * typedef int      MeshIndexType;
+ * typedef double   MeshVectorType;
  * 
  * # Alternatively, Bullet can also do float data types as well
  * # typedef Eighen::Vector3f   MeshVectorType
@@ -157,6 +157,22 @@ namespace psmrts {
           return ( m_mesh_vectors );
         }
 
+        inline const Eigen::Vector3d &axis_mins() const {
+          return ( m_min_axes );
+        }
+
+        inline const Eigen::Vector3d &axis_maxs() const {
+          return ( m_max_axes );
+        }
+
+        inline double minimum_radius() const {
+          return ( m_min_radius );
+        }
+
+        inline double maximum_radius() const {
+          return ( m_max_radius );
+        }        
+    
         /**
          * @brief Construct a segment of the mesh data 
          * 
@@ -240,18 +256,19 @@ namespace psmrts {
             m_max_axes = vectors.at( 0 );
 
             // Compute and store current radii
-            m_min_radius = m_min_axes.norm();
-            m_max_radius = m_max_axes.norm();
+            m_min_radius = vectors.at( 0 ).norm();
+            m_max_radius = vectors.at( 0 ).norm();
 
             for ( size_t ndx = 1 ; ndx < vectors.size() ; ndx++ ) {
-              auto const &v = vectors( ndx );
+              auto v = vectors( ndx );
               double v_radius = v.norm();
 
               // Check min/max radius
               if ( v_radius < m_min_radius  ) {
                 m_min_radius = v_radius;
               }
-              else if ( v_radius > m_max_radius ) {
+              
+              if ( v_radius > m_max_radius ) {
                 m_max_radius = v_radius;
               }
 
@@ -260,7 +277,8 @@ namespace psmrts {
                 if ( v[n] < m_min_axes[n] ) {
                   m_min_axes[n] = v[n];
                 }
-                else if ( v[n] > m_max_axes[n] ) {
+                
+                if ( v[n] > m_max_axes[n] ) {
                   m_max_axes[n] = v[n];
                 }
               }
