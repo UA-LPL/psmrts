@@ -36,8 +36,8 @@ release.
 
 ## [0.0.6] 2024-06-06
 - Migrate PSMRTS BitBucket repo to Github
-- Added auto-detection of native arm64 build for MacOS (can set Terminal/Shell in Rosetta mode on ARM platforms to get he osx build)
-- Updated documentation URLs for new PSMRTS repo home
+- Added auto-detection of native arm64-osx build for MacOSX (can set Terminal/Shell in Rosetta mode on ARM platforms to get the x64-osx build)
+- Updated documentation URLs for PSMRTS new repo home
 - Update minor release version
 
 ## [0.0.5] 2024-04-26
