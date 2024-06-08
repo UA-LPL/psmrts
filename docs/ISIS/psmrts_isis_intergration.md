@@ -1,5 +1,5 @@
 # <a name="#psmrts_isis_integration">PSMRTS ISIS Integration</a>
-March 20, 2024 (Revised: March 21, 2024)
+March 20, 2024 (Revised: June 06, 2024)
 
 
 The Planetary Shape Model and Ray Tracing System (**PSMRTS**) has been developed to make use of a variety of ray tracing libraries for image orthorectification on planetary shape models. These models are typically in the format of tesselated plate models. They can be in a variety of formats and resolution, including regional and global coverage, and requires a flexible, managed approach for multiple models for a single image. Many cartographic mapping and geometric operations prioritize ray traces on a set of these models to effectively utilitize a large variety of these types of models and provide a highly accurate and flexible management system of the models and tracing operations.
@@ -152,7 +152,7 @@ You can also use the following command to clone a clean version of `PSMRTS` and 
 
 ```
 # Log into the UA OREX VPN
-git clone -b feature/psmrts-isis-integration http://orgit:7990/scm/isis/psmrts.git
+git clone -b feature/psmrts-isis-integration http://github.com/UA-LPL/psmrts.git
 cd psmrts
 ./build_psmrts.sh -t
 cd build
