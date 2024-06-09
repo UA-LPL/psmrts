@@ -35,7 +35,7 @@ It is recommended to create a dedicated directory to contain all PSMRTS working 
 1. cd ~/PSMRTS/GitCheckouts
 1. mkdir PsmrtsRaytraceTests
 1. cd  PsmrtsRaytraceTests
-1. git clone http://orgit:7990/scm/isis/psmrts.git
+1. git clone http://github.com/UA-LPL/psmrts.git
 1. cd PSMRTS
 1. ./make_install.sh -x -t
 

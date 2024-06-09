@@ -12,10 +12,10 @@
 The `psmrts` dependencies are provided by the Microsoft Visual Code package manager, [vcpkg](https://vcpkg.io/en/index.html). Packages used by `psmrts` are contained in the `vcpkg.json` file. At this time, there are few dependencies and they are pretty stable so vcpkg is not included as a submodule or specifically included in the repo. Rather, it is installed during `psmrts` installation and packages are installed/built when the `psmrts` is built. This may create issues in the future so be aware of the potential for vcpkg install/build problems as new dependencies are added and systems evolve. We will attempt to maintain concurrency with vcpkg updates as we continuously build our system.
 
 `psmrts` is contained in the PSMRTS repository.
-1. `git clone http://orgit:7990/scm/isis/psmrts.git`
+1. `git clone https://github.com/UA-LPL/psmrts.git`
 
 To pull a specific branch, use this form:
-1. `git clone -b feature/psmrts-api-first-light http://orgit:7990/scm/isis/psmrts.git`
+1. `git clone -b feature/psmrts-api-first-light https://github.com/UA-LPL/psmrts.git`
 
 #### Configuring the psmrts Development Environment
 Building `PSMRTS` requires the `pkg-config` build utility which may not be available on your system. The MacOS does not ship with `pkg-config` and it must be installed. There are several ways to install `pkg-config` such as using [HomeBrew](https://formulae.brew.sh/formula/pkg-config), Anaconda/Miniconda (`conda install pkg-config`) or from [source](https://gitlab.freedesktop.org/pkg-config/pkg-config). The Conda solution will always require an active Python environment. Linux and Windows systems may provide this as a package install or other alternatives.
