@@ -1,6 +1,7 @@
 
 #include <psmrts_catch2_environment.hpp>
 
+#include <BulletSystemModel.hpp>
 #include <PsmrtsDataModel.hpp>
 #include <PsmrtsMeshData.hpp>
 #include <PsmrtsBulletMeshMap.hpp>
@@ -56,6 +57,14 @@ TEST_CASE ( "Bullet Mesh Map Test - Small Dataset", "[bullet][mesh]" ) {
     CHECK( bt_mesh.data().minimum_radius() == 0.28306500000004281 );
     CHECK( bt_mesh.data().maximum_radius() == 0.28306500000006685 );
 
+    auto mesh_min = bt_mesh.data().minimum_radius();
+    auto mesh_max = bt_mesh.data().maximum_radius();
+    CHECK( psmrts::bullet::bt_type_code( &mesh_min ) == PHY_DOUBLE );
+    CHECK( psmrts::bullet::bt_type_code( &mesh_max ) == PHY_DOUBLE );
+
+    CHECK( sizeof( mesh_min ) == sizeof( double ) );
+    CHECK( sizeof( mesh_max ) != sizeof( float ) );
+
     REQUIRE ( bt_mesh.shape() != nullptr );
 
     btTransform tr;
@@ -65,7 +74,7 @@ TEST_CASE ( "Bullet Mesh Map Test - Small Dataset", "[bullet][mesh]" ) {
 
     // There is two tests that fail here. Please check
     // PsmrtsMeshData::init( indexes, vectors ) where the PSMRTS
-    // range is computed.
+    // range is computed. - (PsmrtsMeshData.hpp, line 275?)
     CHECK( bt_minaabb[0] == bt_mesh.data().axis_mins()[0] );
     CHECK( bt_minaabb[1] == bt_mesh.data().axis_mins()[1] );
     CHECK( bt_minaabb[2] == bt_mesh.data().axis_mins()[2] );
@@ -80,7 +89,7 @@ TEST_CASE ( "Bullet Mesh Map Test - Small Dataset", "[bullet][mesh]" ) {
 // PsmrtsDataModel::get_indexes() and get_vectors(), creation of
 // PsmrtsBulletMeshMap with the DSK data.
 TEST_CASE ( "Bullet Mesh Map OBJ/DSK Comparison - Bullet == NaifDSK ", "[bullet][obj][dsk]" ) {
-
+    auto tolerance = 1.0e-6;
     // @TODO Setup for DSK ( this should be a fixture!)
     CHECK_NOTHROW ( naif::DskKernelModel::reset_dsk_system() ); // Reset/Initialize the kernel system
     CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() ); // Reset/Initialize the kernel system
@@ -102,18 +111,88 @@ TEST_CASE ( "Bullet Mesh Map OBJ/DSK Comparison - Bullet == NaifDSK ", "[bullet]
     CHECK_NOTHROW( naif::check_naif_errors() );
     naif::DskSegment segment = dsk.segment();
     CHECK_NOTHROW( naif::check_naif_errors() );
+    CHECK( segment.n_plates() == t_loader.nIndexes() );
+    CHECK( segment.n_vertices() == t_loader.nVertexes() );
 
     // Complete tests below...
     const bool NotImplemented = true;
-    REQUIRE( false == NotImplemented );  // Remove when implemented
+    // REQUIRE( false == NotImplemented );  // Remove when implemented
+
+    auto obj_indexes = t_loader.get_indexes<int>();
+    auto obj_vectors = t_loader.get_vectors<double>();
+    
+    auto dsk_indexes = dsk.load_facet_indexes(); 
+    auto dsk_vectors = dsk.load_facet_vectors();
+
+    CHECK ( obj_indexes.size()            == dsk_indexes.size() ); 
+    CHECK ( obj_indexes.data_size()       == dsk_indexes.data_size() );
+    CHECK ( obj_indexes.scalar_size()     == dsk_indexes.scalar_size() );
+    CHECK ( obj_indexes.total_allocated() == dsk_indexes.total_allocated() );
+
+    CHECK ( obj_vectors.size()            == dsk_vectors.size() );
+    CHECK ( obj_vectors.data_size()       == dsk_vectors.data_size() );
+    CHECK ( obj_vectors.scalar_size()     == dsk_vectors.scalar_size() );
+    CHECK ( obj_vectors.total_allocated() == dsk_vectors.total_allocated() );
+
+    BulletMeshModel obj_data( obj_indexes, obj_vectors );
+    BulletMeshModel dsk_data( dsk_indexes, dsk_vectors );
+
+    BulletShape obj_mesh( obj_data, objfile, 0, 0  );
+    BulletShape dsk_mesh( dsk_data, dskfile, 0, 0  );
+
+    REQUIRE ( obj_mesh.isValid() == true );
+    REQUIRE ( dsk_mesh.isValid() == true );
 
     // Compare sizes
-
-    // Compare each cooresponding method 
+    auto obj_array = obj_mesh.mesh()->getIndexedMeshArray();
+    auto dsk_array = dsk_mesh.mesh()->getIndexedMeshArray();
+    CHECK ( obj_array.size() == dsk_array.size() ); 
+    
+    // Compare each cooresponding method   
+    CHECK ( obj_mesh.name()                  != dsk_mesh.name() );
+    CHECK ( obj_mesh.id()                    == 0 );
+    CHECK ( dsk_mesh.id()                    == 0 );
+    CHECK ( obj_mesh.mesh_type()             == dsk_mesh.mesh_type() );
+    //CHECK ( obj_mesh.mesh()                  == dsk_mesh.mesh() ); Memory locations, data access?
+    //CHECK ( obj_mesh.shape()                 == dsk_mesh.shape() ); Memory locations, data access?
+    CHECK ( obj_mesh.data().minimum_radius() == dsk_mesh.data().minimum_radius() ); 
+    CHECK ( obj_mesh.data().nvectors()       == dsk_mesh.data().nvectors() );
+    CHECK ( obj_mesh.data().nfacets()        == dsk_mesh.data().nfacets() );
+    CHECK ( obj_mesh.data().base_index()     == dsk_mesh.data().base_index() );
 
     // Compare indexes
-
+    CHECK ( obj_mesh.data().get_index(0)  == dsk_mesh.data().get_index(0) );
+    CHECK ( obj_mesh.data().get_index(17) == dsk_mesh.data().get_index(17) );
+    CHECK ( obj_mesh.data().get_index(35) == dsk_mesh.data().get_index(35) );
+    /*
+    for (int i = 0; i < obj_array.size(); i++) {
+        INFO ( "Index: " << i );
+        CHECK (obj_indexes(i)[0] == dsk_indexes(i)[0] ); 
+        CHECK (obj_indexes(i)[1] == dsk_indexes(i)[1] ); 
+        CHECK (obj_indexes(i)[2] == dsk_indexes(i)[2] ); 
+    }
+    */
+    
     // Compare vectors
+    CHECK ( obj_mesh.data().get_vector(0)[0] == dsk_mesh.data().get_vector(0)[0] );
+    CHECK ( obj_mesh.data().get_vector(0)[1] == dsk_mesh.data().get_vector(0)[1] );
+    CHECK ( obj_mesh.data().get_vector(0)[2] == dsk_mesh.data().get_vector(0)[2] );
+
+    CHECK ( obj_mesh.data().get_vector(17)[0] == dsk_mesh.data().get_vector(17)[0] );
+    CHECK ( obj_mesh.data().get_vector(17)[1] == dsk_mesh.data().get_vector(17)[1] );
+    CHECK ( obj_mesh.data().get_vector(17)[2] == dsk_mesh.data().get_vector(17)[2] );
+
+    CHECK ( obj_mesh.data().get_vector(35)[0] == dsk_mesh.data().get_vector(35)[0] );
+    CHECK ( obj_mesh.data().get_vector(35)[1] == dsk_mesh.data().get_vector(35)[1] );
+    CHECK ( obj_mesh.data().get_vector(35)[2] == dsk_mesh.data().get_vector(35)[2] );
+    /*
+    for (int j = 0; j < obj_vectors.size(); j++) {
+        INFO( "Vector: " << j );
+        CHECK ( obj_vectors(j)[0] == dsk_vectors(j)[0] );
+        CHECK ( obj_vectors(j)[1] == dsk_vectors(j)[1] );
+        CHECK ( obj_vectors(j)[2] == dsk_vectors(j)[2] );
+    }
+    */
 
     // ...part of the fixture destructor!
     CHECK_NOTHROW ( naif::DskKernelModel::reset_dsk_system() ); // Reset/Initialize the kernel system

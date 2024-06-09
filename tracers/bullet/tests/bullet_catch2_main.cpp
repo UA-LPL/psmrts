@@ -4,7 +4,7 @@
 
 static const std::string test_version = "0.1.0";
 
-TEST_CASE( "bullet test suite", "[bullet][introduction]") {
+TEST_CASE( "Bullet Test Suite", "[bullet][introduction]") {
 
   auto version = test_version;
   // spdlog::info("naif Catch Test Suite version {}", version );

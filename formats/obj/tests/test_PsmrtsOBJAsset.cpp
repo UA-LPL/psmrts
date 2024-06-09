@@ -3,6 +3,9 @@
 
 #include <PsmrtsOBJAsset.hpp>
 
+#include <DskKernelModel.hpp>
+
+
 // Test Default constructor for PsmrtsOBJAsset
 TEST_CASE ( "OBJ FORMAT Asset Test - Default Constructor", "[format][obj][default]"){
     psmrts::PsmrtsOBJAsset t_loader;
@@ -27,6 +30,8 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Basic Load/Init Tests", "[format][obj][shap
     CHECK( t_loader.nVertexes()         == 20 );
     CHECK( t_loader.shape_facet_count() == 36 );
     CHECK( t_loader.nMaterials()        == 0 );
+    CHECK( t_loader.shape() != nullptr );
+    CHECK( t_loader.config().mtl_search_path == "" );
 }
 
 TEST_CASE ( "OBJ FORMAT Asset Test - Load Fail Tests", "[format][obj][shape][failures]" ) {
@@ -49,21 +54,58 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Text OBJ Load", "[format][obj][shape][text]
 
     // Test contents with string objtext contents. Use get_indexes() and get_vectors().
     const bool NotImplemented = true;
-    REQUIRE( false == NotImplemented );  // Remove when implemented
+    //REQUIRE( false == NotImplemented );  // Remove when implemented
+
+    auto obj_indexes = t_loader.get_indexes<int>();
+    auto obj_vectors = t_loader.get_vectors<double>(); 
+
+    CHECK( obj_indexes.size() == 0 );
+    CHECK( obj_vectors.size() == 0 );
+
+
 }
 
 
 // Test export of get_indexes() and get_vector() match with contents of *shape().
 TEST_CASE ( "OBJ FORMAT Asset Test - Data Export Tests", "[format][obj][shape][bennu][export]" ) {
-    std::string objfile = psmrts_formats_path( "obj/data/bennu_20facets.obj" );
-    
-    psmrts::PsmrtsOBJAsset t_loader( objfile );
+    std::string file = psmrts_formats_path( "obj/data/bennu_20facets.obj" );
+    // dont use dsk, look at obj file and direct compare first, middle, last
+    // directly compare to file
+    psmrts::PsmrtsOBJAsset t_loader( file );
     CHECK_NOTHROW( t_loader.check_obj_errors() ); 
     CHECK( t_loader.isValid()           == true );
 
     // Test content of get_indexes() and get_vectors() directly with sources in *shape().
     const bool NotImplemented = true;
-    REQUIRE( false == NotImplemented );  // Remove when implemented
+    // REQUIRE( false == NotImplemented );  // Remove when implemented
+
+    auto obj_indexes = t_loader.get_indexes<int>();
+    auto obj_vectors = t_loader.get_vectors<double>(); 
+
+    CHECK ( obj_indexes(1)[0] == 21 );
+    CHECK ( obj_indexes(1)[1] == 3 );
+    CHECK ( obj_indexes(1)[2] == 2 );
+
+    CHECK ( obj_indexes(17)[0] == 1 );
+    CHECK ( obj_indexes(17)[1] == 1 );
+    CHECK ( obj_indexes(17)[2] == 1 );
+    
+    CHECK ( obj_indexes(35)[0] == 1 );
+    CHECK ( obj_indexes(35)[1] == 1 );
+    CHECK ( obj_indexes(35)[2] == 1 );
+
+    CHECK ( obj_vectors(1)[0] == 1 );
+    CHECK ( obj_vectors(1)[1] == 1 );
+    CHECK ( obj_vectors(1)[2] == 1 );
+
+    CHECK ( obj_vectors(18)[0] == 1 );
+    CHECK ( obj_vectors(18)[1] == 1 );
+    CHECK ( obj_vectors(18)[2] == 1 );
+
+    CHECK ( obj_vectors(35)[0] == 1 );
+    CHECK ( obj_vectors(35)[1] == 1 );
+    CHECK ( obj_vectors(35)[2] == 1 );
+
 }
 
 

@@ -28,7 +28,7 @@ namespace psmrts {
  * typedef double   MeshVectorType;
  * 
  * # Alternatively, Bullet can also do float data types as well
- * # typedef Eighen::Vector3f   MeshVectorType
+ * # typedef float   MeshVectorType
  * @endcode
  * 
  * @author Kris J. Becker, University of Arizona
@@ -56,8 +56,8 @@ namespace psmrts {
         /** Construct an array of values */
         PsmrtsMeshData( const MeshIndexData &mesh_indexes, 
                         const MeshVectorData  &mesh_vectors ) :
-                        m_mesh_indexes( mesh_indexes ), 
-                        m_mesh_vectors( mesh_vectors ),
+                        m_mesh_indexes( ), 
+                        m_mesh_vectors( ),
                         m_base_index ( 0 ),
                         m_min_axes( { 0.0, 0.0, 0.0 } ),
                         m_max_axes( { 0.0, 0.0, 0.0 } ), 
@@ -71,27 +71,27 @@ namespace psmrts {
                         const MeshVectorData  &mesh_vectors,
                         const size_t start_index,
                         const size_t n_data = 0 ) :
-                        m_mesh_indexes( mesh_indexes.slice( start_index, n_data ) ), 
-                        m_mesh_vectors( mesh_vectors ),
+                        m_mesh_indexes( ), 
+                        m_mesh_vectors(  ),
                         m_base_index( 0 ),
                         m_min_axes(  {0.0, 0.0, 0.0 } ),
                         m_max_axes( { 0.0, 0.0, 0.0 } ),
                         m_min_radius( 0.0 ),
                         m_max_radius( 0.0 ) { 
-          init( mesh_indexes, mesh_vectors );
+          init ( mesh_indexes.slice( start_index, n_data ), mesh_vectors );
         }
         
         PsmrtsMeshData( const PsmrtsMeshData &mesh, 
                         const size_t start_index, 
                         const size_t n_data = 0 ) : 
-                        m_mesh_indexes( mesh.m_mesh_indexes.slice( start_index, n_data ) ),
-                        m_mesh_vectors( mesh.m_mesh_vectors ),
+                        m_mesh_indexes( ),
+                        m_mesh_vectors(  ),
                         m_base_index( 0 ),
                         m_min_axes( mesh.m_min_axes ),
                         m_max_axes( mesh.m_max_axes ),
                         m_min_radius( mesh.m_min_radius ),
                         m_max_radius( mesh.m_max_radius ) {
-            init( m_mesh_indexes, m_mesh_vectors );
+            init( mesh.m_mesh_indexes.slice( start_index, n_data ), mesh.m_mesh_vectors );
           }
 
         /** Destructor */
