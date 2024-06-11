@@ -134,6 +134,7 @@ TEST_CASE ( "Bullet Mesh Map OBJ/DSK Comparison - Bullet == NaifDSK ", "[bullet]
     CHECK ( obj_vectors.scalar_size()     == dsk_vectors.scalar_size() );
     CHECK ( obj_vectors.total_allocated() == dsk_vectors.total_allocated() );
 
+    // check each value of indexes and vectors individually, not comparing
     BulletMeshModel obj_data( obj_indexes, obj_vectors );
     BulletMeshModel dsk_data( dsk_indexes, dsk_vectors );
 
@@ -164,35 +165,19 @@ TEST_CASE ( "Bullet Mesh Map OBJ/DSK Comparison - Bullet == NaifDSK ", "[bullet]
     CHECK ( obj_mesh.data().get_index(0)  == dsk_mesh.data().get_index(0) );
     CHECK ( obj_mesh.data().get_index(17) == dsk_mesh.data().get_index(17) );
     CHECK ( obj_mesh.data().get_index(35) == dsk_mesh.data().get_index(35) );
-    /*
-    for (int i = 0; i < obj_array.size(); i++) {
-        INFO ( "Index: " << i );
-        CHECK (obj_indexes(i)[0] == dsk_indexes(i)[0] ); 
-        CHECK (obj_indexes(i)[1] == dsk_indexes(i)[1] ); 
-        CHECK (obj_indexes(i)[2] == dsk_indexes(i)[2] ); 
-    }
-    */
     
     // Compare vectors
     CHECK ( obj_mesh.data().get_vector(0)[0] == dsk_mesh.data().get_vector(0)[0] );
     CHECK ( obj_mesh.data().get_vector(0)[1] == dsk_mesh.data().get_vector(0)[1] );
     CHECK ( obj_mesh.data().get_vector(0)[2] == dsk_mesh.data().get_vector(0)[2] );
 
-    CHECK ( obj_mesh.data().get_vector(17)[0] == dsk_mesh.data().get_vector(17)[0] );
-    CHECK ( obj_mesh.data().get_vector(17)[1] == dsk_mesh.data().get_vector(17)[1] );
-    CHECK ( obj_mesh.data().get_vector(17)[2] == dsk_mesh.data().get_vector(17)[2] );
+    CHECK ( obj_mesh.data().get_vector(10)[0] == dsk_mesh.data().get_vector(10)[0] );
+    CHECK ( obj_mesh.data().get_vector(10)[1] == dsk_mesh.data().get_vector(10)[1] );
+    CHECK ( obj_mesh.data().get_vector(10)[2] == dsk_mesh.data().get_vector(10)[2] );
 
-    CHECK ( obj_mesh.data().get_vector(35)[0] == dsk_mesh.data().get_vector(35)[0] );
-    CHECK ( obj_mesh.data().get_vector(35)[1] == dsk_mesh.data().get_vector(35)[1] );
-    CHECK ( obj_mesh.data().get_vector(35)[2] == dsk_mesh.data().get_vector(35)[2] );
-    /*
-    for (int j = 0; j < obj_vectors.size(); j++) {
-        INFO( "Vector: " << j );
-        CHECK ( obj_vectors(j)[0] == dsk_vectors(j)[0] );
-        CHECK ( obj_vectors(j)[1] == dsk_vectors(j)[1] );
-        CHECK ( obj_vectors(j)[2] == dsk_vectors(j)[2] );
-    }
-    */
+    CHECK ( obj_mesh.data().get_vector(19)[0] == dsk_mesh.data().get_vector(19)[0] );
+    CHECK ( obj_mesh.data().get_vector(19)[1] == dsk_mesh.data().get_vector(19)[1] );
+    CHECK ( obj_mesh.data().get_vector(19)[2] == dsk_mesh.data().get_vector(19)[2] );
 
     // ...part of the fixture destructor!
     CHECK_NOTHROW ( naif::DskKernelModel::reset_dsk_system() ); // Reset/Initialize the kernel system

@@ -263,6 +263,7 @@ namespace psmrts {
           for ( size_t i = 0 ; i < bt_vector_map.size() ; i++ ) {
             auto iVec = bt_vector_map( i );
             out_vectors( i ) = vector_type( { iVec[0], iVec[1], iVec[2] } );
+            //std::cout << i << ": " << iVec[0] << ", " << iVec[1] << ", " << iVec[2] << std::endl;
           }
 
           return ( out_vectors );
@@ -283,12 +284,13 @@ namespace psmrts {
               size_t fv3 = std::min( size_t( 3 ), fv );
               size_t v_ndxs[3] = { 0, 0, 0 };
               for (size_t v = 0; v < fv3 ; v++) {  
-                size_t v_index = ( 3 * size_t( shape.mesh.indices[index_offset + v].vertex_index ) );
+                size_t v_index = ( size_t( shape.mesh.indices[index_offset + v].vertex_index ) ); // 3 * size_t
                 v_ndxs[v] = v_index;
               }
 
               // Set the ondx facet index
               out_indexes( ondx++ ) = vector_type( { v_ndxs[0], v_ndxs[1], v_ndxs[2] } );
+              //std::cout << ondx << ": " << v_ndxs[0] << ", " << v_ndxs[1] << ", " << v_ndxs[2] << std::endl;
               index_offset += fv;
             }
           }

@@ -69,8 +69,7 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Text OBJ Load", "[format][obj][shape][text]
 // Test export of get_indexes() and get_vector() match with contents of *shape().
 TEST_CASE ( "OBJ FORMAT Asset Test - Data Export Tests", "[format][obj][shape][bennu][export]" ) {
     std::string file = psmrts_formats_path( "obj/data/bennu_20facets.obj" );
-    // dont use dsk, look at obj file and direct compare first, middle, last
-    // directly compare to file
+    
     psmrts::PsmrtsOBJAsset t_loader( file );
     CHECK_NOTHROW( t_loader.check_obj_errors() ); 
     CHECK( t_loader.isValid()           == true );
@@ -82,30 +81,29 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Data Export Tests", "[format][obj][shape][b
     auto obj_indexes = t_loader.get_indexes<int>();
     auto obj_vectors = t_loader.get_vectors<double>(); 
 
-    CHECK ( obj_indexes(1)[0] == 21 );
-    CHECK ( obj_indexes(1)[1] == 3 );
-    CHECK ( obj_indexes(1)[2] == 2 );
+    CHECK ( obj_indexes(0)[0] == 18 );
+    CHECK ( obj_indexes(0)[1] == 2 );
+    CHECK ( obj_indexes(0)[2] == 1 );
 
-    CHECK ( obj_indexes(17)[0] == 1 );
-    CHECK ( obj_indexes(17)[1] == 1 );
+    CHECK ( obj_indexes(17)[0] == 13 );
+    CHECK ( obj_indexes(17)[1] == 6 );
     CHECK ( obj_indexes(17)[2] == 1 );
     
-    CHECK ( obj_indexes(35)[0] == 1 );
-    CHECK ( obj_indexes(35)[1] == 1 );
-    CHECK ( obj_indexes(35)[2] == 1 );
+    CHECK ( obj_indexes(35)[0] == 18 );
+    CHECK ( obj_indexes(35)[1] == 11 );
+    CHECK ( obj_indexes(35)[2] == 10 );
+    
+    CHECK ( obj_vectors(0)[0] == -0.1634276539482 );
+    CHECK ( obj_vectors(0)[1] == -0.1634276539482 );
+    CHECK ( obj_vectors(0)[2] ==  0.1634276539482 );
 
-    CHECK ( obj_vectors(1)[0] == 1 );
-    CHECK ( obj_vectors(1)[1] == 1 );
-    CHECK ( obj_vectors(1)[2] == 1 );
+    CHECK ( obj_vectors(9)[0] == 0.0 );
+    CHECK ( obj_vectors(9)[1] == -0.2644314943232 );
+    CHECK ( obj_vectors(9)[2] == -0.1010038565354 );
 
-    CHECK ( obj_vectors(18)[0] == 1 );
-    CHECK ( obj_vectors(18)[1] == 1 );
-    CHECK ( obj_vectors(18)[2] == 1 );
-
-    CHECK ( obj_vectors(35)[0] == 1 );
-    CHECK ( obj_vectors(35)[1] == 1 );
-    CHECK ( obj_vectors(35)[2] == 1 );
-
+    CHECK ( obj_vectors(19)[0] == -0.1634276539482 );
+    CHECK ( obj_vectors(19)[1] == -0.1634276539482 );
+    CHECK ( obj_vectors(19)[2] == -0.1634276539482 );
 }
 
 
