@@ -52,10 +52,6 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Text OBJ Load", "[format][obj][shape][text]
     CHECK( t_loader.check_obj_errors( "*** PsmrtsOBJAsset::Bad String", DoNotThrowFlag ) );
     CHECK_NOTHROW( t_loader.check_obj_errors() );
 
-    // Test contents with string objtext contents. Use get_indexes() and get_vectors().
-    const bool NotImplemented = true;
-    //REQUIRE( false == NotImplemented );  // Remove when implemented
-
     auto obj_indexes = t_loader.get_indexes<int>();
     auto obj_vectors = t_loader.get_vectors<double>(); 
 
@@ -74,13 +70,10 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Data Export Tests", "[format][obj][shape][b
     CHECK_NOTHROW( t_loader.check_obj_errors() ); 
     CHECK( t_loader.isValid()           == true );
 
-    // Test content of get_indexes() and get_vectors() directly with sources in *shape().
-    const bool NotImplemented = true;
-    // REQUIRE( false == NotImplemented );  // Remove when implemented
-
     auto obj_indexes = t_loader.get_indexes<int>();
     auto obj_vectors = t_loader.get_vectors<double>(); 
 
+    // Index Comparisons
     CHECK ( obj_indexes(0)[0] == 18 );
     CHECK ( obj_indexes(0)[1] == 2 );
     CHECK ( obj_indexes(0)[2] == 1 );
@@ -93,6 +86,7 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Data Export Tests", "[format][obj][shape][b
     CHECK ( obj_indexes(35)[1] == 11 );
     CHECK ( obj_indexes(35)[2] == 10 );
     
+    // Vector Comparisons
     CHECK ( obj_vectors(0)[0] == -0.1634276539482 );
     CHECK ( obj_vectors(0)[1] == -0.1634276539482 );
     CHECK ( obj_vectors(0)[2] ==  0.1634276539482 );
@@ -104,6 +98,26 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Data Export Tests", "[format][obj][shape][b
     CHECK ( obj_vectors(19)[0] == -0.1634276539482 );
     CHECK ( obj_vectors(19)[1] == -0.1634276539482 );
     CHECK ( obj_vectors(19)[2] == -0.1634276539482 );
+}
+
+TEST_CASE ( "OBJ FORMAT Asset Test - OBJ / DSK Vector Comparison Test", "[format][obj][dsk][vectors]") {
+    auto tolerance = 1.0e-12;
+
+    std::string objfile = psmrts_formats_path( "obj/data/bennu_20facets.obj" );
+    std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds");
+    
+    psmrts::PsmrtsOBJAsset t_loader( objfile );
+    naif::DskKernelModel dsk( dskfile );
+    
+    auto obj_floats = t_loader.get_vectors<float>();
+    auto dsk_floats = dsk.load_facet_vectors();
+    float vector_sum = 0;
+
+    for (int i = 0; i < obj_floats.size(); i++ ) {
+        vector_sum += fabs(obj_floats(i)[0] - float(dsk_floats(i)[0]) ) + fabs(obj_floats(i)[1] - float(dsk_floats(i)[1]) ) + fabs(obj_floats(i)[2] - float(dsk_floats(i)[2]) );
+    }
+
+    CHECK_THAT ( vector_sum, Catch::Matchers::WithinAbs(0.0, tolerance) );
 }
 
 

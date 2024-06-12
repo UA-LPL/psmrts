@@ -114,10 +114,6 @@ TEST_CASE ( "Bullet Mesh Map OBJ/DSK Comparison - Bullet == NaifDSK ", "[bullet]
     CHECK( segment.n_plates() == t_loader.nIndexes() );
     CHECK( segment.n_vertices() == t_loader.nVertexes() );
 
-    // Complete tests below...
-    const bool NotImplemented = true;
-    // REQUIRE( false == NotImplemented );  // Remove when implemented
-
     auto obj_indexes = t_loader.get_indexes<int>();
     auto obj_vectors = t_loader.get_vectors<double>();
     
@@ -154,8 +150,6 @@ TEST_CASE ( "Bullet Mesh Map OBJ/DSK Comparison - Bullet == NaifDSK ", "[bullet]
     CHECK ( obj_mesh.id()                    == 0 );
     CHECK ( dsk_mesh.id()                    == 0 );
     CHECK ( obj_mesh.mesh_type()             == dsk_mesh.mesh_type() );
-    //CHECK ( obj_mesh.mesh()                  == dsk_mesh.mesh() ); Memory locations, data access?
-    //CHECK ( obj_mesh.shape()                 == dsk_mesh.shape() ); Memory locations, data access?
     CHECK ( obj_mesh.data().minimum_radius() == dsk_mesh.data().minimum_radius() ); 
     CHECK ( obj_mesh.data().nvectors()       == dsk_mesh.data().nvectors() );
     CHECK ( obj_mesh.data().nfacets()        == dsk_mesh.data().nfacets() );
