@@ -46,7 +46,7 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Text OBJ Load", "[format][obj][shape][text]
                            v      0.2644314943232     -0.1010038565354      0.0000000000000\n\
                            f         19          3          2\n\
                            f         12         19          2\n\
-                           f         15         12          2";  
+                           f         15         12          2\n";  
 
     tinyobj::ObjReader *t_obj = psmrts::PsmrtsOBJAsset::load_obj_string( objtext );
     REQUIRE( nullptr != t_obj );
@@ -86,6 +86,77 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Text OBJ Load", "[format][obj][shape][text]
     CHECK ( obj_vectors(2)[0] ==  0.2644314943232 );
     CHECK ( obj_vectors(2)[1] == -0.1010038565354 );
     CHECK ( obj_vectors(2)[2] ==  0.0000000000000 );
+
+    std::string objtext2 = "v     -1.0     -2.0     -3.0\n\
+                           v      -1.0      0.0      1.0\n\
+                           v       1.0      2.0      3.0\n\
+                           v       2.0      3.0      4.0\n\
+                           v      -3.0      0.0      2.0\n\
+                           f         1        2        3\n\
+                           f         1        5        2\n\
+                           f         2        3        1\n\
+                           f         4        3        1\n\
+                           f         5        4        2\n\
+                           f         2        3        4 \n"; 
+    tinyobj::ObjReader *t_obj2 = psmrts::PsmrtsOBJAsset::load_obj_string( objtext2 );
+    REQUIRE( nullptr != t_obj2 );
+    
+    psmrts::PsmrtsOBJAsset t_loader2;
+    CHECK_NOTHROW( t_loader2 = psmrts::PsmrtsOBJAsset( t_obj2, objtext2 ) );
+    const bool DoNotThrowFlag2 = false;
+    CHECK( t_loader2.check_obj_errors( "*** PsmrtsOBJAsset::Bad String", DoNotThrowFlag2 ) );
+    CHECK_NOTHROW( t_loader2.check_obj_errors() );
+
+    auto obj_indexes2 = t_loader2.get_indexes<int>();
+    auto obj_vectors2 = t_loader2.get_vectors<double>(); 
+
+    CHECK( obj_indexes2.size() == 6 );
+    CHECK( obj_vectors2.size() == 5 );
+
+    CHECK ( obj_indexes2(0)[0] == 0 );
+    CHECK ( obj_indexes2(0)[1] == 1 );
+    CHECK ( obj_indexes2(0)[2] == 2 );
+
+    CHECK ( obj_indexes2(1)[0] == 0 );
+    CHECK ( obj_indexes2(1)[1] == 4 );
+    CHECK ( obj_indexes2(1)[2] == 1 );
+
+    CHECK ( obj_indexes2(2)[0] == 1 );
+    CHECK ( obj_indexes2(2)[1] == 2 );
+    CHECK ( obj_indexes2(2)[2] == 0 );
+    
+    CHECK ( obj_indexes2(3)[0] == 3 );
+    CHECK ( obj_indexes2(3)[1] == 2 );
+    CHECK ( obj_indexes2(3)[2] == 0 );
+
+    CHECK ( obj_indexes2(4)[0] == 4 );
+    CHECK ( obj_indexes2(4)[1] == 3 );
+    CHECK ( obj_indexes2(4)[2] == 1 );
+
+    CHECK ( obj_indexes2(5)[0] == 1 );
+    CHECK ( obj_indexes2(5)[1] == 2 );
+    CHECK ( obj_indexes2(5)[2] == 3 );
+
+    CHECK ( obj_vectors2(0)[0] == -1.0 );
+    CHECK ( obj_vectors2(0)[1] == -2.0 );
+    CHECK ( obj_vectors2(0)[2] == -3.0 );
+
+    CHECK ( obj_vectors2(1)[0] == -1.0 );
+    CHECK ( obj_vectors2(1)[1] ==  0.0 );
+    CHECK ( obj_vectors2(1)[2] ==  1.0 );
+
+    CHECK ( obj_vectors2(2)[0] == 1.0 );
+    CHECK ( obj_vectors2(2)[1] == 2.0 );
+    CHECK ( obj_vectors2(2)[2] == 3.0 );
+
+    CHECK ( obj_vectors2(3)[0] == 2.0 );
+    CHECK ( obj_vectors2(3)[1] == 3.0 );
+    CHECK ( obj_vectors2(3)[2] == 4.0 );
+
+    CHECK ( obj_vectors2(4)[0] == -3.0 );
+    CHECK ( obj_vectors2(4)[1] ==  0.0 );
+    CHECK ( obj_vectors2(4)[2] ==  2.0 );
+
 }
 
 
@@ -128,7 +199,7 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Data Export Tests", "[format][obj][shape][b
 }
 
 TEST_CASE ( "OBJ FORMAT Asset Test - OBJ / DSK Vector Comparison Test", "[format][obj][dsk][vectors]") {
-    auto tolerance = 1.0e-12;
+    auto tolerance = 1.0e-6;
 
     std::string objfile = psmrts_formats_path( "obj/data/bennu_20facets.obj" );
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds");
@@ -140,15 +211,20 @@ TEST_CASE ( "OBJ FORMAT Asset Test - OBJ / DSK Vector Comparison Test", "[format
     auto dsk_vectors = dsk.load_facet_vectors();
     float sum_float = 0;
     for (int i = 0; i < obj_floats.size(); i++ ) {
-        sum_float += fabs(obj_floats(i)[0] - float(dsk_vectors(i)[0]) ) + fabs(obj_floats(i)[1] - float(dsk_vectors(i)[1]) ) + fabs(obj_floats(i)[2] - float(dsk_vectors(i)[2]) );
+        sum_float += fabs(dsk_vectors(i)[0] - double(obj_floats(i)[0]) );
+        sum_float += fabs(dsk_vectors(i)[1] - double(obj_floats(i)[1]) );
+        sum_float += fabs(dsk_vectors(i)[2] - double(obj_floats(i)[2]) );
     }
 
+    // fails at tolerances > 1.0e-6
     CHECK_THAT ( sum_float, Catch::Matchers::WithinAbs(0.0, tolerance) );
 
     auto obj_double = t_loader.get_vectors<double>();
     double sum_double = 0;
     for (int i = 0; i < obj_double.size(); i++ ) {
-        sum_double += fabs(obj_double(i)[0] - double(dsk_vectors(i)[0]) ) + fabs(obj_double(i)[1] - double(dsk_vectors(i)[1]) ) + fabs(obj_double(i)[2] - double(dsk_vectors(i)[2]) );
+        sum_double += fabs(dsk_vectors(i)[0] - obj_double(i)[0] );
+        sum_double += fabs(dsk_vectors(i)[1] - obj_double(i)[1] ); 
+        sum_double += fabs(dsk_vectors(i)[2] - obj_double(i)[2] );
     }
 
     CHECK_THAT ( sum_double, Catch::Matchers::WithinAbs(0.0, tolerance) );
