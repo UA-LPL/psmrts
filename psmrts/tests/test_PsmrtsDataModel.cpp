@@ -4,6 +4,7 @@
 #define PSMRTS_BOUNDS_CHECK 1
 #include <PsmrtsDataModel.hpp>
 
+
 TEST_CASE( "PsmrtsDataModel Default Test", "[datamodel][buffer][default]") {
 
   psmrts::PsmrtsDataModel<> p_model  = psmrts::PsmrtsDataModel<>();
@@ -247,4 +248,21 @@ TEST_CASE( "PsmrtsDataModel (double) Data Values Test", "[datamodel][buffer][dou
 
   CHECK_THROWS( p_model_c(3) );
   CHECK_THROWS ( p_model_c.at(3) );
+}
+
+
+TEST_CASE( "PsmrtsDataModel Slice / Deep Copy Test", "[datamodel][buffer][slice][copy]") {
+    
+  typedef psmrts::PsmrtsDataModel<int> ObjIndexData;
+
+  const size_t n_data = 10;
+  auto p_model  = ObjIndexData( n_data );
+  auto p_copy = p_model.deep_copy();
+
+  CHECK( &p_model != &p_copy );
+
+  auto p_slice = p_model.slice(2, 8);
+
+  CHECK ( p_model.size() != p_slice.size());
+  
 }
