@@ -259,10 +259,13 @@ TEST_CASE( "PsmrtsDataModel Slice / Deep Copy Test", "[datamodel][buffer][slice]
   auto p_model  = ObjIndexData( n_data );
   auto p_copy = p_model.deep_copy();
 
-  CHECK( &p_model != &p_copy );
-
+  CHECK ( &p_model != &p_copy );
+  CHECK ( p_model.at(0) == p_copy.at(0) );
+  CHECK ( p_model.at(9) == p_copy.at(9) );
+  
   auto p_slice = p_model.slice(2, 8);
 
-  CHECK ( p_model.size() != p_slice.size());
+  CHECK ( p_model.size() != p_slice.size() );
+  CHECK ( p_model.at(2) == p_slice.at(0) );
   
 }
