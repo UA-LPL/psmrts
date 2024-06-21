@@ -4,15 +4,19 @@
 #include <string>
 #include <memory>
 #include <exception>
+#include <mutex>
 
 #include <Eigen/Geometry>
 
+#include <PsmrtsUtilities.hpp>
 #include <RayTrace.hpp>
 #include <PsmrtsDataModel.hpp>
-#include <PsmrtsBulletMeshMap.hpp>
 
-namespace psmrts {
-  namespace bullet {
+#include <BulletSystemModel.hpp>
+#include <PsmrtsBulletMeshMap.hpp>
+#include <PsmrtsBulletClosestRayCallback.hpp>
+
+namespace psmrts::bullet {
 
   /**
    * @brief PsmrtsBulletWorldModel - general maintainance of the Bullet Ray Tracing System
@@ -21,87 +25,192 @@ namespace psmrts {
    * @history 2024-05-10 Kris J. Becker  Original Version
    */
 
-    class PsmrtsBulletWorldModel {
-      public:
-        /** Default constructor */
-        PsmrtsBulletWorldModel( ) {
-          init( );
+  class PsmrtsBulletWorldModel {
+    public:
+
+      /** Default constructor */
+      PsmrtsBulletWorldModel( ) {
+        initWorld( );
+      }
+
+      /** Construct an array of values */
+      PsmrtsBulletWorldModel( const std::string &name ) {
+        initWorld( name );
+      }
+
+      PsmrtsBulletWorldModel( btBvhTriangleMeshShape *mesh, 
+                              const std::string &name,
+                              const void *userptr = nullptr ) {
+        initWorld( name );
+        add_body( mesh, nullptr );
+      }
+
+      /** Destructor - order of destruction is important here */
+      virtual ~PsmrtsBulletWorldModel() { 
+
+        // Order is important!
+        m_bt_object.datum() = BtShapeObject();
+        m_world.reset();
+        m_broadphase.reset();
+        m_dispatcher.reset();
+        m_collision.reset();
+      }
+
+
+      inline bool isValid() const {
+        return ( m_bt_object.datum().isValid() );
+      }
+
+      inline const std::string &name() const {
+        return ( m_name );
+      }
+
+      inline btCollisionObject *add_body( btBvhTriangleMeshShape *shape,
+                                          void *userptr = nullptr ) {
+
+        m_bt_object.datum().m_sbt_shape.reset( shape );
+        m_bt_object.datum().m_sbt_object.reset( new btCollisionObject() );
+
+        m_bt_object.datum().object()->setCollisionShape( m_bt_object.datum().shape() );
+        if ( nullptr != userptr ) {
+          m_bt_object.datum().object()->setUserPointer( userptr );
         }
 
-        /** Construct an array of values */
-        PsmrtsBulletWorldModel( const std::string &name ) {
-          init( );
+        m_world->addCollisionObject( m_bt_object.datum().object() );
+        m_world->updateAabbs();
+
+        return ( m_bt_object.datum().object() );
+      }
+
+      inline btCollisionObject *add_body( btTriangleIndexVertexArray *mesh,
+                                          const bool useCompression = true,
+                                          const bool buildBvh = true,
+                                          void *userptr = nullptr  ) {
+        return ( add_body( new btBvhTriangleMeshShape( mesh, useCompression, buildBvh ), userptr ) );
+      }
+
+
+      inline bool extract_ray_trace_results( const PsmrtsBulletClosestRayCallback &results,
+                                             RayTrace &ray ) const {
+
+        ray.reset( PsmrtsBulletClosestRayCallback::toStdVector( results.observer() ),
+                   PsmrtsBulletClosestRayCallback::toStdVector( results.lookdir()  ) );
+
+        ray.datum().m_hit = results.hasHit();
+        ray.datum().m_xyz = PsmrtsBulletClosestRayCallback::toStdVector( results.xyz() );
+        ray.datum().m_normal = PsmrtsBulletClosestRayCallback::toStdVector( results.normal() );
+
+        ray.datum().m_plateid = results.triangleIndex();
+        ray.datum().m_segment = results.partId();
+
+        return ( ray.hasHit() );
+      }
+
+      inline bool ray_trace( const Eigen::Vector3d &observer, 
+                             const Eigen::Vector3d &lookdir,
+                             RayTrace &ray ) const {
+
+
+        Eigen::Vector3d t_lookdir = observer + ( lookdir.normalized()  * ( observer.norm() * 2.0 ) );
+
+        btVector3 b_observer = PsmrtsBulletClosestRayCallback::toBtVector( observer );
+        btVector3 b_lookdir  = PsmrtsBulletClosestRayCallback::toBtVector( t_lookdir );
+
+        PsmrtsBulletClosestRayCallback results(b_observer, b_lookdir );
+        (void) bullet_ray_trace( observer, t_lookdir, results );
+        return ( extract_ray_trace_results( results, ray ) );
+      }
+
+      inline bool bullet_ray_trace( const Eigen::Vector3d &observer, 
+                                    const Eigen::Vector3d &lookdir,
+                                    PsmrtsBulletClosestRayCallback &results ) const {
+
+        // Lock up Bullet for thread safety ( >=c++17 )
+        btVector3 rayStart( observer[0], observer[1], observer[2] );
+        btVector3 rayEnd( lookdir[0], lookdir[1], lookdir[2] );
+
+        // Check for runtime single thread safety option
+        if ( true == m_thread_safety ) {
+          std::scoped_lock mylocker( m_bt_object.mutex() );
+          m_world->rayTest( rayStart, rayEnd, results);
+        }
+        else {
+          m_world->rayTest( rayStart, rayEnd, results);
         }
 
-        PsmrtsBulletWorldModel( const PsmrtsBulletMeshMap &mesh, 
-                                const std::string &name ) {
-          init( );
-          add_body( mesh );
+        return ( results.hasHit() );
+      }
+
+
+    private:
+      typedef  std::shared_ptr<btCollisionShape>  SharedBulletShape;
+      typedef  std::shared_ptr<btCollisionObject> SharedBulletObject;
+      typedef struct bt_shape_object {
+
+        SharedBulletShape  m_sbt_shape;
+        SharedBulletObject m_sbt_object;
+
+        bt_shape_object() : m_sbt_shape(), m_sbt_object() { }
+        bt_shape_object(btCollisionShape *shape, btCollisionObject *object ) : 
+                        m_sbt_shape( shape ), m_sbt_object( object) { }
+        virtual ~bt_shape_object() { }
+
+        inline bool isValid() const { 
+          return ( m_sbt_shape && m_sbt_object );
         }
 
-        /** Destructor - order of destruction is important here */
-        virtual ~PsmrtsBulletWorldModel() { 
-          m_collision.reset();
-          m_dispatcher.reset();
-          m_broadphase.reset();
-          m_world.reset();
-          m_mutex.reset();
+        inline  btCollisionObject *object() const { 
+          return ( m_sbt_object.get() );
         }
 
-        inline add_body( const PsmrtsBulletShape &shape ) {
-
+        inline  btCollisionShape *shape() const { 
+          return ( m_sbt_shape.get() );
         }
 
+      } BtShapeObject;
 
-        inline bool ray_trace( const Eigen::Vector3d &observer, 
-                                const Eigen::Vector3d &lookdir,
-                                btCollisionWorld::RayResultCallback &results ) const {
 
+      /// Variables for the Bullet system
+      std::string            m_name; /**! The name of the Bullet world. */
+      int                    m_id;   /**! Identifier of the shape */
+
+          // Order of these pointers matter due to destructor behavior!
+      std::shared_ptr<btDefaultCollisionConfiguration> m_collision; /**! The collision
+                                                                            configuration for
+                                                                            the world. */
+      std::shared_ptr<btCollisionDispatcher>           m_dispatcher; /**! The dispatcher for the
+                                                                            world. */
+      std::shared_ptr<btBroadphaseInterface>           m_broadphase; /**! The interface for overlaps
+                                                                            in the world's aabb
+                                                                            acceleration tree. */
+      std::shared_ptr<btCollisionWorld>                m_world; /**! The Bullet collision world that
+                                                                        contains the representation of
+                                                                        the body/target. */
+      DatumMutexWrapper<BtShapeObject>                 m_bt_object;     //!< Mutex wrapped shape model
+      bool                                             m_thread_safety; //!< Enable single thread safety
+
+
+        /** Initialize a new Bullet world structure   */
+        void initWorld( const std::string &name = "Body-Fixed-Coordinate-System" ) { 
+
+          m_name = name;   
+
+          m_collision.reset( new btDefaultCollisionConfiguration() );
+          m_dispatcher.reset(new btCollisionDispatcher( m_collision.get() ) );
+          m_broadphase.reset( new btDbvtBroadphase() );  // Could also be an AxisSweep
+
+          m_world.reset( new btCollisionWorld( m_dispatcher.get(), 
+                                               m_broadphase.get(), 
+                                               m_collision.get() ) );
+          m_bt_object.datum() = BtShapeObject();
+          m_thread_safety = true;
         }
 
-        inline bool extract_ray_trace( const btCollisionWorld::RayResultCallback &results,
-                                       RayTrace &raytrace ) const {
-
+        inline const btCollisionShape *mesh() const {
+          return ( m_bt_object.datum().shape() );
         }
 
-
-      private:
-        std::deque<PsmrtBulletMeshMap> m_mesh_bodies;
-
-        /// Variables for the Bullet system
-        std::string            m_name; /**! The name of the Bullet world. */
-        int                    m_id;   /**! Identifier of the shape */
-
-            // Order of these pointers matter due to destructor behavior!
-        std::shared_ptr<btDefaultCollisionConfiguration> m_collision; /**! The collision
-                                                                              configuration for
-                                                                              the world. */
-        std::shared_ptr<btCollisionDispatcher>           m_dispatcher; /**! The dispatcher for the
-                                                                              world. */
-        std::shared_ptr<btBroadphaseInterface>           m_broadphase; /**! The interface for overlaps
-                                                                              in the world's aabb
-                                                                              acceleration tree. */
-        std::shared_ptr<btCollisionWorld>                m_world; /**! The Bullet collision world that
-                                                                          contains the representation of
-                                                                          the body/target. */
-        std::shared_ptr<std::mutex>                      m_mutex;     //!< Mutex for thread safety
-
-
-          /** Initialize a new Bullet world structure   */
-          void initWorld(const std::string &name = "Body-Fixed-Coordinate-System") { 
-            m_name = name;   
-            m_collision.reset( new btDefaultCollisionConfiguration() );
-            m_dispatcher.reset(new btCollisionDispatcher( m_collision ) );
-            m_broadphase.reset( new btDbvtBroadphase() );  // Could also be an AxisSweep
-            m_world.reset( new btCollisionWorld( m_dispatcher, 
-                                                 m_broadphase, 
-                                                 m_collision ) );
-            m_mutex.reset( new QMutex() );
-            m_mesh_bodies.clear(); 
-          }
-
-    };
-  }  // namespace bullet  
-}
+  };
+} // namespace psmrts::bullet
 
 #endif // PsmrtsBulletWorldModel_hpp

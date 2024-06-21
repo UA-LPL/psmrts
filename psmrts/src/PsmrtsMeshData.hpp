@@ -37,6 +37,10 @@ namespace psmrts {
   template <typename MeshIndexType, typename MeshVectorType>
     class PsmrtsMeshData {
       public:
+
+        typedef MeshIndexType                                 index_data_type;
+        typedef MeshVectorType                                vector_data_type;
+
         typedef PsmrtsDataModel<MeshIndexType>                MeshIndexData;
         typedef PsmrtsDataModel<MeshVectorType>               MeshVectorData;
 

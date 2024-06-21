@@ -4,17 +4,14 @@
 #include <BulletSystemModel.hpp>
 #include <PsmrtsDataModel.hpp>
 #include <PsmrtsMeshData.hpp>
-#include <PsmrtsBulletMeshMap.hpp>
 #include <PsmrtsOBJAsset.hpp>
+#include <PsmrtsBulletMeshMap.hpp>
 
 #include <DskKernelModel.hpp>
 
 
-typedef psmrts::bullet::BulletInternalMeshModel              BulletMeshModel;
-typedef psmrts::bullet::PsmrtsBulletMeshMap<BulletMeshModel> BulletShape;
-
 TEST_CASE ( "Bullet Mesh Map Test - Default Constructor", "[default][bullet][mesh]" ) {
-    psmrts::bullet::NativeBulletMesh b_map;
+    psmrts::bullet::NativeBulletMeshMap b_map;
 
     CHECK ( b_map.isValid() == false );
     CHECK ( b_map.name() == "BulletMesh" );
@@ -35,11 +32,11 @@ TEST_CASE ( "Bullet Mesh Map Test - Small Dataset", "[bullet][mesh]" ) {
 
     CHECK( indexes.size()   == 36 );
     CHECK( vectors.size()  == 20 );
-    BulletMeshModel bt_data( indexes, vectors );
+    psmrts::bullet::BulletNativeMeshData bt_data( indexes, vectors );
     CHECK( bt_data.nfacets()  ==  36 );
     CHECK( bt_data.nvectors() ==  20 );
 
-    BulletShape bt_mesh( bt_data, objfile, 0, 0  );
+    psmrts::bullet::NativeBulletMeshMap bt_mesh( bt_data, objfile, 0, 0  );
     CHECK ( bt_mesh.isValid() == true );
     CHECK ( bt_mesh.name()    == t_loader.obj_source() );
     CHECK ( bt_mesh.id()      == 0 );
@@ -47,7 +44,9 @@ TEST_CASE ( "Bullet Mesh Map Test - Small Dataset", "[bullet][mesh]" ) {
     CHECK ( bt_mesh.mesh_type() == "Bullet" );
 
     CHECK ( bt_mesh.mesh() != nullptr );
-    CHECK ( bt_mesh.shape() != nullptr );
+
+    std::unique_ptr<btBvhTriangleMeshShape> bt_shape( bt_mesh.create_collision_shape() );
+    CHECK ( bt_shape.get() != nullptr );
 
     REQUIRE( bt_mesh.mesh()      != nullptr );
 
@@ -65,12 +64,12 @@ TEST_CASE ( "Bullet Mesh Map Test - Small Dataset", "[bullet][mesh]" ) {
     CHECK( sizeof( mesh_min ) == sizeof( double ) );
     CHECK( sizeof( mesh_max ) != sizeof( float ) );
 
-    REQUIRE ( bt_mesh.shape() != nullptr );
+    REQUIRE ( bt_shape.get() != nullptr );
 
     btTransform tr;
     tr.setIdentity();
     btVector3 bt_minaabb,bt_maxaabb;
-    bt_mesh.shape()->getAabb(tr,bt_minaabb,bt_maxaabb);
+    bt_shape->getAabb(tr,bt_minaabb,bt_maxaabb);
 
     // There is two tests that fail here. Please check
     // PsmrtsMeshData::init( indexes, vectors ) where the PSMRTS
@@ -131,11 +130,11 @@ TEST_CASE ( "Bullet Mesh Map OBJ/DSK Comparison - Bullet == NaifDSK ", "[bullet]
     CHECK ( obj_vectors.total_allocated() == dsk_vectors.total_allocated() );
 
     // check each value of indexes and vectors individually, not comparing
-    BulletMeshModel obj_data( obj_indexes, obj_vectors );
-    BulletMeshModel dsk_data( dsk_indexes, dsk_vectors );
+    psmrts::bullet::BulletNativeMeshData  obj_data( obj_indexes, obj_vectors );
+    psmrts::bullet::BulletNativeMeshData  dsk_data( dsk_indexes, dsk_vectors );
 
-    BulletShape obj_mesh( obj_data, objfile, 0, 0  );
-    BulletShape dsk_mesh( dsk_data, dskfile, 0, 0  );
+    psmrts::bullet::NativeBulletMeshMap obj_mesh( obj_data, objfile, 0, 0  );
+    psmrts::bullet::NativeBulletMeshMap dsk_mesh( dsk_data, dskfile, 0, 0  );
 
     REQUIRE ( obj_mesh.isValid() == true );
     REQUIRE ( dsk_mesh.isValid() == true );

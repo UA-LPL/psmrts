@@ -19,7 +19,11 @@ TEST_CASE ( "Bullet System Info", "[bullet][system]" ) {
   CHECK( psmrts::bullet::bt_type_code ( f_none ) == PHY_FLOAT );  
 
   int  *i_none = nullptr;
-  CHECK( psmrts::bullet::bt_type_code ( i_none ) == PHY_INTEGER);    
+  CHECK( psmrts::bullet::bt_type_code ( i_none ) == PHY_INTEGER);  
+
+  // This must be double!
+  btScalar *bt_scaler = nullptr;  
+  CHECK( psmrts::bullet::bt_type_code ( bt_scaler ) == PHY_DOUBLE );
 
   CHECK (sizeof( btScalar ) == 8 );
 }
