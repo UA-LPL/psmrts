@@ -33,6 +33,24 @@ release.
 -->
 
 ## TODO
+## [0.0.7] 2024-06-26
+- PsmrtsPriorityTracer.hpp - Add add_tracer() and clear() methods
+- NaifEllipsoidShape.hpp - Add c radius to constructor; Add explicit constructors for sphere, ellipsoid and triaxial ellipsoid; provide shapefile() type;
+- tracers/naifdsk/tests/CmakeLists.txt - add new shape tracer (test_NaifShapeTracerAdapter.cpp) and priority shape tracer (test_PsmrtsPriorityTracer.cpp) tests to CMake configuration
+- test_RayTrace.cpp - Add RayTrace class tests
+- Move the UA/ISIS Bullet code to tracers/bullet/import/src directory
+- DskKernelModel.hpp - Make all indexs into facet vector 0-based index references to be consistent/compliant with other implementations
+- PsmrtsMeshData.hpp - New class and tests to store index and vertex data of a triangular/facet mesh shape model
+- PsmsrtsDataModel.hpp - added buffer segment constructor; added slice() method to produce a segment of the data; new method deep_copy() will create a distinct copy of the data; compute distance() to data origin.
+- PsmrtsOBJAsset.hpp - Class that reads Wavefront OBJ files as double precision 3-vector facet/plate shape model data
+- test_PsmrtsOBJAsset.cpp - Testing of OBJ reader
+- RayTrace.hpp - Add nornal to facet data as it may come from another source
+- psmrts_catch2_environment.hpp - Added path to ./psmrts/formats for testing to load data files
+- CMakeLists.txt - Add ./psmrts/formats directory and testing updates
+- Add Bullet system classes BulletSystemModel.hpp, PsmrtsBulletMeshMap.hpp, PsmrtsBulletAllHitsRayCallback.hpp, PsmrtsBulletWorldModel.hpp and PsmrtsBulletClosestRayCallback.hpp
+- Add Bullet Test infrastructure and implement tests
+- Add initial implementation to support the PLY format
+- Update to version [0.0.7]
 
 ## [0.0.6] 2024-06-06
 - Migrate PSMRTS BitBucket repo to Github

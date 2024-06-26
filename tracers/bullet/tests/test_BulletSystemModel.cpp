@@ -1,11 +1,14 @@
 
 #include <psmrts_catch2_environment.hpp>
 
-#include <PsmrtsBulletMeshMap.hpp>
+#include <BulletSystemModel.hpp>
 #include <PsmrtsOBJAsset.hpp>
 
 
 TEST_CASE ( "Bullet System Info", "[bullet][system]" ) {
+
+  CHECK( MAX_NUM_PARTS_IN_BITS       == 10 );
+
   CHECK( psmrts::bullet::bt_MaxBodyParts()        == 1024 );
   CHECK( psmrts::bullet::bt_MaxTrianglesPerPart() == 2097152 );
 

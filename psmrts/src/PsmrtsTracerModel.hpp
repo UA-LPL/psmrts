@@ -12,16 +12,16 @@
 
 namespace psmrts {
   /**
-   * @brief Abstract interface for ray tracing models
+   * @brief Abstract base class interface for ray tracing models
    * 
    * This abstract class provides a generic interface to ray tracing systems
    * that can be used in the PSMRTS system. These method function declarations
    * defines the minimum set of functions that any PSMRTS-compatible ray
    * tracer must implement.
    * 
-   * Note this class does not attempt to specify constructors as there going
+   * Note this class does not attempt to specify constructors as there's going
    * to be many. Higher level s/w architectures can manage construction and 
-   * usage of models that use this template.
+   * usage of models that use this ABC.
    * 
    * @see PsmrtsShapeTracerAdaptor.hpp
    * 
@@ -75,8 +75,8 @@ namespace psmrts {
        * @return false   If no ray trace intercept was found
        */
       virtual bool ray_trace( const Eigen::Vector3d &observer,
-                             const Eigen::Vector3d &lookdir,
-                             RayTrace &ray ) const = 0;
+                              const Eigen::Vector3d &lookdir,
+                              RayTrace &ray ) const = 0;
 
       /** Clone a copy of this shape tracer model */
       virtual PsmrtsTracerModel *clone() const = 0;
