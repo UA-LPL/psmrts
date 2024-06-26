@@ -18,7 +18,7 @@ To pull a specific branch, use this form:
 1. `git clone -b feature/psmrts-api-first-light https://github.com/UA-LPL/psmrts.git`
 
 #### Configuring the psmrts Development Environment
-Building `PSMRTS` requires the `pkg-config` build utility which may not be available on your system. The MacOS does not ship with `pkg-config` and it must be installed. There are several ways to install `pkg-config` such as using [HomeBrew](https://formulae.brew.sh/formula/pkg-config), Anaconda/Miniconda (`conda install pkg-config`) or from [source](https://gitlab.freedesktop.org/pkg-config/pkg-config).The Conda solution will always require an active Python environment. Linux and Windows systems may provide this as package install or other alternatives.
+Building `PSMRTS` requires the `pkg-config` build utility which may not be available on your system. The MacOS does not ship with `pkg-config` and it must be installed. There are several ways to install `pkg-config` such as using [HomeBrew](https://formulae.brew.sh/formula/pkg-config), Anaconda/Miniconda (`conda install pkg-config`) or from [source](https://gitlab.freedesktop.org/pkg-config/pkg-config). The Conda solution will always require an active Python environment. Linux and Windows systems may provide this as a package install or other alternatives.
 
 For the Mac, it is recommended to install from source as it is a better long term solution.  There is a universal binary install package for the Mac located [here](https://github.com/donmccaughey/pkg-config_pkg/releases/tag/v0.29.2-r4). Simply download the PKG file, click on the package and follow the install instructions.
 

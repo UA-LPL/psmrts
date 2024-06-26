@@ -25,11 +25,19 @@ namespace psmrts {
 
       /** Facet data struture contains the elements defining a single facet */
       typedef struct facet_datum {
+        facet_datum( ) : m_has_facet( false ),
+                         m_indexes( { -1, -1, -1 } ),
+                         m_vector1( { 0.0, 0.0, 0.0 } ),
+                         m_vector2( { 0.0, 0.0, 0.0 } ),
+                         m_vector3( { 0.0, 0.0, 0.0 } ),
+                         m_normal(  { 0.0, 0.0, 0.0 } ) { }
+                       
         bool            m_has_facet;
         Eigen::Vector3i m_indexes;
         Eigen::Vector3d m_vector1;
         Eigen::Vector3d m_vector2;
         Eigen::Vector3d m_vector3;
+        Eigen::Vector3d m_normal;
       } FacetDatum;
 
       /** Fundamental ray trace data structure for a trace result */

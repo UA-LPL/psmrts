@@ -8,10 +8,17 @@ TEST_CASE( "NaifEllipsoidShape Default Test", "[naif][ellipsoid][default]") {
   const double tolerance = 1.0e-6;
 
   naif::NaifEllipsoidShape t_ellipse;
-
+  
   CHECK( t_ellipse.a()            == 1.0 );
   CHECK( t_ellipse.b()            == 1.0 );
   CHECK( t_ellipse.c()            == 1.0 );
+  CHECK( t_ellipse.shapefile() == "UnitSpheroid" );
+
+  naif::NaifEllipsoidShape sphere_ellipse( 1.0 );
+  CHECK (sphere_ellipse.shapefile() == "Spheroid" );
+
+  naif::NaifEllipsoidShape true_ellipse(1.0, 2.0);
+  CHECK ( true_ellipse.shapefile() == "Ellipsoid" );
 
   Eigen::Vector3d radii = t_ellipse.radii();
   CHECK( t_ellipse.a()            == radii[0] );
@@ -109,6 +116,7 @@ TEST_CASE( "NaifEllipsoidShape Maximum/Minimum Radius Test", "[naif][radius]" ) 
   CHECK_THAT ( t_ellipse.a() , Catch::Matchers::WithinAbs(1.0, tolerance));
   CHECK_THAT ( t_ellipse.b() , Catch::Matchers::WithinAbs(2.0, tolerance));
   CHECK_THAT ( t_ellipse.c() , Catch::Matchers::WithinAbs(3.0, tolerance));
+  CHECK ( t_ellipse.shapefile() == "TriaxialEllipsoid" );
 
   CHECK ( t_ellipse.c() == t_ellipse.maximum_radius() );
   CHECK ( t_ellipse.a() == t_ellipse.minimum_radius() );

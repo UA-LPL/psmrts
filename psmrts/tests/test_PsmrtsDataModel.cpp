@@ -4,6 +4,7 @@
 #define PSMRTS_BOUNDS_CHECK 1
 #include <PsmrtsDataModel.hpp>
 
+
 TEST_CASE( "PsmrtsDataModel Default Test", "[datamodel][buffer][default]") {
 
   psmrts::PsmrtsDataModel<> p_model  = psmrts::PsmrtsDataModel<>();
@@ -98,7 +99,7 @@ TEST_CASE( "PsmrtsDataModel Protected API Default Test", "[datamodel][buffer][pr
 
 TEST_CASE( "PsmrtsDataModel (double) Double Test", "[datamodel][buffer][double]") {
 
-  typedef psmrts::PsmrtsDataModel<Eigen::Vector3d> ObjVectorData;
+  typedef psmrts::PsmrtsDataModel<double> ObjVectorData;
 
   const size_t n_data = 100;
   auto p_model  = ObjVectorData( n_data );
@@ -116,11 +117,16 @@ TEST_CASE( "PsmrtsDataModel (double) Double Test", "[datamodel][buffer][double]"
   CHECK_NOTHROW( p_model( 0 ) );
   CHECK_NOTHROW( p_model( n_data - 1 ) );
 
+  CHECK( p_model.distance( 0 ) == 0 );
+  CHECK( p_model.distance( 1 ) == 3 );
+  CHECK( p_model.distance( 10 ) == 30 );
+  CHECK( p_model.distance( n_data - 1 ) == ( ( n_data - 1 ) * p_model.data_size() ) );
+
 }
 
 TEST_CASE( "PsmrtsDataModel (int) Integer Test", "[datamodel][buffer][integer]") {
 
-  typedef psmrts::PsmrtsDataModel<Eigen::Vector3i> ObjIndexData;
+  typedef psmrts::PsmrtsDataModel<int> ObjIndexData;
 
   const size_t n_data = 100;
   auto p_model  = ObjIndexData( n_data );
@@ -143,7 +149,7 @@ TEST_CASE( "PsmrtsDataModel (int) Integer Test", "[datamodel][buffer][integer]")
 
 TEST_CASE( "PsmrtsDataModel (float) Float Test", "[datamodel][buffer][float]") {
 
-  typedef psmrts::PsmrtsDataModel<Eigen::Vector3f> ObjIndexData;
+  typedef psmrts::PsmrtsDataModel<float> ObjIndexData;
 
   const size_t n_data = 100;
   auto p_model  = ObjIndexData( n_data );
@@ -165,7 +171,7 @@ TEST_CASE( "PsmrtsDataModel (float) Float Test", "[datamodel][buffer][float]") {
 
 TEST_CASE( "PsmrtsDataModel (unsigned char) Byte Test", "[datamodel][buffer][byte]") {
 
-  typedef Eigen::Vector<unsigned char, 3>   UCharType;
+  typedef unsigned char  UCharType;
 
   const size_t n_data = 100;
   auto p_model  = psmrts::PsmrtsDataModel<UCharType>( n_data );
@@ -177,7 +183,7 @@ TEST_CASE( "PsmrtsDataModel (unsigned char) Byte Test", "[datamodel][buffer][byt
 
   CHECK( p_model.scalar_size()     == 1 );
   CHECK( p_model.scalar_size()     == sizeof( unsigned char ) );
-  CHECK( p_model.scalar_size()     == sizeof( UCharType::value_type ) );
+  CHECK( p_model.scalar_size()     == sizeof( UCharType) );
   CHECK( p_model.scalar_size()     == sizeof( psmrts::PsmrtsDataModel<UCharType>::value_type) );
 
   CHECK_NOTHROW( p_model.at( 0 ) );
@@ -189,7 +195,7 @@ TEST_CASE( "PsmrtsDataModel (unsigned char) Byte Test", "[datamodel][buffer][byt
 
 TEST_CASE( "PsmrtsDataModel (double) Data Values Test", "[datamodel][buffer][double][values]") {
 
-  typedef psmrts::PsmrtsDataModel<Eigen::Vector3d> ObjVectorData;
+  typedef psmrts::PsmrtsDataModel<double> ObjVectorData;
 
   const size_t n_data = 10;
   auto p_model  = ObjVectorData( n_data );
@@ -212,7 +218,7 @@ TEST_CASE( "PsmrtsDataModel (double) Data Values Test", "[datamodel][buffer][dou
   CHECK( data_0[2] == 3.0 );
   // test at using same process
   
-  ObjVectorData::data_type at_0 = p_model.at( 0 ); 
+  ObjVectorData::vector_type at_0 = p_model.at( 0 ); 
   CHECK( data_0[0] == at_0[0]); 
   CHECK( data_0[1] == at_0[1] ); 
   CHECK( data_0[2] == 3.0 );
@@ -242,4 +248,24 @@ TEST_CASE( "PsmrtsDataModel (double) Data Values Test", "[datamodel][buffer][dou
 
   CHECK_THROWS( p_model_c(3) );
   CHECK_THROWS ( p_model_c.at(3) );
+}
+
+
+TEST_CASE( "PsmrtsDataModel Slice / Deep Copy Test", "[datamodel][buffer][slice][copy]") {
+    
+  typedef psmrts::PsmrtsDataModel<int> ObjIndexData;
+
+  const size_t n_data = 10;
+  auto p_model  = ObjIndexData( n_data );
+  auto p_copy = p_model.deep_copy();
+
+  CHECK ( &p_model != &p_copy );
+  CHECK ( p_model.at(0) == p_copy.at(0) );
+  CHECK ( p_model.at(9) == p_copy.at(9) );
+  
+  auto p_slice = p_model.slice(2, 8);
+
+  CHECK ( p_model.size() != p_slice.size() );
+  CHECK ( p_model.at(2) == p_slice.at(0) );
+  
 }

@@ -28,11 +28,12 @@ set( PSMRTS_DIR          ${CMAKE_SOURCE_DIR}/psmrts )
 set( PSMRTS_TEST_DIR     ${CMAKE_SOURCE_DIR}/psmrts/tests )
 set( PSMRTS_DATA_DIR     ${CMAKE_SOURCE_DIR}/data )
 set( PSMRTS_TRACER_DIR   ${CMAKE_SOURCE_DIR}/tracers )
+set( PSMRTS_FORMAT_DIR   ${CMAKE_SOURCE_DIR}/formats )
 
 set( VERSION_MAJOR 0)
 set( VERSION_MINOR 0)
-set( VERSION_PATCH 6)
-set( VERSION_DATE  "2024-06-06")
+set( VERSION_PATCH 7)
+set( VERSION_DATE  "2024-06-26")
 # set( PSMRTS_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 # Configure the project include files
@@ -41,10 +42,14 @@ configure_file( psmrts_version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/psmrts/src/psmrt
 # Set psmrts source and include directory
 set( PSMRTS_BUILD_DIR    ${CMAKE_BINARY_DIR} )
 add_library(psmrts INTERFACE)
-target_include_directories(psmrts INTERFACE ${PSMRTS_DIR}/src ${PSMRTS_TRACER_DIR}/naifdsk/src )
+target_include_directories(psmrts INTERFACE ${PSMRTS_DIR}/src 
+                                            ${PSMRTS_TRACER_DIR}/naifdsk/src
+                                            ${PSMRTS_TRACER_DIR}/bullet/src
+                                            ${PSMRTS_FORMAT_DIR}/obj/src)
 
 #find_package( spdlog CONFIG REQUIRED )
 find_package( Eigen3 CONFIG REQUIRED )
+find_package( Bullet CONFIG REQUIRED )
 find_library( SPICE_LIB cspice )
 
 # add_executable(psmrts src/psmrts.cpp)
@@ -63,13 +68,15 @@ if( BUILD_TESTING )
     setup_target_for_coverage_gcovr_html(
       NAME coverage
       EXECUTABLE ctest --schedule-random
-      DEPENDENCIES psmrts_test_suite naif_test_suite
+      DEPENDENCIES psmrts_test_suite naif_test_suite bullet_test_suite
       EXCLUDE "build/vcpkg_installed/*"
     )
   endif(BUILD_COVERAGE)
 
   add_subdirectory( psmrts/tests )
   add_subdirectory( tracers/naifdsk/tests )
+  add_subdirectory( tracers/bullet/tests )
+  add_subdirectory( formats/obj/tests )
   enable_testing()
 endif( BUILD_TESTING )
 

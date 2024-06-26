@@ -18,24 +18,32 @@ namespace naif {
       // Constructors
       NaifEllipsoidShape() : m_a_radius( 1.0), 
                              m_b_radius( 1.0 ), 
-                             m_c_radius( 1.0 ) {  }
-      NaifEllipsoidShape( const Eigen::Vector3d &radii ) : m_a_radius( radii[0] ), 
+                             m_c_radius( 1.0 ),
+                             m_body( "UnitSpheroid" ) {  }
+      NaifEllipsoidShape( const Eigen::Vector3d &radii,
+                          const std::string &name = "TriaxialEllipsoid" ) : m_a_radius( radii[0] ), 
                                                           m_b_radius( radii[1] ), 
-                                                          m_c_radius( radii[2] ) { 
+                                                          m_c_radius( radii[2] ),
+                                                          m_body( name ) { 
         validate();
       }
-      NaifEllipsoidShape(const double radius ) : m_a_radius( radius ), 
+      NaifEllipsoidShape(const double radius,
+                         const std::string &name = "Spheroid" ) : m_a_radius( radius ), 
                                                  m_b_radius( radius ), 
-                                                 m_c_radius( radius ) { 
+                                                 m_c_radius( radius ),
+                                                 m_body( name ) { 
         validate();
       }
-      NaifEllipsoidShape(const double &a, const double &c ): m_a_radius( a ), 
+      NaifEllipsoidShape(const double &a, const double &c,
+                         const std::string &name = "Ellipsoid" ): m_a_radius( a ), 
                                                              m_b_radius( a ), 
-                                                             m_c_radius( c ) { 
+                                                             m_c_radius( c ),
+                                                             m_body( name ) { 
         validate();
       }
-      NaifEllipsoidShape(const double &a, const double &b, const double &c ) : 
-                         m_a_radius( a ), m_b_radius( b ), m_c_radius( c ) {  
+      NaifEllipsoidShape(const double &a, const double &b, const double &c,
+                         const std::string &name = "TriaxialEllipsoid" ) : 
+                         m_a_radius( a ), m_b_radius( b ), m_c_radius( c ), m_body( name ) {  
         validate();
       }
 
@@ -57,7 +65,7 @@ namespace naif {
       }      
 
       inline std::string shapefile() const {
-        return ( "ellipsoid" );
+        return ( m_body ); //  Changed from "Ellipsoid" to m_body (changes also reflected above, default = Ellipsoid)
       }
 
       const double &a() const {

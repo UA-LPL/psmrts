@@ -1,6 +1,7 @@
 #ifndef PsmrtsDataModel_hpp
 #define PsmrtsDataModel_hpp
 
+#include <cstddef>
 #include <string>
 #include <memory>
 #include <exception>
@@ -21,14 +22,15 @@ namespace psmrts {
  * @history 2023-12-12 Kris J. Becker  Original Version
  */
 
-  template <typename T = Eigen::Vector3d>
+  template <typename T = double>
     class PsmrtsDataModel {
       public:
-        typedef T                    data_type;
-        typedef typename T::Scalar   value_type;
+        typedef T                                       data_type;
+        typedef typename Eigen::Vector3<data_type>      vector_type;
+        typedef typename vector_type::Scalar            value_type;
 
-        typedef Eigen::Map<T>        data_reference;
-        typedef Eigen::Map<const T>  const_data_reference;
+        typedef typename Eigen::Map<vector_type>        data_reference;
+        typedef typename Eigen::Map<const vector_type>  const_data_reference;
 
         /** Default constructor */
         PsmrtsDataModel() {
@@ -42,11 +44,40 @@ namespace psmrts {
         }
 
         /** User defined map to n_data T values where total_allocated() = ( value_size() * size() )*/
-        PsmrtsDataModel( value_type *data, const size_t n_data ) {
+        PsmrtsDataModel( const value_type *data, const size_t n_data ) {
           init();
           m_data_ptr = data;
           m_t_size = n_data;
           m_volume_size = n_data * data_size();
+        }
+
+        /** Construct a safe slice with no new memory allocation into original data buffer */
+        PsmrtsDataModel( const PsmrtsDataModel &data, 
+                         const size_t start_index, 
+                         const size_t n_data = 0 ) :
+                         m_data( data.m_data ),
+                         m_data_ptr( data.m_data_ptr ),
+                         m_t_size( data.m_t_size ),
+                         m_values_size( data.m_values_size ),
+                         m_volume_size( data.m_volume_size ) {
+
+          // Determine the number of values to map
+          size_t n_values = n_data;
+          if ( 0 == n_values ) n_values = data.size() - start_index;
+
+          // Validate and update map
+          try {
+            data.validate( start_index );
+            data.validate( start_index + n_values - 1 );
+          }
+          catch ( const std::runtime_error &e ) {
+            std::string msg = "Invalid segment into data slice!\n" + std::string( e.what() );
+            throw std::runtime_error( msg );
+          }
+
+          // Ok, it checks out. adjust the required parameters
+          m_data_ptr = data.get_data_ref( start_index );
+          m_t_size = n_values;
         }
 
         /** Destructor */
@@ -74,8 +105,8 @@ namespace psmrts {
 
 
         /** Returns a copy of the T value at the given index */
-        inline T at( const int index ) const {
-          return ( T( get_data_ref( index ) ) );
+        inline vector_type at( const int index ) const {
+          return ( vector_type( get_data_ref( index ) ) );
         }
 
         /** Returns a modifiable reference to data at the give index */
@@ -83,9 +114,45 @@ namespace psmrts {
           return ( data_reference( get_data_ref( index ) ) );
         }
 
+        /** Returns a modifiable reference to data at the give index */
+        inline data_reference ref( const int index ) {
+          return ( data_reference( get_data_ref( index ) ) );
+        }
         /** Returns a const reference to data at the give index */
         inline const_data_reference operator()( const int index ) const {
           return ( const_data_reference( get_data_ref( index ) ) );
+        }
+
+        /** Returns a const reference to data at the give index */
+        inline const_data_reference ref( const int index ) const {
+          return ( const_data_reference( get_data_ref( index ) ) );
+        }
+        /** Extract a slice from the original dataset */
+        inline PsmrtsDataModel slice( const size_t start_index, 
+                                      const size_t n_data = 0 ) const {
+          return ( PsmrtsDataModel( *this, start_index, n_data ) );
+        }
+
+        /** Get a deep copy of the buffer */
+        inline  PsmrtsDataModel deep_copy( ) const {
+          PsmrtsDataModel copy_t( this->size() );
+          for ( size_t n = 0 ; n < this->size() ; n++ ) {
+            copy_t( n ) = (*this)( n );
+          }
+          return ( copy_t );
+        }
+
+        /** Compute distance of index to origin of the dataset in type indexes */
+        inline std::ptrdiff_t distance( const int index ) const {
+          // Must account for virtual mapping
+          const value_type *origin = ( nullptr != m_data.get() ) ? m_data.get() : m_data_ptr;
+
+          // Difference is in sizeof( T::Scalar ), e.g., Eigen::Vector3d::Scalar = double
+          std::ptrdiff_t offset    = this->get_data_ref( index ) - origin;
+
+          // Offset to origin index is [ offset / sizeof( T::size() ) ].
+          // Or [ offset / this->data_size() ].
+          return ( offset );
         }
 
       protected:
@@ -109,7 +176,7 @@ namespace psmrts {
 
         /** Return modifiable memory reference of T at index */
         inline value_type *get_data_ref( const int index ) {
-          return ( m_data_ptr + get_data_index( index ) );
+          return ( const_cast<value_type *> ( m_data_ptr + get_data_index( index ) ) );
         }
 
         /** Return const memory reference of T at index */
@@ -122,7 +189,7 @@ namespace psmrts {
           m_data.reset();
           m_data_ptr    = m_data.get();
 
-          m_values_size = T().size();
+          m_values_size = vector_type().size();
           m_t_size      = 0;
           m_volume_size = 0;
           return;
@@ -154,7 +221,7 @@ namespace psmrts {
 
       private:
         std::shared_ptr<value_type> m_data;        // Data array T scalar values
-        value_type                 *m_data_ptr;   // This will allow for 1-based
+        const value_type           *m_data_ptr;   // This will allow for 1-based
                                                    // and user defined data access
         size_t                      m_values_size; // Number of value_types per T
         size_t                      m_t_size;      // Number of values of T
