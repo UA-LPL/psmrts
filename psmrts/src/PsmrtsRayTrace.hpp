@@ -1,5 +1,5 @@
-#ifndef RayTrace_hpp
-#define RayTrace_hpp
+#ifndef PsmrtsRayTrace_hpp
+#define PsmrtsRayTrace_hpp
 
 #include <cmath>
 #include <string>
@@ -19,7 +19,7 @@ namespace psmrts {
  * 
  * It is mainly use for tessellated plate/facet model based shapes.
  */
-  class RayTrace {
+  class PsmrtsRayTrace {
     public:
 
 
@@ -97,16 +97,16 @@ namespace psmrts {
 
     public:
       // Constructors
-      RayTrace() : m_trace_datum() { }
-      RayTrace( const Eigen::Vector3d &observer, 
-                const Eigen::Vector3d &lookdir ) : 
+      PsmrtsRayTrace() : m_trace_datum() { }
+      PsmrtsRayTrace( const Eigen::Vector3d &observer, 
+                      const Eigen::Vector3d &lookdir ) : 
                 m_trace_datum() { 
         m_trace_datum.m_observer = observer;
         m_trace_datum.m_lookdir  = lookdir;
       }
-      RayTrace(const RayTraceDatum &ray_t ) : m_trace_datum( ray_t ) { }
+      PsmrtsRayTrace(const RayTraceDatum &ray_t ) : m_trace_datum( ray_t ) { }
 
-      virtual ~RayTrace( ) {  }
+      virtual ~PsmrtsRayTrace( ) {  }
 
       /** Returns true if the trace intercepted the target, false if no intersection */
       inline bool hasHit() const {
@@ -149,7 +149,7 @@ namespace psmrts {
       }
 
       /** Compute the distance between to surface ray trace intercepts */
-      inline double distance( const RayTrace &other ) const {
+      inline double distance( const PsmrtsRayTrace &other ) const {
         return ( ( xyz() - other.xyz() ).norm() );
       }
 
@@ -180,7 +180,7 @@ namespace psmrts {
       }
 
       /** Determines if two surface intercept points are sufficiently near one another */
-      inline bool isNear( const RayTrace &other,
+      inline bool isNear( const PsmrtsRayTrace &other,
                           const double tolerance_km = 1.0e-3 ) const {
         if ( !hasHit() )       { return ( false );  }
         if ( !other.hasHit() ) { return ( false );  }
@@ -189,7 +189,7 @@ namespace psmrts {
       }
 
       /** Computes the incidence angle (radians) between two traces */
-      inline double incidence( const RayTrace &other,
+      inline double incidence( const PsmrtsRayTrace &other,
                                const double invalid = psmrts::null() ) const {
         if ( !hasHit() )       { return ( invalid );  }
         if ( !other.hasHit() ) { return ( invalid );  }
@@ -204,7 +204,7 @@ namespace psmrts {
       }
 
       /** Compute the phase angle from a surface point (lookdirs) to two observer positions */
-      inline double phase( const RayTrace &other,
+      inline double phase( const PsmrtsRayTrace &other,
                            const double invalid = null() ) const {
         if ( !hasHit() )       { return ( invalid );  }
         if ( !other.hasHit() ) { return ( invalid );  }

@@ -8,7 +8,7 @@
 
 #include <PsmrtsUtilities.hpp>
 #include <PsmrtsTracerModel.hpp>
-#include <RayTrace.hpp>
+#include <PsmrtsRayTrace.hpp>
 
 namespace psmrts {
 
@@ -63,7 +63,7 @@ namespace psmrts {
 
         virtual bool ray_trace( const Eigen::Vector3d &observer,
                                 const Eigen::Vector3d &lookdir,
-                                RayTrace &ray ) const  {
+                                PsmrtsRayTrace &ray ) const  {
           return ( m_model_pst.ray_trace(  observer, lookdir, ray ) );
         }
 

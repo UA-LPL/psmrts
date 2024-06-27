@@ -4,7 +4,7 @@
 #include <BulletSystemModel.hpp>
 #include <PsmrtsDataModel.hpp>
 #include <PsmrtsMeshData.hpp>
-#include <PsmrtsOBJAsset.hpp>
+#include <PsmrtsOBJFormat.hpp>
 #include <PsmrtsBulletMeshMap.hpp>
 #include <PsmrtsBulletWorldModel.hpp>
 
@@ -26,7 +26,7 @@ TEST_CASE( "Bullet Shape Tracer Test", "[bullet][shape][tracer]" ) {
     const double tolerance_km = 1.0e-6;
 
     std::string objfile = psmrts_formats_path( "obj/data/bennu_20facets.obj" );
-    psmrts::PsmrtsOBJAsset t_loader( objfile );
+    psmrts::PsmrtsOBJFormat t_loader( objfile );
     psmrts::bullet::NativeBulletMeshMap  bt_data( t_loader );
     psmrts::bullet::PsmrtsBulletWorldModel bt_world( bt_data.create_collision_shape(), objfile );
     REQUIRE( bt_world.isValid() == true );
@@ -49,7 +49,7 @@ TEST_CASE( "Bullet Shape Tracer Test", "[bullet][shape][tracer]" ) {
     latrec_c ( radius, surf_lon, surf_lat, surf.data() );
 
     // Find the real surface point using bullet
-    psmrts::RayTrace raysurf;
+    psmrts::PsmrtsRayTrace raysurf;
     Eigen::Vector3d surf_obs = surf * 1.5;
     bool got_surf = bt_world.ray_trace( surf_obs, -surf_obs, raysurf );
     REQUIRE( got_surf == true );
@@ -58,7 +58,7 @@ TEST_CASE( "Bullet Shape Tracer Test", "[bullet][shape][tracer]" ) {
     Eigen::Vector3d lkdr = raysurf.xyz() - obs;
 
     // Trace it from observer to surface point to confirm
-    psmrts::RayTrace spt;
+    psmrts::PsmrtsRayTrace spt;
     bool good = bt_world.ray_trace( obs, lkdr, spt );
     
     Eigen::Vector3d normal = spt.normal();

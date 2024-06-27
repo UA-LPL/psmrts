@@ -2,13 +2,13 @@
 #include <psmrts_catch2_environment.hpp>
 #include <NaifEllipsoidShape.hpp>
 #include <DskKernelModel.hpp>
-#include <RayTrace.hpp>
+#include <PsmrtsRayTrace.hpp>
 
 TEST_CASE( "Ray Trace Default Test - Basic Spheroid Ellipse", "[ray][trace]") {
     const double tolerance = 1.0e-10;
 
     naif::NaifEllipsoidShape ellipse(0.5);
-    psmrts::RayTrace ray;
+    psmrts::PsmrtsRayTrace ray;
 
     Eigen::Vector3d obs = {1.0, 1.0, 1.0};
     Eigen::Vector3d surf = {0.0, 0.5, 0.0};
@@ -42,7 +42,7 @@ TEST_CASE( "Ray Trace Default Test - Basic Spheroid Ellipse", "[ray][trace]") {
 
     Eigen::Vector3d surf2 = {0.0, 0.5, 0.1};
     Eigen::Vector3d lkdr2 = -obs + surf2;
-    psmrts::RayTrace ray2;
+    psmrts::PsmrtsRayTrace ray2;
     auto ray_trace2 = ellipse.ray_trace(obs, lkdr2, ray2);
     REQUIRE( ray2.hasHit() == true );
     CHECK_THAT( ray.distance(ray2), Catch::Matchers::WithinAbs( 0.0878260912, tolerance ) );
@@ -64,7 +64,7 @@ TEST_CASE("Ray Trace - Basic DSK Equivalent.", "[ray][trace][dsk]") {
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
     naif::DskKernelModel dsk( dskfile );
     naif::DskSegment segment = dsk.segment();
-    psmrts::RayTrace dsk_ray;
+    psmrts::PsmrtsRayTrace dsk_ray;
 
     Eigen::Vector3d obs;
     double radius = segment.maximum_radius();
@@ -115,7 +115,7 @@ TEST_CASE("Ray Trace - Basic DSK Equivalent.", "[ray][trace][dsk]") {
     latrec_c( radius, surf2_long, surf2_lat, surf2.data() );
 
     Eigen::Vector3d lkdr2 = -obs + surf2;
-    psmrts::RayTrace dsk_ray2;
+    psmrts::PsmrtsRayTrace dsk_ray2;
     auto ray_trace2 = dsk.ray_trace(obs, lkdr2, dsk_ray2);
 
     REQUIRE( dsk_ray2.hasHit() == true );

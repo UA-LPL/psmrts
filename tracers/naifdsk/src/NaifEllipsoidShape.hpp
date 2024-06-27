@@ -7,7 +7,7 @@
 #include <Eigen/Geometry>
 
 #include <NaifUtilities.hpp>
-#include <RayTrace.hpp>
+#include <PsmrtsRayTrace.hpp>
 #include <PsmrtsTracerModel.hpp>
 
 namespace naif {
@@ -119,10 +119,10 @@ namespace naif {
 
       inline bool ray_trace( const Eigen::Vector3d &observer, 
                              const Eigen::Vector3d &lookdir,
-                             psmrts::RayTrace &ray ) const {
+                             psmrts::PsmrtsRayTrace &ray ) const {
 
         ray.reset( observer, lookdir );
-        psmrts::RayTrace::RayTraceDatum &datum_r = ray.datum();
+        psmrts::PsmrtsRayTrace::RayTraceDatum &datum_r = ray.datum();
 
         datum_r.m_hit = this->ray_trace( observer, lookdir, datum_r.m_xyz );
         if ( datum_r.hasHit() ) {

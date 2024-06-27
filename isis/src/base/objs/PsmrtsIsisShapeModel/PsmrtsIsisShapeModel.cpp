@@ -103,7 +103,7 @@ namespace Isis {
 
     this->clearSurfacePoint();
 
-    psmrts::RayTrace raytrace;
+    psmrts::PsmrtsRayTrace raytrace;
     auto v_model_used = this->tracer().ray_trace( Eigen::Vector3d( observerPos.data() ), 
                                                   Eigen::Vector3d( lookDirection.data() ),
                                                   raytrace );
@@ -139,7 +139,7 @@ namespace Isis {
     Eigen::Vector3d observer_pos = this->get_xyz_vector( s_point ) * 2.0;
     Eigen::Vector3d lookdir      = -observer_pos;
 
-    psmrts::RayTrace raytrace;
+    psmrts::PsmrtsRayTrace raytrace;
     auto v_model_used = this->tracer().ray_trace( observer_pos, lookdir, raytrace );
 
     // Not entirely clear if the lon/lat location is the final observer point or is observerPos??
@@ -188,7 +188,7 @@ namespace Isis {
       Eigen::Vector3d observer_pos = this->get_xyz_vector( surfpt ) * 2.0;
       Eigen::Vector3d lookdir      = -observer_pos;  
 
-      psmrts::RayTrace raytrace;
+      psmrts::PsmrtsRayTrace raytrace;
       auto v_model_used = this->tracer().ray_trace( observer_pos, lookdir, raytrace );      
 
       // Update the intersection info
@@ -261,7 +261,7 @@ namespace Isis {
     Eigen::Vector3d observer_pos( observerBodyFixedPosition.data() );
     Eigen::Vector3d obslookdir = this->observer_ray().xyz() - observer_pos;
 
-    double phase = psmrts::RayTrace::separation_angle( this->observer_ray().normal(), -obslookdir );
+    double phase = psmrts::PsmrtsRayTrace::separation_angle( this->observer_ray().normal(), -obslookdir );
 
     return ( psmrts::radians_to_degrees( phase ) );
   }
@@ -286,7 +286,7 @@ namespace Isis {
     Eigen::Vector3d light_source_pos( illuminatorBodyFixedPosition.data() );
     Eigen::Vector3d sunlookdir = this->observer_ray().xyz() - light_source_pos;
 
-    double incidence = psmrts::RayTrace::separation_angle( this->observer_ray().normal(), -sunlookdir );
+    double incidence = psmrts::PsmrtsRayTrace::separation_angle( this->observer_ray().normal(), -sunlookdir );
 
     return ( psmrts::radians_to_degrees( incidence ) );
   }
@@ -315,7 +315,7 @@ namespace Isis {
     Eigen::Vector3d obs_lookdir = this->observer_ray().xyz() - observer_pos;
     Eigen::Vector3d sun_lookdir = this->observer_ray().xyz() - light_source_pos;
 
-    double phase = psmrts::RayTrace::separation_angle( -obs_lookdir, -sun_lookdir );
+    double phase = psmrts::PsmrtsRayTrace::separation_angle( -obs_lookdir, -sun_lookdir );
 
     return ( psmrts::radians_to_degrees( phase ) );
   }
@@ -336,7 +336,7 @@ namespace Isis {
     Eigen::Vector3d observer_pos = this->get_xyz_vector( s_point ) * 2.0;
     Eigen::Vector3d lookdir      = -observer_pos;
 
-    psmrts::RayTrace raytrace;
+    psmrts::PsmrtsRayTrace raytrace;
     this->tracer().ray_trace( observer_pos, lookdir, raytrace );
 
     // If we got a hit, set the radius
@@ -553,9 +553,9 @@ namespace Isis {
    *
    * @return @b bool Indicates whether this shape model found a valid ellipsoid intersection.
    */
-  psmrts::RayTrace PsmrtsIsisShapeModel::run_ellipsoid_trace( const psmrts::RayTrace &ray ) const {
+  psmrts::PsmrtsRayTrace PsmrtsIsisShapeModel::run_ellipsoid_trace( const psmrts::PsmrtsRayTrace &ray ) const {
 
-    psmrts::RayTrace ray_e( ray.observer(), ray.lookdir() );
+    psmrts::PsmrtsRayTrace ray_e( ray.observer(), ray.lookdir() );
     if ( ray.hasHit() ) {
       this->ellipsoid().ray_trace( ray.observer(), ray.lookdir(), ray_e );
     }
@@ -563,7 +563,7 @@ namespace Isis {
     return ( ray_e );
   }
 
-  bool PsmrtsIsisShapeModel::update_target_intersection( const psmrts::RayTrace &raytrace, 
+  bool PsmrtsIsisShapeModel::update_target_intersection( const psmrts::PsmrtsRayTrace &raytrace, 
                                                          const psmrts::PsmrtsTracerModel *model_used,
                                                          const bool activate ) {
 
@@ -585,7 +585,7 @@ namespace Isis {
     return ( raytrace.hasHit() );
   }
 
-  bool PsmrtsIsisShapeModel::update_ellipsoid_intersection( const psmrts::RayTrace &raytrace,
+  bool PsmrtsIsisShapeModel::update_ellipsoid_intersection( const psmrts::PsmrtsRayTrace &raytrace,
                                                             const psmrts::PsmrtsTracerModel *model_used,
                                                             const bool activate ) {
 

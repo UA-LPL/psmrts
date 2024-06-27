@@ -8,7 +8,7 @@
 #include <Eigen/Geometry>
 
 #include <PsmrtsDataModel.hpp>
-#include <RayTrace.hpp>
+#include <PsmrtsRayTrace.hpp>
 
 namespace psmrts {
 
@@ -50,7 +50,7 @@ namespace psmrts {
         typedef typename MeshIndexData::const_data_reference  const_index_reference;
         typedef typename MeshVectorData::const_data_reference const_vector_reference;
 
-        typedef RayTrace::FacetDatum                          MeshFacet;
+        typedef PsmrtsRayTrace::FacetDatum                    MeshFacet;
 
         /** Default constructor */
         PsmrtsMeshData() {

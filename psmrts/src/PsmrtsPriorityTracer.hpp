@@ -9,7 +9,7 @@
 
 #include <Eigen/Geometry>
 #include <PsmrtsUtilities.hpp>
-#include <RayTrace.hpp>
+#include <PsmrtsRayTrace.hpp>
 #include <PsmrtsTracerModel.hpp>
 
 namespace psmrts {
@@ -48,7 +48,7 @@ namespace psmrts {
       
       inline const PsmrtsTracerModel *ray_trace( const Eigen::Vector3d &observer,
                                                  const Eigen::Vector3d &lookdir,
-                                                 RayTrace &ray ) const {
+                                                 PsmrtsRayTrace &ray ) const {
 
         for ( auto const &tracer : tracers() ) {
           if ( tracer->ray_trace( observer, lookdir, ray ) ) {

@@ -5,7 +5,7 @@
 #include <PsmrtsDataModel.hpp>
 
 #include <NaifUtilities.hpp>
-#include <RayTrace.hpp>
+#include <PsmrtsRayTrace.hpp>
 #include <PsmrtsTracerModel.hpp>
 #include <PsmrtsPriorityTracer.hpp>
 #include <PsmrtsShapeTracerAdapter.hpp>
@@ -44,8 +44,8 @@ TEST_CASE( "Naif Priority Tracer Default Test", "[priority][tracer][default]") {
     latrec_c ( radius, surf_long, surf_lat, surf.data() );
 
     Eigen::Vector3d lkdr = surf - obs;
-    psmrts::RayTrace small_spt;
-    psmrts::RayTrace large_spt;
+    psmrts::PsmrtsRayTrace small_spt;
+    psmrts::PsmrtsRayTrace large_spt;
     REQUIRE ( small_ellipsoid->ray_trace(obs, lkdr, small_spt) == true );
     REQUIRE ( large_ellipsoid->ray_trace(obs, lkdr, large_spt) == true );
 
@@ -127,7 +127,7 @@ TEST_CASE( "Priority Tracer Ray Trace Test", "[priority][tracer][dsk][naif]") {
     test_tracers.add_tracer( small_ellipsoid );
     test_tracers.add_tracer( dsk_adaptor );
 
-    psmrts::RayTrace ray;
+    psmrts::PsmrtsRayTrace ray;
 
     auto shape_t = test_tracers.ray_trace(obs, lkdr, ray);
     REQUIRE ( ray.hasHit() == true );
@@ -152,7 +152,7 @@ TEST_CASE( "Priority Tracer Ray Trace Test", "[priority][tracer][dsk][naif]") {
     for ( auto z_value: z_list ) {
         Eigen::Vector3d lkdr = -observer + Eigen::Vector3d({0.0, 0.0, z_value});
 
-        psmrts::RayTrace raytrace;
+        psmrts::PsmrtsRayTrace raytrace;
 
         auto shape_trace = next_tracer.ray_trace(observer, lkdr, raytrace);
         REQUIRE( raytrace.hasHit() == true);
@@ -179,7 +179,7 @@ TEST_CASE( "Priority Tracer Ray Trace Test", "[priority][tracer][dsk][naif]") {
     for ( auto const &z_value: z_list ) {
         Eigen::Vector3d lkdr = -observer + Eigen::Vector3d({0.0, 0.0, z_value});
 
-        psmrts::RayTrace raytrace;
+        psmrts::PsmrtsRayTrace raytrace;
 
         auto shape_trace = next_tracer.ray_trace(observer, lkdr, raytrace);
         REQUIRE( raytrace.hasHit() == true);
@@ -196,7 +196,7 @@ TEST_CASE( "Priority Tracer Ray Trace Test", "[priority][tracer][dsk][naif]") {
     for ( auto const &z_value: z_list ) {
         Eigen::Vector3d lkdr = -observer + Eigen::Vector3d({0.0, 0.0, z_value});
 
-        psmrts::RayTrace raytrace;
+        psmrts::PsmrtsRayTrace raytrace;
 
         auto shape_trace = next_tracer.ray_trace(observer, lkdr, raytrace);
         REQUIRE( raytrace.hasHit() == false);
