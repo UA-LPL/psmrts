@@ -33,6 +33,14 @@ release.
 -->
 
 ## TODO
+
+## [0.0.8] 2024-06-26
+- Big refactor renames several classes
+  - The RayTrace class was renamed to PsmrtsRayTrace. Source and test file contents were changed accordingly
+  - The PsmrtsOBJAsset class was renamed to PsmrtsOBJFormat. Source and test file contents were changed accordingly
+   Some CMakeLists.txt configurations were changed to accomodate renaming of files
+- Update CHANGELOG.md and set version to [0.0.8] 
+
 ## [0.0.7] 2024-06-26
 - PsmrtsPriorityTracer.hpp - Add add_tracer() and clear() methods
 - NaifEllipsoidShape.hpp - Add c radius to constructor; Add explicit constructors for sphere, ellipsoid and triaxial ellipsoid; provide shapefile() type;
