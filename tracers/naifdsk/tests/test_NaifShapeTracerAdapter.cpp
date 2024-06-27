@@ -48,7 +48,7 @@ TEST_CASE ( "NAIF DSK Adapter Test", "[naif][shape][tracer][adapter]") {
     latrec_c( radius, surf_long, surf_lat, surf.data() );
 
     Eigen::Vector3d lkdr = surf - obs;
-    psmrts::RayTrace ray(obs, lkdr);
+    psmrts::PsmrtsRayTrace ray(obs, lkdr);
 
     CHECK ( dsk_adapter->ray_trace(obs, lkdr, ray) == true );
 

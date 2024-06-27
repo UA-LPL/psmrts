@@ -1,5 +1,5 @@
-#ifndef PsmrtsOBJAsset_hpp
-#define PsmrtsOBJAsset_hpp
+#ifndef PsmrtsOBJFormat_hpp
+#define PsmrtsOBJFormat_hpp
 
 #include <string>
 #include <memory>
@@ -10,18 +10,17 @@
 
 #include <PsmrtsDataModel.hpp>
 #include <PsmrtsMeshData.hpp>
-#include <RayTrace.hpp>
 
 // See PsmrtsOBJImplementation.hpp for defining the tinyobj implemantion in your main
 #include "tiny_obj_loader.h"
 namespace psmrts {
   /**
-   * @brief PsmrtsOBJAsset contains tools for OBJ file format I/O
+   * @brief PsmrtsOBJFormat contains tools for OBJ file format I/O
    *
    * @author Kris J. Becker, University of Arizona
    * @history 2024-05-07 Kris J. Becker  Original Version
    */
-  class PsmrtsOBJAsset {
+  class PsmrtsOBJFormat {
     public:
       typedef PsmrtsDataModel<tinyobj::real_t>     ObjVectorData;
       typedef PsmrtsDataModel<int>                 ObjIndexData;
@@ -30,10 +29,10 @@ namespace psmrts {
       typedef  ObjIndexData::vector_type           ObjIndexType;
 
       /** Default constructor */
-      PsmrtsOBJAsset() : m_obj_source(), m_obj_config(), m_obj_reader() { }
+      PsmrtsOBJFormat() : m_obj_source(), m_obj_config(), m_obj_reader() { }
 
       /** Construct an array of values */
-      PsmrtsOBJAsset( const std::string &objfile,
+      PsmrtsOBJFormat( const std::string &objfile,
                       const std::string &mtlpath = ""  ) {
 
         m_obj_source = objfile;
@@ -41,11 +40,11 @@ namespace psmrts {
         m_obj_reader.reset( this->load_obj_file( objfile, m_obj_config ) );
 
         const bool ThrowOnError = true;
-        check_obj_errors( "*** PsmrtsOBJAsset(objfile)", ThrowOnError );
+        check_obj_errors( "*** PsmrtsOBJFormat(objfile)", ThrowOnError );
       }
 
       /** Use this one derived from a string */
-      PsmrtsOBJAsset( tinyobj::ObjReader *obj_reader,
+      PsmrtsOBJFormat( tinyobj::ObjReader *obj_reader,
                       const std::string &source ) {
         
         m_obj_source = source;
@@ -53,11 +52,11 @@ namespace psmrts {
         m_obj_reader.reset( obj_reader );
 
         const bool ThrowOnError = true;
-        check_obj_errors( "*** PsmrtsOBJAsset(ObjReader)", ThrowOnError );
+        check_obj_errors( "*** PsmrtsOBJFormat(ObjReader)", ThrowOnError );
       }      
       
       /** Destructor */
-      virtual ~PsmrtsOBJAsset() { }
+      virtual ~PsmrtsOBJFormat() { }
 
 
       /** Valid if an OBJ reader is allocated and its contents are valid */
@@ -227,7 +226,7 @@ namespace psmrts {
        * @return false        Either an unallocated ObjReader or error
        *                        has occured
        */
-      inline bool check_obj_errors( const std::string &src_id_str = "*** PsmrtsOBJAsset::status",
+      inline bool check_obj_errors( const std::string &src_id_str = "*** PsmrtsOBJFormat::status",
                                     const bool throwOnError = true ) const {
 
         if ( !m_obj_reader ) {
@@ -326,4 +325,4 @@ namespace psmrts {
   };
 }  // namespace psmrts
 
-#endif // PsmrtsOBJAsset_hpp
+#endif // PsmrtsOBJFormat_hpp

@@ -6,7 +6,6 @@
 #include <exception>
 
 #include <Eigen/Geometry>
-#include <RayTrace.hpp>
 
 #include <BulletSystemModel.hpp>
 #include "BulletCollision/NarrowPhaseCollision/btRaycastCallback.h"

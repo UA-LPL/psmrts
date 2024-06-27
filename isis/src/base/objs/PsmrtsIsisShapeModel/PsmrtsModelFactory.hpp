@@ -8,7 +8,7 @@
 #include "PvlGroup.h"
 #include "PvlFlatMap.h"
 
-#include <RayTrace.hpp>
+#include <PsmrtsRayTrace.hpp>
 #include <PsmrtsUtilities.hpp>
 #include <PsmrtsTracerModel.hpp>
 #include <PsmrtsShapeTracerAdapter.hpp>

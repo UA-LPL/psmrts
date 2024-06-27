@@ -5,7 +5,7 @@
 #include <PsmrtsDataModel.hpp>
 
 #include <NaifUtilities.hpp>
-#include <RayTrace.hpp>
+#include <PsmrtsRayTrace.hpp>
 #include <PsmrtsTracerModel.hpp>
 #include <PsmrtsShapeTracerAdapter.hpp>
 #include <NaifEllipsoidShape.hpp>
@@ -41,7 +41,7 @@ TEST_CASE( "Naif Shape Tracer Adapter Default Test", "[naif][shape][tracer][defa
 
     Eigen::Vector3d lkdr = surf - obs;
 
-    psmrts::RayTrace spt;
+    psmrts::PsmrtsRayTrace spt;
 
     bool good = adapt_ellipsoid.ray_trace( obs, lkdr, spt );
     Eigen::Vector3d normal = spt.normal();

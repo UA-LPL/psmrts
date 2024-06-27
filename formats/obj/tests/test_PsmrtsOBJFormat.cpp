@@ -1,14 +1,14 @@
 
 #include <psmrts_catch2_environment.hpp>
 
-#include <PsmrtsOBJAsset.hpp>
+#include <PsmrtsOBJFormat.hpp>
 
 #include <DskKernelModel.hpp>
 
 
-// Test Default constructor for PsmrtsOBJAsset
+// Test Default constructor for PsmrtsOBJFormat
 TEST_CASE ( "OBJ FORMAT Asset Test - Default Constructor", "[format][obj][default]"){
-    psmrts::PsmrtsOBJAsset t_loader;
+    psmrts::PsmrtsOBJFormat t_loader;
 
     CHECK( t_loader.isValid()           == false );
     CHECK( t_loader.obj_source()        == "" );
@@ -21,7 +21,7 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Default Constructor", "[format][obj][defaul
 TEST_CASE ( "OBJ FORMAT Asset Test - Basic Load/Init Tests", "[format][obj][shape][bennu]" ) {
     std::string objfile = psmrts_formats_path( "obj/data/bennu_20facets.obj" );
     
-    psmrts::PsmrtsOBJAsset t_loader( objfile );
+    psmrts::PsmrtsOBJFormat t_loader( objfile );
     CHECK_NOTHROW( t_loader.check_obj_errors() ); 
     CHECK( t_loader.isValid()           == true );
 
@@ -36,7 +36,7 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Basic Load/Init Tests", "[format][obj][shap
 
 TEST_CASE ( "OBJ FORMAT Asset Test - Load Fail Tests", "[format][obj][shape][failures]" ) {
     std::string objfile = psmrts_formats_path( "obj/data/NOT_FOUND.obj" );
-    CHECK_THROWS( psmrts::PsmrtsOBJAsset( objfile ) ); 
+    CHECK_THROWS( psmrts::PsmrtsOBJFormat( objfile ) ); 
 }
 
 // Test loading an OBJ from text
@@ -48,13 +48,13 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Text OBJ Load", "[format][obj][shape][text]
                            f         12         19          2\n\
                            f         15         12          2\n";  
 
-    tinyobj::ObjReader *t_obj = psmrts::PsmrtsOBJAsset::load_obj_string( objtext );
+    tinyobj::ObjReader *t_obj = psmrts::PsmrtsOBJFormat::load_obj_string( objtext );
     REQUIRE( nullptr != t_obj );
     
-    psmrts::PsmrtsOBJAsset t_loader;
-    CHECK_NOTHROW( t_loader = psmrts::PsmrtsOBJAsset( t_obj, objtext ) );
+    psmrts::PsmrtsOBJFormat t_loader;
+    CHECK_NOTHROW( t_loader = psmrts::PsmrtsOBJFormat( t_obj, objtext ) );
     const bool DoNotThrowFlag = false;
-    CHECK( t_loader.check_obj_errors( "*** PsmrtsOBJAsset::Bad String", DoNotThrowFlag ) );
+    CHECK( t_loader.check_obj_errors( "*** PsmrtsOBJFormat::Bad String", DoNotThrowFlag ) );
     CHECK_NOTHROW( t_loader.check_obj_errors() );
 
     auto obj_indexes = t_loader.get_indexes<int>();
@@ -98,13 +98,13 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Text OBJ Load", "[format][obj][shape][text]
                            f         4        3        1\n\
                            f         5        4        2\n\
                            f         2        3        4 \n"; 
-    tinyobj::ObjReader *t_obj2 = psmrts::PsmrtsOBJAsset::load_obj_string( objtext2 );
+    tinyobj::ObjReader *t_obj2 = psmrts::PsmrtsOBJFormat::load_obj_string( objtext2 );
     REQUIRE( nullptr != t_obj2 );
     
-    psmrts::PsmrtsOBJAsset t_loader2;
-    CHECK_NOTHROW( t_loader2 = psmrts::PsmrtsOBJAsset( t_obj2, objtext2 ) );
+    psmrts::PsmrtsOBJFormat t_loader2;
+    CHECK_NOTHROW( t_loader2 = psmrts::PsmrtsOBJFormat( t_obj2, objtext2 ) );
     const bool DoNotThrowFlag2 = false;
-    CHECK( t_loader2.check_obj_errors( "*** PsmrtsOBJAsset::Bad String", DoNotThrowFlag2 ) );
+    CHECK( t_loader2.check_obj_errors( "*** PsmrtsOBJFormat::Bad String", DoNotThrowFlag2 ) );
     CHECK_NOTHROW( t_loader2.check_obj_errors() );
 
     auto obj_indexes2 = t_loader2.get_indexes<int>();
@@ -164,7 +164,7 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Text OBJ Load", "[format][obj][shape][text]
 TEST_CASE ( "OBJ FORMAT Asset Test - Data Export Tests", "[format][obj][shape][bennu][export]" ) {
     std::string file = psmrts_formats_path( "obj/data/bennu_20facets.obj" );
     
-    psmrts::PsmrtsOBJAsset t_loader( file );
+    psmrts::PsmrtsOBJFormat t_loader( file );
     CHECK_NOTHROW( t_loader.check_obj_errors() ); 
     CHECK( t_loader.isValid()           == true );
 
@@ -204,7 +204,7 @@ TEST_CASE ( "OBJ FORMAT Asset Test - OBJ / DSK Vector Comparison Test", "[format
     std::string objfile = psmrts_formats_path( "obj/data/bennu_20facets.obj" );
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds");
     
-    psmrts::PsmrtsOBJAsset t_loader( objfile );
+    psmrts::PsmrtsOBJFormat t_loader( objfile );
     naif::DskKernelModel dsk( dskfile );
     
     auto obj_floats = t_loader.get_vectors<float>();
@@ -236,7 +236,7 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Huge OBJ Tests", "[format][obj][shape][huge
     //std::string objfile = "/opt/isis3/data/osirisrex/kernels/dsk/l_00050mm_alt_ptm_5595n04217_v020.obj";
     std::string objfile = "watermarkRedTest1.obj";
 
-    psmrts::PsmrtsOBJAsset t_loader( objfile );
+    psmrts::PsmrtsOBJFormat t_loader( objfile );
     CHECK_NOTHROW( t_loader.check_obj_errors() ); 
     CHECK( t_loader.isValid()           == true );
 

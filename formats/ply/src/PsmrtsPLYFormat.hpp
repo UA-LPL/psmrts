@@ -10,7 +10,7 @@
 
 #include <PsmrtsDataModel.hpp>
 #include <PsmrtsMeshData.hpp>
-#include <RayTrace.hpp>
+#include <PsmrtsRayTrace.hpp>
 
 #include "tinyply.h"
 

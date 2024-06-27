@@ -9,7 +9,7 @@
 #include <Eigen/Geometry>
 
 #include <PsmrtsUtilities.hpp>
-#include <RayTrace.hpp>
+#include <PsmrtsRayTrace.hpp>
 #include <PsmrtsDataModel.hpp>
 
 #include <BulletSystemModel.hpp>
@@ -91,7 +91,7 @@ namespace psmrts::bullet {
 
 
       inline bool extract_ray_trace_results( const PsmrtsBulletClosestRayCallback &results,
-                                             RayTrace &ray ) const {
+                                             PsmrtsRayTrace &ray ) const {
 
         ray.reset( PsmrtsBulletClosestRayCallback::toStdVector( results.observer() ),
                    PsmrtsBulletClosestRayCallback::toStdVector( results.lookdir()  ) );
@@ -108,7 +108,7 @@ namespace psmrts::bullet {
 
       inline bool ray_trace( const Eigen::Vector3d &observer, 
                              const Eigen::Vector3d &lookdir,
-                             RayTrace &ray ) const {
+                             PsmrtsRayTrace &ray ) const {
 
 
         Eigen::Vector3d t_lookdir = observer + ( lookdir.normalized()  * ( observer.norm() * 2.0 ) );

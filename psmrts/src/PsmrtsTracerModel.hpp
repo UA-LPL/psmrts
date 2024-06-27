@@ -8,7 +8,7 @@
 
 #include <Eigen/Geometry>
 #include <PsmrtsUtilities.hpp>
-#include <RayTrace.hpp>
+#include <PsmrtsRayTrace.hpp>
 
 namespace psmrts {
   /**
@@ -63,20 +63,20 @@ namespace psmrts {
        * from which to trace for an intersection with the shape model
        * surface. 
        * 
-       * The RayTrace class contains the results of the ray trace and can
+       * The PsmrtsRayTrace class contains the results of the ray trace and can
        * be used in subsequent operations.
        * 
        * @param observer Location of the observer (s/c) relative to the
        *                   center of the target body
        * @param lookdir  Look direction of the ray from the observer to
        *                   trace for intersections
-       * @param ray      RayTrace returns the results of the trace
+       * @param ray      PsmrtsRayTrace returns the results of the trace
        * @return true    If the trace intercepts the shape
        * @return false   If no ray trace intercept was found
        */
       virtual bool ray_trace( const Eigen::Vector3d &observer,
                               const Eigen::Vector3d &lookdir,
-                              RayTrace &ray ) const = 0;
+                              PsmrtsRayTrace &ray ) const = 0;
 
       /** Clone a copy of this shape tracer model */
       virtual PsmrtsTracerModel *clone() const = 0;

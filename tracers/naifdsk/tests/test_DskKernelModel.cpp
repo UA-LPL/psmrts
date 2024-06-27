@@ -251,9 +251,8 @@ TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][fac
     // Attempt setting for sun, long 80 / lat 45 but with FAR distance (*100000).
 
     Eigen::Vector3d lkdr = surf - obs;
-    psmrts::RayTrace ray(obs, lkdr);
+    psmrts::PsmrtsRayTrace ray(obs, lkdr);
 
-    // Holds reference to RayTrace structure and updates on write
     CHECK ( dsk.ray_trace(obs, lkdr, ray) == true );
 
     Eigen::Vector3d lkdr_norm = lkdr.normalized();
@@ -275,8 +274,8 @@ TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][fac
     CHECK ( dsk.n_total_plates()   == indexes.size() ); 
     CHECK ( dsk.n_total_vertices() == vectors.size() );
 
-    psmrts::RayTrace::FacetDatum target_facet;
-    psmrts::RayTrace::RayTraceDatum raytrace;
+    psmrts::PsmrtsRayTrace::FacetDatum target_facet;
+    psmrts::PsmrtsRayTrace::RayTraceDatum raytrace;
     
     raytrace.m_hit = true;
     raytrace.m_segment = segment.surfaceid(); 
@@ -307,7 +306,7 @@ TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][fac
 }
 
 
-// Ray Trace, test case -- create new test file for RayTrace: test_RayTrace.cpp
+// Ray Trace, test case -- create new test file for PsmrtsRayTrace:test_PsmrtsRayTrace.cpp
 // has_dsk_shape(file) - returns bool
 // get_dsk_shape(file) - returns a DskKernelModel, use 
 // get_dsk_shape_with_id(file, id) - id = 2101955;

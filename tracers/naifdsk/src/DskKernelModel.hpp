@@ -12,7 +12,7 @@
 #include <PsmrtsUtilities.hpp>
 #include <PsmrtsDataModel.hpp>
 #include <PsmrtsTracerModel.hpp>
-#include <RayTrace.hpp>
+#include <PsmrtsRayTrace.hpp>
 #include <NaifUtilities.hpp>
 #include <DskSegment.hpp>
 #include <KernelFileSystem.hpp>
@@ -222,20 +222,20 @@ namespace naif {
       * @param observer 
       * @param lookdir 
       * @param segment 
-      * @param raytrace 
+      * @param ray
       * @return true 
       * @return false 
       */
       inline bool ray_trace( const Eigen::Vector3d &observer, 
                              const Eigen::Vector3d &lookdir,
                              const DskSegment &segment, 
-                             psmrts::RayTrace &ray ) const {
+                             psmrts::PsmrtsRayTrace &ray ) const {
 
         // Lock up NAIF file I/O for thread safety ( >=c++17 )
         std::scoped_lock mylocker( this->mutex() );
 
         ray.reset( observer, lookdir );
-        psmrts::RayTrace::RayTraceDatum &datum_r = ray.datum();
+        psmrts::PsmrtsRayTrace::RayTraceDatum &datum_r = ray.datum();
         datum_r.m_segment  = segment.id();
 
         SpiceBoolean found;
@@ -266,8 +266,8 @@ namespace naif {
        * @return true 
        * @return false 
        */
-      inline bool get_facet( const psmrts::RayTrace::RayTraceDatum &raytrace,
-                             psmrts::RayTrace::FacetDatum &facet ) const {
+      inline bool get_facet( const psmrts::PsmrtsRayTrace::RayTraceDatum &raytrace,
+                             psmrts::PsmrtsRayTrace::FacetDatum &facet ) const {
                 
         // Sanity check validity of raytrace
         facet.m_has_facet = false;
@@ -316,13 +316,13 @@ namespace naif {
        * 
        * @param observer 
        * @param lookdir 
-       * @param raytrace 
+       * @param ray 
        * @return true 
        * @return false 
        */
       inline bool ray_trace( const Eigen::Vector3d &observer, 
                              const Eigen::Vector3d &lookdir,
-                             psmrts::RayTrace &ray ) const {
+                             psmrts::PsmrtsRayTrace &ray ) const {
 
         for ( auto const &segment : segments() ) {
           bool has_hit = this->ray_trace( observer, lookdir, segment, ray );
