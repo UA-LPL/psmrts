@@ -115,11 +115,11 @@ namespace psmrts {
           return ( index - m_base_index );
         }
 
-        inline Eigen::Vector3d toStdVector( const MeshVectorType &v )  const {
+        inline Eigen::Vector3d toStdVector( const const_vector_reference &v )  const {
           return ( Eigen::Vector3d( { v[0], v[1], v[2] } ) );
         }
 
-        inline Eigen::Vector3i toStdIndex( const MeshIndexType &v )  const {
+        inline Eigen::Vector3i toStdIndex( const const_index_reference &v )  const {
           return ( Eigen::Vector3i( { v[0], v[1], v[2] } ) );
         }
 

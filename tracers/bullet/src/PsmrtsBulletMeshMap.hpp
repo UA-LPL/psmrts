@@ -17,9 +17,9 @@
 namespace psmrts::bullet {
 
   /**! Special definitions of the Bullet configuration */
-  typedef int            BulletNativelIndexType;
+  typedef int            BulletNativeIndexType; // Typo Fix - remove prior to push
   typedef btScalar       BulletNativeVertexType;
-  typedef PsmrtsMeshData<BulletNativelIndexType, BulletNativeVertexType>    BulletNativeMeshData;
+  typedef PsmrtsMeshData<BulletNativeIndexType, BulletNativeVertexType>    BulletNativeMeshData;
 
 /**
  * @brief PsmrtsBulletMeshMap provides a Bullet mesh interface

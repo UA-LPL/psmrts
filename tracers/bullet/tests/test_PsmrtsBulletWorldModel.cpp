@@ -90,3 +90,117 @@ TEST_CASE( "Bullet Shape Tracer Test", "[bullet][shape][tracer]" ) {
     CHECK_THAT( xyz[1], Catch::Matchers::WithinAbs( raysurf.xyz()[1], tolerance_km ) );
     CHECK_THAT( xyz[2], Catch::Matchers::WithinAbs( raysurf.xyz()[2], tolerance_km ) );
 }
+
+TEST_CASE("Bullet-DSK Comparison Test", "[bullet][dsk][raytrace]") {
+    auto tolerance = 1.0e-12;
+
+    std::string objfile = psmrts_formats_path( "obj/data/bennu_20facets.obj" );
+    std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
+
+    psmrts::PsmrtsOBJFormat t_loader( objfile );
+    psmrts::bullet::NativeBulletMeshMap bt_data( t_loader );
+    psmrts::bullet::PsmrtsBulletWorldModel bt_world( bt_data.create_collision_shape(), objfile );
+
+    naif::DskKernelModel dsk( dskfile );
+
+    CHECK ( bt_world.isValid() == true );
+    CHECK ( dsk.isValid() == true );
+
+    double radius( bt_data.data().maximum_radius() ); 
+
+    Eigen::Vector3d obs;
+    double obs_long = 45.0 * rpd_c();
+    double obs_lat = 45.0 * rpd_c();
+    latrec_c ( radius, obs_long, obs_lat, obs.data() );
+    obs = obs * 1.5;
+
+    Eigen::Vector3d surf;
+    double surf_lon = 45.0 * rpd_c();
+    double surf_lat = 50.0 * rpd_c();
+    latrec_c ( radius, surf_lon, surf_lat, surf.data() );
+
+    psmrts::PsmrtsRayTrace raysurf;
+    Eigen::Vector3d surf_obs = surf * 1.5;
+    bt_world.ray_trace(surf_obs, -surf_obs, raysurf );
+
+    Eigen::Vector3d lkdr = raysurf.xyz() - obs;
+
+    psmrts::PsmrtsRayTrace bullet_spt;
+    bt_world.ray_trace( obs, lkdr, bullet_spt ); 
+
+    psmrts::PsmrtsRayTrace dsk_spt; 
+    dsk.ray_trace( obs, lkdr, dsk_spt );
+
+    CHECK ( bullet_spt.hasHit() == true );
+    CHECK ( dsk_spt.hasHit() == true );
+
+    CHECK_THAT( bullet_spt.normal()(0), Catch::Matchers::WithinAbs( dsk_spt.normal()(0), tolerance ));
+    CHECK_THAT( bullet_spt.normal()(1), Catch::Matchers::WithinAbs( dsk_spt.normal()(1), tolerance ));
+    CHECK_THAT( bullet_spt.normal()(2), Catch::Matchers::WithinAbs( dsk_spt.normal()(2), tolerance ));
+
+    CHECK_THAT (bullet_spt.xyz()(0), Catch::Matchers::WithinAbs( dsk_spt.xyz()(0), tolerance ));
+    CHECK_THAT (bullet_spt.xyz()(1), Catch::Matchers::WithinAbs( dsk_spt.xyz()(1), tolerance ));
+    CHECK_THAT (bullet_spt.xyz()(2), Catch::Matchers::WithinAbs( dsk_spt.xyz()(2), tolerance ));
+
+    double bt_lat, bt_lon, bt_radius;
+    reclat_c( bullet_spt.xyz().data(), &bt_radius, &bt_lon, &bt_lat );
+
+    double dsk_lat, dsk_lon, dsk_radius;
+    reclat_c( dsk_spt.xyz().data(), &dsk_radius, &dsk_lon, &dsk_lat );
+
+    CHECK_THAT ( bt_lon, Catch::Matchers::WithinAbs( dsk_lon, tolerance ));
+    CHECK_THAT ( bt_lat, Catch::Matchers::WithinAbs( dsk_lat, tolerance ));
+    CHECK_THAT ( bt_radius, Catch::Matchers::WithinAbs( dsk_radius, tolerance ));
+
+    // facets, indexes, vertices - as compares to the raytrace
+    CHECK ( bullet_spt.plateid() == dsk_spt.plateid() ); // bt=30, dsk=31
+    CHECK ( t_loader.nIndexes() == dsk.n_total_plates() );
+    CHECK ( t_loader.nVertexes() == dsk.n_total_vertices() );
+
+    auto bt_facet = bt_data.data().get_facet(30); // bt_data = NativeBulletMeshMap
+    psmrts::PsmrtsRayTrace::FacetDatum dsk_facet;
+
+    dsk.get_facet(dsk_spt.datum(), dsk_facet);
+
+    CHECK ( bt_facet.m_indexes == dsk_facet.m_indexes );
+  
+    CHECK ( bt_facet.m_vector1[0] == dsk_facet.m_vector1[0] );
+    CHECK ( bt_facet.m_vector1[1] == dsk_facet.m_vector1[1] );
+    CHECK ( bt_facet.m_vector1[2] == dsk_facet.m_vector1[2] );
+
+    CHECK ( bt_facet.m_vector2[0] == dsk_facet.m_vector2[0] );
+    CHECK ( bt_facet.m_vector2[1] == dsk_facet.m_vector2[1] );
+    CHECK ( bt_facet.m_vector2[2] == dsk_facet.m_vector2[2] );
+
+    CHECK ( bt_facet.m_vector3[0] == dsk_facet.m_vector3[0] );
+    CHECK ( bt_facet.m_vector3[1] == dsk_facet.m_vector3[1] );
+    CHECK ( bt_facet.m_vector3[2] == dsk_facet.m_vector3[2] );
+
+    CHECK ( bt_facet.m_normal[0] == dsk_facet.m_normal[0] );
+    CHECK ( bt_facet.m_normal[1] == dsk_facet.m_normal[1] );
+    CHECK ( bt_facet.m_normal[2] == dsk_facet.m_normal[2] );
+
+    psmrts::PsmrtsRayTrace ray;
+
+    // Generate loop
+    naif::DskKernelModel::DskIndexDataModel dsk_facet_index = dsk.load_facet_indexes();
+    naif::DskKernelModel::DskVectorDataModel dsk_facet_vector = dsk.load_facet_vectors();
+
+    for(int i=0; i < dsk_facet_index.size(); i++) {
+        ray.datum().m_hit = true; 
+        ray.datum().m_plateid = i;
+
+        psmrts::PsmrtsRayTrace::FacetDatum dsk_facet;
+        CHECK( dsk.get_facet(ray.datum(), dsk_facet) == true );
+
+        auto bt_facet = bt_data.data().get_facet( ray.plateid() );
+        CHECK ( bt_facet.m_indexes == dsk_facet.m_indexes );
+        CHECK ( bt_facet.m_vector1 == dsk_facet.m_vector1 );
+        CHECK ( bt_facet.m_vector2 == dsk_facet.m_vector2 );
+        CHECK ( bt_facet.m_vector3 == dsk_facet.m_vector3 );
+        CHECK ( bt_facet.m_normal == dsk_facet.m_normal );
+    }
+
+}
+
+

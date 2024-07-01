@@ -304,12 +304,3 @@ TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][fac
     CHECK ( naif::KernelFileSystem::size() == 0 );
 
 }
-
-
-// Ray Trace, test case -- create new test file for PsmrtsRayTrace:test_PsmrtsRayTrace.cpp
-// has_dsk_shape(file) - returns bool
-// get_dsk_shape(file) - returns a DskKernelModel, use 
-// get_dsk_shape_with_id(file, id) - id = 2101955;
-// remove_dsk_shape() should removes from inventory
-// get_dsk_shape_inventory_list()  should be the file, and only one (should be same as size())
-// 

@@ -252,6 +252,8 @@ namespace naif {
                             datum_r.m_plateid, datum_r.m_normal.data() );
             check_naif_errors();
         }
+        // Return to 0-base index.
+        datum_r.m_plateid -= 1;
 
         return ( ray.hasHit() );
       }
@@ -281,10 +283,14 @@ namespace naif {
             // Fetch the indexes of the facet vectors
             SpiceInt n;
             SpiceInt indexes[3];
+
+            // Adding 1 to m_plateid to return to 1-based index, consistent with dsk.
             (void) dskp02_c( kernel().handle(), segment->dladsc_ptr(),
-                             raytrace.m_plateid, 1, &n, ( SpiceInt (*)[3] ) ( indexes ) );
+                             raytrace.m_plateid+1, 1, &n, ( SpiceInt (*)[3] ) ( indexes ) );
             check_naif_errors();
-            facet.m_indexes = { indexes[0], indexes[1], indexes[2] };
+            
+            // Converting back to 0-based for return
+            facet.m_indexes = { indexes[0]-1, indexes[1]-1, indexes[2]-1 };
 
             // Fetch each vector in the facet
             SpiceDouble vector[3];
