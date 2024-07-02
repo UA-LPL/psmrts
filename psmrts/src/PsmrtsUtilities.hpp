@@ -65,6 +65,14 @@ namespace psmrts {
     return ( v1.isApprox( v2, v_tolerance ) );                    
   }
 
+  inline Eigen::Vector3d compute_normal( const Eigen::Vector3d &v1, 
+                                         const Eigen::Vector3d &v2,
+                                         const Eigen::Vector3d &v3 ) {
+    Eigen::Vector3d a = v2 - v1;
+    Eigen::Vector3d b = v3 - v1;
+    return ( a.cross( b ).normalized() );
+  }
+
   /**
    * @brief Constructs a path that is OS sensitive
    * 

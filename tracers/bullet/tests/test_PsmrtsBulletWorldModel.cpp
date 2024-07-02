@@ -132,7 +132,7 @@ TEST_CASE("Bullet-DSK Comparison Test", "[bullet][dsk][raytrace]") {
     dsk.ray_trace( obs, lkdr, dsk_spt );
 
     CHECK ( bullet_spt.hasHit() == true );
-    CHECK ( dsk_spt.hasHit() == true );
+    CHECK ( dsk_spt.hasHit()    == true );
 
     CHECK_THAT( bullet_spt.normal()(0), Catch::Matchers::WithinAbs( dsk_spt.normal()(0), tolerance ));
     CHECK_THAT( bullet_spt.normal()(1), Catch::Matchers::WithinAbs( dsk_spt.normal()(1), tolerance ));
@@ -160,7 +160,7 @@ TEST_CASE("Bullet-DSK Comparison Test", "[bullet][dsk][raytrace]") {
     auto bt_facet = bt_data.data().get_facet(30); // bt_data = NativeBulletMeshMap
     psmrts::PsmrtsRayTrace::FacetDatum dsk_facet;
 
-    dsk.get_facet(dsk_spt.datum(), dsk_facet);
+    CHECK( dsk.get_facet(dsk_spt, dsk_facet) == true );
 
     CHECK ( bt_facet.m_indexes == dsk_facet.m_indexes );
   
@@ -189,9 +189,10 @@ TEST_CASE("Bullet-DSK Comparison Test", "[bullet][dsk][raytrace]") {
     for(int i=0; i < dsk_facet_index.size(); i++) {
         ray.datum().m_hit = true; 
         ray.datum().m_plateid = i;
+        ray.datum().m_segment = dsk_spt.datum().m_segment;
 
         psmrts::PsmrtsRayTrace::FacetDatum dsk_facet;
-        CHECK( dsk.get_facet(ray.datum(), dsk_facet) == true );
+        CHECK( dsk.get_facet(ray, dsk_facet) == true );
 
         auto bt_facet = bt_data.data().get_facet( ray.plateid() );
         CHECK ( bt_facet.m_indexes == dsk_facet.m_indexes );

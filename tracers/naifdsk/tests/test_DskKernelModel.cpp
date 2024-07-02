@@ -275,28 +275,31 @@ TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][fac
     CHECK ( dsk.n_total_vertices() == vectors.size() );
 
     psmrts::PsmrtsRayTrace::FacetDatum target_facet;
-    psmrts::PsmrtsRayTrace::RayTraceDatum raytrace;
+    psmrts::PsmrtsRayTrace  raytrace;
     
-    raytrace.m_hit = true;
-    raytrace.m_segment = segment.surfaceid(); 
-    raytrace.m_plateid = 1;
+    raytrace.datum().m_hit = true;
+    raytrace.datum().m_segment = segment.surfaceid(); 
+    raytrace.datum().m_plateid = 1;
 
     naif::DskKernelModel::DskIndexDataModel::vector_type ones = naif::DskKernelModel::DskIndexDataModel::vector_type::Ones();
     for (int i = 0; i < dsk.n_total_plates(); i++) {
-        raytrace.m_plateid = i+1; 
+        // raytrace.m_plateid = i+1; 
+        raytrace.datum().m_plateid = i; 
         dsk.get_facet( raytrace, target_facet );
-        CHECK ( target_facet.m_has_facet == true ); 
-        if ( target_facet.m_has_facet == false ) {
+        CHECK ( target_facet.isValid() == true ); 
+        if ( target_facet.isValid() == false ) {
             CHECK ( i == -1 ); 
         }
 
         // Exporting of a NAIF DSK segment converts indexes to 0-based array references.
-        naif::DskKernelModel::DskIndexDataModel::vector_type indexes_plus_1 = indexes(i) + ones;
+        // naif::DskKernelModel::DskIndexDataModel::vector_type indexes_plus_1 = indexes(i) - ones;
+        naif::DskKernelModel::DskIndexDataModel::vector_type indexes_plus_1 = indexes(i);
         CHECK ( indexes_plus_1 == target_facet.m_indexes );  
-
+#if 1
         CHECK ( vectors( indexes(i)[0] ) == target_facet.m_vector1 );
         CHECK ( vectors( indexes(i)[1] ) == target_facet.m_vector2 );
         CHECK ( vectors( indexes(i)[2] ) == target_facet.m_vector3 );
+#endif        
     };
 
     CHECK_NOTHROW ( naif::DskKernelModel::reset_dsk_system() ); // Reset/Initialize the kernel system

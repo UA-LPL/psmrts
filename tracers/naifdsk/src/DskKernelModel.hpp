@@ -259,6 +259,31 @@ namespace naif {
       }
 
       /**
+       * @brief Trace a look vector from an observer location in all DSK segments
+       * 
+       * 
+       * @param observer 
+       * @param lookdir 
+       * @param ray 
+       * @return true 
+       * @return false 
+       */
+      virtual bool ray_trace( const Eigen::Vector3d &observer, 
+                              const Eigen::Vector3d &lookdir,
+                              psmrts::PsmrtsRayTrace &ray ) const {
+
+        for ( auto const &segment : segments() ) {
+          bool has_hit = this->ray_trace( observer, lookdir, segment, ray );
+          if ( true == has_hit ) {
+            return ( has_hit );
+          }
+        }
+
+        // No intercept found in any segment
+        return ( false );
+      }
+
+    /**
        * @brief Get the facet for the specified plateid and segment
        * 
        * This method can be used to read a facet from the 
@@ -268,14 +293,14 @@ namespace naif {
        * @return true 
        * @return false 
        */
-      inline bool get_facet( const psmrts::PsmrtsRayTrace::RayTraceDatum &raytrace,
-                             psmrts::PsmrtsRayTrace::FacetDatum &facet ) const {
+      virtual bool get_facet( const psmrts::PsmrtsRayTrace &ray,
+                              psmrts::PsmrtsRayTrace::FacetDatum &facet ) const {
                 
         // Sanity check validity of raytrace
         facet.m_has_facet = false;
-        if ( raytrace.hasHit() ) {
+        if ( ray.hasHit() ) {
 
-          const DskSegment *segment = get_segment_with_id( raytrace.m_segment );
+          const DskSegment *segment = get_segment_with_id( ray.segment_number() );
           if ( nullptr != segment ) {
             // Lock up NAIF file I/O for thread safety ( >=c++17 )
             std::scoped_lock mylocker( this->mutex() );
@@ -286,7 +311,7 @@ namespace naif {
 
             // Adding 1 to m_plateid to return to 1-based index, consistent with dsk.
             (void) dskp02_c( kernel().handle(), segment->dladsc_ptr(),
-                             raytrace.m_plateid+1, 1, &n, ( SpiceInt (*)[3] ) ( indexes ) );
+                             ray.plateid()+1, 1, &n, ( SpiceInt (*)[3] ) ( indexes ) );
             check_naif_errors();
             
             // Converting back to 0-based for return
@@ -309,38 +334,16 @@ namespace naif {
             check_naif_errors();
             facet.m_vector3 = { vector[0], vector[1], vector[2] };
 
+            facet.m_normal = psmrts::compute_normal( facet.m_vector1,
+                                                     facet.m_vector2,
+                                                     facet.m_vector3 );
+
             facet.m_has_facet = true;
           }
         }
 
         return ( facet.m_has_facet );
       }
-
-      /**
-       * @brief Trace a look vector from an observer location in all DSK segments
-       * 
-       * 
-       * @param observer 
-       * @param lookdir 
-       * @param ray 
-       * @return true 
-       * @return false 
-       */
-      inline bool ray_trace( const Eigen::Vector3d &observer, 
-                             const Eigen::Vector3d &lookdir,
-                             psmrts::PsmrtsRayTrace &ray ) const {
-
-        for ( auto const &segment : segments() ) {
-          bool has_hit = this->ray_trace( observer, lookdir, segment, ray );
-          if ( true == has_hit ) {
-            return ( has_hit );
-          }
-        }
-
-        // No intercept found in any segment
-        return ( false );
-      }
-
 
       /**
        * @brief Read all facet plate indexes from a DSK segment

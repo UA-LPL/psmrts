@@ -78,6 +78,17 @@ namespace psmrts {
                               const Eigen::Vector3d &lookdir,
                               PsmrtsRayTrace &ray ) const = 0;
 
+      /**
+       * @brief Get the facet object at the ray intersection
+       * 
+       * @param ray 
+       * @return true 
+       * @return false 
+       */
+      virtual bool get_facet( const PsmrtsRayTrace &ray,
+                              PsmrtsRayTrace::FacetDatum &facet ) const = 0;
+
+
       /** Clone a copy of this shape tracer model */
       virtual PsmrtsTracerModel *clone() const = 0;
 
