@@ -295,11 +295,9 @@ TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][fac
         // naif::DskKernelModel::DskIndexDataModel::vector_type indexes_plus_1 = indexes(i) - ones;
         naif::DskKernelModel::DskIndexDataModel::vector_type indexes_plus_1 = indexes(i);
         CHECK ( indexes_plus_1 == target_facet.m_indexes );  
-#if 1
         CHECK ( vectors( indexes(i)[0] ) == target_facet.m_vector1 );
         CHECK ( vectors( indexes(i)[1] ) == target_facet.m_vector2 );
         CHECK ( vectors( indexes(i)[2] ) == target_facet.m_vector3 );
-#endif        
     };
 
     CHECK_NOTHROW ( naif::DskKernelModel::reset_dsk_system() ); // Reset/Initialize the kernel system
