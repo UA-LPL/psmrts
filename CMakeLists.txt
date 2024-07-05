@@ -48,6 +48,7 @@ target_include_directories(psmrts INTERFACE ${PSMRTS_DIR}/src
                                             ${PSMRTS_FORMAT_DIR}/obj/src)
 
 #find_package( spdlog CONFIG REQUIRED )
+find_package( nlohmann_json CONFIG REQUIRED )
 find_package( Eigen3 CONFIG REQUIRED )
 find_package( Bullet CONFIG REQUIRED )
 find_library( SPICE_LIB cspice )

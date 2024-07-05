@@ -10,12 +10,14 @@ set( CMAKE_INCLUDE_CURRENT_DIR ON )
 # Build all-in-one renderer test application
 add_executable( psmrts_test_suite  psmrts_catch2_main.cpp
                                    test_PsmrtsDataModel.cpp 
-                                   test_PsmrtsUtilities.cpp )
+                                   test_PsmrtsUtilities.cpp 
+                                   test_PsmrtsParameters.cpp )
 
 
 # Add required libraries as needed for psmrts_test_suite
 target_link_libraries( psmrts_test_suite PRIVATE psmrts )
 target_link_libraries( psmrts_test_suite PRIVATE Catch2::Catch2WithMain )
+target_link_libraries( psmrts_test_suite PRIVATE nlohmann_json::nlohmann_json )
 # target_link_libraries( psmrts_test_suite PRIVATE spdlog::spdlog_header_only )
 
 #  Add the tests to the system
