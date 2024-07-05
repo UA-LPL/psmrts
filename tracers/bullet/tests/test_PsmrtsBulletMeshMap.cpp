@@ -1,4 +1,3 @@
-
 #include <psmrts_catch2_environment.hpp>
 
 #include <BulletSystemModel.hpp>
@@ -27,8 +26,8 @@ TEST_CASE ( "Bullet Mesh Map Test - Small Dataset", "[bullet][mesh]" ) {
     CHECK( t_loader.nVertexes() == 20 );
 
     // BulletShape bt_mesh( t_loader );
-    auto indexes =  t_loader.get_indexes<int>();
-    auto vectors = t_loader.get_vectors<double>();
+    auto indexes =  t_loader.get_indexes();
+    auto vectors = t_loader.get_vectors();
 
     CHECK( indexes.size()   == 36 );
     CHECK( vectors.size()  == 20 );
@@ -113,8 +112,8 @@ TEST_CASE ( "Bullet Mesh Map OBJ/DSK Comparison - Bullet == NaifDSK ", "[bullet]
     CHECK( segment.n_plates() == t_loader.nIndexes() );
     CHECK( segment.n_vertices() == t_loader.nVertexes() );
 
-    auto obj_indexes = t_loader.get_indexes<int>();
-    auto obj_vectors = t_loader.get_vectors<double>();
+    auto obj_indexes = t_loader.get_indexes();
+    auto obj_vectors = t_loader.get_vectors();
     
     auto dsk_indexes = dsk.load_facet_indexes(); 
     auto dsk_vectors = dsk.load_facet_vectors();

@@ -74,7 +74,7 @@ namespace psmrts::bullet {
 
         PsmrtsBulletMeshMap( const PsmrtsOBJFormat &obj_t ) {
           init( obj_t.obj_source() );
-          m_mesh_data = MODEL( obj_t.get_indexes<index_data_type>( ), obj_t.get_vectors<vector_data_type>() );
+          m_mesh_data = MODEL( obj_t.get_indexes( ), obj_t.get_vectors() );
           m_bullet_mesh.reset( create_map_mesh( m_mesh_data ) );
           // m_bullet_shape.reset( create_collision_shape( m_bullet_mesh.get() ) );
         }

@@ -1,4 +1,3 @@
-
 #include <psmrts_catch2_environment.hpp>
 
 #include <PsmrtsUtilities.hpp>
