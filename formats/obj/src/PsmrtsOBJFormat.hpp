@@ -8,6 +8,7 @@
 
 #include <Eigen/Geometry>
 
+#include <PsmrtsFormatModel.hpp>
 #include <PsmrtsDataModel.hpp>
 #include <PsmrtsMeshData.hpp>
 
@@ -20,20 +21,30 @@ namespace psmrts {
    * @author Kris J. Becker, University of Arizona
    * @history 2024-05-07 Kris J. Becker  Original Version
    */
-  class PsmrtsOBJFormat {
+  class PsmrtsOBJFormat : public PsmrtsFormatModel {
     public:
-      typedef PsmrtsDataModel<tinyobj::real_t>     ObjVectorData;
-      typedef PsmrtsDataModel<int>                 ObjIndexData;
+      typedef PsmrtsDataModel<tinyobj::real_t>      ObjVectorData;
+      typedef PsmrtsDataModel<int>                  ObjIndexData;
 
-      typedef  ObjVectorData::vector_type          ObjVectorType;
-      typedef  ObjIndexData::vector_type           ObjIndexType;
+      typedef  ObjVectorData::vector_type           ObjVectorType;
+      typedef  ObjIndexData::vector_type            ObjIndexType;
+
+      typedef PsmrtsFormatModel::PsmrtsIndexData    PsmrtsIndexData;
+      typedef PsmrtsFormatModel::PsmrtsVectorData   PsmrtsVectorData;      
 
       /** Default constructor */
-      PsmrtsOBJFormat() : m_obj_source(), m_obj_config(), m_obj_reader() { }
+      PsmrtsOBJFormat() : PsmrtsFormatModel( "obj" ),
+                          m_obj_source(),
+                          m_obj_config(), 
+                          m_obj_reader() { }
 
       /** Construct an array of values */
       PsmrtsOBJFormat( const std::string &objfile,
-                      const std::string &mtlpath = ""  ) {
+                       const std::string &mtlpath = ""  ) : 
+                       PsmrtsFormatModel( "obj" ),
+                       m_obj_source(),
+                       m_obj_config(), 
+                       m_obj_reader() {
 
         m_obj_source = objfile;
         m_obj_config = this->obj_config( mtlpath );
@@ -58,6 +69,9 @@ namespace psmrts {
       /** Destructor */
       virtual ~PsmrtsOBJFormat() { }
 
+      virtual std::string format_model_source() const {
+        return ( obj_source() );
+      }
 
       /** Valid if an OBJ reader is allocated and its contents are valid */
       inline bool isValid() const {
@@ -251,48 +265,57 @@ namespace psmrts {
       } 
 
 
-      template <typename T> 
-        inline PsmrtsDataModel<T> get_vectors(  ) const {
+      inline PsmrtsVectorData get_vectors( ) const {
 
-          typedef typename PsmrtsDataModel<T>::vector_type vector_type;
+        ObjVectorData bt_vector_map( &this->shape()->GetAttrib().vertices[0], this->nVertexes() );
+        PsmrtsVectorData out_vectors( bt_vector_map.size() );
 
-          ObjVectorData bt_vector_map( &this->shape()->GetAttrib().vertices[0], this->nVertexes() );
-          PsmrtsDataModel<T> out_vectors( bt_vector_map.size() );
-
-          for ( size_t i = 0 ; i < bt_vector_map.size() ; i++ ) {
-            auto iVec = bt_vector_map( i );
-            out_vectors( i ) = vector_type( { iVec[0], iVec[1], iVec[2] } );
-          }
-
-          return ( out_vectors );
+        for ( size_t i = 0 ; i < bt_vector_map.size() ; i++ ) {
+          auto iVec = bt_vector_map( i );
+          out_vectors( i ) =  Eigen::Vector3d( { iVec[0], iVec[1], iVec[2] } );
         }
 
-      template <typename T> 
-        inline PsmrtsDataModel<T> get_indexes( ) const {
-          typedef typename PsmrtsDataModel<T>::vector_type vector_type;
+        return ( out_vectors );
+      }
 
-          PsmrtsDataModel<T> out_indexes( this->count_facets() );
+      inline PsmrtsFloatData get_float_vectors( ) const {
 
-          size_t ondx = 0;
-          for ( auto const &shape : m_obj_reader->GetShapes() ) {
-            size_t index_offset = 0;
+        ObjVectorData bt_vector_map( &this->shape()->GetAttrib().vertices[0], this->nVertexes() );
+        PsmrtsFloatData out_vectors( bt_vector_map.size() );
 
-            for ( size_t f = 0 ; f < shape.mesh.num_face_vertices.size() ; f++ ) {
-              size_t fv = size_t( shape.mesh.num_face_vertices[f] );
-              size_t fv3 = std::min( size_t( 3 ), fv );
-              size_t v_ndxs[3] = { 0, 0, 0 };
-              for (size_t v = 0; v < fv3 ; v++) {  
-                size_t v_index = ( size_t( shape.mesh.indices[index_offset + v].vertex_index ) ); // 3 * size_t
-                v_ndxs[v] = v_index;
-              }
+        for ( size_t i = 0 ; i < bt_vector_map.size() ; i++ ) {
+          auto iVec = bt_vector_map( i );
+          out_vectors( i ) = Eigen::Vector3f( { iVec[0], iVec[1], iVec[2] } );
+        }
 
-              // Set the ondx facet index
-              out_indexes( ondx++ ) = vector_type( { v_ndxs[0], v_ndxs[1], v_ndxs[2] } );
-              index_offset += fv;
+        return ( out_vectors );
+      }
+
+
+      inline PsmrtsIndexData get_indexes( ) const {
+
+        PsmrtsIndexData out_indexes( this->count_facets() );
+
+        size_t ondx = 0;
+        for ( auto const &shape : m_obj_reader->GetShapes() ) {
+          size_t index_offset = 0;
+
+          for ( size_t f = 0 ; f < shape.mesh.num_face_vertices.size() ; f++ ) {
+            size_t fv = size_t( shape.mesh.num_face_vertices[f] );
+            size_t fv3 = std::min( size_t( 3 ), fv );
+            size_t v_ndxs[3] = { 0, 0, 0 };
+            for (size_t v = 0; v < fv3 ; v++) {  
+              size_t v_index = ( size_t( shape.mesh.indices[index_offset + v].vertex_index ) ); // 3 * size_t
+              v_ndxs[v] = v_index;
             }
+
+            // Set the ondx facet index
+            out_indexes( ondx++ ) = Eigen::Vector3i( { v_ndxs[0], v_ndxs[1], v_ndxs[2] } );
+            index_offset += fv;
           }
-          return ( out_indexes );
         }
+        return ( out_indexes );
+      }
 
 
     protected:
