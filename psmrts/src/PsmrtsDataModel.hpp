@@ -227,8 +227,12 @@ namespace psmrts {
         size_t                      m_t_size;      // Number of values of T
         size_t                      m_volume_size; // m_values_size * m_t_size
 
-
     };
+
+    typedef PsmrtsDataModel<int>        PsmrtsIntData;
+    typedef PsmrtsDataModel<double>     PsmrtsDoubleData;
+    typedef PsmrtsDataModel<float>      PsmrtsFloatData;
+
 }  // namespace psmrts
 
 #endif // PsmrtsDataModel_hpp

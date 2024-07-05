@@ -305,10 +305,6 @@ namespace psmrts {
         }
     };
 
-    // A few convenient typedef types
-    typedef PsmrtsMeshData<int, double>   PsmrtsDoubleMeshData;
-    typedef PsmrtsMeshData<int, float>    PsmrtsFloatMeshData;
-
 }  // namespace psmrts
 
 #endif // PsmrtsMeshData_hpp
