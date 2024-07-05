@@ -1,4 +1,3 @@
-#define CATCH_CONFIG_MAIN
 #include <psmrts_catch2_environment.hpp>
 
 #define PSMRTS_BOUNDS_CHECK 1
