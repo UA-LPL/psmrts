@@ -1,7 +1,15 @@
 #ifndef PsmrtsUtilities_hpp
 #define PsmrtsUtilities_hpp
 
+#include <algorithm>
 #include <functional>
+#include <exception>
+#include <iterator>
+#include <string>
+#include <locale>
+#include <vector>
+#include <ctime>
+#include <chrono>
 #include <cmath>
 #include <limits>
 #include <mutex>
@@ -11,7 +19,24 @@
 #include <psmrts_version.h>
 namespace psmrts {
 
+  ////--- Timimg functions
+  typedef std::chrono::time_point<std::chrono::steady_clock> SYSTEM_CLOCK_TIME;
+  
+  inline std::time_t current_time() {
+    return ( std::time( nullptr ) );
+  }
 
+  inline SYSTEM_CLOCK_TIME system_clock_time() {
+    return ( SYSTEM_CLOCK_TIME( std::chrono::steady_clock::now() ) );
+  }
+
+  inline double elapsed_clock_time_s( const SYSTEM_CLOCK_TIME &start_time,
+                                      const SYSTEM_CLOCK_TIME &end_time ) {
+    std::chrono::duration<double> runtime_s ( end_time - start_time );
+    return ( runtime_s.count() );
+  }
+
+  ////--- General use functions
   /** Standardize the double NULL value*/
   inline double null() {
     return ( std::numeric_limits<double>::quiet_NaN() );
@@ -73,6 +98,25 @@ namespace psmrts {
     return ( a.cross( b ).normalized() );
   }
 
+
+////---> String utlitities
+
+  inline std::string psmrts_tolower( const std::string &s ) {
+    std::string s_t = s;
+    std::locale locale;
+    auto to_lower = [&locale] (char ch) { return ( std::use_facet<std::ctype<char>>(locale).tolower( ch ) ); };
+    std::transform( s_t.begin(), s_t.end(), s_t.begin(), to_lower );
+    return ( s_t );    
+  }
+
+  inline std::string psmrts_toupper( const std::string &s ) {
+    std::string s_t = s;
+    std::locale locale;
+    auto to_upper = [&locale] (char ch) { return ( std::use_facet<std::ctype<char>>(locale).toupper( ch ) ); };
+    std::transform( s_t.begin(), s_t.end(), s_t.begin(), to_upper );
+    return ( s_t );
+  }
+
   /**
    * @brief Constructs a path that is OS sensitive
    * 
@@ -81,7 +125,7 @@ namespace psmrts {
    * @return std::string The constructed path
    */
   inline std::string psmrts_make_path( const std::string &directory, 
-                                        const std::string &pathpart = "" ) {
+                                       const std::string &pathpart = "" ) {
 
     if ( pathpart.size() == 0 ) {
       return ( directory );
@@ -151,7 +195,7 @@ namespace psmrts {
       private:
         // Needs to be mutable to lock in const methods
         mutable std::shared_ptr<std::mutex> m_mutex;
-        Datum                       m_datum;
+        Datum  m_datum;
 
         /** Fundamental initialization of the object */
         void init( const Datum &datum = Datum() ) {
