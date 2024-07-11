@@ -35,7 +35,11 @@ namespace psmrts {
       virtual std::string tracer_model_type() const = 0;
 
       /** Name of tracer model such as  "naifdsk" and "bullet" */
-      virtual std::string tracer_model_name() const = 0;
+      virtual std::string tracer_model_name() const {
+        std::string shapename = shapefile();
+        if ( shapename.length() == 0 ) shapename = "none";
+        return ( tracer_model_type() + "::" + tracer_model_name() + "::" + shapename );
+      }
 
       /** Unique tracer id of this instance */
       virtual std::string shape_tracer_id()   const = 0;
