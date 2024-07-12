@@ -45,6 +45,7 @@ add_library(psmrts INTERFACE)
 target_include_directories(psmrts INTERFACE ${PSMRTS_DIR}/src 
                                             ${PSMRTS_TRACER_DIR}/naifdsk/src
                                             ${PSMRTS_TRACER_DIR}/bullet/src
+                                            ${PSMRTS_TRACER_DIR}/ellipsoid/src
                                             ${PSMRTS_FORMAT_DIR}/obj/src)
 
 #find_package( spdlog CONFIG REQUIRED )

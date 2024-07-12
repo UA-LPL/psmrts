@@ -145,13 +145,6 @@ namespace naif {
         return ( *this );
       }
 
-#if 0
-
-      inline psmrts::PsmrtsTracerModel *ellipsoid() const {
-        return ( new NaifEllipsoidShape(  ))
-      }
-#endif
-
       /** There are no shared instances */
       inline size_t use_count() const {
         return (0 );
