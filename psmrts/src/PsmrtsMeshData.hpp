@@ -256,12 +256,13 @@ namespace psmrts {
 
           // Set up vectors
           if ( vectors.size() > 0 ) {
-            m_min_axes = vectors.at( 0 );
-            m_max_axes = vectors.at( 0 );
+            vector_type v0 = vectors.at( 0 );
+            m_min_axes = { v0[0], v0[1], v0[2] };
+            m_max_axes = m_min_axes;
 
             // Compute and store current radii
-            m_min_radius = vectors.at( 0 ).norm();
-            m_max_radius = vectors.at( 0 ).norm();
+            m_min_radius = v0.norm();
+            m_max_radius = v0.norm();
 
             for ( size_t ndx = 1 ; ndx < vectors.size() ; ndx++ ) {
               auto v = vectors( ndx );
