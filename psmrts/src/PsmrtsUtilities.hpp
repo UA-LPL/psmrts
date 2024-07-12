@@ -32,9 +32,13 @@ namespace psmrts {
 
   inline double elapsed_clock_time_s( const SYSTEM_CLOCK_TIME &start_time,
                                       const SYSTEM_CLOCK_TIME &end_time ) {
-    std::chrono::duration<double> runtime_s ( end_time - start_time );
-    return ( runtime_s.count() );
+    return ( std::chrono::duration_cast<std::chrono::seconds>( end_time - start_time ).count() );
   }
+
+  inline double elapsed_clock_time_ms( const SYSTEM_CLOCK_TIME &start_time,
+                                       const SYSTEM_CLOCK_TIME &end_time ) {
+    return ( std::chrono::duration_cast<std::chrono::milliseconds>( end_time - start_time ).count() );
+  }  
 
   ////--- General use functions
   /** Standardize the double NULL value*/
