@@ -1,5 +1,5 @@
-#ifndef PsmrtsDataBuffer_hpp
-#define PsmrtsDataBuffer_hpp
+#ifndef PsmrtsBufferData_hpp
+#define PsmrtsBufferData_hpp
 
 #include <cstddef>
 #include <cstdint>
@@ -16,7 +16,7 @@ namespace psmrts {
  * @author Kris J. Becker, University of Arizona
  * @history 2024-07-18 Kris J. Becker  Original Version
  */
-  class PsmrtsDataBuffer {
+  class PsmrtsBufferData {
     public:
       typedef uint8_t                     value_type;
       typedef value_type&                 reference;
@@ -27,18 +27,18 @@ namespace psmrts {
       typedef std::shared_ptr<value_type> shared_pointer_type; 
 
       /** Default constructor */
-      PsmrtsDataBuffer() {
+      PsmrtsBufferData() {
         init();
       }
 
       /** Construct an array of values */
-      PsmrtsDataBuffer( const size_t n_data ) {
+      PsmrtsBufferData( const size_t n_data ) {
         init();
         allocate( n_data );
       }
 
       /** Construct an array of values */
-      PsmrtsDataBuffer( const shared_pointer_type &data, 
+      PsmrtsBufferData( const shared_pointer_type &data, 
                         const size_t n_data ) :
                         m_data( data ), 
                         m_data_ptr( data.get() ),
@@ -47,14 +47,14 @@ namespace psmrts {
 
 
       /** User defined map to n_data T values where total_allocated() = ( value_size() * size() )*/
-      PsmrtsDataBuffer( const value_type *data, const size_t n_data ) {
+      PsmrtsBufferData( const value_type *data, const size_t n_data ) {
         init();
         m_data_ptr = data;
         m_size = n_data;
       }
 
       /** Construct a safe slice with no new memory allocation into original data buffer */
-      PsmrtsDataBuffer( const PsmrtsDataBuffer &data, 
+      PsmrtsBufferData( const PsmrtsBufferData &data, 
                         const size_t start_index = 0, 
                         const size_t n_data = 0 ) :
                         m_data( data.m_data ),
@@ -81,7 +81,7 @@ namespace psmrts {
       }
 
       /** Destructor */
-      virtual ~PsmrtsDataBuffer() { }
+      virtual ~PsmrtsBufferData() { }
 
       /** Total number of data T allocated */
       inline size_t size() const {
@@ -117,14 +117,14 @@ namespace psmrts {
       }      
 
       /** Extract a slice from the original dataset */
-      inline PsmrtsDataBuffer slice( const size_t start_index, 
+      inline PsmrtsBufferData slice( const size_t start_index, 
                                       const size_t n_data = 0 ) const {
-        return ( PsmrtsDataBuffer( *this, start_index, n_data ) );
+        return ( PsmrtsBufferData( *this, start_index, n_data ) );
       }
 
       /** Get a deep copy of the buffer */
-      inline  PsmrtsDataBuffer deep_copy( ) const {
-        PsmrtsDataBuffer copy_t( this->size() );
+      inline  PsmrtsBufferData deep_copy( ) const {
+        PsmrtsBufferData copy_t( this->size() );
         for ( size_t n = 0 ; n < this->size() ; n++ ) {
           copy_t( n ) = this->ref( n );
         }
@@ -195,4 +195,4 @@ namespace psmrts {
 
 }  // namespace psmrts
 
-#endif // PsmrtsDataBuffer_hpp
+#endif // PsmrtsBufferData_hpp
