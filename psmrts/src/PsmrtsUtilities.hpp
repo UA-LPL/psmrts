@@ -40,6 +40,27 @@ namespace psmrts {
     return ( std::chrono::duration_cast<std::chrono::milliseconds>( end_time - start_time ).count() );
   }  
 
+  /**
+   * @brief Standard, typesafe method to cast shared pointer to another type
+   * 
+   * This function provides a standard method for casting a shared pointer
+   * from one type to another. The returned data type is a shared pointer
+   * of type T that is recast from the shared data in this object.
+   * 
+   * Note this method has no effect if the data contained in this
+   * method is a user defined const reference to data within the 
+   * callers space.
+   * 
+   * @tparam T    Data type to cast to, e.g., double, float, int
+   * @tparam U    Data type of original shared pointer to cast
+   * @param data  Shared pointer of type U
+   * @return std::shared_ptr<T> shared pointer to the data_u buffer
+   */
+  template <class T, class U>
+    std::shared_ptr<T> cast_shared_ptr( const std::shared_ptr<U> &data_u )  {
+      return ( std::static_pointer_cast<T>( data_u ) );
+    }
+
   ////--- General use functions
   /** Standardize the double NULL value*/
   inline double null() {

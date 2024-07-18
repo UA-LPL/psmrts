@@ -8,7 +8,7 @@
 #include <PsmrtsParameters.hpp>
 #include <PsmrtsUtilities.hpp>
 
-// using namespace psmrts::json_translations;
+// using namespace psmrts::json_utils;
 
 #include <string>
 #include <vector>
