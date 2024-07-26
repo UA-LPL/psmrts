@@ -7,6 +7,7 @@
 #include <memory>
 #include <exception>
 
+#include <PsmrtsUtilities.hpp>
 namespace psmrts {
 /**
  * @brief Provides fundamental byte memory of arbitrary data types
@@ -32,52 +33,64 @@ namespace psmrts {
       }
 
       /** Construct an array of values */
-      PsmrtsBufferData( const size_t n_data ) {
+      PsmrtsBufferData( const int n_data_b ) {
         init();
-        allocate( n_data );
+        allocate( n_data_b );
+        validate( n_data_b - 1 );
       }
 
       /** Construct an array of values */
-      PsmrtsBufferData( const shared_pointer_type &data, 
-                        const size_t n_data ) :
+      PsmrtsBufferData( const shared_pointer_type &data,
+                        const int n_data_b ) :
                         m_data( data ), 
                         m_data_ptr( data.get() ),
-                        m_size( n_data ) {
+                        m_size( n_data_b ) {
+        validate( n_data_b - 1 );
       }
 
 
       /** User defined map to n_data T values where total_allocated() = ( value_size() * size() )*/
-      PsmrtsBufferData( const value_type *data, const size_t n_data ) {
+      PsmrtsBufferData( value_type *data, const int n_data ) {
         init();
         m_data_ptr = data;
-        m_size = n_data;
+        m_size     = n_data;
+        validate( n_data - 1 );
       }
 
       /** Construct a safe slice with no new memory allocation into original data buffer */
       PsmrtsBufferData( const PsmrtsBufferData &data, 
-                        const size_t start_index = 0, 
-                        const size_t n_data = 0 ) :
-                        m_data( data.m_data ),
-                        m_data_ptr( data.m_data_ptr ),
-                        m_size( data.m_size ) {
+                        const int start_index = 0, 
+                        const int n_data = 0 ) {
 
-        // Determine the number of values to map
-        size_t n_values = n_data;
-        if ( 0 == n_values ) n_values = data.size() - start_index;
+        init();                          
+                            
+        if ( data.isValid() ) {
 
-        // Validate and update map
-        try {
-          data.validate( start_index );
-          data.validate( start_index + n_values - 1 );
+          m_data     = data.m_data;
+          m_data_ptr = data.m_data_ptr + start_index;
+        
+          // Determine the number of values to map
+          int n_values = n_data;
+
+          // Occurs on a simple copy
+          if ( 0 == n_values ) n_values = data.size() - start_index;
+
+          // Now update slice size
+          m_size = n_values;
+
+          // Validate the configuration
+          try {
+            data.validate( start_index );
+            data.validate( start_index + n_values - 1 );
+
+            this->validate( 0 );
+            this->validate( this->size() - 1 );
+          }
+          catch ( const std::runtime_error &e ) {
+            std::string msg = "Invalid segment into data slice!\n" + std::string( e.what() );
+            throw std::runtime_error( "PsmrtsBufferData::PsmrtsBufferData() - " + msg );
+          }
         }
-        catch ( const std::runtime_error &e ) {
-          std::string msg = "Invalid segment into data slice!\n" + std::string( e.what() );
-          throw std::runtime_error( msg );
-        }
-
-        // Ok, it checks out. adjust the required parameters
-        m_data_ptr = data.get( start_index );
-        m_size = n_values;
       }
 
       /** Destructor */
@@ -88,56 +101,49 @@ namespace psmrts {
         return ( m_size );
       }
 
-      inline const_pointer get( const size_t index = 0 ) const {
-        return ( m_data_ptr + index );
+      inline bool isValid() const {
+        return ( nullptr != m_data_ptr );
       }
 
-      inline pointer get( const size_t index = 0) {
-        return ( m_data_ptr + index );
+      inline pointer data_get( const int index = 0 ) {
+        return ( m_data_ptr + this->validate_index( index ) );
+      }
+
+      inline const_pointer data_get( const int index = 0 ) const {
+        return ( m_data_ptr + this->validate_index( index ) );
       }
 
       /** Returns a copy of the T value at the given index */
-      inline reference ref( const int index )  {
-        return ( m_data_ptr[index] );
+      inline reference data_ref( const int index )  {
+        return ( m_data_ptr[this->validate_index( index )] );
       }
 
       /** Returns a copy of the T value at the given index */
-      inline const_reference ref( const int index ) const {
-        return ( m_data_ptr[index] );
+      inline const_reference data_ref( const int index ) const {
+        return ( m_data_ptr[this->validate_index( index )] );
       }
-
-      /** Returns a modifiable reference to data at the give index */
-      inline reference operator()( const int index ) {
-        return ( this->ref( index ) );
-      }
-
-      /** Returns a const reference to data at the give index */
-      inline const_reference operator()( const int index ) const {
-        return ( this->ref( index ) );
-      }      
 
       /** Extract a slice from the original dataset */
-      inline PsmrtsBufferData slice( const size_t start_index, 
-                                      const size_t n_data = 0 ) const {
+      inline PsmrtsBufferData slice( const int start_index, 
+                                     const int n_data = 0 ) const {
         return ( PsmrtsBufferData( *this, start_index, n_data ) );
       }
 
       /** Get a deep copy of the buffer */
-      inline  PsmrtsBufferData deep_copy( ) const {
+      inline PsmrtsBufferData deep_copy( ) const {
         PsmrtsBufferData copy_t( this->size() );
         for ( size_t n = 0 ; n < this->size() ; n++ ) {
-          copy_t( n ) = this->ref( n );
+          copy_t.data_ref( n ) = this->data_ref( n );
         }
         return ( copy_t );
       }
     
       /** Compute distance of index to origin of the dataset in type indexes */
-      inline difference_type distance( const int index ) const {
-        const_pointer origin = ( nullptr != m_data.get() ) ? m_data.get() : m_data_ptr ;
-        return ( this->distance( origin, this->get( index ) ) );
+      inline difference_type data_origin_distance( const int index ) const {
+        const_pointer origin = m_data_ptr;   //  ( nullptr != m_data.get() ) ? m_data.get() : m_data_ptr ;  ??
+        return ( this->distance( origin, this->data_get( index ) ) );
       }
 
-    
       /** Compute distance of index to origin of the dataset in type indexes */
       inline difference_type distance( const_pointer base,
                                        const_pointer data_p ) const {
@@ -145,15 +151,29 @@ namespace psmrts {
       }
 
       /** Validate the index into a T value */
-      inline void validate( const int index ) const {
-        if ( index >= m_size ) {
+      inline int validate( const int index ) const {
+        if ( (index < 0 ) || ( index >= m_size ) ) {
           std::string mess = "Invalid index ( " + std::to_string( index ) +
-                              "), max index is " + std::to_string( m_size ) + " - 1";
+                              "), valid index range is (0, " + std::to_string( m_size ) + " - 1)";
           throw std::runtime_error( mess );
         }
+        return ( index );        
       }
 
     protected:
+      ///! Define the desired base type allocation unit type
+      ///!  for alignment considerations
+      typedef  uint16_t      BaseAllocationUnit;
+
+      /** Validate the index into a T value */
+      inline int validate_index( const int index ) const {
+#if defined(PSMRTS_BOUNDS_CHECK) 
+        return ( this->validate( index ) ); 
+#else       
+        return ( index );        
+#endif
+      }
+
 
       /** Reset all variables to default state which releases any prior data */
       inline void init() {
@@ -166,19 +186,24 @@ namespace psmrts {
       }
 
       /** Allocate n_data byte elements */
-      inline void allocate( const size_t n_data ) {
+      inline void allocate( const int n_data_b ) {
         try {
-          size_t v_alloc = n_data;
+          size_t v_alloc = n_data_b;
 
-          m_data      = shared_pointer_type ( new value_type[v_alloc],
-                                              std::default_delete<value_type[]>() );
+          // Allocate using a base type/size allocation unit for alignment considerations
+          size_t b_alloc = ( v_alloc + ( sizeof( BaseAllocationUnit ) - 1 ) ) / sizeof( BaseAllocationUnit );
+          std::shared_ptr<BaseAllocationUnit> b_data( new BaseAllocationUnit[b_alloc], 
+                                                      std::default_delete<BaseAllocationUnit[]>() );
+
+          // Initialize object
+          m_data      = psmrts::cast_shared_ptr<value_type, BaseAllocationUnit>( b_data );
           m_data_ptr  = m_data.get();
-          m_size      = n_data;
+          m_size      = n_data_b;
         }
         catch ( const std::bad_alloc &b_alloc ) {
           init();
           std::string msg = "Failed to allocate data buffer of size " +
-                            std::to_string( n_data );
+                            std::to_string( n_data_b );
           throw std::runtime_error( msg + "\n" + b_alloc.what() );
         }
 
@@ -187,7 +212,7 @@ namespace psmrts {
 
     private:
       std::shared_ptr<value_type> m_data;        // Data array T scalar values
-      const_pointer               m_data_ptr;    // This will allow for user
+      pointer                     m_data_ptr;    // This will allow for user
                                                   // defined data access
       size_t                      m_size;        // Number of values of T
 

@@ -58,7 +58,12 @@ namespace psmrts {
    */
   template <class T, class U>
     std::shared_ptr<T> cast_shared_ptr( const std::shared_ptr<U> &data_u )  {
-      return ( std::static_pointer_cast<T>( data_u ) );
+      return ( std::reinterpret_pointer_cast<T>( data_u ) );
+    }
+
+  template <class T, class U>
+    T cast_to_type( U data_u )  {
+      return ( reinterpret_cast<T>( data_u ) );
     }
 
   ////--- General use functions

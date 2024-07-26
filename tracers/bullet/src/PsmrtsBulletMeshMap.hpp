@@ -7,11 +7,10 @@
 
 #include <Eigen/Geometry>
 
-#include <PsmrtsDataModel.hpp>
 #include <PsmrtsMeshData.hpp>
+#include <PsmrtsOBJFormat.hpp>
 
 #include <BulletSystemModel.hpp>
-#include <PsmrtsOBJFormat.hpp>
 
 
 namespace psmrts::bullet {
@@ -19,7 +18,9 @@ namespace psmrts::bullet {
   /**! Special definitions of the Bullet configuration */
   typedef int            BulletNativeIndexType; // Typo Fix - remove prior to push
   typedef btScalar       BulletNativeVertexType;
-  typedef PsmrtsMeshData<BulletNativeIndexType, BulletNativeVertexType>    BulletNativeMeshData;
+
+  typedef PsmrtsVector3<BulletNativeIndexType>       BulletIndexArray;
+  typedef PsmrtsVector3<BulletNativeVertexType>      BulletVectorArray;
 
 /**
  * @brief PsmrtsBulletMeshMap provides a Bullet mesh interface
@@ -45,187 +46,191 @@ namespace psmrts::bullet {
  * @author Kris J. Becker, University of Arizona
  * @history 2024-05-15 Kris J. Becker  Original Version
  */
-  template <typename MODEL> 
-    class PsmrtsBulletMeshMap {
-      public:
-        typedef typename MODEL::index_data_type       index_data_type;
-        typedef typename MODEL::vector_data_type      vector_data_type;
+  class PsmrtsBulletMeshMap : public PsmrtsMeshData {
+    public:
+      typedef PsmrtsMeshData::PsmrtsDataType    PsmrtsDataType;
 
-        // The desired data buffer type to map to a Bullet indexed mesh
-        typedef typename MODEL::index_type       MeshFacetIndex;
-        typedef typename MODEL::vector_type      MeshFacetVector;
+      /** Default constructor */
+      PsmrtsBulletMeshMap( ) {
+        this->init_mesh_map( );
+      }
 
-        typedef typename MODEL::const_index_reference  const_index_reference;
-        typedef typename MODEL::const_vector_reference const_vector_reference;
+      /** Construct an array of values */
+      PsmrtsBulletMeshMap( const PsmrtsMeshData &mesh,
+                           const std::string &name, 
+                           const int mesh_id,
+                           const int partno = 0 ) {
+        
+        this->init_mesh_map( name, mesh_id, partno );
 
-        /** Default constructor */
-        PsmrtsBulletMeshMap( ) {
-          init( );
+        if ( true == mesh.isVectorDouble() ) {
+          this->init_mesh( mesh.indexes(), mesh.vectors().double_vectors() );
+        }
+        else {
+          this->init_mesh( mesh.indexes(), mesh.vectors().float_vectors() );
+        }
+        m_bullet_mesh.reset( this->create_map_mesh( ) );
+
+      }
+
+      PsmrtsBulletMeshMap( const PsmrtsOBJFormat &obj_t,
+                           const PsmrtsDataType v_data_type = PsmrtsDouble,
+                           const int mesh_id = 0, 
+                           const int partno = 0 ) {
+
+        this->init_mesh_map( obj_t.obj_source(), mesh_id, partno );
+
+        //Check the requested type
+        PsmrtsVector3i mesh_indexes = obj_t.get_indexes();
+        if ( PsmrtsDouble == v_data_type ) {
+          this->init_mesh( mesh_indexes, obj_t.get_double_vectors() );
+        }
+        else {
+          // Initialize with float vectors
+          this->init_mesh( mesh_indexes, obj_t.get_float_vectors() );
         }
 
-        /** Construct an array of values */
-        PsmrtsBulletMeshMap( const MODEL &mesh, const std::string &name, 
-                              const int mesh_id, const int partno = 0 ) {
-          init( name, mesh_id, partno );
-          m_mesh_data = mesh;
-          m_bullet_mesh.reset( create_map_mesh( m_mesh_data ) );
-          // m_bullet_shape.reset( create_collision_shape( m_bullet_mesh.get() ) );
-        }
+        // Retrieve any shape partitions of the facets
+        m_shapes = obj_t.get_index_shape_map( mesh_indexes );
 
-        PsmrtsBulletMeshMap( const PsmrtsOBJFormat &obj_t ) {
-          init( obj_t.obj_source() );
-          m_mesh_data = MODEL( obj_t.get_indexes( ), obj_t.get_vectors() );
-          m_bullet_mesh.reset( create_map_mesh( m_mesh_data ) );
-          // m_bullet_shape.reset( create_collision_shape( m_bullet_mesh.get() ) );
-        }
+        m_bullet_mesh.reset( this->create_map_mesh( ) );
+      }
 
-        /** Destructor */
-        virtual ~PsmrtsBulletMeshMap() { }
+      /** Destructor */
+      virtual ~PsmrtsBulletMeshMap() { }
 
+      inline const std::string &name() const {
+        return ( m_name );
+      }
 
-        inline bool isValid() const {
-          return ( nullptr != this->mesh() );
-        }
+      inline int id() const {
+        return ( m_shape_id );
+      }
 
-        inline const std::string &name() const {
-          return ( m_name );
-        }
+      inline int partno() const {
+        return ( m_part_no );
+      }          
 
-        inline int id() const {
-          return ( m_shape_id );
-        }
+      inline std::string mesh_type() const {
+        return ( std::string( "bullet" ) );
+      }
 
-        inline int partno() const {
-          return ( m_part_no );
-        }          
+      inline std::string mesh_data_id() const {
+        std::string dataname = name();
+        if ( dataname.length() == 0 ) dataname = "StridingMesh";
+        std::string mesh_id_str( dataname + 
+                                  "::" + this->mesh_type() + 
+                                  "::" + std::to_string( this->id() ) +
+                                  "::" + std::to_string( this->partno() ) );
+        return ( mesh_id_str );
+      }
 
-        inline std::string mesh_type() const {
-          return ( std::string( "Bullet" ) );
-        }
+      inline const btTriangleIndexVertexArray *mesh() const {
+        return ( m_bullet_mesh.get() );
+      }
 
-        inline std::string mesh_data_id() const {
-          std::string dataname = name();
-          if ( dataname.length() == 0 ) dataname = "StridingMesh";
-          std::string mesh_id_str( dataname + 
-                                    "::" + this->mesh_type() + 
-                                    "::" + std::to_string( this->id() ) +
-                                    "::" + std::to_string( this->partno() ) );
-          return ( mesh_id_str );
-        }
+      inline const std::vector<PsmrtsVector3i> &shapes() const {
+        return ( m_shapes );
+      }
 
-        inline const MODEL &data() const {
-          return ( m_mesh_data );
-        }
+      inline btTriangleIndexVertexArray *create_map_mesh( const size_t maxparts = 0 ) const {
+        
+        // Set mesh state
+        std::unique_ptr<btTriangleIndexVertexArray> bt_mesh;
+        
+        // Process if valid
+        if ( 0 < this->nfacets() ) {
 
-        inline const btTriangleIndexVertexArray *mesh() const {
-          return ( m_bullet_mesh.get() );
-        }
+          // Allocate a new mesh map
+          bt_mesh.reset( new btTriangleIndexVertexArray() );
 
-#if 0
-        inline const btCollisionShape *shape() const {
-          return ( m_bullet_shape.get() );
-        }
-#endif
-        /** Create a Bullet btVector3 type array from data set scalar type */
-        template <typename SCALAR_T> 
-          static inline btVector3 toBullet( const SCALAR_T &v ) {
-            return ( b3Vector( v[0], v[1], v[2]) );
+          size_t n_parts = bt_MaxBodyParts();
+          if ( maxparts > 0 ) n_parts = std::min( maxparts, bt_MaxBodyParts() );
+
+          auto bt_max_triangles_t = bt_MaxTrianglesPerPart();
+          size_t nfacets_t = this->nfacets();
+
+          const PsmrtsStridingBuffer &vector_m = this->vectors().buffer();
+          const PsmrtsStridingBuffer &index_m  = this->indexes().buffer();
+
+          PHY_ScalarType bt_vector_type = PHY_DOUBLE;
+          PHY_ScalarType bt_index_type  = PHY_INTEGER;
+          if ( false == this->isVectorDouble() ) bt_vector_type = PHY_FLOAT;
+
+          size_t n_mapped_t = 0;
+          for ( size_t index_t = 0 ; index_t < nfacets_t ; index_t += n_mapped_t ) {
+
+            size_t n_indexes = nfacets_t - index_t;
+            if ( n_indexes > bt_MaxTrianglesPerPart() ) n_indexes = bt_MaxTrianglesPerPart();
+
+            btIndexedMesh mesh_t;
+
+            // Set up acess to range of triangle mesh indexes
+            mesh_t.m_numTriangles        = n_indexes;
+            mesh_t.m_triangleIndexStride = index_m.stride_size();
+            mesh_t.m_triangleIndexBase   = index_m.get( index_t );
+            mesh_t.m_indexType           = bt_index_type;
+
+            // The full number of vertexs are used for every part
+            mesh_t.m_numVertices         = vector_m.size();
+            mesh_t.m_vertexBase          = vector_m.get( 0 );
+            mesh_t.m_vertexStride        = vector_m.stride_size();
+            mesh_t.m_vertexType          = bt_vector_type;
+
+            // Add this offset
+            bt_mesh->addIndexedMesh( mesh_t );
+            n_mapped_t = n_indexes;
           }
-
-
-        inline btTriangleIndexVertexArray *create_map_mesh( const MODEL &mesh, const size_t maxparts = 0 ) const {
-          
-          // Set mesh state
-          std::unique_ptr<btTriangleIndexVertexArray> bt_mesh;
-          
-          // Process if valid
-          if ( 0 < mesh.nfacets() ) {
-
-            // Allocate a new mesh map
-            bt_mesh.reset( new btTriangleIndexVertexArray() );
-
-            size_t n_parts = bt_MaxBodyParts();
-            if ( maxparts > 0 ) n_parts = std::min( maxparts, bt_MaxBodyParts() );
-
-            auto bt_max_triangles_t = bt_MaxTrianglesPerPart();
-            size_t nfacets_t = mesh.nfacets();
-
-            size_t n_mapped_t = 0;
-            for ( size_t index = 0 ; index < nfacets_t ; index += n_mapped_t ) {
-
-              size_t n_indexes = nfacets_t - index;
-              if ( n_indexes > bt_MaxTrianglesPerPart() ) n_indexes = bt_MaxTrianglesPerPart();
-
-              btIndexedMesh mesh_t;
-
-              // Set up acess to range of triangle mesh indexes
-              mesh_t.m_numTriangles        = n_indexes;
-              mesh_t.m_triangleIndexStride = mesh.indexes().data_size() * mesh.indexes().scalar_size();
-              mesh_t.m_triangleIndexBase   = reinterpret_cast<const unsigned char *> ( mesh.get_index( index ).data() );
-              mesh_t.m_indexType           = bt_type_code( mesh.get_index( index ).data() );
-
-              // The full number of vertexs are used for every part
-              mesh_t.m_numVertices  = mesh.nvectors();
-              mesh_t.m_vertexBase   = reinterpret_cast<const unsigned char *> ( mesh.get_vector( 0 ).data() );
-              mesh_t.m_vertexStride = mesh.vectors().data_size() * mesh.vectors().scalar_size();
-              mesh_t.m_vertexType   = bt_type_code( mesh.get_vector( 0 ).data() );
-
-              // Add this offset
-              bt_mesh->addIndexedMesh( mesh_t );
-              n_mapped_t = n_indexes;
-            }
-          }
-
-          return ( bt_mesh.release() );
         }
 
+        return ( bt_mesh.release() );
+      }
 
-        /** [Static?] Create a specialized BVH static triangle mesh for ray tracing */
-        inline static btBvhTriangleMeshShape *create_collision_shape( btTriangleIndexVertexArray *mesh,
-                                                                      const bool useCompression = true,
-                                                                      const bool buildBvh = true ) {
 
-          // Sanity check on pointer
-          if ( nullptr == mesh ) {
-            std::string mess = "PsmrtsBulletMeshMap::create_collision_body - provided mesh is invalid/null";
-            throw std::runtime_error( mess );
-          }
+      /** [Static?] Create a specialized BVH static triangle mesh for ray tracing */
+      inline static btBvhTriangleMeshShape *create_collision_shape( btTriangleIndexVertexArray *mesh,
+                                                                    const bool useCompression = true,
+                                                                    const bool buildBvh = true ) {
 
-          // Creates compressed and optimized Bullet meshes
-          return ( new btBvhTriangleMeshShape( mesh, useCompression, buildBvh ) );
+        // Sanity check on pointer
+        if ( nullptr == mesh ) {
+          std::string mess = "PsmrtsBulletMeshMap::create_collision_body - provided mesh is invalid/null";
+          throw std::runtime_error( mess );
         }
 
+        // Creates compressed and optimized Bullet meshes
+        return ( new btBvhTriangleMeshShape( mesh, useCompression, buildBvh ) );
+      }
 
-        inline  btBvhTriangleMeshShape *create_collision_shape( const bool useCompression = true,
-                                                                const bool buildBvh = true ) const {
 
-          // Creates compressed and optimized Bullet meshes
-          return ( this->create_collision_shape( m_bullet_mesh.get(), useCompression, buildBvh ) );
+      inline  btBvhTriangleMeshShape *create_collision_shape( const bool useCompression = true,
+                                                              const bool buildBvh = true ) const {
+
+        // Creates compressed and optimized Bullet meshes
+        return ( this->create_collision_shape( m_bullet_mesh.get(), useCompression, buildBvh ) );
+      }
+
+      private:
+        /// Variables for the Bullet system
+        std::string                                  m_name;     /**! The name of the Bullet shape model */
+        int                                          m_shape_id; /**! Identifier of the shape */
+        int                                          m_part_no;  /**! Bullet shape part number */
+        std::vector<PsmrtsVector3i>                  m_shapes;   /**! Partitions that map shapes */
+        mutable std::shared_ptr<btTriangleIndexVertexArray>  m_bullet_mesh; /**! Ensure persistent references */
+
+
+        inline void init_mesh_map(const std::string &name = "bullet", 
+                                  const int shapeid = 0, 
+                                  const int partno = 0 ) {
+          m_name      = name;
+          m_shape_id  = shapeid;
+          m_part_no   = partno;
+          m_shapes.clear();
+          m_bullet_mesh.reset();
         }
+        
+  };
 
-        private:
-          /// Variables for the Bullet system
-          std::string                                  m_name;     /**! The name of the Bullet shape model */
-          int                                          m_shape_id; /**! Identifier of the shape */
-          int                                          m_part_no;  /**! Bullet shape part number */
-          MODEL                                        m_mesh_data;
-          std::shared_ptr<btTriangleIndexVertexArray>  m_bullet_mesh; /**! Ensure persistent references */
-          // std::shared_ptr<btBvhTriangleMeshShape>      m_bullet_shape; /**! Ensure persistent references */
-
-          inline void init(const std::string &name = "BulletMesh", 
-                            const int shapeid = 0, const int partno = 0) {
-            m_name      = name;
-            m_shape_id  = shapeid;
-            m_part_no   = partno;
-            m_mesh_data = MODEL();
-            m_bullet_mesh.reset();
-            // m_bullet_shape.reset();
-          }
-          
-    };
-
-  // Convenience declarations
-  typedef PsmrtsBulletMeshMap<BulletNativeMeshData>  NativeBulletMeshMap;
 
 } // namespace psmrts:bullet
 

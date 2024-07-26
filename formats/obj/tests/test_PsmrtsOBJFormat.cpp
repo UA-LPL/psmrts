@@ -57,7 +57,7 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Text OBJ Load", "[format][obj][shape][text]
     CHECK_NOTHROW( t_loader.check_obj_errors() );
 
     auto obj_indexes = t_loader.get_indexes();
-    auto obj_vectors = t_loader.get_vectors(); 
+    auto obj_vectors = t_loader.get_double_vectors(); 
 
     CHECK( obj_indexes.size() == 3 );
     CHECK( obj_vectors.size() == 3 );
@@ -107,7 +107,7 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Text OBJ Load", "[format][obj][shape][text]
     CHECK_NOTHROW( t_loader2.check_obj_errors() );
 
     auto obj_indexes2 = t_loader2.get_indexes();
-    auto obj_vectors2 = t_loader2.get_vectors(); 
+    auto obj_vectors2 = t_loader2.get_double_vectors(); 
 
     CHECK( obj_indexes2.size() == 6 );
     CHECK( obj_vectors2.size() == 5 );
@@ -168,7 +168,7 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Data Export Tests", "[format][obj][shape][b
     CHECK( t_loader.isValid()           == true );
 
     auto obj_indexes = t_loader.get_indexes();
-    auto obj_vectors = t_loader.get_vectors(); 
+    auto obj_vectors = t_loader.get_double_vectors(); 
 
     // Index Comparisons
     CHECK ( obj_indexes(0)[0] == 18 );
@@ -218,7 +218,7 @@ TEST_CASE ( "OBJ FORMAT Asset Test - OBJ / DSK Vector Comparison Test", "[format
     // fails at tolerances > 1.0e-6
     CHECK_THAT ( sum_float, Catch::Matchers::WithinAbs(0.0, tolerance) );
 
-    auto obj_double = t_loader.get_vectors();
+    auto obj_double = t_loader.get_double_vectors();
     double sum_double = 0;
     for (int i = 0; i < obj_double.size(); i++ ) {
         sum_double += fabs(dsk_vectors(i)[0] - obj_double(i)[0] );

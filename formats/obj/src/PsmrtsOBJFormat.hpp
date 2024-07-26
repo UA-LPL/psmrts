@@ -8,7 +8,7 @@
 
 #include <Eigen/Geometry>
 
-#include <PsmrtsFormatModel.hpp>
+// #include <PsmrtsFormatModel.hpp>
 #include <PsmrtsDataModel.hpp>
 #include <PsmrtsMeshData.hpp>
 
@@ -21,27 +21,23 @@ namespace psmrts {
    * @author Kris J. Becker, University of Arizona
    * @history 2024-05-07 Kris J. Becker  Original Version
    */
-  class PsmrtsOBJFormat : public PsmrtsFormatModel {
+  class PsmrtsOBJFormat {
     public:
-      typedef PsmrtsDataModel<tinyobj::real_t>      ObjVectorData;
-      typedef PsmrtsDataModel<int>                  ObjIndexData;
+      typedef tinyobj::real_t                       tinyobj_real_type;
+      typedef PsmrtsVector3<tinyobj::real_t>        OBJVectorArray;
+      typedef PsmrtsVector3i                        OBJIndexArray;
 
-      typedef  ObjVectorData::vector_type           ObjVectorType;
-      typedef  ObjIndexData::vector_type            ObjIndexType;
-
-      typedef PsmrtsFormatModel::PsmrtsIndexData    PsmrtsIndexData;
-      typedef PsmrtsFormatModel::PsmrtsVectorData   PsmrtsVectorData;      
+      typedef  OBJVectorArray::vector_type          OBJVectorType;
+      typedef  OBJIndexArray::vector_type           OBJIndexType;
 
       /** Default constructor */
-      PsmrtsOBJFormat() : PsmrtsFormatModel( "obj" ),
-                          m_obj_source(),
+      PsmrtsOBJFormat() : m_obj_source(),
                           m_obj_config(), 
                           m_obj_reader() { }
 
       /** Construct an array of values */
       PsmrtsOBJFormat( const std::string &objfile,
                        const std::string &mtlpath = ""  ) : 
-                       PsmrtsFormatModel( "obj" ),
                        m_obj_source(),
                        m_obj_config(), 
                        m_obj_reader() {
@@ -265,10 +261,10 @@ namespace psmrts {
       } 
 
 
-      inline PsmrtsVectorData get_vectors( ) const {
-
-        ObjVectorData bt_vector_map( &this->shape()->GetAttrib().vertices[0], this->nVertexes() );
-        PsmrtsVectorData out_vectors( bt_vector_map.size() );
+      inline PsmrtsVector3d get_double_vectors( ) const {
+        tinyobj_real_type *v = const_cast<tinyobj_real_type *> (&m_obj_reader->GetAttrib().vertices[0] );
+        OBJVectorArray bt_vector_map( v, this->nVertexes() );
+        PsmrtsVector3d out_vectors( bt_vector_map.size() );
 
         for ( size_t i = 0 ; i < bt_vector_map.size() ; i++ ) {
           auto iVec = bt_vector_map( i );
@@ -278,10 +274,11 @@ namespace psmrts {
         return ( out_vectors );
       }
 
-      inline PsmrtsFloatData get_float_vectors( ) const {
+      inline PsmrtsVector3f get_float_vectors( ) const {
 
-        ObjVectorData bt_vector_map( &this->shape()->GetAttrib().vertices[0], this->nVertexes() );
-        PsmrtsFloatData out_vectors( bt_vector_map.size() );
+        tinyobj_real_type *v = const_cast<tinyobj_real_type *> (&m_obj_reader->GetAttrib().vertices[0] );
+        OBJVectorArray bt_vector_map( v, this->nVertexes() );
+        PsmrtsVector3f out_vectors( bt_vector_map.size() );
 
         for ( size_t i = 0 ; i < bt_vector_map.size() ; i++ ) {
           auto iVec = bt_vector_map( i );
@@ -292,9 +289,9 @@ namespace psmrts {
       }
 
 
-      inline PsmrtsIndexData get_indexes( ) const {
+      inline PsmrtsVector3i get_indexes( ) const {
 
-        PsmrtsIndexData out_indexes( this->count_facets() );
+        PsmrtsVector3i out_indexes( this->count_facets() );
 
         size_t ondx = 0;
         for ( auto const &shape : m_obj_reader->GetShapes() ) {
@@ -317,6 +314,29 @@ namespace psmrts {
         return ( out_indexes );
       }
 
+      inline std::vector<PsmrtsVector3i> get_index_shape_map( const PsmrtsVector3i &indexes ) const {
+
+        if ( indexes.size() != this->count_facets() ) {
+          std::string mess = "Index count in PsmrtsVector3i(" + std::to_string( indexes.size() ) +
+                            ") does not match OBJ facet count(" + std::to_string( this->count_facets() ) + ")";
+          throw std::runtime_error( "PsmtsOBJFormat::get_index_shape_map() - " + mess );          
+        }
+
+        std::vector<PsmrtsVector3i> obj_shape_maps;
+
+        size_t ondx = 0;
+        for ( auto const &shape : m_obj_reader->GetShapes() ) {
+          size_t n_facets = shape.mesh.num_face_vertices.size();
+          obj_shape_maps.push_back( indexes.slice( ondx, n_facets ) );
+          ondx += n_facets;
+        }
+
+        return ( obj_shape_maps );
+      }
+
+      inline PsmrtsMeshData get_mesh( ) const {
+        return ( PsmrtsMeshData( get_indexes(), get_double_vectors() ) );
+      }
 
     protected:
 

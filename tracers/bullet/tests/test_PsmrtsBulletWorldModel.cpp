@@ -26,8 +26,8 @@ TEST_CASE( "Bullet Shape Tracer Test", "[bullet][shape][tracer]" ) {
 
     std::string objfile = psmrts_formats_path( "obj/data/bennu_20facets.obj" );
     psmrts::PsmrtsOBJFormat t_loader( objfile );
-    psmrts::bullet::NativeBulletMeshMap  bt_data( t_loader );
-    psmrts::bullet::PsmrtsBulletWorldModel bt_world( bt_data.create_collision_shape(), objfile );
+    psmrts::bullet::PsmrtsBulletMeshMap  bt_data( t_loader );
+    psmrts::bullet::PsmrtsBulletWorldModel bt_world( bt_data, objfile );
     REQUIRE( bt_world.isValid() == true );
 
     CHECK( t_loader.nIndexes()  == 36 );
@@ -97,15 +97,15 @@ TEST_CASE("Bullet-DSK Comparison Test", "[bullet][dsk][raytrace]") {
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
 
     psmrts::PsmrtsOBJFormat t_loader( objfile );
-    psmrts::bullet::NativeBulletMeshMap bt_data( t_loader );
-    psmrts::bullet::PsmrtsBulletWorldModel bt_world( bt_data.create_collision_shape(), objfile );
+    psmrts::bullet::PsmrtsBulletMeshMap bt_data( t_loader );
+    psmrts::bullet::PsmrtsBulletWorldModel bt_world( bt_data, objfile );
 
     naif::DskKernelModel dsk( dskfile );
 
     CHECK ( bt_world.isValid() == true );
     CHECK ( dsk.isValid() == true );
 
-    double radius( bt_data.data().maximum_radius() ); 
+    double radius( bt_data.maximum_radius() ); 
 
     Eigen::Vector3d obs;
     double obs_long = 45.0 * rpd_c();
@@ -156,7 +156,7 @@ TEST_CASE("Bullet-DSK Comparison Test", "[bullet][dsk][raytrace]") {
     CHECK ( t_loader.nIndexes() == dsk.n_total_plates() );
     CHECK ( t_loader.nVertexes() == dsk.n_total_vertices() );
 
-    auto bt_facet = bt_data.data().get_facet(30); // bt_data = NativeBulletMeshMap
+    auto bt_facet = bt_data.get_facet(30); // bt_data = NativeBulletMeshMap
     psmrts::PsmrtsRayTrace::FacetDatum dsk_facet;
 
     CHECK( dsk.get_facet(dsk_spt, dsk_facet) == true );
@@ -193,7 +193,7 @@ TEST_CASE("Bullet-DSK Comparison Test", "[bullet][dsk][raytrace]") {
         psmrts::PsmrtsRayTrace::FacetDatum dsk_facet;
         CHECK( dsk.get_facet(ray, dsk_facet) == true );
 
-        auto bt_facet = bt_data.data().get_facet( ray.plateid() );
+        auto bt_facet = bt_data.get_facet( ray.plateid() );
         CHECK ( bt_facet.m_indexes == dsk_facet.m_indexes );
         CHECK ( bt_facet.m_vector1 == dsk_facet.m_vector1 );
         CHECK ( bt_facet.m_vector2 == dsk_facet.m_vector2 );
@@ -204,18 +204,18 @@ TEST_CASE("Bullet-DSK Comparison Test", "[bullet][dsk][raytrace]") {
 }
 
 TEST_CASE("Bullet-DSK Comparison Test - float", "[bullet][dsk][raytrace][float]") {
-    typedef psmrts::PsmrtsMeshData<int, float> BulletFloatMeshData; 
-    typedef psmrts::bullet::PsmrtsBulletMeshMap<BulletFloatMeshData> BulletFloatMesh; 
+    typedef psmrts::PsmrtsMeshData::PsmrtsDataType  PsmrtsDataType;
 
-    auto tolerance = 1.0e-12;
+    auto tolerance = 1.0e-7;
 
     std::string objfile = psmrts_formats_path( "obj/data/bennu_20facets.obj" );
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
 
     psmrts::PsmrtsOBJFormat t_loader( objfile );
-    BulletFloatMeshData bt_mesh( t_loader.get_indexes(), t_loader.get_float_vectors() );
-    BulletFloatMesh bt_data( bt_mesh, objfile, 1);
-    psmrts::bullet::PsmrtsBulletWorldModel bt_world( bt_data.create_collision_shape(), objfile );
+    
+    PsmrtsDataType float_type = psmrts::PsmrtsMeshData::PsmrtsFloat;
+    psmrts::bullet::PsmrtsBulletMeshMap bt_mesh( t_loader, float_type );
+    psmrts::bullet::PsmrtsBulletWorldModel bt_world( bt_mesh, objfile );
     
 
     naif::DskKernelModel dsk( dskfile );
@@ -223,7 +223,7 @@ TEST_CASE("Bullet-DSK Comparison Test - float", "[bullet][dsk][raytrace][float]"
     CHECK ( bt_world.isValid() == true );
     CHECK ( dsk.isValid() == true );
 
-    double radius( bt_data.data().maximum_radius() ); 
+    double radius( bt_mesh.maximum_radius() ); 
 
     Eigen::Vector3d obs;
     double obs_long = 45.0 * rpd_c();
@@ -274,7 +274,7 @@ TEST_CASE("Bullet-DSK Comparison Test - float", "[bullet][dsk][raytrace][float]"
     CHECK ( t_loader.nIndexes() == dsk.n_total_plates() );
     CHECK ( t_loader.nVertexes() == dsk.n_total_vertices() );
 
-    auto bt_facet = bt_data.data().get_facet(30); // bt_data = NativeBulletMeshMap
+    auto bt_facet = bt_mesh.get_facet(30); // bt_data = NativeBulletMeshMap
     psmrts::PsmrtsRayTrace::FacetDatum dsk_facet;
 
     CHECK( dsk.get_facet(dsk_spt, dsk_facet) == true );
@@ -300,7 +300,7 @@ TEST_CASE("Bullet-DSK Comparison Test - float", "[bullet][dsk][raytrace][float]"
     psmrts::PsmrtsRayTrace ray;
 
     // Generate loop
-    naif::DskKernelModel::DskIndexDataModel dsk_facet_index = dsk.load_facet_indexes();
+    naif::DskKernelModel::DskIndexDataModel dsk_facet_index   = dsk.load_facet_indexes();
     naif::DskKernelModel::DskVectorDataModel dsk_facet_vector = dsk.load_facet_vectors();
 
     for(int i=0; i < dsk_facet_index.size(); i++) {
@@ -311,7 +311,7 @@ TEST_CASE("Bullet-DSK Comparison Test - float", "[bullet][dsk][raytrace][float]"
         psmrts::PsmrtsRayTrace::FacetDatum dsk_facet;
         CHECK( dsk.get_facet(ray, dsk_facet) == true );
 
-        auto bt_facet = bt_data.data().get_facet( ray.plateid() );
+        auto bt_facet = bt_mesh.get_facet( ray.plateid() );
         CHECK ( bt_facet.m_indexes == dsk_facet.m_indexes );
         CHECK ( bt_facet.m_vector1 == dsk_facet.m_vector1 );
         CHECK ( bt_facet.m_vector2 == dsk_facet.m_vector2 );

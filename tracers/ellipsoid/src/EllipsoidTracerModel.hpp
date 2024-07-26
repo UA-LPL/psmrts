@@ -53,7 +53,7 @@ namespace psmrts  {
 
       /** Unique tracer id of this instance */
       virtual std::string shape_tracer_id() const {
-        return ( m_model.shape_tracer_id()) );
+        return ( m_model.shape_tracer_id() );
       }
 
       /** Name of the shape model source */

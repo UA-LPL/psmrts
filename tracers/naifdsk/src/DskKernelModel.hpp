@@ -39,8 +39,8 @@ namespace naif {
       typedef std::vector<DskSegment>                 DskSegmentList;
 
       // Data types/representations for the indexes and facet vectors/DSK segment
-      typedef psmrts::PsmrtsDataModel<int>            DskIndexDataModel;
-      typedef psmrts::PsmrtsDataModel<double>         DskVectorDataModel;
+      typedef psmrts::PsmrtsVector3i            DskIndexDataModel;
+      typedef psmrts::PsmrtsVector3d            DskVectorDataModel;
 
       inline std::string tracer_model_type() const {
         return ( std::string( "naifdsk" ) );

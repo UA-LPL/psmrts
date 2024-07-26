@@ -10,8 +10,6 @@
 
 #include <PsmrtsUtilities.hpp>
 #include <PsmrtsRayTrace.hpp>
-#include <PsmrtsDataModel.hpp>
-
 #include <BulletSystemModel.hpp>
 #include <PsmrtsBulletMeshMap.hpp>
 #include <PsmrtsBulletClosestRayCallback.hpp>
@@ -38,11 +36,10 @@ namespace psmrts::bullet {
         initWorld( name );
       }
 
-      PsmrtsBulletWorldModel( btBvhTriangleMeshShape *mesh, 
-                              const std::string &name,
-                              const void *userptr = nullptr ) {
+      PsmrtsBulletWorldModel( const PsmrtsBulletMeshMap &mesh, 
+                              const std::string &name ) {
         initWorld( name );
-        add_body( mesh, nullptr );
+        add_body( mesh );
       }
 
       /** Destructor - order of destruction is important here */
@@ -82,11 +79,13 @@ namespace psmrts::bullet {
         return ( m_bt_object.datum().object() );
       }
 
-      inline btCollisionObject *add_body( btTriangleIndexVertexArray *mesh,
+      inline btCollisionObject *add_body( const PsmrtsBulletMeshMap &mesh,
                                           const bool useCompression = true,
                                           const bool buildBvh = true,
                                           void *userptr = nullptr  ) {
-        return ( add_body( new btBvhTriangleMeshShape( mesh, useCompression, buildBvh ), userptr ) );
+
+        
+        return ( add_body( mesh.create_collision_shape( useCompression, buildBvh ), userptr ) );
       }
 
 
@@ -143,15 +142,15 @@ namespace psmrts::bullet {
 
 
     private:
-      typedef  std::shared_ptr<btCollisionShape>  SharedBulletShape;
-      typedef  std::shared_ptr<btCollisionObject> SharedBulletObject;
+      typedef  std::shared_ptr<btCollisionShape>       SharedBulletShape;
+      typedef  std::shared_ptr<btCollisionObject>      SharedBulletObject;
       typedef struct bt_shape_object {
 
         SharedBulletShape  m_sbt_shape;
         SharedBulletObject m_sbt_object;
 
         bt_shape_object() : m_sbt_shape(), m_sbt_object() { }
-        bt_shape_object(btCollisionShape *shape, btCollisionObject *object ) : 
+        bt_shape_object( btCollisionShape *shape, btCollisionObject *object ) : 
                         m_sbt_shape( shape ), m_sbt_object( object) { }
         virtual ~bt_shape_object() { }
 
@@ -159,7 +158,7 @@ namespace psmrts::bullet {
           return ( m_sbt_shape && m_sbt_object );
         }
 
-        inline  btCollisionObject *object() const { 
+        inline btCollisionObject *object() const { 
           return ( m_sbt_object.get() );
         }
 
@@ -173,6 +172,7 @@ namespace psmrts::bullet {
       /// Variables for the Bullet system
       std::string            m_name; /**! The name of the Bullet world. */
       int                    m_id;   /**! Identifier of the shape */
+      PsmrtsBulletMeshMap    m_mesh_map; /**! The mesh map to trace */
 
           // Order of these pointers matter due to destructor behavior!
       std::shared_ptr<btDefaultCollisionConfiguration> m_collision; /**! The collision
@@ -190,27 +190,28 @@ namespace psmrts::bullet {
       bool                                             m_thread_safety; //!< Enable single thread safety
 
 
-        /** Initialize a new Bullet world structure   */
-        void initWorld( const std::string &name = "Body-Fixed-Coordinate-System" ) { 
+      /** Initialize a new Bullet world structure   */
+      void initWorld( const std::string &name = "Body-Fixed-Coordinate-System" ) { 
 
-          m_name = name;   
+        m_name = name;   
 
-          m_collision.reset( new btDefaultCollisionConfiguration() );
-          m_dispatcher.reset(new btCollisionDispatcher( m_collision.get() ) );
-          m_broadphase.reset( new btDbvtBroadphase() );  // Could also be an AxisSweep
+        m_collision.reset( new btDefaultCollisionConfiguration() );
+        m_dispatcher.reset(new btCollisionDispatcher( m_collision.get() ) );
+        m_broadphase.reset( new btDbvtBroadphase() );  // Could also be an AxisSweep
 
-          m_world.reset( new btCollisionWorld( m_dispatcher.get(), 
-                                               m_broadphase.get(), 
-                                               m_collision.get() ) );
-          m_bt_object.datum() = BtShapeObject();
-          m_thread_safety = true;
-        }
+        m_world.reset( new btCollisionWorld( m_dispatcher.get(), 
+                                              m_broadphase.get(), 
+                                              m_collision.get() ) );
+        m_bt_object.datum() = BtShapeObject();
+        m_thread_safety = true;
+      }
 
-        inline const btCollisionShape *mesh() const {
-          return ( m_bt_object.datum().shape() );
-        }
+      inline const btCollisionShape *mesh() const {
+        return ( m_bt_object.datum().shape() );
+      }
 
   };
+
 } // namespace psmrts::bullet
 
 #endif // PsmrtsBulletWorldModel_hpp
