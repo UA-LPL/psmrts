@@ -9,9 +9,10 @@ set( CMAKE_INCLUDE_CURRENT_DIR ON )
 
 # Build all-in-one renderer test application
 add_executable( psmrts_test_suite  psmrts_catch2_main.cpp
-                                   test_PsmrtsDataModel.cpp 
+                                   test_PsmrtsBuffer.cpp 
+                                   test_PsmrtsParameters.cpp
                                    test_PsmrtsUtilities.cpp 
-                                   test_PsmrtsParameters.cpp )
+                                   test_PsmrtsVector3.cpp  )
 
 
 # Add required libraries as needed for psmrts_test_suite

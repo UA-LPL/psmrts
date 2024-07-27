@@ -14,6 +14,10 @@
 
 #include <PsmrtsUtilities.hpp>
 
+// Ensure this is on for all tests!
+#define PSMRTS_BOUNDS_CHECK 1
+#include <PsmrtsBufferData.hpp>
+
 /** Root path which is directory above ./build */
 inline std::string psmrts_rootpath( ) {
   return ( std::string( PSMRTS_PROJECT_DIR ) );

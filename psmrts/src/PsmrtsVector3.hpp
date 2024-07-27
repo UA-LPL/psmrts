@@ -72,7 +72,7 @@ template <typename T>
       PsmrtsVector3( value_type *data, 
                      const int n_data,
                      const int stride_size_b = VectorBytes ) :
-                     PsmrtsBuffer<T>( PsmrtsStridingBuffer( psmrts::cast_to_type<buffer_pointer, pointer>( data ), 
+                     PsmrtsBuffer<T>( PsmrtsStridingBuffer( psmrts::cast_to_type<buffer_pointer, value_type *>( data ), 
                                                             stride_size_b, n_data ) ) {
         this->validate_state();
       }

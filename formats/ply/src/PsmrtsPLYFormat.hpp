@@ -8,7 +8,7 @@
 
 #include <Eigen/Geometry>
 
-#include <PsmrtsDataModel.hpp>
+#include <PsmrtsVector3.hpp>
 #include <PsmrtsMeshData.hpp>
 #include <PsmrtsRayTrace.hpp>
 
@@ -25,8 +25,8 @@ namespace psmrts {
 
     class PsmrtsPLYFormat {
         public:
-            typedef PsmrtsDataModel<>   PlyVectorData;
-            typedef PsmrtsDataModel<int>    PlyIndexData;
+            typedef PsmrtsVector3d    PlyVectorData;
+            typedef PsmrtsVector3i    PlyIndexData;
 
             typedef PlyVectorData::vector_type  PlyVectorType;
             typedef PlyIndexData::vector_type   PlyIndexType;

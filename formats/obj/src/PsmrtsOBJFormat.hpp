@@ -8,8 +8,10 @@
 
 #include <Eigen/Geometry>
 
-// #include <PsmrtsFormatModel.hpp>
-#include <PsmrtsDataModel.hpp>
+#include <PsmrtsUtilities.hpp>
+#include <PsmrtsBufferData.hpp>
+#include <PsmrtsBuffer.hpp>
+#include <PsmrtsVector3.hpp>
 #include <PsmrtsMeshData.hpp>
 
 // See PsmrtsOBJImplementation.hpp for defining the tinyobj implemantion in your main

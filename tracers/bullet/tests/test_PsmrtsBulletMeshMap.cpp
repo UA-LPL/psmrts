@@ -1,7 +1,7 @@
 #include <psmrts_catch2_environment.hpp>
 
 #include <BulletSystemModel.hpp>
-#include <PsmrtsDataModel.hpp>
+#include <PsmrtsVector3.hpp>
 #include <PsmrtsMeshData.hpp>
 #include <PsmrtsOBJFormat.hpp>
 #include <PsmrtsBulletMeshMap.hpp>
@@ -78,7 +78,7 @@ TEST_CASE ( "Bullet Mesh Map Test - Small Dataset", "[bullet][mesh]" ) {
 }
 
 // Test to compare both the read/process of OBJ read, OBJ exports in
-// PsmrtsDataModel::get_indexes() and get_vectors(), creation of
+// PsmrtsVector3::get_indexes() and get_vectors(), creation of
 // PsmrtsBulletMeshMap with the DSK data.
 TEST_CASE ( "Bullet Mesh Map OBJ/DSK Comparison - Bullet == NaifDSK ", "[bullet][obj][dsk]" ) {
     auto tolerance = 1.0e-6;

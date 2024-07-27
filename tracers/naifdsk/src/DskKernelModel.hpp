@@ -10,9 +10,12 @@
 #include <Eigen/Geometry>
 
 #include <PsmrtsUtilities.hpp>
-#include <PsmrtsDataModel.hpp>
+#include <PsmrtsBufferData.hpp>
+#include <PsmrtsBuffer.hpp>
+#include <PsmrtsVector3.hpp>
 #include <PsmrtsTracerModel.hpp>
 #include <PsmrtsRayTrace.hpp>
+
 #include <NaifUtilities.hpp>
 #include <DskSegment.hpp>
 #include <KernelFileSystem.hpp>

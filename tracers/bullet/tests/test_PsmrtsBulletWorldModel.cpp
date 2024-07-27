@@ -1,7 +1,7 @@
 #include <psmrts_catch2_environment.hpp>
 
 #include <BulletSystemModel.hpp>
-#include <PsmrtsDataModel.hpp>
+#include <PsmrtsVector3.hpp>
 #include <PsmrtsMeshData.hpp>
 #include <PsmrtsOBJFormat.hpp>
 #include <PsmrtsBulletMeshMap.hpp>
