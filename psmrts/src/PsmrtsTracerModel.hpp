@@ -32,20 +32,22 @@ namespace psmrts {
       virtual ~PsmrtsTracerModel() { }
 
       /* Name of tracer system (PSMRTS) */
-      virtual std::string tracer_model_type() const = 0;
-
-      /** Name of tracer model such as  "naifdsk" and "bullet" */
-      virtual std::string tracer_model_name() const {
-        std::string shapename = shapefile();
-        if ( shapename.length() == 0 ) shapename = "none";
-        return ( tracer_model_type() + "::" + tracer_model_name() + "::" + shapename );
+      virtual std::string tracer_model_type() const {
+        return ( "psmrts" );
       }
 
-      /** Unique tracer id of this instance */
-      virtual std::string shape_tracer_id()   const = 0;
+      /** Name of tracer model such as "naifdsk" and "bullet" */
+      virtual std::string tracer_model_name() const = 0;
 
-      /** Name of the shape model source */
+      /** Name of the shape model source name */
       virtual std::string shapefile()         const = 0;
+
+      /** Unique tracer id of this instance */
+      virtual std::string shape_tracer_id() const {
+        std::string shapename = shapefile();
+        if ( shapename.length() == 0 ) shapename = "none";
+        return ( tracer_model_type() + "::" + tracer_model_name() + "::" + shapename );        
+      }
 
       /** Total number of plates/facets in model */
       virtual size_t plate_count()  const = 0;
