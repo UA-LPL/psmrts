@@ -4,70 +4,55 @@
 #include <exception>
 #include <string>
 #include <vector>
-#include <map>
 #include <mutex>
 
 #include <Eigen/Geometry>
-
-#include <PsmrtsTracerModel.hpp>
+#include <PsmrtsUtilities.hpp>
+#include <PsmrtsRayTrace.hpp>
 #include <PsmrtsBulletWorldModel.hpp>
+#include <EllipsoidTracerModel.hpp>
+#include <PsmrtsTracerModel.hpp>
 
-namespace psmrts  {
+namespace psmrts::bullet {
   /**
    * @brief Abstract base class interface for ray tracing models
    * 
-   * This abstract class provides a generic interface to ray tracing systems
-   * that can be used in the PSMRTS system. These method function declarations
-   * defines the minimum set of functions that any PSMRTS-compatible ray
-   * tracer must implement.
+   * This class provides the PSMRST tracer model for Bullet tracers.
    * 
-   * Note this class does not attempt to specify constructors as there's going
-   * to be many. Higher level s/w architectures can manage construction and 
-   * usage of models that use this ABC.
-   * 
-   * @see PsmrtsShapeTracerAdaptor.hpp
+   * @see PsmrtsTracerModel.hpp
    * 
    */
   class PsmrtsBulletTracerModel : public PsmrtsTracerModel {
     public:
-      typedef bullet::PsmrtsBulletWorldModel  BulletWorldModel;
-
       PsmrtsBulletTracerModel( ) {  }
-      PsmrtsBulletTracerModel( const BulletWorldModel &bworld ) : 
-                               PsmrtsTracerModel( ),
-                               m_model( bworld ) {  }
+      PsmrtsBulletTracerModel( const PsmrtsBulletWorldModel &bt_model ) :
+                               m_bullet_model( bt_model ) {  }
 
       virtual ~PsmrtsBulletTracerModel() { }
 
-      /* Name of tracer system (PSMRTS) */
-      virtual std::string tracer_model_type() const {
-        return ( "psmrts" );
-      };
-
-      /** Name of tracer model such as  "naifdsk" and "bullet" */
-      virtual std::string tracer_model_name() const {
-        return ( "bullet" );
+      inline std::string tracer_model_name() const {
+        return ( m_bullet_model.mesh().mesh_type() );
       }
 
       /** Name of the shape model source */
       virtual std::string shapefile() const {
-        return ( m_model.name() );
-      };
+        return ( m_bullet_model.name() );
+      }
 
       /** Total number of plates/facets in model */
       virtual size_t plate_count()  const {
-        return ( m_model.plate_count() );
-      };
+        return ( m_bullet_model.mesh().nfacets() );
+      }
 
       /** Total verticies in the model */
-      virtual size_t vertex_count() const {
-        return ( m_model.plate_count() );
-      };
+      virtual size_t vertex_count() const{
+        return ( m_bullet_model.mesh().nvectors() );
+      }
 
       /** Returns the maximum radius in the modek */
       virtual double maximum_radius() const {
-        return ( m_model.maximum_radius() );
-      };
+        return ( m_bullet_model.mesh().maximum_radius() );
+      }
 
       /**
        * @brief Ray trace method on the shape model in this tracer
@@ -94,7 +79,8 @@ namespace psmrts  {
       virtual bool ray_trace( const Eigen::Vector3d &observer,
                               const Eigen::Vector3d &lookdir,
                               PsmrtsRayTrace &ray ) const {
-        return ( m_model.ray_trace( observer, lookdir, ray ) );
+
+        return ( m_bullet_model.ray_trace( observer, lookdir, ray ) );
       }
 
       /**
@@ -106,46 +92,31 @@ namespace psmrts  {
        */
       virtual bool get_facet( const PsmrtsRayTrace &ray,
                               PsmrtsRayTrace::FacetDatum &facet ) const {
-        return ( m_model.get_facet( ray, facet ) );
-      }
 
+       // Sanity check validity of raytrace
+        facet.m_has_facet = false;
+
+        if ( ray.hasHit() && m_bullet_model.mesh().isValid() ) {
+          facet = m_bullet_model.mesh().get_facet( ray.plateid() );
+        }
+
+        return ( facet.isValid() );
+      }
 
       /** Clone a copy of this shape tracer model */
       virtual PsmrtsTracerModel *clone() const {
-        return ( new PsmrtsBulletTracerModel( m_model ) );
+        return ( new PsmrtsBulletTracerModel( m_bullet_model ) );
       }
 
       /** Return an ellipsoid tracer for the shape */
       virtual PsmrtsTracerModel *ellipsoid() const {
-        return ( new PsmrtsBulletTracerModel( m_model.radii() ) );
+        return ( new EllipsoidTracerModel( m_bullet_model.mesh().axis_maxs(),
+                                           m_bullet_model.name() ) );
       }
-    
-    protected:
-      BulletWorldModel m_model;
 
     private:
-      typedef std::map<std::string, BulletWorldModel>  BulletInventory;
-      inline static BulletInventory s_bullet_inventory = { };
-
-      inline bool is_model_in_inventory( const std::string &source ) const {
-        return ( s_bullet_inventory.find( source ) != s_bullet_inventory.end() );
-      }
-
-      inline void add_model_to_inventory( const BulletWorldModel &model ) {
-        s_bullet_inventory.insert_or_assign( model.name(), model );
-        return;
-      }
-
-      inline BulletWorldModel *get_model_from_inventory( const std::string &source ) const {
-        auto bt_search = s_bullet_inventory.find( source );
-        if ( bt_search != s_bullet_inventory.end() ) {
-          return ( &bt_search->second );
-        }
-
-        // Not found
-        return ( nullptr );
-      }
-      
+      PsmrtsBulletWorldModel   m_bullet_model;
+    
   };
 
 } // namespace psmrts

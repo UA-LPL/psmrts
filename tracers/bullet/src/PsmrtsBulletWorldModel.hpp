@@ -86,7 +86,7 @@ namespace psmrts::bullet {
 
         // To ensure this memory remains viable for the life of the tracer...
         m_mesh_map = mesh;
-        
+
         return ( add_body( mesh.create_collision_shape( useCompression, buildBvh ), userptr ) );
       }
 
@@ -142,6 +142,9 @@ namespace psmrts::bullet {
         return ( results.hasHit() );
       }
 
+      inline const PsmrtsBulletMeshMap &mesh() const {
+        return ( m_mesh_map );
+      }
 
     private:
       typedef  std::shared_ptr<btCollisionShape>       SharedBulletShape;
@@ -208,9 +211,6 @@ namespace psmrts::bullet {
         m_thread_safety = true;
       }
 
-      inline const btCollisionShape *mesh() const {
-        return ( m_bt_object.datum().shape() );
-      }
 
   };
 

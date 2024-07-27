@@ -104,6 +104,8 @@ namespace psmrts {
             return ( f_vectors );
           }
 
+
+
         private:
           // Only one type should be active
           PsmrtsDataType m_data_type;
@@ -114,7 +116,7 @@ namespace psmrts {
 
     public:
       typedef struct vector_surrogate                       MeshVector;
-      typedef PsmrtsRayTrace::FacetDatum                    MeshFacet;
+      typedef PsmrtsRayTrace::FacetDatum                    FacetDatum;
 
       /** Default constructor */
       PsmrtsMeshData() {
@@ -176,22 +178,26 @@ namespace psmrts {
         return ( m_vectors( index ) );
       }
 
-      inline static Eigen::Vector3d facet_normal( const MeshFacet &facet ) {
+      inline static Eigen::Vector3d facet_normal( const FacetDatum &facet ) {
         Eigen::Vector3d a = facet.m_vector2 - facet.m_vector1;
         Eigen::Vector3d b = facet.m_vector3 - facet.m_vector1;
         return ( a.cross( b ).normalized() );
       }
 
-      inline MeshFacet get_facet( const int nth ) const {
-          MeshFacet mf;
-          auto vndx = m_indexes( nth );
+      inline FacetDatum get_facet( const int nth ) const {
+          FacetDatum mf;
 
-          mf.m_indexes = vndx;
-          mf.m_vector1 = this->get_vector( vndx[0] );
-          mf.m_vector2 = this->get_vector( vndx[1] );
-          mf.m_vector3 = this->get_vector( vndx[2] );
-          mf.m_normal  = facet_normal( mf );
-          mf.m_has_facet = true;
+          const bool ThrowIfInvalid = false;
+          if ( true == m_indexes.validate_index( nth, ThrowIfInvalid ) ) {
+            auto vndx = m_indexes( nth );
+
+            mf.m_indexes = vndx;
+            mf.m_vector1 = this->get_vector( vndx[0] );
+            mf.m_vector2 = this->get_vector( vndx[1] );
+            mf.m_vector3 = this->get_vector( vndx[2] );
+            mf.m_normal  = facet_normal( mf );
+            mf.m_has_facet = true;
+          }
           return ( mf );
       }
 

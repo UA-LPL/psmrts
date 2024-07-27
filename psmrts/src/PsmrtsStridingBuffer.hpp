@@ -130,7 +130,20 @@ namespace psmrts {
         return ( data_p - base );
       }
 
-      using PsmrtsBufferData::validate;
+      /** Allow validation of an index with error control */
+      inline bool validate_index( const int index, 
+                                  const bool throwOnError = true ) const {
+        
+        int index_b = this->stride_data_offset( index );
+        try {
+          index_b = this->validate( index_b );
+        }
+        catch ( const std::runtime_error &re ) {
+          if ( true == throwOnError ) throw;
+          return ( false );
+        }
+        return ( true );
+      }
 
     protected:
     /** Special splice constructor method from this buffer */
