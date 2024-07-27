@@ -84,6 +84,8 @@ namespace psmrts::bullet {
                                           const bool buildBvh = true,
                                           void *userptr = nullptr  ) {
 
+        // To ensure this memory remains viable for the life of the tracer...
+        m_mesh_map = mesh;
         
         return ( add_body( mesh.create_collision_shape( useCompression, buildBvh ), userptr ) );
       }

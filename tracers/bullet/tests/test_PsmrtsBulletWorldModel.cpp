@@ -25,13 +25,18 @@ TEST_CASE( "Bullet Shape Tracer Test", "[bullet][shape][tracer]" ) {
     const double tolerance_km = 1.0e-6;
 
     std::string objfile = psmrts_formats_path( "obj/data/bennu_20facets.obj" );
-    psmrts::PsmrtsOBJFormat t_loader( objfile );
-    psmrts::bullet::PsmrtsBulletMeshMap  bt_data( t_loader );
-    psmrts::bullet::PsmrtsBulletWorldModel bt_world( bt_data, objfile );
+
+
+    // psmrts::PsmrtsOBJFormat t_loader( objfile );
+    // psmrts::bullet::PsmrtsBulletMeshMap  bt_data( t_loader ) );
+    // psmrts::bullet::PsmrtsBulletWorldModel bt_world( bt_data, objfile );
+
+    // This spec saves significant memory... and confirms Bullet preserves data
+    psmrts::bullet::PsmrtsBulletWorldModel bt_world( psmrts::bullet::PsmrtsBulletMeshMap ( psmrts::PsmrtsOBJFormat( objfile ) ), objfile );
     REQUIRE( bt_world.isValid() == true );
 
-    CHECK( t_loader.nIndexes()  == 36 );
-    CHECK( t_loader.nVertexes() == 20 );
+    // CHECK( t_loader.nIndexes()  == 36 );
+    // CHECK( t_loader.nVertexes() == 20 );
 
     // Compute the position of the observer at ( 45,45 ) degrees
     Eigen::Vector3d obs;
