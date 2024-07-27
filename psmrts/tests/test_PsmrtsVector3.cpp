@@ -1,13 +1,14 @@
 #include <psmrts_catch2_environment.hpp>
 
-#define PSMRTS_BOUNDS_CHECK 1
+#include <PsmrtsUtilities.hpp>
+#include <PsmrtsBufferData.hpp>
+#include <PsmrtsBuffer.hpp>
 #include <PsmrtsVector3.hpp>
-#include <PsmrtsDataModel.hpp>
 
 
-TEST_CASE( "PsmrtsDataModel Default Test", "[datamodel][buffer][default]") {
+TEST_CASE( "PsmrtsVector3 Default Test", "[vector3][buffer][default]") {
 
-  psmrts::PsmrtsDataModel<> p_model  = psmrts::PsmrtsDataModel<>();
+  psmrts::PsmrtsVector3<double> p_model  = psmrts::PsmrtsVector3<double>();
 
   CHECK( p_model.size()        == 0 );
   CHECK( p_model.volume_size() == 0 );
@@ -20,9 +21,9 @@ TEST_CASE( "PsmrtsDataModel Default Test", "[datamodel][buffer][default]") {
   CHECK_THROWS( p_model( 0 ) );
 }
 
-TEST_CASE( "PsmrtsDataModel (double) Double Test", "[datamodel][buffer][double]") {
+TEST_CASE( "PsmrtsVector3 (double) Double Test", "[vector3][buffer][double]") {
 
-  typedef psmrts::PsmrtsDataModel<double> ObjVectorData;
+  typedef psmrts::PsmrtsVector3<double> ObjVectorData;
 
   const size_t n_data = 100;
   auto p_model  = ObjVectorData( n_data );
@@ -48,9 +49,9 @@ TEST_CASE( "PsmrtsDataModel (double) Double Test", "[datamodel][buffer][double]"
 #endif
 }
 
-TEST_CASE( "PsmrtsDataModel (int) Integer Test", "[datamodel][buffer][integer]") {
+TEST_CASE( "PsmrtsVector3 (int) Integer Test", "[vector3][buffer][integer]") {
 
-  typedef psmrts::PsmrtsDataModel<int> ObjIndexData;
+  typedef psmrts::PsmrtsVector3<int> ObjIndexData;
 
   const size_t n_data = 100;
   auto p_model  = ObjIndexData( n_data );
@@ -71,9 +72,9 @@ TEST_CASE( "PsmrtsDataModel (int) Integer Test", "[datamodel][buffer][integer]")
 }
 
 
-TEST_CASE( "PsmrtsDataModel (float) Float Test", "[datamodel][buffer][float]") {
+TEST_CASE( "PsmrtsVector3 (float) Float Test", "[vector3][buffer][float]") {
 
-  typedef psmrts::PsmrtsDataModel<float> ObjIndexData;
+  typedef psmrts::PsmrtsVector3<float> ObjIndexData;
 
   const size_t n_data = 100;
   auto p_model  = ObjIndexData( n_data );
@@ -93,12 +94,12 @@ TEST_CASE( "PsmrtsDataModel (float) Float Test", "[datamodel][buffer][float]") {
 
 }
 
-TEST_CASE( "PsmrtsDataModel (unsigned char) Byte Test", "[datamodel][buffer][byte]") {
+TEST_CASE( "PsmrtsVector3 (unsigned char) Byte Test", "[vector3][buffer][byte]") {
 
   typedef unsigned char  UCharType;
 
   const size_t n_data = 100;
-  auto p_model  = psmrts::PsmrtsDataModel<UCharType>( n_data );
+  auto p_model  = psmrts::PsmrtsVector3<UCharType>( n_data );
 
   CHECK( p_model.size()            == n_data );
   CHECK( p_model.vector_size()     == 3 );
@@ -108,7 +109,7 @@ TEST_CASE( "PsmrtsDataModel (unsigned char) Byte Test", "[datamodel][buffer][byt
   CHECK( p_model.stride_size()     == 3 );
   CHECK( p_model.stride_size()     == 3 * sizeof( unsigned char ) );
   CHECK( p_model.stride_size()     == 3 * sizeof( UCharType) );
-  CHECK( p_model.stride_size()     == sizeof( psmrts::PsmrtsDataModel<UCharType>::value_type ) * p_model.vector_size() );
+  CHECK( p_model.stride_size()     == sizeof( psmrts::PsmrtsVector3<UCharType>::value_type ) * p_model.vector_size() );
 
   CHECK_NOTHROW( p_model.value( 0 ) );
   CHECK_NOTHROW( p_model( 0 ) );
@@ -117,7 +118,7 @@ TEST_CASE( "PsmrtsDataModel (unsigned char) Byte Test", "[datamodel][buffer][byt
 }
 
 
-TEST_CASE( "PsmrtsDataModel (double) Data Values Test", "[datamodel][buffer][double][values]") {
+TEST_CASE( "PsmrtsVector3 (double) Data Values Test", "[vector3][buffer][double][values]") {
 
   typedef psmrts::PsmrtsVector3<double> ObjVectorData;
 
@@ -180,9 +181,8 @@ TEST_CASE( "PsmrtsDataModel (double) Data Values Test", "[datamodel][buffer][dou
 }
 
 
-TEST_CASE( "PsmrtsDataModel Slice / Deep Copy Test", "[datamodel][buffer][slice][copy]") {
+TEST_CASE( "PsmrtsVector3 Slice / Deep Copy Test", "[vector3][buffer][slice][copy]") {
     
-  // typedef psmrts::PsmrtsDataModel<int> ObjIndexData;
   typedef psmrts::PsmrtsVector3i ObjIndexData;
 
   const size_t n_data = 10;
