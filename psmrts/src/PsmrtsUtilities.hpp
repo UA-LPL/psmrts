@@ -17,6 +17,23 @@
 #include <Eigen/Geometry>
 
 #include <psmrts_version.h>
+
+// Different versions of the JSON library are not ABI compatible.
+// When you enable JSON diagnostics, it will also cause similar
+// issues because it adds debugging code to the classes at compile
+// time. This results in different incompatible objects in other
+// code files. Every file that uses JSON data must include this
+// file first, and not allow any other direct include of 
+// nlohmann/json.hpp or bad things could happen.
+#ifndef JSON_DIAGNOSTICS
+#define JSON_DIAGNOSTICS 1
+#endif
+#include <nlohmann/json.hpp>
+using namespace nlohmann::literals;
+using json         = nlohmann::json;
+using ordered_json = nlohmann::ordered_json;
+
+
 namespace psmrts {
 
   ////--- Timimg functions
@@ -232,6 +249,99 @@ namespace psmrts {
           m_mutex.reset( new std::mutex() );
           m_datum = datum;
           return;
+        }
+    };
+
+    /**
+     * @brief Thread safe counter and time class
+     * 
+     * This class can be used as an accurate system timer and a counter that
+     * is available for a frequently used task of counting things.
+     * 
+     * It has no overhead if you just track runtimes by simply setting up
+     * a method PsmrtsThreadSafeCounter varible. The counter is not changed
+     *  unless a direct counter call has been made (using hitme() or the 
+     * operator++).
+     * 
+     * By including this class as a method variable in your it is perpetuated
+     * to other 
+     */
+    class PsmrtsThreadSafeCounter {
+      public:
+        PsmrtsThreadSafeCounter() { 
+          init();
+        }
+        virtual ~PsmrtsThreadSafeCounter() { }
+
+        inline size_t hitme() const {
+          std::scoped_lock mylocker( m_counter->mutex() );
+          return ( m_counter->datum()++ );
+        }
+
+        inline size_t operator++( int dummy ) const {
+          std::scoped_lock mylocker( m_counter->mutex() );
+          return  ( m_counter->datum()++  );
+        }
+
+        inline size_t count() const {
+          std::scoped_lock mylocker( m_counter->mutex() );
+          return  ( m_counter->datum() );
+        }
+
+        inline std::time_t now() const {
+          return ( psmrts::current_time() );
+        }
+
+        inline std::time_t born_on_date( ) const {
+          return ( m_born_on_date );
+        }
+
+        inline SYSTEM_CLOCK_TIME start_time() const {
+          return ( m_start_time );
+        }
+
+        inline double runtime_s() const {
+          return ( psmrts::elapsed_clock_time_s( m_start_time, psmrts::system_clock_time() ) );
+        }
+
+        /**
+         * @brief Clone a new counter from this instance
+         * 
+         * Cloning a new counter will preserve times but the cloned counter
+         * will be severed from this instance and evolve independently. This
+         * will also reset the use count as that can now be another 
+         * consequence/benefit.
+         * 
+         * The born-on-date and the system clock is preserved.
+         * 
+         * @return PsmrtsThreadSafeCounter 
+         */
+        inline PsmrtsThreadSafeCounter clone() const {
+          std::scoped_lock mylocker( m_counter->mutex() );
+          PsmrtsThreadSafeCounter counter_t( this->count() );
+          counter_t.m_born_on_date          = m_born_on_date;
+          counter_t.m_start_time            = m_start_time;
+          return ( counter_t );
+        }
+
+      protected:
+        typedef DatumMutexWrapper<size_t>          ThreadSafeCounter;
+        typedef std::shared_ptr<ThreadSafeCounter> SharedCounter;
+
+        /** This constructor returns a new instance of a counter with a specified count >= 0 */
+        PsmrtsThreadSafeCounter( const size_t counted ) {
+          init( counted );
+        }
+        
+      private:
+        std::time_t               m_born_on_date;
+        psmrts::SYSTEM_CLOCK_TIME m_start_time;
+        mutable SharedCounter     m_counter;
+
+        void init( const size_t counted = 0 ) {
+          m_start_time   = psmrts::system_clock_time();
+          m_born_on_date = psmrts::current_time();
+          m_counter.reset( new ThreadSafeCounter( counted ) );
         }
     };
 

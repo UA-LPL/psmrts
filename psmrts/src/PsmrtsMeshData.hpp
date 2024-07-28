@@ -230,6 +230,8 @@ namespace psmrts {
         m_min_radius = 0.0;
         m_max_radius = 0.0;
 
+        m_tracker    = PsmrtsThreadSafeCounter();
+
         return;
       }
 
@@ -258,16 +260,40 @@ namespace psmrts {
 
         compute_radii();
       }
+
+      inline double elapsed_life_time_s() const {
+        return ( m_tracker.runtime_s() );
+      }
+
+      inline size_t track_count() const {
+        return ( m_tracker.count() );
+      }
+
+      /**
+       * @brief Return a standalone clone of the current tracker stats
+       *  
+       * Get a snapshot of the performance at this moment. I'd immediately get
+       * an end_time = system_clock_time
+       * 
+       * @return PsmrtsThreadSafeCounter 
+       */
+      inline PsmrtsThreadSafeCounter performance_snapshot() const {
+        return ( m_tracker.clone() );
+      }
+
   
     private:
-      VectorSurrogate      m_vectors;  // Vertex data (float or double)
-      PsmrtsVector3i       m_indexes;  // Facet/triangle/plate indexes
+      VectorSurrogate         m_vectors;  // Vertex data (float or double)
+      PsmrtsVector3i          m_indexes;  // Facet/triangle/plate indexes
 
-      Eigen::Vector3d      m_min_axes;      // Minimum of axes
-      Eigen::Vector3d      m_max_axes;      // Maximum of axes
+      Eigen::Vector3d         m_min_axes;      // Minimum of axes
+      Eigen::Vector3d         m_max_axes;      // Maximum of axes
 
-      double               m_min_radius;    // Minimum radius
-      double               m_max_radius;    // Maximum radius
+      double                  m_min_radius;    // Minimum radius
+      double                  m_max_radius;    // Maximum radius
+
+      PsmrtsThreadSafeCounter m_tracker;       // Tracks times and copy counts
+
 
       inline void compute_radii() {
         

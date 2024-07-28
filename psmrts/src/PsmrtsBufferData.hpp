@@ -44,7 +44,8 @@ namespace psmrts {
                         const int n_data_b ) :
                         m_data( data ), 
                         m_data_ptr( data.get() ),
-                        m_size( n_data_b ) {
+                        m_size( n_data_b ),
+                        m_tracker() {
         validate( n_data_b - 1 );
       }
 
@@ -160,6 +161,26 @@ namespace psmrts {
         return ( index );        
       }
 
+      inline double elapsed_life_time_s() const {
+        return ( m_tracker.runtime_s() );
+      }
+
+      inline size_t track_count() const {
+        return ( m_tracker.count() );
+      }
+
+      /**
+       * @brief Return a standalone clone of the current tracker stats
+       *  
+       * Get a snapshot of the performance at this moment. I'd immediately get
+       * an end_time = system_clock_time
+       * 
+       * @return PsmrtsThreadSafeCounter 
+       */
+      inline PsmrtsThreadSafeCounter performance_snapshot() const {
+        return ( m_tracker.clone() );
+      }
+
     protected:
       ///! Define the desired base type allocation unit type
       ///!  for alignment considerations
@@ -181,6 +202,7 @@ namespace psmrts {
         m_data.reset();
         m_data_ptr  = m_data.get();
         m_size      = 0;
+        m_tracker = PsmrtsThreadSafeCounter();
 
         return;
       }
@@ -213,8 +235,9 @@ namespace psmrts {
     private:
       std::shared_ptr<value_type> m_data;        // Data array T scalar values
       pointer                     m_data_ptr;    // This will allow for user
-                                                  // defined data access
+                                                 //   defined data access
       size_t                      m_size;        // Number of values of T
+      PsmrtsThreadSafeCounter     m_tracker;     // Tracks times and copy counts
 
   };
 

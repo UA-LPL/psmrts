@@ -274,7 +274,7 @@ namespace naif {
       virtual bool ray_trace( const Eigen::Vector3d &observer, 
                               const Eigen::Vector3d &lookdir,
                               psmrts::PsmrtsRayTrace &ray ) const {
-
+        m_tracker++;
         for ( auto const &segment : segments() ) {
           bool has_hit = this->ray_trace( observer, lookdir, segment, ray );
           if ( true == has_hit ) {
@@ -446,12 +446,18 @@ namespace naif {
       inline DskKernelModel clone() const {
         return ( *this );
       }
-#if 0
 
-      inline psmrts::PsmrtsTracerModel *ellipsoid() const {
-        return ( new NaifEllipsoidShape(  ))
+      inline double elapsed_life_time_s() const {
+        return ( m_tracker.runtime_s() );
       }
-#endif
+
+      inline size_t track_count() const {
+        return ( m_tracker.count() );
+      }
+      
+      inline psmrts::PsmrtsThreadSafeCounter performance_snapshot() const {
+        return ( m_tracker.clone() );
+      }
 
     protected:
 
@@ -478,11 +484,12 @@ namespace naif {
       }
 
     private:
-      SharedDskDescriptor m_dsk_descriptor;
-      DskSegmentList      m_segments;
-      size_t              m_total_plates;
-      size_t              m_total_vertices;
-      Eigen::Vector3d     m_radii;
+      SharedDskDescriptor             m_dsk_descriptor;
+      DskSegmentList                  m_segments;
+      size_t                          m_total_plates;
+      size_t                          m_total_vertices;
+      Eigen::Vector3d                 m_radii;
+      psmrts::PsmrtsThreadSafeCounter m_tracker;     // Tracks times and copy counts
 
 
       /** Reset DSK model to default state */
@@ -495,9 +502,10 @@ namespace naif {
         }
 
         m_segments.clear();
-        m_total_plates = 0;
+        m_total_plates   = 0;
         m_total_vertices = 0;
-        m_radii = Eigen::Vector3d::Zero();
+        m_radii          = Eigen::Vector3d::Zero();
+        m_tracker        = psmrts::PsmrtsThreadSafeCounter();
 
         return;
       }
@@ -590,6 +598,7 @@ namespace naif {
         m_total_plates   = model.m_total_plates;
         m_total_vertices = model.m_total_vertices;
         m_radii          = model.m_radii;
+        m_tracker        = psmrts::PsmrtsThreadSafeCounter();
         return;
       }
 

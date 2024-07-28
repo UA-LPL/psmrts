@@ -210,6 +210,10 @@ namespace psmrts::bullet {
         return ( this->create_collision_shape( m_bullet_mesh.get(), useCompression, buildBvh ) );
       }
 
+      using PsmrtsMeshData::elapsed_life_time_s;
+      using PsmrtsMeshData::track_count;
+      using PsmrtsMeshData::performance_snapshot;      
+
       private:
         /// Variables for the Bullet system
         std::string                                  m_name;     /**! The name of the Bullet shape model */

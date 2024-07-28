@@ -28,7 +28,7 @@ namespace psmrts {
    */
   class PsmrtsTracerModel {
     public:
-      PsmrtsTracerModel( ) {  }
+      PsmrtsTracerModel( ) : m_local_tracker() {  }
       virtual ~PsmrtsTracerModel() { }
 
       /* Name of tracer system (PSMRTS) */
@@ -100,7 +100,17 @@ namespace psmrts {
 
       /** Return an ellipsoid tracer for the shape */
       virtual PsmrtsTracerModel *ellipsoid() const = 0;
-    
+
+      virtual PsmrtsThreadSafeCounter performance_snapshot() const {
+        return ( this->local_tracker().clone() );
+      }
+
+    protected:
+      PsmrtsThreadSafeCounter     m_local_tracker;     // Tracks times and copy counts
+
+      inline const PsmrtsThreadSafeCounter &local_tracker() const {
+        return ( m_local_tracker );
+      }
   };
 
 } // namespace psmrts

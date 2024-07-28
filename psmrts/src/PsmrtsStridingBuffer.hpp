@@ -145,6 +145,10 @@ namespace psmrts {
         return ( true );
       }
 
+      using PsmrtsBufferData::elapsed_life_time_s;
+      using PsmrtsBufferData::track_count;
+      using PsmrtsBufferData::performance_snapshot;
+
     protected:
     /** Special splice constructor method from this buffer */
       inline PsmrtsStridingBuffer make_slice( const int start_index = 0, 

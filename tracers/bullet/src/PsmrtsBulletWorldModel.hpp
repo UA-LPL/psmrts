@@ -126,6 +126,7 @@ namespace psmrts::bullet {
                                     const Eigen::Vector3d &lookdir,
                                     PsmrtsBulletClosestRayCallback &results ) const {
 
+
         // Lock up Bullet for thread safety ( >=c++17 )
         btVector3 rayStart( observer[0], observer[1], observer[2] );
         btVector3 rayEnd( lookdir[0], lookdir[1], lookdir[2] );
@@ -133,9 +134,11 @@ namespace psmrts::bullet {
         // Check for runtime single thread safety option
         if ( true == m_thread_safety ) {
           std::scoped_lock mylocker( m_bt_object.mutex() );
+          m_tracker++;
           m_world->rayTest( rayStart, rayEnd, results);
         }
         else {
+          m_tracker++;
           m_world->rayTest( rayStart, rayEnd, results);
         }
 
@@ -144,6 +147,27 @@ namespace psmrts::bullet {
 
       inline const PsmrtsBulletMeshMap &mesh() const {
         return ( m_mesh_map );
+      }
+
+
+      inline double elapsed_life_time_s() const {
+        return ( m_tracker.runtime_s() );
+      }
+
+      inline size_t track_count() const {
+        return ( m_tracker.count() );
+      }
+
+      /**
+       * @brief Return a standalone clone of the current tracker stats
+       *  
+       * Get a snapshot of the performance at this moment. I'd immediately get
+       * an end_time = system_clock_time
+       * 
+       * @return PsmrtsThreadSafeCounter 
+       */
+      inline PsmrtsThreadSafeCounter performance_snapshot() const {
+        return ( m_tracker.clone() );
       }
 
     private:
@@ -192,6 +216,7 @@ namespace psmrts::bullet {
                                                                         contains the representation of
                                                                         the body/target. */
       DatumMutexWrapper<BtShapeObject>                 m_bt_object;     //!< Mutex wrapped shape model
+      PsmrtsThreadSafeCounter                          m_tracker;       // Tracks times and copy counts
       bool                                             m_thread_safety; //!< Enable single thread safety
 
 
@@ -208,7 +233,8 @@ namespace psmrts::bullet {
                                               m_broadphase.get(), 
                                               m_collision.get() ) );
         m_bt_object.datum() = BtShapeObject();
-        m_thread_safety = true;
+        m_tracker           = PsmrtsThreadSafeCounter();
+        m_thread_safety     = true;
       }
 
 

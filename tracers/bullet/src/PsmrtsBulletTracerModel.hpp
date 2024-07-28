@@ -79,7 +79,7 @@ namespace psmrts::bullet {
       virtual bool ray_trace( const Eigen::Vector3d &observer,
                               const Eigen::Vector3d &lookdir,
                               PsmrtsRayTrace &ray ) const {
-
+        this->local_tracker()++;
         return ( m_bullet_model.ray_trace( observer, lookdir, ray ) );
       }
 

@@ -52,7 +52,7 @@ namespace psmrts  {
 
       /** Unique tracer id of this instance */
       virtual std::string shape_tracer_id()   const {
-        return ( m_model.tracer_model_id) );
+        return ( m_model.tracer_model_id()  );
       }
 
       /** Name of the shape model source */
@@ -100,6 +100,7 @@ namespace psmrts  {
       virtual bool ray_trace( const Eigen::Vector3d &observer,
                               const Eigen::Vector3d &lookdir,
                               PsmrtsRayTrace &ray ) const {
+        this->local_tracker()++;
         return ( m_model.ray_trace( observer, lookdir, ray ) );
       }
 
@@ -118,17 +119,17 @@ namespace psmrts  {
 
       /** Clone a copy of this shape tracer model */
       virtual PsmrtsTracerModel *clone() const {
-        return ( new naif::NaifDskTracerModel( m_model ) );
+        return ( new NaifDskTracerModel( m_model ) );
       }
 
       /** Return an ellipsoid tracer for the shape */
       virtual PsmrtsTracerModel *ellipsoid() const {
-        return ( EllipsoidTracerModel( m__model.radii() ) );
+        return ( EllipsoidTracerModel( m_model.radii() ) );
       }
     
-      inline naif::NaifDskTracerModel *tracer_from_id( const int surfaceId ) const {
+      inline NaifDskTracerModel *tracer_from_id( const int surfaceId ) const {
         if ( nullptr != m_model.get_segment_with_id( surfaceId ) ) {
-          return ( new naif::NaifDskTracerModel( m_model.create_from_id( surfaceId ) ) );
+          return ( new NaifDskTracerModel( m_model.create_from_id( surfaceId ) ) );
         }
 
         // Surface segment not found

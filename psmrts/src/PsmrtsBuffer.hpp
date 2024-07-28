@@ -91,6 +91,9 @@ template <typename T>
       using PsmrtsStridingBuffer::stride_size;
       using PsmrtsStridingBuffer::volume_size;
       using PsmrtsStridingBuffer::data;
+      using PsmrtsStridingBuffer::elapsed_life_time_s;
+      using PsmrtsStridingBuffer::track_count;
+      using PsmrtsStridingBuffer::performance_snapshot;
 
       /** Const reference to underlying striding buffer */
       inline const PsmrtsStridingBuffer &buffer() const {

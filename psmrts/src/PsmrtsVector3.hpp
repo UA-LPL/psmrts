@@ -83,6 +83,9 @@ template <typename T>
       using PsmrtsBuffer<T>::size;
       using PsmrtsBuffer<T>::stride_size;
       using PsmrtsBuffer<T>::volume_size;
+      using PsmrtsBuffer<T>::elapsed_life_time_s;
+      using PsmrtsBuffer<T>::track_count;
+      using PsmrtsBuffer<T>::performance_snapshot;      
 
       inline size_t vector_size() const { 
         return ( VectorSize );

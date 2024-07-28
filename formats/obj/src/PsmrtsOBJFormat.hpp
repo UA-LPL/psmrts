@@ -337,8 +337,30 @@ namespace psmrts {
       }
 
       inline PsmrtsMeshData get_mesh( ) const {
+        m_tracker++;  // Track the number of meshes this instance creates
         return ( PsmrtsMeshData( get_indexes(), get_double_vectors() ) );
       }
+
+      inline double elapsed_life_time_s() const {
+        return ( m_tracker.runtime_s() );
+      }
+
+      inline size_t track_count() const {
+        return ( m_tracker.count() );
+      }
+
+      /**
+       * @brief Return a standalone clone of the current tracker stats
+       *  
+       * Get a snapshot of the performance at this moment. I'd immediately get
+       * an end_time = system_clock_time
+       * 
+       * @return PsmrtsThreadSafeCounter 
+       */
+      inline PsmrtsThreadSafeCounter performance_snapshot() const {
+        return ( m_tracker.clone() );
+      }
+
 
     protected:
 
@@ -367,6 +389,8 @@ namespace psmrts {
       std::string                          m_obj_source;
       tinyobj::ObjReaderConfig             m_obj_config;
       std::shared_ptr<tinyobj::ObjReader>  m_obj_reader;
+      PsmrtsThreadSafeCounter              m_tracker;     // Tracks times and copy counts
+
   };
 }  // namespace psmrts
 

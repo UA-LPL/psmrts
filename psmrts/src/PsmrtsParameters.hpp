@@ -8,21 +8,6 @@
 #include <fstream>
 #include <memory>
 
-// Different versions of the JSON library are not ABI compatible.
-// When you enable JSON diagnostics, it will also cause similar
-// issues because it adds debugging code to the classes at compile
-// time. This results in different incompatible objects in other
-// code files. Every file that uses JSON data must include this
-// file first, and not allow any other direct include of 
-// nlohmann/json.hpp or bad things could happen.
-#ifndef JSON_DIAGNOSTICS
-#define JSON_DIAGNOSTICS 1
-#endif
-#include <nlohmann/json.hpp>
-using namespace nlohmann::literals;
-using json         = nlohmann::json;
-using ordered_json = nlohmann::ordered_json;
-
 #include <Eigen/Geometry>
 #include <PsmrtsUtilities.hpp>
 
