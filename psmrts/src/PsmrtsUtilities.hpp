@@ -9,6 +9,7 @@
 #include <locale>
 #include <vector>
 #include <ctime>
+#include <time.h>
 #include <chrono>
 #include <cmath>
 #include <limits>
@@ -43,6 +44,19 @@ namespace psmrts {
     return ( std::time( nullptr ) );
   }
 
+  inline std::string to_time_str( const std::tm *my_tm )  {
+    char buffer_t[128];
+    strftime( buffer_t, sizeof( buffer_t ), "%FT%T %Z", my_tm );
+    return ( std::string( buffer_t ) );
+  }
+
+  inline std::string to_utc( const std::time_t &my_t )  {
+    return ( to_time_str( gmtime( &my_t ) ) );
+  }
+
+  inline std::string to_localtime( const std::time_t &my_t )  {
+    return ( to_time_str( localtime( &my_t ) ) );
+  }
   inline SYSTEM_CLOCK_TIME system_clock_time() {
     return ( SYSTEM_CLOCK_TIME( std::chrono::steady_clock::now() ) );
   }
@@ -275,12 +289,11 @@ namespace psmrts {
 
         inline size_t hitme() const {
           std::scoped_lock mylocker( m_counter->mutex() );
-          return ( m_counter->datum()++ );
+          return ( m_counter->datum() += 1 );
         }
 
         inline size_t operator++( int dummy ) const {
-          std::scoped_lock mylocker( m_counter->mutex() );
-          return  ( m_counter->datum()++  );
+          return  ( this->hitme() );
         }
 
         inline size_t count() const {
@@ -322,6 +335,29 @@ namespace psmrts {
           counter_t.m_born_on_date          = m_born_on_date;
           counter_t.m_start_time            = m_start_time;
           return ( counter_t );
+        }
+
+        /** Return a JSON object with a time snapshot */
+        inline ordered_json snapshot() const {
+
+          // Get current data
+          PsmrtsThreadSafeCounter timer_t;
+          ordered_json json_t;
+
+          json_t["start_time"] = to_localtime( this->born_on_date() );
+          
+          double elapsed_time_s = elapsed_clock_time_s( this->start_time(), timer_t.start_time() ); 
+          json_t["elapsed_time_s"] = elapsed_time_s;
+
+          double elapsed_time_ms = elapsed_clock_time_ms( this->start_time(), timer_t.start_time() ); 
+          json_t["elapsed_time_ms"] = elapsed_time_ms;          
+          
+          json_t += { "count", this->count() };
+
+          json_t["end_time"] = to_localtime( timer_t.born_on_date() );
+
+          return ( json_t );
+
         }
 
       protected:

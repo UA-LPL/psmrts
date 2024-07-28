@@ -3,9 +3,19 @@
 #include <PsmrtsUtilities.hpp>
 
 
-TEST_CASE( "PSMRTS Longitude Domain Test - 360 to 180", "[utilities][basics]" ) {
+TEST_CASE( "PSMRTS Clock Time Tests", "[utilities][time]" ) {
 
     using namespace std::literals;
+
+    psmrts::PsmrtsThreadSafeCounter counter_t;
+    CHECK( counter_t.count() == 0 );
+    CHECK( counter_t.hitme() == 1 );
+    CHECK( counter_t.count() == 1 );
+
+    CHECK( counter_t++       == 2 );
+    CHECK( counter_t.count() == 2 );
+
+    INFO( to_string( counter_t.snapshot() ) );
 
     psmrts::SYSTEM_CLOCK_TIME currently = psmrts::system_clock_time();
     psmrts::SYSTEM_CLOCK_TIME plus_one_s = currently + 1s;
