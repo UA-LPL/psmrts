@@ -8,7 +8,6 @@
 #include <fstream>
 #include <memory>
 
-#include <Eigen/Geometry>
 #include <PsmrtsUtilities.hpp>
 
 
@@ -142,7 +141,9 @@ namespace psmrts {
   class PsmrtsParameters {
     public:
       PsmrtsParameters() : m_json() { }
-      PsmrtsParameters( const std::string &name ) : m_json( { {"name", name } } )  { }
+      explicit PsmrtsParameters( const char *name ) : m_json( { {"name", name } } )  { }
+      explicit PsmrtsParameters( const std::string &name ) : m_json( { {"name", name } } )  { }
+      explicit PsmrtsParameters( const ordered_json &config ) : m_json( config )  { }
       virtual ~PsmrtsParameters() { }
 
       inline int size() const {
