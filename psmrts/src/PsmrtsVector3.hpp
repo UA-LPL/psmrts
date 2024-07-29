@@ -7,7 +7,6 @@
 
 #include <PsmrtsUtilities.hpp>
 #include <PsmrtsBuffer.hpp>
-#include <PsmrtsVector3.hpp>
 
 namespace psmrts {
 /**
