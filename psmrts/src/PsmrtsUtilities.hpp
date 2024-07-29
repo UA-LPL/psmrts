@@ -118,7 +118,7 @@ namespace psmrts {
     return ( ( v_r / M_PI * 180.0 ) );
   }
 
-  /** Convert a date string to ephemeris time */
+  /** Ensure longitude is in the 360 domain */
   inline double to360LongitudeDomain_d( const double longitude_d ) {
     double lon_adj = std::remainder( longitude_d, 360.0 );
     if ( lon_adj < 0.0  ) {
@@ -128,7 +128,7 @@ namespace psmrts {
     return ( lon_adj );
   }
 
-  /** Convert a date string to ephemeris time */
+  /** Ensure longitude is in the 180 domain */
   inline double to180LongitudeDomain_d( const double longitude_d ) {
     double lon_adj = longitude_d;
     if ( lon_adj >= 360.0 ) {
@@ -200,6 +200,51 @@ namespace psmrts {
     std::string dpathdelim = ( directory[dirlen-1] == '/' ) ? "" : "/";
     return ( directory + dpathdelim + pathpart );
   }
+
+  inline std::string psmrts_file_extension( const std::string &pathname ) {
+    std::string extension_f( "" );
+    if ( pathname.length() > 0 ) {
+      auto lastdot = pathname.find_last_of( '.' );
+      if ( lastdot != std::string::npos ) {
+        extension_f = pathname.substr( lastdot + 1 )
+      }
+    }
+
+    return ( extension_f );
+  }
+
+  inline std::string psmrts_file_path( const std::string &pathname ) {
+    std::string path_f( "" );
+    if ( pathname.length() > 0 ) {
+
+      // Find last directory path spec
+      auto lastslash = pathname.find_last_of( '/' );
+      if ( lastslash != std::string::npos ) {
+        path_f = pathname.substr(0,  lastslash - 1 );
+      }
+
+    }
+    return ( path_f );
+  }
+
+  inline std::string psmrts_file_basename( const std::string &pathname ) {
+    std::string base_f( "" );
+    if ( pathname.length() > 0 ) {
+
+      // Find any directory paths...
+      auto lastslash = pathname.find_last_of( '/' );
+      if ( lastslash != std::string::npos ) {
+        base_f = pathname.substr( lastslash + 1 )
+      }
+
+      auto lastdot = pathname.find_last_of( '.' );
+      if ( lastdot != std::string::npos ) {
+        base_f = base_f.substr( 0, lastdot - 1 );
+      }
+
+    }
+    return ( base_f );
+  }  
 
 /**
  * @brief Mutex wrapper for arbitrary data type
