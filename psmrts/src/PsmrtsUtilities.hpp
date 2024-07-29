@@ -206,7 +206,7 @@ namespace psmrts {
     if ( pathname.length() > 0 ) {
       auto lastdot = pathname.find_last_of( '.' );
       if ( lastdot != std::string::npos ) {
-        extension_f = pathname.substr( lastdot + 1 )
+        extension_f = pathname.substr( lastdot + 1 );
       }
     }
 
@@ -234,7 +234,7 @@ namespace psmrts {
       // Find any directory paths...
       auto lastslash = pathname.find_last_of( '/' );
       if ( lastslash != std::string::npos ) {
-        base_f = pathname.substr( lastslash + 1 )
+        base_f = pathname.substr( lastslash + 1 );
       }
 
       auto lastdot = pathname.find_last_of( '.' );
