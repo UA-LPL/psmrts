@@ -167,23 +167,23 @@ TEST_CASE("Bullet-DSK Comparison Test", "[bullet][dsk][raytrace]") {
 
     CHECK( dsk.get_facet(dsk_spt, dsk_facet) == true );
 
-    CHECK ( bt_facet.m_indexes == dsk_facet.m_indexes );
+    CHECK( bt_facet.m_indexes == dsk_facet.m_indexes );
   
-    CHECK ( bt_facet.m_vector1[0] == dsk_facet.m_vector1[0] );
-    CHECK ( bt_facet.m_vector1[1] == dsk_facet.m_vector1[1] );
-    CHECK ( bt_facet.m_vector1[2] == dsk_facet.m_vector1[2] );
+    CHECK_THAT ( bt_facet.m_vector1[0], Catch::Matchers::WithinAbs( dsk_facet.m_vector1[0], tolerance ));
+    CHECK_THAT ( bt_facet.m_vector1[1], Catch::Matchers::WithinAbs( dsk_facet.m_vector1[1], tolerance ));
+    CHECK_THAT ( bt_facet.m_vector1[2], Catch::Matchers::WithinAbs( dsk_facet.m_vector1[2], tolerance ));
 
-    CHECK ( bt_facet.m_vector2[0] == dsk_facet.m_vector2[0] );
-    CHECK ( bt_facet.m_vector2[1] == dsk_facet.m_vector2[1] );
-    CHECK ( bt_facet.m_vector2[2] == dsk_facet.m_vector2[2] );
+    CHECK_THAT ( bt_facet.m_vector2[0], Catch::Matchers::WithinAbs( dsk_facet.m_vector2[0], tolerance ));
+    CHECK_THAT ( bt_facet.m_vector2[1], Catch::Matchers::WithinAbs( dsk_facet.m_vector2[1], tolerance ));
+    CHECK_THAT ( bt_facet.m_vector2[2], Catch::Matchers::WithinAbs( dsk_facet.m_vector2[2], tolerance ));
 
-    CHECK ( bt_facet.m_vector3[0] == dsk_facet.m_vector3[0] );
-    CHECK ( bt_facet.m_vector3[1] == dsk_facet.m_vector3[1] );
-    CHECK ( bt_facet.m_vector3[2] == dsk_facet.m_vector3[2] );
+    CHECK_THAT ( bt_facet.m_vector3[0], Catch::Matchers::WithinAbs( dsk_facet.m_vector3[0], tolerance ));
+    CHECK_THAT ( bt_facet.m_vector3[1], Catch::Matchers::WithinAbs( dsk_facet.m_vector3[1], tolerance ));
+    CHECK_THAT ( bt_facet.m_vector3[2], Catch::Matchers::WithinAbs( dsk_facet.m_vector3[2], tolerance ));
 
-    CHECK ( bt_facet.m_normal[0] == dsk_facet.m_normal[0] );
-    CHECK ( bt_facet.m_normal[1] == dsk_facet.m_normal[1] );
-    CHECK ( bt_facet.m_normal[2] == dsk_facet.m_normal[2] );
+    CHECK_THAT ( bt_facet.m_normal[0], Catch::Matchers::WithinAbs( dsk_facet.m_normal[0], tolerance ));
+    CHECK_THAT ( bt_facet.m_normal[1], Catch::Matchers::WithinAbs( dsk_facet.m_normal[1], tolerance ));
+    CHECK_THAT ( bt_facet.m_normal[2], Catch::Matchers::WithinAbs( dsk_facet.m_normal[2], tolerance ));
 
     psmrts::PsmrtsRayTrace ray;
 
@@ -208,6 +208,7 @@ TEST_CASE("Bullet-DSK Comparison Test", "[bullet][dsk][raytrace]") {
     }
 
 }
+
 
 TEST_CASE("Bullet-DSK Comparison Test - float", "[bullet][dsk][raytrace][float]") {
     typedef psmrts::PsmrtsMeshData::PsmrtsDataType  PsmrtsDataType;
@@ -286,22 +287,22 @@ TEST_CASE("Bullet-DSK Comparison Test - float", "[bullet][dsk][raytrace][float]"
     CHECK( dsk.get_facet(dsk_spt, dsk_facet) == true );
 
     CHECK ( bt_facet.m_indexes == dsk_facet.m_indexes );
-  
-    CHECK ( bt_facet.m_vector1[0] == dsk_facet.m_vector1[0] );
-    CHECK ( bt_facet.m_vector1[1] == dsk_facet.m_vector1[1] );
-    CHECK ( bt_facet.m_vector1[2] == dsk_facet.m_vector1[2] );
+   
+    CHECK_THAT ( bt_facet.m_vector1[0], Catch::Matchers::WithinAbs( dsk_facet.m_vector1[0], tolerance ));
+    CHECK_THAT ( bt_facet.m_vector1[1], Catch::Matchers::WithinAbs( dsk_facet.m_vector1[1], tolerance ));
+    CHECK_THAT ( bt_facet.m_vector1[2], Catch::Matchers::WithinAbs( dsk_facet.m_vector1[2], tolerance ));
 
-    CHECK ( bt_facet.m_vector2[0] == dsk_facet.m_vector2[0] );
-    CHECK ( bt_facet.m_vector2[1] == dsk_facet.m_vector2[1] );
-    CHECK ( bt_facet.m_vector2[2] == dsk_facet.m_vector2[2] );
+    CHECK_THAT ( bt_facet.m_vector2[0], Catch::Matchers::WithinAbs( dsk_facet.m_vector2[0], tolerance ));
+    CHECK_THAT ( bt_facet.m_vector2[1], Catch::Matchers::WithinAbs( dsk_facet.m_vector2[1], tolerance ));
+    CHECK_THAT ( bt_facet.m_vector2[2], Catch::Matchers::WithinAbs( dsk_facet.m_vector2[2], tolerance ));
 
-    CHECK ( bt_facet.m_vector3[0] == dsk_facet.m_vector3[0] );
-    CHECK ( bt_facet.m_vector3[1] == dsk_facet.m_vector3[1] );
-    CHECK ( bt_facet.m_vector3[2] == dsk_facet.m_vector3[2] );
+    CHECK_THAT ( bt_facet.m_vector3[0], Catch::Matchers::WithinAbs( dsk_facet.m_vector3[0], tolerance ));
+    CHECK_THAT ( bt_facet.m_vector3[1], Catch::Matchers::WithinAbs( dsk_facet.m_vector3[1], tolerance ));
+    CHECK_THAT ( bt_facet.m_vector3[2], Catch::Matchers::WithinAbs( dsk_facet.m_vector3[2], tolerance ));
 
-    CHECK ( bt_facet.m_normal[0] == dsk_facet.m_normal[0] );
-    CHECK ( bt_facet.m_normal[1] == dsk_facet.m_normal[1] );
-    CHECK ( bt_facet.m_normal[2] == dsk_facet.m_normal[2] );
+    CHECK_THAT ( bt_facet.m_normal[0], Catch::Matchers::WithinAbs( dsk_facet.m_normal[0], tolerance ));
+    CHECK_THAT ( bt_facet.m_normal[1], Catch::Matchers::WithinAbs( dsk_facet.m_normal[1], tolerance ));
+    CHECK_THAT ( bt_facet.m_normal[2], Catch::Matchers::WithinAbs( dsk_facet.m_normal[2], tolerance ));
 
     psmrts::PsmrtsRayTrace ray;
 
@@ -318,14 +319,28 @@ TEST_CASE("Bullet-DSK Comparison Test - float", "[bullet][dsk][raytrace][float]"
         CHECK( dsk.get_facet(ray, dsk_facet) == true );
 
         auto bt_facet = bt_mesh.get_facet( ray.plateid() );
+
         CHECK ( bt_facet.m_indexes == dsk_facet.m_indexes );
-        CHECK ( bt_facet.m_vector1 == dsk_facet.m_vector1 );
-        CHECK ( bt_facet.m_vector2 == dsk_facet.m_vector2 );
-        CHECK ( bt_facet.m_vector3 == dsk_facet.m_vector3 );
-        CHECK ( bt_facet.m_normal == dsk_facet.m_normal );
+
+        CHECK_THAT ( bt_facet.m_vector1[0], Catch::Matchers::WithinAbs( dsk_facet.m_vector1[0], tolerance ));
+        CHECK_THAT ( bt_facet.m_vector1[1], Catch::Matchers::WithinAbs( dsk_facet.m_vector1[1], tolerance ));
+        CHECK_THAT ( bt_facet.m_vector1[2], Catch::Matchers::WithinAbs( dsk_facet.m_vector1[2], tolerance ));
+
+        CHECK_THAT ( bt_facet.m_vector2[0], Catch::Matchers::WithinAbs( dsk_facet.m_vector2[0], tolerance ));
+        CHECK_THAT ( bt_facet.m_vector2[1], Catch::Matchers::WithinAbs( dsk_facet.m_vector2[1], tolerance ));
+        CHECK_THAT ( bt_facet.m_vector2[2], Catch::Matchers::WithinAbs( dsk_facet.m_vector2[2], tolerance ));
+
+        CHECK_THAT ( bt_facet.m_vector3[0], Catch::Matchers::WithinAbs( dsk_facet.m_vector3[0], tolerance ));
+        CHECK_THAT ( bt_facet.m_vector3[1], Catch::Matchers::WithinAbs( dsk_facet.m_vector3[1], tolerance ));
+        CHECK_THAT ( bt_facet.m_vector3[2], Catch::Matchers::WithinAbs( dsk_facet.m_vector3[2], tolerance ));
+
+        CHECK_THAT ( bt_facet.m_normal[0], Catch::Matchers::WithinAbs( dsk_facet.m_normal[0], tolerance ));
+        CHECK_THAT ( bt_facet.m_normal[1], Catch::Matchers::WithinAbs( dsk_facet.m_normal[1], tolerance ));
+        CHECK_THAT ( bt_facet.m_normal[2], Catch::Matchers::WithinAbs( dsk_facet.m_normal[2], tolerance ));
     }
 
 }
+
 
 
 TEST_CASE( "BulletTracerModel Test", "[bullet][tracer][model]" ) {

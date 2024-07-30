@@ -77,6 +77,7 @@ if( BUILD_TESTING )
 
   add_subdirectory( psmrts/tests )
   add_subdirectory( tracers/naifdsk/tests )
+  add_subdirectory( tracers/ellipsoid/tests )
   add_subdirectory( tracers/bullet/tests )
   add_subdirectory( formats/obj/tests )
   enable_testing()
