@@ -1,5 +1,5 @@
-#ifndef PsmrtsBulletTracerModel_hpp
-#define PsmrtsBulletTracerModel_hpp
+#ifndef BulletTracerModel_hpp
+#define BulletTracerModel_hpp
 
 #include <exception>
 #include <string>
@@ -22,13 +22,13 @@ namespace psmrts::bullet {
    * @see PsmrtsTracerModel.hpp
    * 
    */
-  class PsmrtsBulletTracerModel : public PsmrtsTracerModel {
+  class BulletTracerModel : public PsmrtsTracerModel {
     public:
-      PsmrtsBulletTracerModel( ) {  }
-      PsmrtsBulletTracerModel( const PsmrtsBulletWorldModel &bt_model ) :
+      BulletTracerModel( ) {  }
+      BulletTracerModel( const PsmrtsBulletWorldModel &bt_model ) :
                                m_bullet_model( bt_model ) {  }
 
-      virtual ~PsmrtsBulletTracerModel() { }
+      virtual ~BulletTracerModel() { }
 
       inline std::string tracer_model_name() const {
         return ( m_bullet_model.mesh().mesh_type() );
@@ -105,7 +105,7 @@ namespace psmrts::bullet {
 
       /** Clone a copy of this shape tracer model */
       virtual PsmrtsTracerModel *clone() const {
-        return ( new PsmrtsBulletTracerModel( m_bullet_model ) );
+        return ( new BulletTracerModel( m_bullet_model ) );
       }
 
       /** Return an ellipsoid tracer for the shape */

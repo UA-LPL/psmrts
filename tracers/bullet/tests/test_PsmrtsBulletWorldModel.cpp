@@ -6,7 +6,7 @@
 #include <PsmrtsOBJFormat.hpp>
 #include <PsmrtsBulletMeshMap.hpp>
 #include <PsmrtsBulletWorldModel.hpp>
-#include <PsmrtsBulletTracerModel.hpp>
+#include <BulletTracerModel.hpp>
 
 #include <NaifUtilities.hpp>
 #include <DskKernelModel.hpp>
@@ -353,7 +353,7 @@ TEST_CASE( "BulletTracerModel Test", "[bullet][tracer][model]" ) {
     REQUIRE( bt_world_model.isValid() == true );
 
     // Now create the tracer model
-    psmrts::bullet::PsmrtsBulletTracerModel bt_world( bt_world_model );
+    psmrts::bullet::BulletTracerModel bt_world( bt_world_model );
 
     // Compute the position of the observer at ( 45,45 ) degrees
     Eigen::Vector3d obs;
