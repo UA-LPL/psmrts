@@ -32,8 +32,8 @@ set( PSMRTS_FORMAT_DIR   ${CMAKE_SOURCE_DIR}/formats )
 
 set( VERSION_MAJOR 0)
 set( VERSION_MINOR 0)
-set( VERSION_PATCH 8)
-set( VERSION_DATE  "2024-06-26")
+set( VERSION_PATCH 9)
+set( VERSION_DATE  "2024-08-01")
 # set( PSMRTS_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 # Configure the project include files
