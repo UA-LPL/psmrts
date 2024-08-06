@@ -1,5 +1,5 @@
-#ifndef PsmrtsTracerModel_hpp
-#define PsmrtsTracerModel_hpp
+#ifndef NaifDskTracerModel_hpp
+#define NaifDskTracerModel_hpp
 
 #include <exception>
 #include <string>
@@ -7,10 +7,12 @@
 #include <mutex>
 
 #include <Eigen/Geometry>
-#include <PsmrtsUtilities.hpp>
-#include <PsmrtsRayTrace.hpp>
 
-namespace psmrts {
+#include <DskKernelModel.hpp>
+#include <PsmrtsTracerModel.hpp>
+#include <EllipsoidTracerModel.hpp>
+
+namespace psmrts  {
   /**
    * @brief Abstract base class interface for ray tracing models
    * 
@@ -26,37 +28,52 @@ namespace psmrts {
    * @see PsmrtsShapeTracerAdaptor.hpp
    * 
    */
-  class PsmrtsTracerModel {
+  class NaifDskTracerModel : public PsmrtsTracerModel {
     public:
-      PsmrtsTracerModel( ) : m_local_tracker() {  }
-      virtual ~PsmrtsTracerModel() { }
+      NaifDskTracerModel( ) {  }
+      NaifDskTracerModel( const naif::DskKernelModel &dsktracer ) : 
+                          PsmrtsTracerModel( ),
+                          m_model( dsktracer ) {  }
+      NaifDskTracerModel( const std::string &dsk ) : 
+                          PsmrtsTracerModel( ),
+                          m_model( dsk ) {  }
+
+      virtual ~NaifDskTracerModel() { }
 
       /* Name of tracer system (PSMRTS) */
       virtual std::string tracer_model_type() const {
-        return ( "psmrts" );
+        return ( m_model.tracer_model_type() );
+      };
+
+      /** Name of tracer model such as  "naifdsk" and "bullet" */
+      virtual std::string tracer_model_name() const {
+        return ( m_model.tracer_model_name() );
       }
-
-      /** Name of tracer model such as "naifdsk" and "bullet" */
-      virtual std::string tracer_model_name() const = 0;
-
-      /** Name of the shape model source name */
-      virtual std::string shapefile()         const = 0;
 
       /** Unique tracer id of this instance */
-      virtual std::string shape_tracer_id() const {
-        std::string shapename = shapefile();
-        if ( shapename.length() == 0 ) shapename = "none";
-        return ( tracer_model_type() + "::" + tracer_model_name() + "::" + shapename );        
+      virtual std::string shape_tracer_id()   const {
+        return ( m_model.tracer_model_id()  );
       }
 
+      /** Name of the shape model source */
+      virtual std::string shapefile()         const {
+        return ( m_model.shapefile() );
+      };
+
       /** Total number of plates/facets in model */
-      virtual size_t plate_count()  const = 0;
+      virtual size_t plate_count()  const {
+        return ( m_model.plate_count() );
+      };
 
       /** Total verticies in the model */
-      virtual size_t vertex_count() const = 0;
+      virtual size_t vertex_count() const {
+        return ( m_model.plate_count() );
+      };
 
       /** Returns the maximum radius in the modek */
-      virtual double maximum_radius() const = 0;
+      virtual double maximum_radius() const {
+        return ( m_model.maximum_radius() );
+      };
 
       /**
        * @brief Ray trace method on the shape model in this tracer
@@ -82,7 +99,10 @@ namespace psmrts {
        */
       virtual bool ray_trace( const Eigen::Vector3d &observer,
                               const Eigen::Vector3d &lookdir,
-                              PsmrtsRayTrace &ray ) const = 0;
+                              PsmrtsRayTrace &ray ) const {
+        this->local_tracker()++;
+        return ( m_model.ray_trace( observer, lookdir, ray ) );
+      }
 
       /**
        * @brief Get the facet object at the ray intersection
@@ -92,27 +112,39 @@ namespace psmrts {
        * @return false 
        */
       virtual bool get_facet( const PsmrtsRayTrace &ray,
-                              PsmrtsRayTrace::FacetDatum &facet ) const = 0;
+                              PsmrtsRayTrace::FacetDatum &facet ) const {
+        return ( m_model.get_facet( ray, facet ) );
+      }
 
 
       /** Clone a copy of this shape tracer model */
-      virtual PsmrtsTracerModel *clone() const = 0;
+      virtual PsmrtsTracerModel *clone() const {
+        return ( new NaifDskTracerModel( m_model ) );
+      }
 
       /** Return an ellipsoid tracer for the shape */
-      virtual PsmrtsTracerModel *ellipsoid() const = 0;
+      virtual PsmrtsTracerModel *ellipsoid() const {
+        return ( EllipsoidTracerModel( m_model.radii() ) );
+      }
+    
+      inline NaifDskTracerModel *tracer_from_id( const int surfaceId ) const {
+        if ( nullptr != m_model.get_segment_with_id( surfaceId ) ) {
+          return ( new NaifDskTracerModel( m_model.create_from_id( surfaceId ) ) );
+        }
 
-      virtual PsmrtsThreadSafeCounter performance_snapshot() const {
-        return ( this->local_tracker().clone() );
+        // Surface segment not found
+        return ( nullptr );
+      }
+
+      inline const naif::DskKernelModel &tracer() const {
+        return ( m_model );
       }
 
     protected:
-      PsmrtsThreadSafeCounter     m_local_tracker;     // Tracks times and copy counts
+      naif::DskKernelModel    m_model;
 
-      inline const PsmrtsThreadSafeCounter &local_tracker() const {
-        return ( m_local_tracker );
-      }
   };
 
-} // namespace psmrts
+} // namespace psmrts::naif
 
 #endif

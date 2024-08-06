@@ -10,9 +10,12 @@
 #include <Eigen/Geometry>
 
 #include <PsmrtsUtilities.hpp>
-#include <PsmrtsDataModel.hpp>
+#include <PsmrtsBufferData.hpp>
+#include <PsmrtsBuffer.hpp>
+#include <PsmrtsVector3.hpp>
 #include <PsmrtsTracerModel.hpp>
 #include <PsmrtsRayTrace.hpp>
+
 #include <NaifUtilities.hpp>
 #include <DskSegment.hpp>
 #include <KernelFileSystem.hpp>
@@ -39,8 +42,8 @@ namespace naif {
       typedef std::vector<DskSegment>                 DskSegmentList;
 
       // Data types/representations for the indexes and facet vectors/DSK segment
-      typedef psmrts::PsmrtsDataModel<int>            DskIndexDataModel;
-      typedef psmrts::PsmrtsDataModel<double>         DskVectorDataModel;
+      typedef psmrts::PsmrtsVector3i            DskIndexDataModel;
+      typedef psmrts::PsmrtsVector3d            DskVectorDataModel;
 
       inline std::string tracer_model_type() const {
         return ( std::string( "naifdsk" ) );
@@ -252,11 +255,38 @@ namespace naif {
                             datum_r.m_plateid, datum_r.m_normal.data() );
             check_naif_errors();
         }
+        // Return to 0-base index.
+        datum_r.m_plateid -= 1;
 
         return ( ray.hasHit() );
       }
 
       /**
+       * @brief Trace a look vector from an observer location in all DSK segments
+       * 
+       * 
+       * @param observer 
+       * @param lookdir 
+       * @param ray 
+       * @return true 
+       * @return false 
+       */
+      virtual bool ray_trace( const Eigen::Vector3d &observer, 
+                              const Eigen::Vector3d &lookdir,
+                              psmrts::PsmrtsRayTrace &ray ) const {
+        m_tracker++;
+        for ( auto const &segment : segments() ) {
+          bool has_hit = this->ray_trace( observer, lookdir, segment, ray );
+          if ( true == has_hit ) {
+            return ( has_hit );
+          }
+        }
+
+        // No intercept found in any segment
+        return ( false );
+      }
+
+    /**
        * @brief Get the facet for the specified plateid and segment
        * 
        * This method can be used to read a facet from the 
@@ -266,14 +296,14 @@ namespace naif {
        * @return true 
        * @return false 
        */
-      inline bool get_facet( const psmrts::PsmrtsRayTrace::RayTraceDatum &raytrace,
-                             psmrts::PsmrtsRayTrace::FacetDatum &facet ) const {
+      virtual bool get_facet( const psmrts::PsmrtsRayTrace &ray,
+                              psmrts::PsmrtsRayTrace::FacetDatum &facet ) const {
                 
         // Sanity check validity of raytrace
         facet.m_has_facet = false;
-        if ( raytrace.hasHit() ) {
+        if ( ray.hasHit() ) {
 
-          const DskSegment *segment = get_segment_with_id( raytrace.m_segment );
+          const DskSegment *segment = get_segment_with_id( ray.segment_number() );
           if ( nullptr != segment ) {
             // Lock up NAIF file I/O for thread safety ( >=c++17 )
             std::scoped_lock mylocker( this->mutex() );
@@ -281,10 +311,14 @@ namespace naif {
             // Fetch the indexes of the facet vectors
             SpiceInt n;
             SpiceInt indexes[3];
+
+            // Adding 1 to m_plateid to return to 1-based index, consistent with dsk.
             (void) dskp02_c( kernel().handle(), segment->dladsc_ptr(),
-                             raytrace.m_plateid, 1, &n, ( SpiceInt (*)[3] ) ( indexes ) );
+                             ray.plateid()+1, 1, &n, ( SpiceInt (*)[3] ) ( indexes ) );
             check_naif_errors();
-            facet.m_indexes = { indexes[0], indexes[1], indexes[2] };
+            
+            // Converting back to 0-based for return
+            facet.m_indexes = { indexes[0]-1, indexes[1]-1, indexes[2]-1 };
 
             // Fetch each vector in the facet
             SpiceDouble vector[3];
@@ -303,38 +337,16 @@ namespace naif {
             check_naif_errors();
             facet.m_vector3 = { vector[0], vector[1], vector[2] };
 
+            facet.m_normal = psmrts::compute_normal( facet.m_vector1,
+                                                     facet.m_vector2,
+                                                     facet.m_vector3 );
+
             facet.m_has_facet = true;
           }
         }
 
         return ( facet.m_has_facet );
       }
-
-      /**
-       * @brief Trace a look vector from an observer location in all DSK segments
-       * 
-       * 
-       * @param observer 
-       * @param lookdir 
-       * @param ray 
-       * @return true 
-       * @return false 
-       */
-      inline bool ray_trace( const Eigen::Vector3d &observer, 
-                             const Eigen::Vector3d &lookdir,
-                             psmrts::PsmrtsRayTrace &ray ) const {
-
-        for ( auto const &segment : segments() ) {
-          bool has_hit = this->ray_trace( observer, lookdir, segment, ray );
-          if ( true == has_hit ) {
-            return ( has_hit );
-          }
-        }
-
-        // No intercept found in any segment
-        return ( false );
-      }
-
 
       /**
        * @brief Read all facet plate indexes from a DSK segment
@@ -434,12 +446,18 @@ namespace naif {
       inline DskKernelModel clone() const {
         return ( *this );
       }
-#if 0
 
-      inline psmrts::PsmrtsTracerModel *ellipsoid() const {
-        return ( new NaifEllipsoidShape(  ))
+      inline double elapsed_life_time_s() const {
+        return ( m_tracker.runtime_s() );
       }
-#endif
+
+      inline size_t track_count() const {
+        return ( m_tracker.count() );
+      }
+      
+      inline psmrts::PsmrtsThreadSafeCounter performance_snapshot() const {
+        return ( m_tracker.clone() );
+      }
 
     protected:
 
@@ -466,11 +484,12 @@ namespace naif {
       }
 
     private:
-      SharedDskDescriptor m_dsk_descriptor;
-      DskSegmentList      m_segments;
-      size_t              m_total_plates;
-      size_t              m_total_vertices;
-      Eigen::Vector3d     m_radii;
+      SharedDskDescriptor             m_dsk_descriptor;
+      DskSegmentList                  m_segments;
+      size_t                          m_total_plates;
+      size_t                          m_total_vertices;
+      Eigen::Vector3d                 m_radii;
+      psmrts::PsmrtsThreadSafeCounter m_tracker;     // Tracks times and copy counts
 
 
       /** Reset DSK model to default state */
@@ -483,9 +502,10 @@ namespace naif {
         }
 
         m_segments.clear();
-        m_total_plates = 0;
+        m_total_plates   = 0;
         m_total_vertices = 0;
-        m_radii = Eigen::Vector3d::Zero();
+        m_radii          = Eigen::Vector3d::Zero();
+        m_tracker        = psmrts::PsmrtsThreadSafeCounter();
 
         return;
       }
@@ -578,6 +598,7 @@ namespace naif {
         m_total_plates   = model.m_total_plates;
         m_total_vertices = model.m_total_vertices;
         m_radii          = model.m_radii;
+        m_tracker        = psmrts::PsmrtsThreadSafeCounter();
         return;
       }
 

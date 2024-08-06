@@ -67,6 +67,11 @@ namespace psmrts {
           return ( m_model_pst.ray_trace(  observer, lookdir, ray ) );
         }
 
+        virtual bool get_facet( const PsmrtsRayTrace &ray,
+                                PsmrtsRayTrace::FacetDatum &facet ) const {
+          return ( m_model_pst.get_facet( ray, facet ) );
+        }
+
         virtual PsmrtsTracerModel *clone() const  {
           return ( new PsmrtsShapeTracerAdapter<MODEL>( m_model_pst.clone() ) );
         }

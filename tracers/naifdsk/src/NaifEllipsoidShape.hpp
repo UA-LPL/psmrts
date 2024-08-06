@@ -133,16 +133,17 @@ namespace naif {
         return ( ray.hasHit() );
       }
 
+      virtual bool get_facet( const psmrts::PsmrtsRayTrace &ray,
+                              psmrts::PsmrtsRayTrace::FacetDatum &facet ) const {
+
+      // Sanity check validity of raytrace
+        facet.m_has_facet = false;
+        return ( facet.isValid() );
+      }
+
       inline NaifEllipsoidShape clone() const {
         return ( *this );
       }
-
-#if 0
-
-      inline psmrts::PsmrtsTracerModel *ellipsoid() const {
-        return ( new NaifEllipsoidShape(  ))
-      }
-#endif
 
       /** There are no shared instances */
       inline size_t use_count() const {

@@ -33,6 +33,24 @@ release.
 -->
 
 ## TODO
+- Bullet Physics Tracer Model
+  - Implement multi-threaded version of tinyobjloader
+
+
+## [0.0.9] 2024-08-01
+- The Bullet Physics ray tracing system has been integrated into a PSMRTS tracer model. Lots of refactoring and improvements were also made during this cycle to accomodate the flexible, but complex, striding buffer concept. This provides the BulletTracerModel class PsmrtsTracerModel, the PSMRTS tracer base class of al tracers, which is an abstract base class (ABC).
+- Developed a flexible data buffering class hierarchy system to streamline data access and efficient management. Every buffer is shared although deep copies can be made. Arbitrary data types are allocated and managed by the fundamental class PsmrtsBufferData. Next is a type-agnostic mapping of stride size lengths into a PsmrtsBufferData call the PsmrtsStridingBuffer. This the fundamental reference to type data that can be mapped into the PsmrtsBuffer<T> template class. Finally, the PsmrtsVector3<T> class provides generic typing of 3-element vectors of arbitrary types. PSMRTS main data mesh types are PsmrtVector3<int> for indexes, and PsmrtsVector3<double> or PsmrtsVector3<float> vectors.
+- The PsmrtsMeshData class serves up a mesh comprised of indexes (or facets) and vectors of double or float. PSMRTS strives for accuracy so the default type for mesh vectors is double.
+- Modifed the OBJ format reader to utilize this new mesh structure and optimize if for use in tracers such as Bullet.
+- The PsmrtsBulletMeshData is the specialized mesh buffering. Bullet has limit restrictions on the number of facets/part in order to use BVH optimization. This class provides Bullet part partitioning of a PsmrtsMeshData with additional configurations of the system available to PSRMTS users. This is the primary input to the BulletTracerModel.
+- Modifined the NaifDsk tracer to utilize this design. The NaifDsk tracer system also provides full extraction the DSK mesh into a PsmrtsMeshData of double or float vectors. The NaifDskTracerModel derived from the PsmrtsTracerModel APC provides the PSMRTS compatible interface.
+- Introduced the EllipsoidTracerModel class to provide the full class of ellipsoid models. This includes spheres/spheroids, ellipsoids and trixial ellipsoids.
+- This release contains three complete PSMRTS tracer models (BulletTracerModel, NaifDskTracerModel and EllipsoidTracerModel) and support for two mesh/shape formats OBJ (PsrmtsOBJFormat) and DSK (directly from an DskKernelModel).
+- Also added a thread safe performance tracking system. This mechanism provides a *performance snapshot*, which contains elapsed time in seconds and milliseconds from creation of the tracker. The snapshot report also contains the born-on date, which is the creation time of the tracker, and the time of the snapshot. Included in this system is a thread-safe counter. This counter is used to track the total number rays of a source tracer (like Bullet) as well as individual tracing metrics per shared copy (this will measure ray traces/#shared ratio). The number of shared copied of meshes, tracers and (combined) mesh shape tracers are tracked by the count of shared instances of each source provided in the API.
+- Integrated JSON support using the nlohmann::json library for reporting snapshots. This produces an inheritance hierarchy of data for each element in PSMRTS. This also provides the foundation of data and tracer parameterization.
+- Update the PSMRTS version model in CMakeLists.txt (which is used to generate a C++ header with this data).
+- Updated CHANGELOG.md and set version to [0.0.9]
+
 
 ## [0.0.8] 2024-06-26
 - Big refactor renames several classes

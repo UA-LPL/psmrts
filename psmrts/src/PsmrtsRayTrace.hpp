@@ -31,6 +31,11 @@ namespace psmrts {
                          m_vector2( { 0.0, 0.0, 0.0 } ),
                          m_vector3( { 0.0, 0.0, 0.0 } ),
                          m_normal(  { 0.0, 0.0, 0.0 } ) { }
+        ~facet_datum() { }
+
+        inline bool isValid() const {
+          return ( m_has_facet );
+        }
                        
         bool            m_has_facet;
         Eigen::Vector3i m_indexes;
