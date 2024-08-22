@@ -4,7 +4,7 @@
 #include <DskKernelModel.hpp>
 #include <PsmrtsRayTrace.hpp>
 
-TEST_CASE( "Ray Trace Default Test - Basic Spheroid Ellipse", "[ray][trace]") {
+TEST_CASE( "Ray Trace Default Test - Basic Spheroid Ellipse", "[ray][trace][ellipsoid]") {
     const double tolerance = 1.0e-10;
 
     naif::NaifEllipsoidShape ellipse(0.5);

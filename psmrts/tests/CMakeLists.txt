@@ -11,7 +11,13 @@ set( CMAKE_INCLUDE_CURRENT_DIR ON )
 add_executable( psmrts_test_suite  psmrts_catch2_main.cpp
                                    test_PsmrtsBuffer.cpp 
                                    test_PsmrtsBufferData.cpp
+                                   test_PsmrtsMeshData.cpp
                                    test_PsmrtsParameters.cpp
+                                   test_PsmrtsPriorityTracer.cpp
+                                   test_PsmrtsRayTrace.cpp
+                                   test_PsmrtsShapeTracerAdapter.cpp
+                                   test_PsmrtsStridingBuffer.cpp
+                                   test_PsmrtsTracerModel.cpp
                                    test_PsmrtsUtilities.cpp 
                                    test_PsmrtsVector3.cpp  )
 
