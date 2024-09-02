@@ -12,7 +12,7 @@ typedef psmrts::PsmrtsShapeTracerAdapter<naif::NaifEllipsoidShape> PsmrtsAdapted
 typedef psmrts::PsmrtsShapeTracerAdapter<naif::DskKernelModel>   NaifShapeTracer;
 typedef std::shared_ptr<psmrts::PsmrtsTracerModel>  SharedTracerModel;
 
-TEST_CASE( "Naif Priority Tracer Default Test", "[priority][tracer][default]") {
+TEST_CASE( "Naif Priority Tracer Default Test", "[priority][tracer][naif]w3") {
     const double tolerance = 1.0e-6;
 
     naif::NaifEllipsoidShape s_ellipse( 1.0, 2.0, 3.0, "small" );
