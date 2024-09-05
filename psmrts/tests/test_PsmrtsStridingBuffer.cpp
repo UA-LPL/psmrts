@@ -14,22 +14,45 @@ TEST_CASE( "PsmrtsStridingBuffer Default Test", "[striding][buffer][default]") {
     CHECK( stride_buffer.size() == 0 );
     CHECK( stride_buffer.stride_size() == 1 );
     CHECK( stride_buffer.volume_size() == 0 );
-    //CHECK( stride_buffer.get() == nullptr ); 
-    //CHECK( stride_buffer.ref() == 0 ); 
-    // Invalid Index errors for above 
+    CHECK_THROWS( stride_buffer.get() == nullptr ); 
+    CHECK_THROWS( stride_buffer.ref() == 0 );
+    CHECK_THROWS( *stride_buffer.get(0) == 0.0 );
+    CHECK_THROWS( *stride_buffer.get(2) == 0.0 );
+    CHECK_THROWS( *stride_buffer.get(10) == 0.0 );
+    CHECK_THROWS( stride_buffer.ref(0) == 0.0 );
+    CHECK_THROWS( stride_buffer.ref(5) == 0.0 );
+    CHECK_THROWS( stride_buffer.ref(10) == 0.0 );
+    // Make sure throws for all indexes, 0, 10 etc
 
 }
 
 TEST_CASE( "PsmrtsStridingBuffer Values Test", "[striding][buffer][values]") {
     psmrts::PsmrtsStridingBuffer stride_buffer( 10, 4 );
 
+    psmrts::PsmrtsStridingBuffer::pointer p = stride_buffer.get(0);
+    for (int i = 0; i < stride_buffer.volume_size(); i++ ) {
+        p[i] = i;
+    }
+    
     CHECK( stride_buffer.size() == 10 );
     CHECK( stride_buffer.stride_size() == 4 );
     CHECK( stride_buffer.volume_size() == 40 );
     CHECK( stride_buffer.get(1) != nullptr ); 
-    CHECK( *stride_buffer.get(1) == 0.0 ); // Meant to pass/initialize as a 0.0?
+    CHECK( *stride_buffer.get(1) == 4.0 ); 
     CHECK( &stride_buffer.ref(9) == stride_buffer.get(9) );
+    CHECK( stride_buffer.ref(9) == *stride_buffer.get(9) ); // value = i * stride_size()
+    for (int j = 0; j < stride_buffer.size(); j++ ) {
+        CHECK( stride_buffer.ref(j) == j * stride_buffer.stride_size() );
+    }
+    for (int k = 0; k < stride_buffer.size(); k++ ) {
+        CHECK( *stride_buffer.get(k) == k * stride_buffer.stride_size() );
+    }
     CHECK( stride_buffer.validate_index(0) == true );
+    CHECK_THROWS( stride_buffer.ref(11) == 0.0 );
+    //CHECK_THROWS( stride_buffer.get(0)[45] == 45.0 ); // no throws, evals to 0
+    //CHECK_THROWS( stride_buffer.get(0)[-1] == 39.0 ); // no throws, evals to 0
+    CHECK_THROWS( stride_buffer.ref(41) == 0.0 );
+    CHECK_THROWS( stride_buffer.ref(-1) == 0.0 );
 
     psmrts::PsmrtsStridingBuffer stride_slice = stride_buffer.slice(4, 5);
     CHECK( stride_slice.size() == 5 );
@@ -45,7 +68,7 @@ TEST_CASE( "PsmrtsStridingBuffer Values Test", "[striding][buffer][values]") {
     CHECK( stride_deep.stride_size() == 4 );
     CHECK( stride_deep.volume_size() == 40 );
     CHECK( stride_deep.get(1) != nullptr ); 
-    CHECK( *stride_deep.get(1) == 0.0 ); 
+    CHECK( *stride_deep.get(1) == 4.0 ); 
     CHECK( &stride_deep.ref(9) == stride_deep.get(9) );
     CHECK( stride_deep.validate_index(0) == true );
 
