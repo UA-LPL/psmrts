@@ -49,8 +49,8 @@ TEST_CASE( "PsmrtsStridingBuffer Values Test", "[striding][buffer][values]") {
     }
     CHECK( stride_buffer.validate_index(0) == true );
     CHECK_THROWS( stride_buffer.ref(11) == 0.0 );
-    //CHECK_THROWS( stride_buffer.get(0)[45] == 45.0 ); // no throws, evals to 0
-    //CHECK_THROWS( stride_buffer.get(0)[-1] == 39.0 ); // no throws, evals to 0
+    CHECK_THROWS( stride_buffer.get(45) );
+    CHECK_THROWS( stride_buffer.get(35) ); 
     CHECK_THROWS( stride_buffer.ref(41) == 0.0 );
     CHECK_THROWS( stride_buffer.ref(-1) == 0.0 );
 
