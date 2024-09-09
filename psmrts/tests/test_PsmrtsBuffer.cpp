@@ -145,3 +145,35 @@ TEST_CASE( "PsmrtsBuffer Slice / Deep Copy Test", "[datamodel][buffer][slice][co
   CHECK ( p_model(1) == p_slice(0) );
   
 }
+
+/*
+WIP - Needs to be adjusted further to PsmrtsBuffer class
+TEST_CASE("PsmrtsBufferData Value Double Array Test", "") {
+    std::vector<double> my_vector{0.0, 1.1, 2.2, 3.3, 4.4, 5.5, 6.5, 7.5, 8.5, 9.5};
+    psmrts::PsmrtsBufferData pb_data( my_vector[0, 10] );
+    CHECK( pb_data.size() == 10 );
+    CHECK( pb_data.isValid() == true );
+    CHECK( *pb_data.data_get(8) ==  8.5 ); 
+    CHECK( pb_data.data_ref(1) == 1.1 );
+    CHECK( pb_data.data_origin_distance(7) == 7 ); // Purpose of this if it returns input index?
+    
+    psmrts::PsmrtsBufferData pb_slice;
+    pb_slice = pb_data.slice(2, 4);
+    CHECK( pb_slice.size() == 2 );
+    CHECK( pb_slice.isValid() == true );
+}
+TEST_CASE("PsmrtsBufferData Value Float Array Test", "") {
+    std::vector<float> my_vector{0.0, 1.1, 2.2, 3.3, 4.4, 5.5, 6.5, 7.5, 8.5, 9.5};
+    psmrts::PsmrtsBufferData pb_data( my_vector[0, 10] );
+    CHECK( pb_data.size() == 10 );
+    CHECK( pb_data.isValid() == true );
+    CHECK( *pb_data.data_get(8) ==  8.5 ); 
+    CHECK( pb_data.data_ref(1) == 1.1 );
+    CHECK( pb_data.data_origin_distance(7) == 7 ); // Purpose of this if it returns input index?
+    
+    psmrts::PsmrtsBufferData pb_slice;
+    pb_slice = pb_data.slice(2, 4);
+    CHECK( pb_slice.size() == 2 );
+    CHECK( pb_slice.isValid() == true );
+}
+*/

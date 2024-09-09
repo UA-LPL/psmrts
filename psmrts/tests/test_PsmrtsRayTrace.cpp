@@ -15,16 +15,16 @@ TEST_CASE( "PsmrtsRayTrace Default Test", "[ray][trace][default]") {
     // No parameters
     psmrts::PsmrtsRayTrace ray_basic;
 
-    CHECK( ray_basic.hasHit() == false );
-    CHECK( ray_basic.observer() == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
-    CHECK( ray_basic.lookdir() == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
-    CHECK( ray_basic.normal() == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
-    CHECK( ray_basic.surfpt() == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
-    CHECK( ray_basic.xyz() == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
-    CHECK( ray_basic.radius() == 0.0 );
+    CHECK( ray_basic.hasHit()         == false );
+    CHECK( ray_basic.observer()       == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
+    CHECK( ray_basic.lookdir()        == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
+    CHECK( ray_basic.normal()         == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
+    CHECK( ray_basic.surfpt()         == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
+    CHECK( ray_basic.xyz()            == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
+    CHECK( ray_basic.radius()         == 0.0 );
     CHECK( ray_basic.slant_distance() == 0.0 );
     CHECK( psmrts::isnull( ray_basic.emission() ) == true ); 
-    CHECK( ray_basic.plateid() == -1 );
+    CHECK( ray_basic.plateid()        == -1 );
     CHECK( ray_basic.segment_number() == -1 );
     CHECK( ray_basic.datum().hasHit() == false );
 
@@ -37,38 +37,38 @@ TEST_CASE( "PsmrtsRayTrace Facet Test", "[ray][trace][facet][default]") {
     CHECK( d_facet.m_vector1 == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
     CHECK( d_facet.m_vector2 == Eigen::Vector3d { 0.0, 0.0, 0.0 } ); 
     CHECK( d_facet.m_vector3 == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
-    CHECK( d_facet.m_normal == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
+    CHECK( d_facet.m_normal  == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
 
     psmrts::PsmrtsRayTrace::ray_trace_datum d_ray;
-    CHECK( d_ray.hasHit() == false );
+    CHECK( d_ray.hasHit()   == false );
     CHECK( d_ray.m_observer == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
-    CHECK( d_ray.m_lookdir == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
-    CHECK( d_ray.m_xyz == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
-    CHECK( d_ray.m_normal == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
-    CHECK( d_ray.m_plateid == -1 );
-    CHECK( d_ray.m_segment == -1 );
+    CHECK( d_ray.m_lookdir  == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
+    CHECK( d_ray.m_xyz      == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
+    CHECK( d_ray.m_normal   == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
+    CHECK( d_ray.m_plateid  == -1 );
+    CHECK( d_ray.m_segment  == -1 );
 
-    Eigen::Vector3d obs = { 2.0, 2.0, 2.0 };
+    Eigen::Vector3d obs  = { 2.0, 2.0, 2.0 };
     Eigen::Vector3d surf = { 0.0, 0.5, 0.0 };
     Eigen::Vector3d lkdr = -obs + surf;
     // Reset datum with values
     d_ray.reset( obs, lkdr );
-    CHECK( d_ray.hasHit() == false );
+    CHECK( d_ray.hasHit()   == false );
     CHECK( d_ray.m_observer == Eigen::Vector3d { 2.0, 2.0, 2.0 } );
-    CHECK( d_ray.m_lookdir == (-obs + surf) );
-    CHECK( d_ray.m_xyz == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
-    CHECK( d_ray.m_normal == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
-    CHECK( d_ray.m_plateid == -1 );
-    CHECK( d_ray.m_segment == -1 );
+    CHECK( d_ray.m_lookdir  == (-obs + surf) );
+    CHECK( d_ray.m_xyz      == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
+    CHECK( d_ray.m_normal   == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
+    CHECK( d_ray.m_plateid  == -1 );
+    CHECK( d_ray.m_segment  == -1 );
     // Second reset without values, ensure default
     d_ray.reset();
-    CHECK( d_ray.hasHit() == false );
+    CHECK( d_ray.hasHit()   == false );
     CHECK( d_ray.m_observer == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
-    CHECK( d_ray.m_lookdir == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
-    CHECK( d_ray.m_xyz == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
-    CHECK( d_ray.m_normal == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
-    CHECK( d_ray.m_plateid == -1 );
-    CHECK( d_ray.m_segment == -1 );
+    CHECK( d_ray.m_lookdir  == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
+    CHECK( d_ray.m_xyz      == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
+    CHECK( d_ray.m_normal   == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
+    CHECK( d_ray.m_plateid  == -1 );
+    CHECK( d_ray.m_segment  == -1 );
 }
 
 // Basic instantiation of a ray trace itself, making sure default conditions are set
@@ -90,8 +90,8 @@ TEST_CASE( "PsmrtsRayTrace Baseline Values Test - Ellipsoid", "[ray][trace][valu
     psmrts::EllipsoidTracerModel e_tracer( t_ellipse );
 
     Eigen::Vector3d obs;
-    double radius = e_tracer.maximum_radius();
-    CHECK( radius == 1.0 );
+    double radius   = e_tracer.maximum_radius();
+    CHECK( radius   == 1.0 );
     double obs_long = psmrts::degrees_to_radians(45.0);
     double obs_lat  = psmrts::degrees_to_radians(45.0);
     latrec_c( radius, obs_long, obs_lat, obs.data() );
@@ -122,10 +122,11 @@ TEST_CASE( "PsmrtsRayTrace Baseline Values Test - Ellipsoid", "[ray][trace][valu
     CHECK( ellipse_ray.surfpt()         == ellipse_ray.xyz() + obs ); // minus -obs?
     CHECK( ellipse_ray.radius()         == 1.0 );
     CHECK( ellipse_ray.slant_distance() == 1.0 );
-    CHECK( psmrts::isnull(ellipse_ray.emission()) ==  false );   
     CHECK( ellipse_ray.emission()       == 0.0 ); 
     CHECK( ellipse_ray.plateid()        == -1 );
     CHECK( ellipse_ray.segment_number() == -1 ); 
+    CHECK( psmrts::isnull(ellipse_ray.emission()) ==  false );   
+
 
     // Constructor initialized with another ray as parameter
     psmrts::PsmrtsRayTrace second_ray( ellipse_ray );
@@ -142,37 +143,45 @@ TEST_CASE( "PsmrtsRayTrace Baseline Values Test - Ellipsoid", "[ray][trace][valu
     CHECK( second_ray.surfpt()         == ellipse_ray.xyz() + obs ); // minus -obs?
     CHECK( second_ray.radius()         == 1.0 ); 
     CHECK( second_ray.slant_distance() == 1.0 );
-    CHECK( psmrts::isnull(second_ray.emission()) ==  false );   
     CHECK( second_ray.emission()       == 0.0 ); 
     CHECK( second_ray.plateid()        == -1 );
     CHECK( second_ray.segment_number() == -1 ); 
+    CHECK( psmrts::isnull(second_ray.emission()) ==  false );   
+
 
     // Reset with new obs / lkdr values
     Eigen::Vector3d obs_reset;
-    double obs_long_r = psmrts::degrees_to_radians(45);
-    double obs_lat_r = psmrts::degrees_to_radians(45);
+    double obs_long_r = psmrts::degrees_to_radians(44.5);
+    double obs_lat_r = psmrts::degrees_to_radians(44.5);
     latrec_c( radius, obs_long_r, obs_lat_r, obs_reset.data() );
     obs_reset = obs_reset * 2.0;
 
     Eigen::Vector3d surf_reset;
-    double surf_long_r = psmrts::degrees_to_radians(45);
-    double surf_lat_r = psmrts::degrees_to_radians(45);
+    double surf_long_r = psmrts::degrees_to_radians(44.5);
+    double surf_lat_r = psmrts::degrees_to_radians(44.5);
     latrec_c( radius, surf_long_r, surf_lat_r, surf_reset.data());
     Eigen::Vector3d lkdr_reset = obs_reset - surf_reset;
 
-    CHECK_NOTHROW( ellipse_ray.reset( -obs_reset, lkdr_reset ) ); // Meant to do a partial reset, with new vals
-    CHECK( ellipse_ray.hasHit()   == false ); 
-    CHECK( ellipse_ray.observer() == -obs_reset );
-    CHECK( ellipse_ray.lookdir()  == lkdr_reset );
-    CHECK( ellipse_ray.normal()   == Eigen::Vector3d {0.0, 0.0, 0.0} ); 
-    CHECK( ellipse_ray.xyz()      == Eigen::Vector3d {0.0, 0.0, 0.0} );
-    CHECK( ellipse_ray.surfpt()   == ellipse_ray.xyz() + obs_reset ); // minus -obs_reset?
-    CHECK( ellipse_ray.radius()   == 0.0 ); 
-    CHECK( ellipse_ray.slant_distance() == 2.0 ); // It is 1.0 above, with similar obs/lkdr vals.
-    CHECK( psmrts::isnull(ellipse_ray.emission()) ==  true ); // true without a shape model?
-    //CHECK( ellipse_ray.emission() == 0.0 ); // Technically, NAN without shape model?
-    CHECK( ellipse_ray.plateid()  == -1 );
-    CHECK( ellipse_ray.segment_number() == -1 );
+    CHECK_NOTHROW( ellipse_ray.reset( -obs_reset, lkdr_reset ) );
+    psmrts::PsmrtsRayTrace reset_ray;
+    e_tracer.ray_trace( ellipse_ray.observer(), ellipse_ray.lookdir(), reset_ray);
+    CHECK( reset_ray.hasHit()   == true ); 
+    CHECK( reset_ray.observer() == -obs_reset );
+    CHECK( reset_ray.lookdir()  == lkdr_reset ); 
+    CHECK_THAT( reset_ray.normal()[0], Catch::Matchers::WithinAbs( -0.508726, tolerance ));
+    CHECK_THAT( reset_ray.normal()[1], Catch::Matchers::WithinAbs( -0.499924, tolerance )); 
+    CHECK_THAT( reset_ray.normal()[2], Catch::Matchers::WithinAbs( -0.700909, tolerance )); 
+    CHECK_THAT( reset_ray.xyz()[0], Catch::Matchers::WithinAbs( -0.508726, tolerance ));
+    CHECK_THAT( reset_ray.xyz()[1], Catch::Matchers::WithinAbs( -0.499924, tolerance ));
+    CHECK_THAT( reset_ray.xyz()[2], Catch::Matchers::WithinAbs( -0.700909, tolerance ));
+    CHECK( reset_ray.surfpt()         == reset_ray.xyz() + obs_reset );
+    CHECK( reset_ray.radius()         == 1.0 ); 
+    CHECK( reset_ray.slant_distance() == 1.0 ); 
+    CHECK( reset_ray.emission()       == 0.0 ); 
+    CHECK( reset_ray.plateid()        == -1 );
+    CHECK( reset_ray.segment_number() == -1 );
+    CHECK( psmrts::isnull(reset_ray.emission()) ==  false ); 
+
 
     // Full reset to default
     CHECK_NOTHROW( ellipse_ray.reset() );
@@ -185,7 +194,7 @@ TEST_CASE( "PsmrtsRayTrace Baseline Values Test - Ellipsoid", "[ray][trace][valu
     CHECK( ellipse_ray.radius()   == 0.0 );
     CHECK( ellipse_ray.slant_distance() == 0.0 );
     CHECK( psmrts::isnull( ellipse_ray.emission() ) == true ); 
-    CHECK( ellipse_ray.plateid()  == -1 );
+    CHECK( ellipse_ray.plateid()        == -1 );
     CHECK( ellipse_ray.segment_number() == -1 );
     CHECK( ellipse_ray.datum().hasHit() == false );
 }   
