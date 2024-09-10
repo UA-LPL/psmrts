@@ -220,7 +220,7 @@ namespace psmrts {
       // Find last directory path spec
       auto lastslash = pathname.find_last_of( '/' );
       if ( lastslash != std::string::npos ) {
-        path_f = pathname.substr(0,  lastslash - 1 );
+        path_f = pathname.substr(0,  lastslash );
       }
 
     }
@@ -375,7 +375,6 @@ namespace psmrts {
          * @return PsmrtsThreadSafeCounter 
          */
         inline PsmrtsThreadSafeCounter clone() const {
-          std::scoped_lock mylocker( m_counter->mutex() );
           PsmrtsThreadSafeCounter counter_t( this->count() );
           counter_t.m_born_on_date          = m_born_on_date;
           counter_t.m_start_time            = m_start_time;

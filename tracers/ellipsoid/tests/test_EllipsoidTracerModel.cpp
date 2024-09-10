@@ -68,7 +68,8 @@ TEST_CASE ("EllipsoidTracerModel Basic Values / RayTrace Test", "[tracer][ellips
     Eigen::Vector3d surf;
     double surf_long = psmrts::degrees_to_radians(45.0);
     double surf_lat = psmrts::degrees_to_radians(45.0); 
-    
+    latrec_c ( radius, surf_long, surf_lat, surf.data() );
+
     Eigen::Vector3d lkdr = observer - surf;
 
     psmrts::PsmrtsRayTrace naif_ray;
