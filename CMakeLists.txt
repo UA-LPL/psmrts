@@ -46,7 +46,8 @@ target_include_directories(psmrts INTERFACE ${PSMRTS_DIR}/src
                                             ${PSMRTS_TRACER_DIR}/naifdsk/src
                                             ${PSMRTS_TRACER_DIR}/bullet/src
                                             ${PSMRTS_TRACER_DIR}/ellipsoid/src
-                                            ${PSMRTS_FORMAT_DIR}/obj/src)
+                                            ${PSMRTS_FORMAT_DIR}/obj/src
+                                            ${PSMRTS_FORMAT_DIR}/ply/src )
 
 #find_package( spdlog CONFIG REQUIRED )
 find_package( nlohmann_json CONFIG REQUIRED )
@@ -80,6 +81,7 @@ if( BUILD_TESTING )
   add_subdirectory( tracers/ellipsoid/tests )
   add_subdirectory( tracers/bullet/tests )
   add_subdirectory( formats/obj/tests )
+  add_subdirectory( formats/ply/tests )
   enable_testing()
 endif( BUILD_TESTING )
 

@@ -6,7 +6,7 @@
 #include <exception>
 #include <iostream>
 
-#define TINYPLYLOADER_IMPLEMENTATION
+#define TINYPLY_IMPLEMENTATION
 
 #include "tinyply.h"
 
