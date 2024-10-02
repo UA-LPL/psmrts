@@ -1,0 +1,85 @@
+# This workflow is intended to test PSMRTS builds on Linux and Mac platforms on any commits to the main branch.
+# There is basic output for code coverage in the Linux build, but only reports an overall percentage -- 
+# for more indepth coverage please follow the noted commands in that section of the workflow (creates an html 
+# report that details per file / function).
+name: CMake on Multiple Platforms
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  BUILD_TYPE: release 
+  
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+        build_type: [Release]
+        include:
+         - os: macos-latest
+           c_compiler: gcc
+           cpp_compiler: g++
+         - os: ubuntu-latest
+           c_compiler: gcc
+           cpp_compiler: g++
+            
+    steps:
+    - name: Deleting Unnecessary Tool Cache Folder
+      run: rm -rf /opt/hostedtoolcache
+
+      
+    - uses: actions/checkout@v4
+      with:
+        ref: main
+
+
+    - name: Ensure gcovr Dependency (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y lcov gcovr
+        
+
+    - name: Build PSMRTS Environment (Linux)
+      if: runner.os == 'Linux'
+      run: |
+       export PSMRTS_ROOT=${PWD}
+       export VCPKG_ROOT=${PWD}/vcpkg
+       git clone https://github.com/microsoft/vcpkg
+       ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
+       ./install_vcpkg_packages.sh
+       ./build_psmrts.sh -t -c -d
+       du -sh .
+
+    - name: Build PSMRTS Environment (Mac)
+      if: runner.os == 'macOS'
+      run: |
+        export PSMRTS_ROOT=${PWD}
+        export VCPKG_ROOT=${PWD}/vcpkg
+        git clone https://github.com/microsoft/vcpkg
+        ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
+        ./install_vcpkg_packages.sh
+        ./build_psmrts.sh -t
+        du -sh .
+
+    - name: Run Tests
+      run: |
+        cd build
+        ctest
+
+    - name: Basic Coverage
+      if: runner.os == 'Linux'
+      run: |
+        echo "For more detailed report, open resulting html file when in build directory by running the following commands: "
+        echo "make coverage"
+        echo "open ./coverage/index.html"
+        lcov --directory . --capture --output-file coverage.info
+        lcov --summary coverage.info
