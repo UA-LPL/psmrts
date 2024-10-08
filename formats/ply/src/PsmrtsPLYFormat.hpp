@@ -27,12 +27,6 @@ namespace psmrts {
      */
     class PsmrtsPLYFormat {
         public:
-          typedef tinyply::Type                   tinyply_type;
-          typedef PsmrtsVector3<tinyply::Type>    PLYVectorArray;
-          typedef PsmrtsVector3i                  PLYIndexArray;
-
-          typedef PLYVectorArray::vector_type     PLYVectorType;
-          typedef PLYIndexArray::vector_type      PLYIndexType;
 
         /** Default Constructor */
         PsmrtsPLYFormat() : m_ply_source(), m_ply_file(), m_mesh(), m_tracker() {}
@@ -84,6 +78,8 @@ namespace psmrts {
          * and issue a PlyFile->read( file_stream ) after requesting
          * the file elements.
          * 
+         * The input PLY file is closed upon return from this function.
+         * 
          * See also load_ply_file()
          * 
          * @param filename 
@@ -97,6 +93,7 @@ namespace psmrts {
                     throw std::runtime_error("Falied to open file: " + filename );
                 }
 
+                // Read header only
                 ply_file->parse_header( file_stream );
             }
             catch (const std::exception& e) {
@@ -114,9 +111,12 @@ namespace psmrts {
          * PLY file. The only elements read here are facets and vertex data.
          * Other elements can be read from this file. See also read_ply_file().
          * 
-         * @param plyfile Name of PLY file to load
-         * @return true   If the load was successful
-         * @return false  If the load failed
+         * @param plyfile       Name of PLY file to load
+         * @param prefer_double If true, prefer double precision vertex data.
+         *                        This may be possible for ascii, but makes no
+         *                        sense for binary PLY data
+         * @return true         If the load was successful
+         * @return false        If the load failed
          */
         inline bool load_ply_file( const std::string &plyfile, const bool prefer_double = false ) {
 
@@ -183,7 +183,7 @@ namespace psmrts {
             PsmrtsVector3<TO_T> v_to_t;  // Output data buffer
             size_t nvectors = pdata.count;
             size_t nbytes   = pdata.buffer.size_bytes();
-            tinyply::PropertyInfo p_property = tinyply::PropertyTable.find( pdata.t )->second;
+            tinyply::PropertyInfo p_property = tinyply::PropertyTable[pdata.t];
 
             // Gonna sanity check this buffer
             if ( ( pdata.buffer.get() == nullptr ) || ( nbytes == 0 ) ) {
@@ -192,13 +192,12 @@ namespace psmrts {
             }
 
             // Create mapping buffers - no data is copied here
-            PsmrtsBufferData b_raw( pdata.buffer.get(), nbytes );
-            PsmrtsStridingBuffer b_data( b_raw, p_property.stride * 3 );
+            PsmrtsBufferData b_raw( pdata.buffer.get(), nbytes );        // Map reference to PLY pdata.Buffer
+            PsmrtsStridingBuffer b_data( b_raw, p_property.stride * 3 ); // Config for 3-element vector with property type size
 
             // Convert the PLY buffer to the type TO_T
             switch ( pdata.t ) {
                 case tinyply::Type::INT8:  {
-                    
                     v_to_t = vector_to_type<TO_T> ( PsmrtsVector3<int8_t>( b_data ) );
                     break;
                 }   
@@ -207,7 +206,6 @@ namespace psmrts {
                     break;
                 }   
                 case tinyply::Type::INT16:   {
-                    
                     v_to_t = vector_to_type<TO_T> ( PsmrtsVector3<int16_t>( b_data ) );
                     break;
                 }
