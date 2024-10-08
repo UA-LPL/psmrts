@@ -35,36 +35,56 @@ namespace psmrts {
           typedef PLYIndexArray::vector_type      PLYIndexType;
 
         /** Default Constructor */
-        PsmrtsPLYFormat() : m_ply_source() {}
+        PsmrtsPLYFormat() : m_ply_source(), m_ply_file(), m_mesh(), m_tracker() {}
 
-        /** Construct a manipulatable ply_file object */
-        PsmrtsPLYFormat( const std::string &plyfile ) :
-                        m_ply_source(),
-                        m_ply_file()  {
-
-            m_ply_source = plyfile;
-            m_ply_file = read_ply_file(plyfile);
-                        }
+        /** Construct a ply_file object */
+        PsmrtsPLYFormat( const std::string &plyfile, const bool prefer_double = false )  {
+            (void) load_ply_file( plyfile, prefer_double );
+        }
 
         /** Destructor */
         virtual ~PsmrtsPLYFormat() {}
-
 
         virtual std::string format_model_source() {
             return ( ply_source() );
         }
 
+        inline bool isValid() const {
+            if ( !m_ply_file ) return (false);
+            return ( true );
+        }
+
+        /** The PLY data source */
+        inline const std::string &ply_source() const {
+            return ( m_ply_source );
+        }
+    
+        inline size_t n_elements() const {
+            return ( m_ply_file->get_elements().size() );
+        }
+
+        inline size_t nVertexes() const {
+            return ( m_mesh.nvectors() );
+        }
+
+        inline size_t nIndexes() const {
+            return ( m_mesh.nfacets() );
+        }
+
         /**
-         * @brief Load the contents of a PLY file
+         * @brief Load header contents of a PLY file - no data!
          * 
-         * This method loads the contents of a file that contains data
-         * compatible with the PLY file format. Please see:
+         * This method loads the contents ofa PLY file header only.
+         * Please see:
          * https://github.com/ddiakopoulos/tinyply/tree/master/source
          * 
          * It returns a shared pointer to a tinyply::PlyFile object that
-         * contains the contents of the "filename" parameter. A small error
-         * check is included, and will output a corresponding message with
-         * the parameter filename if unsuccessful.
+         * contains the header contents of the "filename" parameter. To
+         * retrieve the elements will require you to re-open the file
+         * and issue a PlyFile->read( file_stream ) after requesting
+         * the file elements.
+         * 
+         * See also load_ply_file()
          * 
          * @param filename 
          * @return std::shared_ptr<tinyply::PlyFile> 
@@ -77,42 +97,151 @@ namespace psmrts {
                     throw std::runtime_error("Falied to open file: " + filename );
                 }
 
-                ply_file->parse_header(file_stream);
+                ply_file->parse_header( file_stream );
             }
             catch (const std::exception& e) {
+                std::string mess = "PsmrtsPLYFormat::read_plt_file() - failed to read PLY file " + filename;
                 std::cerr << "Error: " << e.what() << std::endl;
             }
-            return ply_file;
+            return ( ply_file );
         };
 
        
-        inline bool isValid() const {
-            if (!m_ply_file) return (false);
-            return ( true );
+        /**
+         * @brief Load a PL file mesh data
+         * 
+         * This is the main method that will load the triangular mesh from a
+         * PLY file. The only elements read here are facets and vertex data.
+         * Other elements can be read from this file. See also read_ply_file().
+         * 
+         * @param plyfile Name of PLY file to load
+         * @return true   If the load was successful
+         * @return false  If the load failed
+         */
+        inline bool load_ply_file( const std::string &plyfile, const bool prefer_double = false ) {
+
+            // Init section
+            m_ply_source = plyfile;
+            m_ply_file   = std::make_shared<tinyply::PlyFile>( );
+            m_mesh       = PsmrtsMeshData();  // Resets the state
+            m_tracker    = PsmrtsThreadSafeCounter();
+
+            // Open the file for ereading
+            std::ifstream file_stream(plyfile, std::ios::binary);
+            if (!file_stream) {
+              throw std::runtime_error("Falied to open file: " + plyfile );
+            }
+
+            m_ply_file->parse_header( file_stream );            
+            // std::cout << print_file() << std::endl;
+
+            // *Request* the facets and vectors. Note the buffers are not
+            // unitl the file is read (below) after the requests are made!
+            auto facets   = m_ply_file->request_properties_from_element( "face", {"vertex_indices"}, 3 );            
+            auto vertices = m_ply_file->request_properties_from_element( "vertex", { "x", "y", "z"}, 3 );
+
+            // Lets see if we can force a double precision read of asciii vertex data
+            if ( !m_ply_file->is_binary_file() ) {
+                if ( true == prefer_double ) {
+                  vertices->t = tinyply::Type::FLOAT64;
+                }
+            }
+
+            // Reading...
+            m_ply_file->read( file_stream );
+
+            // Extract the facets
+            PsmrtsVector3i v_facets= extract_vectors<PsmrtsVector3i::value_type> ( *facets );
+
+
+            // Extract the vectors with whatever type you would like.
+            if ( vertices->t == tinyply::Type::FLOAT32 ) {
+                PsmrtsVector3f v_vertices_f = extract_vectors<PsmrtsVector3f::value_type> ( *vertices );
+                // std::cout << "Extracted FLOAT vertices: " << v_vertices_f.size() << std::endl;
+                m_mesh = PsmrtsMeshData( v_facets, v_vertices_f );
+            }
+            else if ( vertices->t == tinyply::Type::FLOAT64 ) {
+                PsmrtsVector3d v_vertices_d = extract_vectors<PsmrtsVector3d::value_type> ( *vertices );
+                // std::cout << "Extracted DOUBLE vertices: " << v_vertices_d.size() << std::endl;
+                m_mesh = PsmrtsMeshData( v_facets, v_vertices_d );           
+            }
+
+            return ( m_mesh.isValid() );
         }
 
-        /** The PLY data source */
-        inline const std::string &ply_source() const {
-            return ( m_ply_source );
-        }
-    
-        inline size_t nElements() const {
-            return m_ply_file->get_elements().size();
-        }
 
-        inline size_t nVertexes() const {
-            std::shared_ptr<tinyply::PlyData> vertices;
-            vertices = m_ply_file->request_properties_from_element( "vertex", { "x", "y", "z"} );
-            return vertices->count;
-        }
+        /**
+         * @brief Conversion/extraction of PLY vector data types
+         * 
+         * @tparam TO_T   Template parameter of type to get data from
+         * @param pdata    Input buffer data to extract/convert
+         * @return PsmrtsVector3<TO_T>  Output vector array of converted data
+         */
+        template <typename TO_T> 
+          PsmrtsVector3<TO_T> extract_vectors( tinyply::PlyData &pdata ) const {
+             
+            PsmrtsVector3<TO_T> v_to_t;  // Output data buffer
+            size_t nvectors = pdata.count;
+            size_t nbytes   = pdata.buffer.size_bytes();
+            tinyply::PropertyInfo p_property = tinyply::PropertyTable.find( pdata.t )->second;
 
-        inline size_t nIndexes() const {
-            std::shared_ptr<tinyply::PlyData> indexes;
-            indexes = m_ply_file->request_properties_from_element( "face", {"vertex_indices"} );
-            return indexes->count;
-        }
+            // Gonna sanity check this buffer
+            if ( ( pdata.buffer.get() == nullptr ) || ( nbytes == 0 ) ) {
+                std::string mess = "PsmrtsPLYFormat::extract_vectors() - No data in PlyData buffer - perhaps was not read properly from " + m_ply_source;
+                throw std::runtime_error( mess );
+            }
 
-        
+            // Create mapping buffers - no data is copied here
+            PsmrtsBufferData b_raw( pdata.buffer.get(), nbytes );
+            PsmrtsStridingBuffer b_data( b_raw, p_property.stride * 3 );
+
+            // Convert the PLY buffer to the type TO_T
+            switch ( pdata.t ) {
+                case tinyply::Type::INT8:  {
+                    
+                    v_to_t = vector_to_type<TO_T> ( PsmrtsVector3<int8_t>( b_data ) );
+                    break;
+                }   
+                case tinyply::Type::UINT8:   {
+                    v_to_t = vector_to_type<TO_T> ( PsmrtsVector3<uint8_t>( b_data ) );
+                    break;
+                }   
+                case tinyply::Type::INT16:   {
+                    
+                    v_to_t = vector_to_type<TO_T> ( PsmrtsVector3<int16_t>( b_data ) );
+                    break;
+                }
+                case tinyply::Type::UINT16:   {
+                    v_to_t = vector_to_type<TO_T> ( PsmrtsVector3<uint16_t>( b_data ) );
+                    break;
+                }
+                case tinyply::Type::INT32:  {
+                    v_to_t = vector_to_type<TO_T> ( PsmrtsVector3<int32_t>( b_data ) );
+                    break;
+                }
+                case tinyply::Type::UINT32:   {
+                    v_to_t = vector_to_type<TO_T> ( PsmrtsVector3<uint32_t>( b_data ) );
+                    break;
+                }
+                case tinyply::Type::FLOAT32: {
+                    v_to_t = vector_to_type<TO_T> ( PsmrtsVector3<float>( b_data ) );
+                    break;
+                }
+                case tinyply::Type::FLOAT64:  {
+                    v_to_t = vector_to_type<TO_T> (PsmrtsVector3<double>( b_data ) );
+                    break;
+                }
+                case tinyply::Type::INVALID:
+                default:    
+                  throw std::invalid_argument("invalid ply property");
+                  break;
+            }
+
+            return ( v_to_t );
+          }
+
+
+        /** Perhaps return a std::vector<std::string> array of these properties or convert them to JSON? Yes! */
         inline std::string print_file() {
             std::string result = "";
             // elements
@@ -130,75 +259,45 @@ namespace psmrts {
             return result;
         }
     
-        inline PsmrtsVector3d get_double_vectors() const {
-            std::shared_ptr<tinyply::PlyData> vertices;
-            vertices = m_ply_file->request_properties_from_element( "vertex", { "x", "y", "z"} );
-            const double* vertex_buffer = reinterpret_cast<double*>(vertices->buffer.get());
-            PsmrtsVector3d out_vectors( vertices->count );
 
-            for ( size_t i = 0; i < vertices->count; i++ ) {
-                out_vectors( i ) = Eigen::Vector3d( { vertex_buffer[i * 3 + 0], vertex_buffer[i * 3 + 1], vertex_buffer[i * 3 + 2]});
+        /** Returns the mesh as read from the file unless true is provided which returns doubles */
+        inline PsmrtsMeshData get_mesh( const bool make_it_a_double = false ) const  {
+            if ( true == make_it_a_double ) {
+                if ( !m_mesh.isVectorDouble() ) {
+                    return ( PsmrtsMeshData( this->get_indexes(), this->get_double_vectors() ) );
+                }
             }
 
-            return ( out_vectors );
+            return ( m_mesh );
+
+        }
+
+
+        /** Get a double precision vector array  */
+        inline PsmrtsVector3d get_double_vectors() const {
+            PsmrtsVector3d v_vectors = m_mesh.vectors().double_vectors();
+            if ( m_mesh.vectors().isFloat() ) {
+                v_vectors = vector_to_type<PsmrtsVector3d::value_type>( m_mesh.vectors().float_vectors() );
+            }
+
+            return ( v_vectors );
         }
         
-        inline PsmrtsVector3d get_float_vectors() const {
-            std::shared_ptr<tinyply::PlyData> vertices;
-            vertices = m_ply_file->request_properties_from_element( "vertex", { "x", "y", "z"} );
-            const float* vertex_buffer = reinterpret_cast<float*>(vertices->buffer.get());
-            PsmrtsVector3d out_vectors( vertices->count );
-
-            for ( size_t i = 0; i < vertices->count; i++ ) {
-                out_vectors( i ) = Eigen::Vector3d( { vertex_buffer[i * 3 + 0], vertex_buffer[i * 3 + 1], vertex_buffer[i * 3 + 2]});
+        /** Get a float precision vector array  */
+        inline PsmrtsVector3f get_float_vectors() const {
+            PsmrtsVector3f v_vectors = m_mesh.vectors().float_vectors();
+            if ( m_mesh.vectors().isDouble() ) {
+                v_vectors = vector_to_type<PsmrtsVector3f::value_type>( m_mesh.vectors().double_vectors() );
             }
 
-            return ( out_vectors );
+            return ( v_vectors );
         }
 
 
-        // WIP...
+        /** Get index buffer extracted from PLY file */
         inline PsmrtsVector3i get_indexes() const {
-            std::shared_ptr<tinyply::PlyData> indices;
-            indices = m_ply_file->request_properties_from_element( "face", { "vertex_indices" }, 3 );
-            const int* index_buffer = reinterpret_cast<int*>(indices->buffer.get());
-            PsmrtsVector3i out_indexes( indices->count );
-
-            size_t index = 0;
-            while (index < indices->count) {
-                // Nubmer of vertices in current face
-                const int* vertex_count_ptr = reinterpret_cast<const int*>(index_buffer + index );
-                int num_vertices = *vertex_count_ptr;
-                if ( num_vertices == 3 ) {
-                    int v0 = *( index_buffer + index + 1 );
-                    int v1 = *( index_buffer + index + 2 );
-                    int v2 = *( index_buffer + index + 3 );
-                    out_indexes( index ) = Eigen::Vector3i( {v0, v1, v2} );
-                }
-                // in case more?
-                index += 1 + num_vertices;
-            }
-            return ( out_indexes );
+            return ( m_mesh.indexes() );
         }
-        /**
-         * @brief Accessing m_ply_file Data:
-         * 
-         * elements -
-         * for (const auto& element : ply_file->get_elements()) {
-         *      std::cout << "element: " << element.name << " (" << element.size << " instances" << std::endl;
-         * }
-         * 
-         * properties -
-         * for (const auto& property : element.properties) {
-         *      std::cout << "property: " << property.name << " (type: ";
-         *      std::cout << tinyply::PropertyTable[property.propertyType].str;
-         *      if (property.isList) {
-         *          std::cout << ", list count type: " << tinyply::PropertyTable[property.listType].str;
-         *      }
-         *      std::cout << ")" <<  std::endl;
-         * }
-         * 
-         */
 
         inline double elapsed_life_time_s() const {
             return (m_tracker.runtime_s() );
@@ -221,12 +320,16 @@ namespace psmrts {
             return ( m_tracker.clone() );
         }
 
+        inline const std::shared_ptr<tinyply::PlyFile> &fetch_ply_file() const {
+            return ( m_ply_file );
+        }
         
         private:
             std::string                         m_ply_source;
             std::shared_ptr<tinyply::PlyFile>   m_ply_file;
-            std::shared_ptr<tinyply::PlyData>   vertices;
+            PsmrtsMeshData                      m_mesh;
             PsmrtsThreadSafeCounter             m_tracker;
+
     };
 } // namespace psmrts
 
