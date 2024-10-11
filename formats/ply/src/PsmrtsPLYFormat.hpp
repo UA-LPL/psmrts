@@ -54,6 +54,7 @@ namespace psmrts {
         }
     
         inline size_t n_elements() const {
+            if (!m_ply_file) { return 0; }
             return ( m_ply_file->get_elements().size() );
         }
 
@@ -86,19 +87,21 @@ namespace psmrts {
          * @return std::shared_ptr<tinyply::PlyFile> 
          */
         static inline std::shared_ptr<tinyply::PlyFile> read_ply_file(const std::string& filename) {
-            std::shared_ptr<tinyply::PlyFile> ply_file = std::make_shared<tinyply::PlyFile>();
+            std::shared_ptr<tinyply::PlyFile> ply_file;
             try {
-                std::ifstream file_stream(filename, std::ios::binary);
-                if (!file_stream) {
+                std::ifstream file_stream(filename, std::ios::binary | std::ios::in);
+                if (!file_stream.is_open()) {
                     throw std::runtime_error("Falied to open file: " + filename );
                 }
 
                 // Read header only
+                ply_file = std::make_shared<tinyply::PlyFile>();
                 ply_file->parse_header( file_stream );
             }
             catch (const std::exception& e) {
                 std::string mess = "PsmrtsPLYFormat::read_plt_file() - failed to read PLY file " + filename;
-                std::cerr << "Error: " << e.what() << std::endl;
+                mess += "\nError: " + std::string(e.what());
+                throw std::runtime_error(mess);
             }
             return ( ply_file );
         };
@@ -241,6 +244,7 @@ namespace psmrts {
 
         /** Perhaps return a std::vector<std::string> array of these properties or convert them to JSON? Yes! */
         inline std::string print_file() {
+            if (!m_ply_file) { return "No File Allocated - Bad Print"; }
             std::string result = "";
             // elements
             for (const auto& element : m_ply_file->get_elements()) {
