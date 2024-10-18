@@ -22,6 +22,14 @@ namespace psmrts {
     /**
      * @brief PsmrtsPLYFormat contains tools for PLY file format I/O
      * 
+     * Read - only grabs header information
+     * load - obtains the data in the file, and places it into a mesh
+     *  - only gets vertex (x, y, z) values, and associated indexes
+     *  - grabbing other element data is not supported YET
+     * 
+     * For binary ply files, load prefer_double is default to false,
+     * Must set prefer_double settting to true for .txt ply
+     * 
      * @author Kyle A. Becker, University of Arizona
      * @history 2024-06-21
      */
@@ -114,6 +122,8 @@ namespace psmrts {
          * PLY file. The only elements read here are facets and vertex data.
          * Other elements can be read from this file. See also read_ply_file().
          * 
+         * This function only obtains the 
+         * 
          * @param plyfile       Name of PLY file to load
          * @param prefer_double If true, prefer double precision vertex data.
          *                        This may be possible for ascii, but makes no
@@ -121,7 +131,7 @@ namespace psmrts {
          * @return true         If the load was successful
          * @return false        If the load failed
          */
-        inline bool load_ply_file( const std::string &plyfile, const bool prefer_double = false ) {
+        inline bool load_ply_file( const std::string &plyfile, const bool prefer_double = false ) { // set to true, if txt file
 
             // Init section
             m_ply_source = plyfile;
@@ -138,18 +148,20 @@ namespace psmrts {
             m_ply_file->parse_header( file_stream );            
             // std::cout << print_file() << std::endl;
 
-            // *Request* the facets and vectors. Note the buffers are not
-            // unitl the file is read (below) after the requests are made!
-            auto facets   = m_ply_file->request_properties_from_element( "face", {"vertex_indices"}, 3 );            
-            auto vertices = m_ply_file->request_properties_from_element( "vertex", { "x", "y", "z"}, 3 );
+            // *Request* the facets and vectors. Note the buffers are not valid
+            // until the file is read (below) after the requests are made!
+            auto facets   = m_ply_file->request_properties_from_element( "face", {"vertex_indices"}, 0 );            
+            auto vertices = m_ply_file->request_properties_from_element( "vertex", { "x", "y", "z"} );
 
             // Lets see if we can force a double precision read of asciii vertex data
+            
+            
             if ( !m_ply_file->is_binary_file() ) {
                 if ( true == prefer_double ) {
                   vertices->t = tinyply::Type::FLOAT64;
                 }
             }
-
+            
             // Reading...
             m_ply_file->read( file_stream );
 
@@ -260,8 +272,37 @@ namespace psmrts {
             }
             return result;
         }
-    
 
+        /** Convert ply header data to JSON */
+        inline void ply_to_json( json &j ) {
+            if (!m_ply_file) { j = json(); }
+
+            nlohmann::json result;
+
+            for (const auto& element : m_ply_file->get_elements()) {
+                nlohmann::json j_element;
+                j_element["element"] = element.name;
+                j_element["size"]    = element.size;
+
+                nlohmann::json j_properties_list = nlohmann::json::array();
+                for (const auto& property : element.properties) {
+                    nlohmann::json j_property;
+                    j_property["property"] = property.name;
+                    j_property["type"] = tinyply::PropertyTable[property.propertyType].str;
+                    if (property.isList) {
+                        j_property["list_count_type"] = tinyply::PropertyTable[property.listType].str;
+                    }
+                    j_properties_list.push_back(j_property);
+                }
+                j_element["properties"] = j_properties_list;
+
+                result["elements"].push_back(j_element);
+            }
+            j = result;
+
+            return;
+        }
+    
         /** Returns the mesh as read from the file unless true is provided which returns doubles */
         inline PsmrtsMeshData get_mesh( const bool make_it_a_double = false ) const  {
             if ( true == make_it_a_double ) {
