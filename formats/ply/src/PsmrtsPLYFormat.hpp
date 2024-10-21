@@ -150,22 +150,21 @@ namespace psmrts {
 
             // *Request* the facets and vectors. Note the buffers are not valid
             // until the file is read (below) after the requests are made!
-            auto facets   = m_ply_file->request_properties_from_element( "face", {"vertex_indices"}, 0 );            
-            auto vertices = m_ply_file->request_properties_from_element( "vertex", { "x", "y", "z"} );
+            auto facets   = m_ply_file->request_properties_from_element( "face", {"vertex_indices"}, 3 );            
+            auto vertices = m_ply_file->request_properties_from_element( "vertex", { "x", "y", "z"}, 3 );
 
+#if 1
             // Lets see if we can force a double precision read of asciii vertex data
-            
-            
             if ( !m_ply_file->is_binary_file() ) {
                 if ( true == prefer_double ) {
                   vertices->t = tinyply::Type::FLOAT64;
                 }
             }
-            
+#endif            
             // Reading...
             m_ply_file->read( file_stream );
 
-            // Extract the facets
+            // Extract the facets (which is a shared pointer hence the dereference \/ here)
             PsmrtsVector3i v_facets= extract_vectors<PsmrtsVector3i::value_type> ( *facets );
 
 
