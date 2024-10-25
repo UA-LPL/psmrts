@@ -2,7 +2,7 @@
 
 # This is heuristically generated, and may not be correct
 find_package( Catch2 CONFIG REQUIRED )
-find_package( tinyply CONFIG REQUIRED )
+find_package( unofficial-miniply CONFIG REQUIRED )
 
 # Add the test directory for includes
 set( CMAKE_INCLUDE_CURRENT_DIR ON )
@@ -18,7 +18,7 @@ target_link_libraries( ply_test_suite PRIVATE Catch2::Catch2WithMain )
 target_link_libraries( ply_test_suite PRIVATE nlohmann_json::nlohmann_json )
 target_link_libraries( ply_test_suite PRIVATE Eigen3::Eigen )
 target_link_libraries( ply_test_suite PRIVATE "${SPICE_LIB}" )
-target_link_libraries( ply_test_suite PRIVATE tinyply )
+target_link_libraries( ply_test_suite PRIVATE unofficial::miniply::miniply )
 
 # Add the tests to the system
 include( CTest )

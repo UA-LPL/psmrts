@@ -5,6 +5,16 @@
 
 #include <DskKernelModel.hpp>
 
+
+TEST_CASE( "PLY FORMAT Asset Test - Default Load", "[format][ply]") {
+    std::string plyfile = psmrts_formats_path("ply/data/Bennu_Radar.ply");
+    psmrts::PsmrtsPLYFormat ply( plyfile );
+
+    CHECK( ply.ply_source() == plyfile );
+    CHECK( ply.isValid() == true );
+    CHECK( ply.extract_info() == "0" );
+    CHECK( ply.print_info() == "" );
+}
 // Test Default Constructor for PsmrtsPLYFormat
 /** 
 TEST_CASE ( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][default]") {
@@ -25,7 +35,7 @@ TEST_CASE ( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][defaul
     // Check some facet indexes
     CHECK( p_data.indexes()( 0 ) == Eigen::Vector3i( { 0, 1, 2 } ) );
 }
-*/
+
 
 TEST_CASE( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][default]") {
     psmrts::PsmrtsPLYFormat ply_loader;
@@ -98,7 +108,7 @@ TEST_CASE( "PLY FORMAT Asset Test - Vector Data Value Test" ) {
         CHECK_THAT( ply_doubles(i)[1], Catch::Matchers::WithinAbs(ply_floats(i)[1], tolerance));
         CHECK_THAT( ply_doubles(i)[2], Catch::Matchers::WithinAbs(ply_floats(i)[2], tolerance));
     }
-    /** 
+    
     std::string objfile = psmrts_formats_path( "obj/data/Bennu_Radar.obj" );
     psmrts::PsmrtsOBJFormat obj_data_loader( objfile );
 
@@ -121,7 +131,7 @@ TEST_CASE( "PLY FORMAT Asset Test - Vector Data Value Test" ) {
     }
 
     CHECK_THAT( sum_double, Catch::Matchers::WithinAbs(0.0, tolerance));
-    **/
+    
 }
 
 TEST_CASE( "PLY FORMAT Asset Test - Failcases Branch Checks", "[format][ply][failcase]") {
@@ -131,7 +141,7 @@ TEST_CASE( "PLY FORMAT Asset Test - Failcases Branch Checks", "[format][ply][fai
     CHECK_THROWS( psmrts::PsmrtsPLYFormat::read_ply_file( false_plyfile ) );
 }
 
-/** 
+
 TEST_CASE( "PLY FORMAT Asset Test - txt to ply Comparison Check", "[format][ply][txt][bennu]") {
     std::string txt_path = psmrts_formats_path("ply/data/Bennu_Radar.txt");
     std::string ply_path = psmrts_formats_path("ply/data/Bennu_Radar.ply");
@@ -147,7 +157,7 @@ TEST_CASE( "PLY FORMAT Asset Test - txt to ply Comparison Check", "[format][ply]
     CHECK( ply_loader.nVertexes()           == txt_loader.nVertexes() ); // 1348
     CHECK( ply_loader.nIndexes()            == txt_loader.nIndexes() ); // 2692
 }
-*/
+
 
 TEST_CASE( "PLY FORMAT Asset Test - txt Based PLY Check", "[format][ply][txt]") {
     std::string txt_file = psmrts_formats_path("ply/data/teapot.ply");
@@ -163,3 +173,4 @@ TEST_CASE( "PLY FORMAT Asset Test - txt Based PLY Check", "[format][ply][txt]") 
 
 
 }
+*/
