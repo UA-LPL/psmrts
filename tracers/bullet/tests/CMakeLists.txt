@@ -2,6 +2,7 @@
 
 # Warning: heuristically generated, may not be correct
 find_package( Catch2 CONFIG REQUIRED )
+find_package(tinyobjloader CONFIG REQUIRED)
 
 # Add test directory for includes
 set( CMAKE_INCLUDE_CURRENT_DIR ON )
@@ -21,6 +22,7 @@ target_link_libraries( bullet_test_suite PRIVATE nlohmann_json::nlohmann_json )
 target_link_libraries( bullet_test_suite PRIVATE Eigen3::Eigen )
 target_link_libraries( bullet_test_suite PRIVATE "${SPICE_LIB}" )
 target_link_libraries( bullet_test_suite PRIVATE ${BULLET_LIBRARIES})
+target_link_libraries( bullet_test_suite PRIVATE tinyobjloader::tinyobjloader_double )
 
 include ( CTest )
 include ( Catch )
