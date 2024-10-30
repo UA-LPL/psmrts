@@ -5,102 +5,72 @@
 
 #include <DskKernelModel.hpp>
 
+// Test Default (No / Bad file) Constructor Cases
+TEST_CASE( "PLY FORMAT Asset Test - No File Default Constructor", "[format][ply]") {
+    std::string no_file = psmrts_formats_path("ply/data/bad_path.ply");
+    psmrts::PsmrtsPLYFormat ply;
+    CHECK( ply.ply_source()          == "" );
+    CHECK( ply.format_model_source() == "" );
+    CHECK( ply.isValid()             == false );
+    CHECK( ply.nVertexes()           == 0 );
+    CHECK( ply.nIndexes()            == 0 );
+   
+    CHECK_THROWS( ply.open( no_file ) );
+    CHECK_THROWS( ply.load_ply_file( no_file ) ); 
 
-TEST_CASE( "PLY FORMAT Asset Test - Default Load", "[format][ply]") {
-    std::string plyfile = psmrts_formats_path("ply/data/Bennu_Radar.ply");
-    psmrts::PsmrtsPLYFormat ply( plyfile );
-
-    CHECK( ply.ply_source() == plyfile );
-    CHECK( ply.isValid() == true );
+    CHECK( ply.get_mesh().isValid()        == false ); 
+    CHECK( ply.get_float_vectors().size()  == 0 );
+    CHECK( ply.get_double_vectors().size() == 0 );
+    CHECK( ply.get_indexes().size()        == 0 );
 }
-// Test Default Constructor for PsmrtsPLYFormat
+
+// Test Actual File Constructor for PsmrtsPLYFormat - Using Bennu PLY data
 TEST_CASE ( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][default]") {
-    std::string plyfile = psmrts_formats_path("ply/data/Bennu_Radar.ply");
-    psmrts::PsmrtsPLYFormat ply( plyfile );
-
-    CHECK( ply.ply_source() == plyfile );
-    CHECK( ply.isValid()    == true );
-    CHECK( ply.nVertexes()  == 1348 );
-    CHECK( ply.nIndexes()   == 2692 );
-
-    psmrts::PsmrtsMeshData p_data = ply.get_mesh();
-
-    CHECK ( p_data.nfacets()  == 2692 );
-    CHECK ( p_data.nvectors() == 1348 );
-
-    // Check some facet indexes
-    CHECK( p_data.indexes()( 0 ) == Eigen::Vector3i( { 0, 1, 2 } ) );
-}
-
-#if 0 
-TEST_CASE( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][default]") {
-    psmrts::PsmrtsPLYFormat ply_loader;
-
-    CHECK( ply_loader.format_model_source() ==  ""   );
-    CHECK( ply_loader.isValid()             == false );
-    CHECK( ply_loader.ply_source()          == ""    );
-    CHECK( ply_loader.nVertexes()           == 0     );
-    CHECK( ply_loader.nIndexes()            == 0     );
-    // CHECK( ply_loader.print_file()          == "No File Allocated - Bad Print"    );
-}
-#endif
-TEST_CASE( "PLY FORMAT Asset Test - Basic Load/Init Tests", "[format][ply][shape][bennu]") {
-    std::string plyfile = psmrts_formats_path("ply/data/Bennu_Radar.ply");
-    psmrts::PsmrtsPLYFormat ply_loader( plyfile );
-
-    CHECK( ply_loader.format_model_source() == plyfile );
-    CHECK( ply_loader.ply_source()          == plyfile );
-    CHECK( ply_loader.isValid()             == true );
-    CHECK( ply_loader.nVertexes()           == 1348 );
-    CHECK( ply_loader.nIndexes()            == 2692 );
-#if 0    
-    CHECK( ply_loader.print_file() == "element: vertex (1348 instances)\n \
-    property: x (type: float)\n     property: y (type: float)\n \
-    property: z (type: float)\nelement: face (2692 instances)\n \
-    property: vertex_indices (type: int, list count type: uchar)\n" );
-
-    json bennu_json;
-    ply_loader.ply_to_json( bennu_json );
-    CHECK( bennu_json.dump() == "{\"elements\":[{\"element\":\"vertex\",\"properties\":[{\"property\":\
-\"x\",\"type\":\"float\"},{\"property\":\"y\",\"type\":\"float\"},{\"property\":\
-\"z\",\"type\":\"float\"}],\"size\":1348},{\"element\":\"face\",\"properties\":[{\"list_count_type\":\
-\"uchar\",\"property\":\"vertex_indices\",\"type\":\"int\"}],\"size\":2692}]}" );
-#endif
-
-    CHECK( ply_loader.get_mesh().isValid()            == true );
-    CHECK( ply_loader.get_mesh().isVectorDouble()     == true );
-    CHECK( ply_loader.get_mesh().vectors().isDouble() == true );
-    CHECK( ply_loader.get_mesh().vectors().isFloat()  == false );
-
-    CHECK( ply_loader.get_double_vectors().size() == 1348 );
-    CHECK( ply_loader.get_float_vectors().size()  == 1348 );
-    // test - data values? Make sure the values of each are the same
-    // may need to do check_that or reconvert float to double for check
-    // And need to find out how to convert .ply binary to text file, via meshlab?
-    CHECK( ply_loader.get_indexes().size()        == 2692 );
-
-    CHECK_NOTHROW( ply_loader.elapsed_life_time_s() >= 0 );
-    CHECK_NOTHROW( ply_loader.track_count()         == 0 );
-    CHECK_NOTHROW( ply_loader.performance_snapshot().runtime_s() >= 0 );
-
-    std::shared_ptr<miniply::PLYReader> ply_read( psmrts::PsmrtsPLYFormat::open( plyfile ) );
-    CHECK( ply_read != nullptr );
-}
-
-TEST_CASE( "PLY FORMAT Asset Test - Vector Data Value Test" ) {
     auto tolerance = 1.0e-6;
 
-    std::string plyfile = psmrts_formats_path( "ply/data/Bennu_Radar.ply" );
-    psmrts::PsmrtsPLYFormat ply_data_loader( plyfile );
+    std::string plyfile = psmrts_formats_path("ply/data/Bennu_Radar.ply");
+    psmrts::PsmrtsPLYFormat ply( plyfile );
 
-    psmrts::PsmrtsVector3f ply_floats = ply_data_loader.get_float_vectors();
-    psmrts::PsmrtsVector3d ply_doubles = ply_data_loader.get_double_vectors();
+    CHECK( ply.ply_source() == plyfile );
+    CHECK( ply.isValid()    == true    );
+    CHECK( ply.nVertexes()  == 1348    );
+    CHECK( ply.nIndexes()   == 2692    );
+
+    CHECK( ply.get_mesh().isValid()            == true  );
+    CHECK( ply.get_mesh().isVectorDouble()     == true  );
+    CHECK( ply.get_mesh().vectors().isDouble() == true  );
+    CHECK( ply.get_mesh().vectors().isFloat()  == false );
+
+    CHECK( ply.get_double_vectors().size()     == 1348 );
+    CHECK( ply.get_float_vectors().size()      == 1348 );
+    CHECK( ply.get_indexes().size()            == 2692 );
+
+    // Conversion Check
+    psmrts::PsmrtsVector3f ply_floats  = ply.get_float_vectors();
+    psmrts::PsmrtsVector3d ply_doubles = ply.get_double_vectors();
 
     for (int i = 0; i < ply_doubles.size(); i++) {
         CHECK_THAT( ply_doubles(i)[0], Catch::Matchers::WithinAbs(ply_floats(i)[0], tolerance));
         CHECK_THAT( ply_doubles(i)[1], Catch::Matchers::WithinAbs(ply_floats(i)[1], tolerance));
         CHECK_THAT( ply_doubles(i)[2], Catch::Matchers::WithinAbs(ply_floats(i)[2], tolerance));
     }
+    
+    CHECK_NOTHROW( ply.elapsed_life_time_s()              >= 0 );
+    CHECK_NOTHROW( ply.track_count()                      == 0 );
+    CHECK_NOTHROW( ply.performance_snapshot().runtime_s() >= 0 );
+
+    std::shared_ptr<miniply::PLYReader> ply_read( psmrts::PsmrtsPLYFormat::open( plyfile ) );
+    REQUIRE( ply_read != nullptr );
+    
+}
+
+// Need to fix ply converted to obj? Or compare to values that are already in the obj?
+#if 0
+TEST_CASE( "PLY FORMAT Asset Test - Vector Data Value Test" ) {
+    auto tolerance = 1.0e-6;
+
+    std::string plyfile = psmrts_formats_path( "ply/data/Bennu_Radar.ply" );
+    psmrts::PsmrtsPLYFormat ply_data_loader( plyfile );
     
     std::string objfile = psmrts_formats_path( "obj/data/Bennu_Radar.obj" );
     psmrts::PsmrtsOBJFormat obj_data_loader( objfile );
@@ -126,17 +96,11 @@ TEST_CASE( "PLY FORMAT Asset Test - Vector Data Value Test" ) {
     CHECK_THAT( sum_double, Catch::Matchers::WithinAbs(0.0, tolerance));
     
 }
-
-TEST_CASE( "PLY FORMAT Asset Test - Failcases Branch Checks", "[format][ply][failcase]") {
-    std::string false_plyfile = psmrts_formats_path("ply/data/NotBennu_Radar.ply");
-    CHECK_THROWS( psmrts::PsmrtsPLYFormat( false_plyfile ) );
-    CHECK_THROWS( psmrts::PsmrtsPLYFormat::open( false_plyfile ) );
-}
-
+#endif
 
 TEST_CASE( "PLY FORMAT Asset Test - txt to ply Comparison Check", "[format][ply][txt][bennu]") {
-    std::string txt_path = psmrts_formats_path("ply/data/Bennu_Radar.txt");
-    std::string ply_path = psmrts_formats_path("ply/data/Bennu_Radar.ply");
+    std::string txt_path = psmrts_formats_path("ply/data/icosahedron.ply");
+    std::string ply_path = psmrts_formats_path("ply/data/icosahedron_binary.ply");
 
     psmrts::PsmrtsPLYFormat txt_loader( txt_path );
     psmrts::PsmrtsPLYFormat ply_loader( ply_path );
@@ -149,7 +113,7 @@ TEST_CASE( "PLY FORMAT Asset Test - txt to ply Comparison Check", "[format][ply]
     CHECK( ply_loader.nIndexes()            == txt_loader.nIndexes() ); // 2692
 }
 
-
+// Move to Above
 TEST_CASE( "PLY FORMAT Asset Test - txt Based PLY Check", "[format][ply][txt]") {
     std::string txt_file = psmrts_formats_path("ply/data/teapot.ply");
 

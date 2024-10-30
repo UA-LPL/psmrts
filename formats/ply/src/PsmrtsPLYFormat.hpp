@@ -152,7 +152,7 @@ namespace psmrts {
                   p_vectors = PsmrtsVector3d( nverts );
                   reader.extract_properties(indexes, 3, miniply::PLYPropertyType::Double,  p_vectors(0).data() );
                 }
-                else if (!gotFaces && reader.element_is(miniply::kPLYFaceElement) && reader.load_element()) {
+                else if ( !p_indexes.isValid() && reader.element_is(miniply::kPLYFaceElement) && reader.load_element()) {
                   size_t nindexes = reader.num_rows();
                   p_indexes = PsmrtsVector3i( nindexes );
                   reader.extract_properties(faceIdxs, 3, miniply::PLYPropertyType::Int,  p_indexes(0).data() );
@@ -288,6 +288,7 @@ namespace psmrts {
             std::string                         m_ply_source;
             PsmrtsMeshData                      m_mesh;
             PsmrtsThreadSafeCounter             m_tracker;
+            // add json config variable (psmrts provides source, tracers, so describes general information - see others)
 
     };
 } // namespace psmrts
