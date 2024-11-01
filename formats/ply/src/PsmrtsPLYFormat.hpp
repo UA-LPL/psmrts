@@ -7,6 +7,10 @@
 #include <iostream>
 #include <fstream>
 
+#include <cstdio>
+#include <cstring>
+#include <string>
+
 #include <Eigen/Geometry>
 
 #include <PsmrtsUtilities.hpp>
@@ -126,6 +130,60 @@ namespace psmrts {
             if ( !reader.valid()  ) {
                 throw std::runtime_error("Falied to open file: " + plyfile );
             }
+            
+            // -------------------------String and JSON-----------------------------
+            std::string result = "";
+            result += "ply\n";
+            result += "format ";
+            miniply::PLYFileType type = reader.file_type();
+            switch (type) {
+                case miniply::PLYFileType::ASCII:
+                    result+= "ascii " + std::to_string(reader.version_major()) + "." +  std::to_string(reader.version_minor()) + "\n";
+                    break;
+                case miniply::PLYFileType::Binary:
+                    result+= "binary " + std::to_string(reader.version_major()) + "." +  std::to_string(reader.version_minor()) + "\n";
+                    break;
+                case miniply::PLYFileType::BinaryBigEndian:
+                    result+= "binary big endian " + std::to_string(reader.version_major()) + "." + std::to_string(reader.version_minor()) + "\n";
+                    break;
+                default:
+                    result+= "not ascii, binary, or binary big endian. ERROR: Improper header or read.\n";
+            }
+            nlohmann::json j_result;
+            for(uint32_t i=0; i < reader.num_elements(); i++) {
+                // string
+                const miniply::PLYElement* elem = reader.get_element(i);
+                result+= "element " + elem->name + " " + std::to_string(elem->count) + "\n";
+                // json
+                nlohmann::json  j_element;
+                j_element["element"] = elem->name;
+                j_element["size"]    = elem->count;
+
+                nlohmann::json j_properties_list = nlohmann::json::array();
+                for(const miniply::PLYProperty& prop : elem->properties) {
+                    nlohmann::json j_property;
+                    if (prop.countType != miniply::PLYPropertyType::None) {
+                        result+= "property list " + property_type_string(prop.countType) + " " + property_type_string(prop.type) + " " + prop.name +"\n"; 
+                        j_property["property"] = prop.name;
+                        j_property["type"] = property_type_string(prop.type);
+                        j_property["list_count_type"] = property_type_string(prop.countType);
+                        j_properties_list.push_back(j_property);
+                    }
+                    else {
+                        result += "property  " + property_type_string(prop.type) + " " + prop.name+ "\n";
+                        j_property["property"] = prop.name;
+                        j_property["type"] = property_type_string(prop.type);
+                        j_properties_list.push_back(j_property);
+                    }
+                }
+                j_element["properties"] = j_properties_list;
+
+                j_result["elements"].push_back(j_element);
+            }
+            m_print = result;
+            m_json = j_result;
+            // -----------------------------------------------------
+
             // Lets assume only triangles in the ply, which is more efficient to read here. See
             // https://github.com/vilya/miniply#loading-from-a-ply-file-known-to-only-contain-triangles
             uint32_t faceIdxs[3];
@@ -166,63 +224,53 @@ namespace psmrts {
                 reader.next_element();
             }
                 
-
             // Allocate a mesh now    
             m_mesh = PsmrtsMeshData( p_indexes, p_vectors);
 
             return ( m_mesh.isValid() );
         }
 
-#if 0
-        /** Perhaps return a std::vector<std::string> array of these properties or convert them to JSON? Yes! */
-        inline std::string print_file() {
-            if (!m_ply_file) { return "No File Allocated - Bad Print"; }
-            std::string result = "";
-            // elements
-            for (const auto& element : m_ply_file->get_elements()) {
-                result += "element: " + element.name + " (" + std::to_string(element.size) + " instances)\n";
-                for (const auto& property : element.properties) {
-                    result += "     property: " + property.name + " (type: ";
-                    result += miniply::PropertyTable[property.propertyType].str;
-                    if (property.isList) {
-                        result += ", list count type: " + miniply::PropertyTable[property.listType].str;
-                    }
-                    result += ")\n";
-                }
+
+        /**
+         * @brief String output helper for miniply property types
+         * 
+         * This method is used to convert the appropriate ply type to a string version
+         * when building a string and json header output for the reader in
+         * load_ply_file().
+         * 
+         * @param prop ply property type, as defined by miniply
+         * @return std::string 
+         */
+        inline std::string property_type_string(miniply::PLYPropertyType prop) {
+            switch(prop) {
+                case miniply::PLYPropertyType::Char:
+                    return "char";
+                case miniply::PLYPropertyType::UChar:
+                    return "uchar";
+                case miniply::PLYPropertyType::Short:
+                    return "short";
+                case miniply::PLYPropertyType::UShort:
+                    return "ushort";
+                case miniply::PLYPropertyType::Int:
+                    return "int";
+                case miniply::PLYPropertyType::UInt:
+                    return "uint";
+                case miniply::PLYPropertyType::Float:
+                    return "float";
+                case miniply::PLYPropertyType::Double:
+                    return "double";
+                default:
+                    return "None";
             }
-            return result;
         }
 
-        /** Convert ply header data to JSON */
-        inline void ply_to_json( json &j ) {
-            if (!m_ply_file) { j = json(); }
+        inline std::string get_string() {
+            return m_print;
+        } 
 
-            nlohmann::json result;
-
-            for (const auto& element : m_ply_file->get_elements()) {
-                nlohmann::json j_element;
-                j_element["element"] = element.name;
-                j_element["size"]    = element.size;
-
-                nlohmann::json j_properties_list = nlohmann::json::array();
-                for (const auto& property : element.properties) {
-                    nlohmann::json j_property;
-                    j_property["property"] = property.name;
-                    j_property["type"] = miniply::PropertyTable[property.propertyType].str;
-                    if (property.isList) {
-                        j_property["list_count_type"] = miniply::PropertyTable[property.listType].str;
-                    }
-                    j_properties_list.push_back(j_property);
-                }
-                j_element["properties"] = j_properties_list;
-
-                result["elements"].push_back(j_element);
-            }
-            j = result;
-
-            return;
+        inline  json get_json() {
+            return m_json;
         }
-    #endif
 
         /** Returns the mesh as read from the file unless true is provided which returns doubles */
         inline PsmrtsMeshData get_mesh( const bool make_it_a_double = false ) const  {
@@ -288,7 +336,8 @@ namespace psmrts {
             std::string                         m_ply_source;
             PsmrtsMeshData                      m_mesh;
             PsmrtsThreadSafeCounter             m_tracker;
-            // add json config variable (psmrts provides source, tracers, so describes general information - see others)
+            std::string                         m_print;
+            json                                m_json;
 
     };
 } // namespace psmrts

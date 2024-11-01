@@ -32,7 +32,11 @@ TEST_CASE ( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][defaul
     std::string plyfile = psmrts_formats_path("ply/data/Bennu_Radar.ply");
     psmrts::PsmrtsPLYFormat ply( plyfile );
 
-    //CHECK( ply.getString() == "" );
+    CHECK( ply.get_string() ==  "ply\nformat binary 1.0\nelement vertex 1348\nproperty  float x\nproperty  float y\nproperty  float z\nelement face 2692\nproperty list uchar int vertex_indices\n" );
+    CHECK( ply.get_json().dump() == "{\"elements\":[{\"element\":\"vertex\",\"properties\":[{\"property\":\
+\"x\",\"type\":\"float\"},{\"property\":\"y\",\"type\":\"float\"},{\"property\":\
+\"z\",\"type\":\"float\"}],\"size\":1348},{\"element\":\"face\",\"properties\":[{\"list_count_type\":\
+\"uchar\",\"property\":\"vertex_indices\",\"type\":\"int\"}],\"size\":2692}]}" );
     CHECK( ply.ply_source() == plyfile );
     CHECK( ply.isValid()    == true    );
     CHECK( ply.nVertexes()  == 1348    );
@@ -98,6 +102,10 @@ TEST_CASE("PLY FORMAT Asset Test - Text Based Ply Reader and Comparison", "[form
 
     psmrts::PsmrtsPLYFormat binary_ply( binary_file );
 
+    CHECK( binary_ply.get_string() == "ply\nformat binary 1.0\nelement vertex 12\nproperty  float x\nproperty  float y\nproperty  float z\nelement face 20\nproperty list uchar int vertex_indices\n" );
+    CHECK( binary_ply.get_json().dump() == "{\"elements\":[{\"element\":\"vertex\",\"properties\":[{\"property\":\"x\",\"type\":\
+\"float\"},{\"property\":\"y\",\"type\":\"float\"},{\"property\":\"z\",\"type\":\"float\"}],\"size\":12},{\"element\":\
+\"face\",\"properties\":[{\"list_count_type\":\"uchar\",\"property\":\"vertex_indices\",\"type\":\"int\"}],\"size\":20}]}" );
     CHECK( binary_ply.ply_source() == binary_file );
     CHECK( binary_ply.isValid()    == true    );
     CHECK( binary_ply.nVertexes()  == 12    );
@@ -129,6 +137,8 @@ TEST_CASE("PLY FORMAT Asset Test - Text Based Ply Reader and Comparison", "[form
 
     psmrts::PsmrtsPLYFormat text_ply( text_file );
 
+    CHECK( text_ply.get_string() == "ply\nformat ascii 1.0\nelement vertex 12\nproperty  float x\nproperty  float y\nproperty  float z\nelement face 20\nproperty list uchar int vertex_indices\n" );
+    CHECK( text_ply.get_json().dump() == binary_ply.get_json().dump());
     CHECK( text_ply.ply_source() == text_file );
     CHECK( text_ply.isValid()    == true      );
     CHECK( text_ply.nVertexes()  == 12        );
