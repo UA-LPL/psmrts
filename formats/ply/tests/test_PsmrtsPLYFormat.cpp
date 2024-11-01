@@ -9,6 +9,7 @@
 TEST_CASE( "PLY FORMAT Asset Test - No File Default Constructor", "[format][ply]") {
     std::string no_file = psmrts_formats_path("ply/data/bad_path.ply");
     psmrts::PsmrtsPLYFormat ply;
+
     CHECK( ply.ply_source()          == "" );
     CHECK( ply.format_model_source() == "" );
     CHECK( ply.isValid()             == false );
@@ -31,6 +32,7 @@ TEST_CASE ( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][defaul
     std::string plyfile = psmrts_formats_path("ply/data/Bennu_Radar.ply");
     psmrts::PsmrtsPLYFormat ply( plyfile );
 
+    //CHECK( ply.getString() == "" );
     CHECK( ply.ply_source() == plyfile );
     CHECK( ply.isValid()    == true    );
     CHECK( ply.nVertexes()  == 1348    );
@@ -44,6 +46,31 @@ TEST_CASE ( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][defaul
     CHECK( ply.get_double_vectors().size()     == 1348 );
     CHECK( ply.get_float_vectors().size()      == 1348 );
     CHECK( ply.get_indexes().size()            == 2692 );
+
+    CHECK( ply.get_double_vectors()(0)[0] == 0.0 );                     // txt ply (via meshlab) value: 0.0
+    CHECK( ply.get_double_vectors()(0)[1] == 0.0 );                     // txt ply (via meshlab) value: 0.0
+    CHECK( ply.get_double_vectors()(0)[2] == 0.25321400165557861 );     // txt ply (via meshlab) value: 0.253214
+
+    CHECK( ply.get_double_vectors()(1347)[0] == -0.05905099958181381 ); // txt ply (via meshlab) value: -0.059051
+    CHECK( ply.get_double_vectors()(1347)[1] ==  0.12654499709606171 ); // txt ply (via meshlab) value:  0.126545
+    CHECK( ply.get_double_vectors()(1347)[2] == -0.18491800129413605 ); // txt ply (via meshlab) value: -0.184918
+
+    CHECK_THROWS( ply.get_double_vectors()(1348)[0] );
+    CHECK_THROWS( ply.get_double_vectors()(1348)[1] );
+    CHECK_THROWS( ply.get_double_vectors()(1348)[2] );
+
+    CHECK( ply.get_indexes()(0)[0] == 0);                               // txt ply (via meshlab) value: 0
+    CHECK( ply.get_indexes()(0)[1] == 1);                               // txt ply (via meshlab) value: 1
+    CHECK( ply.get_indexes()(0)[2] == 2);                               // txt ply (via meshlab) value: 2
+
+    CHECK( ply.get_indexes()(2691)[0] == 1301);                         // txt ply (via meshlab) value: 1301
+    CHECK( ply.get_indexes()(2691)[1] == 1347);                         // txt ply (via meshlab) value: 1347
+    CHECK( ply.get_indexes()(2691)[2] == 1270);                         // txt ply (via meshlab) value: 1270
+
+    CHECK_THROWS( ply.get_indexes()(2692)[0] );
+    CHECK_THROWS( ply.get_indexes()(2692)[1] );
+    CHECK_THROWS( ply.get_indexes()(2692)[2] );
+
 
     // Conversion Check
     psmrts::PsmrtsVector3f ply_floats  = ply.get_float_vectors();
@@ -61,12 +88,77 @@ TEST_CASE ( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][defaul
 
     std::shared_ptr<miniply::PLYReader> ply_read( psmrts::PsmrtsPLYFormat::open( plyfile ) );
     REQUIRE( ply_read != nullptr );
+}
+
+TEST_CASE("PLY FORMAT Asset Test - Text Based Ply Reader and Comparison", "[format][ply][text]") {
+    // Check to make sure binary ply version pulls data of basic shape, compare to text conversion
+    // Original binary-base ply file was converted to text version via Meshlab: https://github.com/cnr-isti-vclab/meshlab
+
+    std::string binary_file = psmrts_formats_path("ply/data/icosahedron_binary.ply");
+
+    psmrts::PsmrtsPLYFormat binary_ply( binary_file );
+
+    CHECK( binary_ply.ply_source() == binary_file );
+    CHECK( binary_ply.isValid()    == true    );
+    CHECK( binary_ply.nVertexes()  == 12    );
+    CHECK( binary_ply.nIndexes()   == 20    );
+
+    CHECK( binary_ply.get_mesh().isValid()            == true  );
+    CHECK( binary_ply.get_mesh().isVectorDouble()     == true  );
+    CHECK( binary_ply.get_mesh().vectors().isDouble() == true  );
+    CHECK( binary_ply.get_mesh().vectors().isFloat()  == false );
+
+    CHECK( binary_ply.get_double_vectors().size()     == 12 );
+    CHECK( binary_ply.get_float_vectors().size()      == 12 );
+    CHECK( binary_ply.get_indexes().size()            == 20 );
+
+    CHECK( binary_ply.get_double_vectors()(0)[0] ==  0.0                 ); // txt ply (via meshlab) value:  0.0
+    CHECK( binary_ply.get_double_vectors()(0)[1] == -0.52573102712631226 ); // txt ply (via meshlab) value: -0.525731
+    CHECK( binary_ply.get_double_vectors()(0)[2] ==  0.85065102577209473 ); // txt ply (via meshlab) value:  0.850651
+
+    CHECK( binary_ply.get_double_vectors()(11)[0] == 0.0                 ); // txt ply (via meshlab) value: 0.0
+    CHECK( binary_ply.get_double_vectors()(11)[1] == 0.52573102712631226 ); // txt ply (via meshlab) value: 0.525731
+    CHECK( binary_ply.get_double_vectors()(11)[2] == 0.85065102577209473 ); // txt ply (via meshlab) value: 0.850651
     
+    CHECK( binary_ply.get_indexes()(0)[0] == 6 );                           // txt ply (via meshlab) value: 6
+    CHECK( binary_ply.get_indexes()(0)[1] == 2 );                           // txt ply (via meshlab) value: 2
+    CHECK( binary_ply.get_indexes()(0)[2] == 1 );                           // txt ply (via meshlab) value: 1
+
+    // Create text converted ply version for comparison
+    std::string text_file  = psmrts_formats_path("ply/data/icosahedron.ply");
+
+    psmrts::PsmrtsPLYFormat text_ply( text_file );
+
+    CHECK( text_ply.ply_source() == text_file );
+    CHECK( text_ply.isValid()    == true      );
+    CHECK( text_ply.nVertexes()  == 12        );
+    CHECK( text_ply.nIndexes()   == 20        );
+
+    CHECK( text_ply.get_mesh().isValid()            == true  );
+    CHECK( text_ply.get_mesh().isVectorDouble()     == true  );
+    CHECK( text_ply.get_mesh().vectors().isDouble() == true  );
+    CHECK( text_ply.get_mesh().vectors().isFloat()  == false );
+
+    CHECK( text_ply.get_double_vectors().size()     == 12 );
+    CHECK( text_ply.get_float_vectors().size()      == 12 );
+    CHECK( text_ply.get_indexes().size()            == 20 );
+
+    CHECK( text_ply.get_double_vectors()(0)[0] == binary_ply.get_double_vectors()(0)[0] );                 
+    CHECK( text_ply.get_double_vectors()(0)[1] == binary_ply.get_double_vectors()(0)[1] ); 
+    CHECK( text_ply.get_double_vectors()(0)[2] == binary_ply.get_double_vectors()(0)[2] ); 
+
+    CHECK( text_ply.get_double_vectors()(11)[0] == binary_ply.get_double_vectors()(11)[0] );                 
+    CHECK( text_ply.get_double_vectors()(11)[1] == binary_ply.get_double_vectors()(11)[1] ); 
+    CHECK( text_ply.get_double_vectors()(11)[2] == binary_ply.get_double_vectors()(11)[2] ); 
+    
+    CHECK( text_ply.get_indexes()(0)[0] == binary_ply.get_indexes()(0)[0] ); 
+    CHECK( text_ply.get_indexes()(0)[1] == binary_ply.get_indexes()(0)[1] );
+    CHECK( text_ply.get_indexes()(0)[2] == binary_ply.get_indexes()(0)[2] );
 }
 
 // Need to fix ply converted to obj? Or compare to values that are already in the obj?
 #if 0
-TEST_CASE( "PLY FORMAT Asset Test - Vector Data Value Test" ) {
+TEST_CASE( "PLY FORMAT Asset Test - OBJ Data Value Test", "[format][ply][obj]" ) {
     auto tolerance = 1.0e-6;
 
     std::string plyfile = psmrts_formats_path( "ply/data/Bennu_Radar.ply" );
@@ -97,33 +189,3 @@ TEST_CASE( "PLY FORMAT Asset Test - Vector Data Value Test" ) {
     
 }
 #endif
-
-TEST_CASE( "PLY FORMAT Asset Test - txt to ply Comparison Check", "[format][ply][txt][bennu]") {
-    std::string txt_path = psmrts_formats_path("ply/data/icosahedron.ply");
-    std::string ply_path = psmrts_formats_path("ply/data/icosahedron_binary.ply");
-
-    psmrts::PsmrtsPLYFormat txt_loader( txt_path );
-    psmrts::PsmrtsPLYFormat ply_loader( ply_path );
-
-    CHECK( ply_loader.format_model_source() != txt_loader.format_model_source() );
-    CHECK( ply_loader.ply_source()          != txt_loader.ply_source() );
-    CHECK( ply_loader.isValid()             == true );
-    CHECK( txt_loader.isValid()             == true );
-    CHECK( ply_loader.nVertexes()           == txt_loader.nVertexes() ); // 1348
-    CHECK( ply_loader.nIndexes()            == txt_loader.nIndexes() ); // 2692
-}
-
-// Move to Above
-TEST_CASE( "PLY FORMAT Asset Test - txt Based PLY Check", "[format][ply][txt]") {
-    std::string txt_file = psmrts_formats_path("ply/data/teapot.ply");
-
-    psmrts::PsmrtsPLYFormat txt_loader( txt_file );
-
-    CHECK( txt_loader.format_model_source() == txt_file );
-    CHECK( txt_loader.ply_source()          == txt_file );
-    CHECK( txt_loader.isValid()             == true );
-    CHECK( txt_loader.nVertexes()           == 1177 );
-    CHECK( txt_loader.nIndexes()            == 2256 );
-
-
-}
