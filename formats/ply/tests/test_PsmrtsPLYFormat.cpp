@@ -32,8 +32,7 @@ TEST_CASE ( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][defaul
     std::string plyfile = psmrts_formats_path("ply/data/Bennu_Radar.ply");
     psmrts::PsmrtsPLYFormat ply( plyfile );
 
-    CHECK( ply.get_string() ==  "ply\nformat binary 1.0\nelement vertex 1348\nproperty  float x\nproperty  float y\nproperty  float z\nelement face 2692\nproperty list uchar int vertex_indices\n" );
-    CHECK( ply.get_json().dump() == "{\"elements\":[{\"element\":\"vertex\",\"properties\":[{\"property\":\
+    CHECK( ply.config().dump() == "{\"elements\":[{\"element\":\"vertex\",\"properties\":[{\"property\":\
 \"x\",\"type\":\"float\"},{\"property\":\"y\",\"type\":\"float\"},{\"property\":\
 \"z\",\"type\":\"float\"}],\"size\":1348},{\"element\":\"face\",\"properties\":[{\"list_count_type\":\
 \"uchar\",\"property\":\"vertex_indices\",\"type\":\"int\"}],\"size\":2692}]}" );
@@ -51,34 +50,36 @@ TEST_CASE ( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][defaul
     CHECK( ply.get_float_vectors().size()      == 1348 );
     CHECK( ply.get_indexes().size()            == 2692 );
 
-    CHECK( ply.get_double_vectors()(0)[0] == 0.0 );                     // txt ply (via meshlab) value: 0.0
-    CHECK( ply.get_double_vectors()(0)[1] == 0.0 );                     // txt ply (via meshlab) value: 0.0
-    CHECK( ply.get_double_vectors()(0)[2] == 0.25321400165557861 );     // txt ply (via meshlab) value: 0.253214
-
-    CHECK( ply.get_double_vectors()(1347)[0] == -0.05905099958181381 ); // txt ply (via meshlab) value: -0.059051
-    CHECK( ply.get_double_vectors()(1347)[1] ==  0.12654499709606171 ); // txt ply (via meshlab) value:  0.126545
-    CHECK( ply.get_double_vectors()(1347)[2] == -0.18491800129413605 ); // txt ply (via meshlab) value: -0.184918
-
-    CHECK_THROWS( ply.get_double_vectors()(1348)[0] );
-    CHECK_THROWS( ply.get_double_vectors()(1348)[1] );
-    CHECK_THROWS( ply.get_double_vectors()(1348)[2] );
-
-    CHECK( ply.get_indexes()(0)[0] == 0);                               // txt ply (via meshlab) value: 0
-    CHECK( ply.get_indexes()(0)[1] == 1);                               // txt ply (via meshlab) value: 1
-    CHECK( ply.get_indexes()(0)[2] == 2);                               // txt ply (via meshlab) value: 2
-
-    CHECK( ply.get_indexes()(2691)[0] == 1301);                         // txt ply (via meshlab) value: 1301
-    CHECK( ply.get_indexes()(2691)[1] == 1347);                         // txt ply (via meshlab) value: 1347
-    CHECK( ply.get_indexes()(2691)[2] == 1270);                         // txt ply (via meshlab) value: 1270
-
-    CHECK_THROWS( ply.get_indexes()(2692)[0] );
-    CHECK_THROWS( ply.get_indexes()(2692)[1] );
-    CHECK_THROWS( ply.get_indexes()(2692)[2] );
-
-
     // Conversion Check
     psmrts::PsmrtsVector3f ply_floats  = ply.get_float_vectors();
     psmrts::PsmrtsVector3d ply_doubles = ply.get_double_vectors();
+
+    // Change to local variables
+    CHECK( ply_doubles(0)[0] == 0.0 );                     // txt ply (via meshlab) value: 0.0
+    CHECK( ply_doubles(0)[1] == 0.0 );                     // txt ply (via meshlab) value: 0.0
+    CHECK( ply_doubles(0)[2] == 0.25321400165557861 );     // txt ply (via meshlab) value: 0.253214
+
+    CHECK( ply_doubles(1347)[0] == -0.05905099958181381 ); // txt ply (via meshlab) value: -0.059051
+    CHECK( ply_doubles(1347)[1] ==  0.12654499709606171 ); // txt ply (via meshlab) value:  0.126545
+    CHECK( ply_doubles(1347)[2] == -0.18491800129413605 ); // txt ply (via meshlab) value: -0.184918
+
+    CHECK_THROWS( ply_doubles(1348)[0] );
+    CHECK_THROWS( ply_doubles(1348)[1] );
+    CHECK_THROWS( ply_doubles(1348)[2] );
+
+    psmrts::PsmrtsVector3i ply_indexes = ply.get_indexes();
+
+    CHECK( ply_indexes(0)[0] == 0);       // txt ply (via meshlab) value: 0
+    CHECK( ply_indexes(0)[1] == 1);       // txt ply (via meshlab) value: 1
+    CHECK( ply_indexes(0)[2] == 2);       // txt ply (via meshlab) value: 2
+
+    CHECK( ply_indexes(2691)[0] == 1301); // txt ply (via meshlab) value: 1301
+    CHECK( ply_indexes(2691)[1] == 1347); // txt ply (via meshlab) value: 1347
+    CHECK( ply_indexes(2691)[2] == 1270); // txt ply (via meshlab) value: 1270
+
+    CHECK_THROWS( ply_indexes(2692)[0] );
+    CHECK_THROWS( ply_indexes(2692)[1] );
+    CHECK_THROWS( ply_indexes(2692)[2] );
 
     for (int i = 0; i < ply_doubles.size(); i++) {
         CHECK_THAT( ply_doubles(i)[0], Catch::Matchers::WithinAbs(ply_floats(i)[0], tolerance));
@@ -102,8 +103,7 @@ TEST_CASE("PLY FORMAT Asset Test - Text Based Ply Reader and Comparison", "[form
 
     psmrts::PsmrtsPLYFormat binary_ply( binary_file );
 
-    CHECK( binary_ply.get_string() == "ply\nformat binary 1.0\nelement vertex 12\nproperty  float x\nproperty  float y\nproperty  float z\nelement face 20\nproperty list uchar int vertex_indices\n" );
-    CHECK( binary_ply.get_json().dump() == "{\"elements\":[{\"element\":\"vertex\",\"properties\":[{\"property\":\"x\",\"type\":\
+    CHECK( binary_ply.config().dump() == "{\"elements\":[{\"element\":\"vertex\",\"properties\":[{\"property\":\"x\",\"type\":\
 \"float\"},{\"property\":\"y\",\"type\":\"float\"},{\"property\":\"z\",\"type\":\"float\"}],\"size\":12},{\"element\":\
 \"face\",\"properties\":[{\"list_count_type\":\"uchar\",\"property\":\"vertex_indices\",\"type\":\"int\"}],\"size\":20}]}" );
     CHECK( binary_ply.ply_source() == binary_file );
@@ -120,25 +120,29 @@ TEST_CASE("PLY FORMAT Asset Test - Text Based Ply Reader and Comparison", "[form
     CHECK( binary_ply.get_float_vectors().size()      == 12 );
     CHECK( binary_ply.get_indexes().size()            == 20 );
 
-    CHECK( binary_ply.get_double_vectors()(0)[0] ==  0.0                 ); // txt ply (via meshlab) value:  0.0
-    CHECK( binary_ply.get_double_vectors()(0)[1] == -0.52573102712631226 ); // txt ply (via meshlab) value: -0.525731
-    CHECK( binary_ply.get_double_vectors()(0)[2] ==  0.85065102577209473 ); // txt ply (via meshlab) value:  0.850651
+    psmrts::PsmrtsVector3f binary_floats  = binary_ply.get_float_vectors();
+    psmrts::PsmrtsVector3d binary_doubles = binary_ply.get_double_vectors();
 
-    CHECK( binary_ply.get_double_vectors()(11)[0] == 0.0                 ); // txt ply (via meshlab) value: 0.0
-    CHECK( binary_ply.get_double_vectors()(11)[1] == 0.52573102712631226 ); // txt ply (via meshlab) value: 0.525731
-    CHECK( binary_ply.get_double_vectors()(11)[2] == 0.85065102577209473 ); // txt ply (via meshlab) value: 0.850651
+    CHECK( binary_doubles(0)[0] ==  0.0                 ); // txt ply (via meshlab) value:  0.0
+    CHECK( binary_doubles(0)[1] == -0.52573102712631226 ); // txt ply (via meshlab) value: -0.525731
+    CHECK( binary_doubles(0)[2] ==  0.85065102577209473 ); // txt ply (via meshlab) value:  0.850651
+
+    CHECK( binary_doubles(11)[0] == 0.0                 ); // txt ply (via meshlab) value: 0.0
+    CHECK( binary_doubles(11)[1] == 0.52573102712631226 ); // txt ply (via meshlab) value: 0.525731
+    CHECK( binary_doubles(11)[2] == 0.85065102577209473 ); // txt ply (via meshlab) value: 0.850651
+
+    psmrts::PsmrtsVector3i binary_indexes = binary_ply.get_indexes();
     
-    CHECK( binary_ply.get_indexes()(0)[0] == 6 );                           // txt ply (via meshlab) value: 6
-    CHECK( binary_ply.get_indexes()(0)[1] == 2 );                           // txt ply (via meshlab) value: 2
-    CHECK( binary_ply.get_indexes()(0)[2] == 1 );                           // txt ply (via meshlab) value: 1
+    CHECK( binary_indexes(0)[0] == 6 );                   // txt ply (via meshlab) value: 6
+    CHECK( binary_indexes(0)[1] == 2 );                   // txt ply (via meshlab) value: 2
+    CHECK( binary_indexes(0)[2] == 1 );                   // txt ply (via meshlab) value: 1
 
     // Create text converted ply version for comparison
     std::string text_file  = psmrts_formats_path("ply/data/icosahedron.ply");
 
     psmrts::PsmrtsPLYFormat text_ply( text_file );
 
-    CHECK( text_ply.get_string() == "ply\nformat ascii 1.0\nelement vertex 12\nproperty  float x\nproperty  float y\nproperty  float z\nelement face 20\nproperty list uchar int vertex_indices\n" );
-    CHECK( text_ply.get_json().dump() == binary_ply.get_json().dump());
+    CHECK( text_ply.config().dump() == binary_ply.config().dump());
     CHECK( text_ply.ply_source() == text_file );
     CHECK( text_ply.isValid()    == true      );
     CHECK( text_ply.nVertexes()  == 12        );
@@ -153,30 +157,38 @@ TEST_CASE("PLY FORMAT Asset Test - Text Based Ply Reader and Comparison", "[form
     CHECK( text_ply.get_float_vectors().size()      == 12 );
     CHECK( text_ply.get_indexes().size()            == 20 );
 
-    CHECK( text_ply.get_double_vectors()(0)[0] == binary_ply.get_double_vectors()(0)[0] );                 
-    CHECK( text_ply.get_double_vectors()(0)[1] == binary_ply.get_double_vectors()(0)[1] ); 
-    CHECK( text_ply.get_double_vectors()(0)[2] == binary_ply.get_double_vectors()(0)[2] ); 
+    psmrts::PsmrtsVector3f text_floats  = text_ply.get_float_vectors();
+    psmrts::PsmrtsVector3d text_doubles = text_ply.get_double_vectors();
 
-    CHECK( text_ply.get_double_vectors()(11)[0] == binary_ply.get_double_vectors()(11)[0] );                 
-    CHECK( text_ply.get_double_vectors()(11)[1] == binary_ply.get_double_vectors()(11)[1] ); 
-    CHECK( text_ply.get_double_vectors()(11)[2] == binary_ply.get_double_vectors()(11)[2] ); 
+    CHECK( text_doubles(0)[0] == binary_doubles(0)[0] );                 
+    CHECK( text_doubles(0)[1] == binary_doubles(0)[1] ); 
+    CHECK( text_doubles(0)[2] == binary_doubles(0)[2] ); 
+
+    CHECK( text_doubles(11)[0] == binary_doubles(11)[0] );                 
+    CHECK( text_doubles(11)[1] == binary_doubles(11)[1] ); 
+    CHECK( text_doubles(11)[2] == binary_doubles(11)[2] ); 
+
+    psmrts::PsmrtsVector3i text_indexes = text_ply.get_indexes();
     
-    CHECK( text_ply.get_indexes()(0)[0] == binary_ply.get_indexes()(0)[0] ); 
-    CHECK( text_ply.get_indexes()(0)[1] == binary_ply.get_indexes()(0)[1] );
-    CHECK( text_ply.get_indexes()(0)[2] == binary_ply.get_indexes()(0)[2] );
+    CHECK( text_indexes(0)[0] == binary_indexes(0)[0] ); 
+    CHECK( text_indexes(0)[1] == binary_indexes(0)[1] );
+    CHECK( text_indexes(0)[2] == binary_indexes(0)[2] );
+
+    CHECK( text_indexes(19)[0] == binary_indexes(19)[0] ); 
+    CHECK( text_indexes(19)[1] == binary_indexes(19)[1] );
+    CHECK( text_indexes(19)[2] == binary_indexes(19)[2] );
 }
 
-// Need to fix ply converted to obj? Or compare to values that are already in the obj?
-#if 0
 TEST_CASE( "PLY FORMAT Asset Test - OBJ Data Value Test", "[format][ply][obj]" ) {
     auto tolerance = 1.0e-6;
 
     std::string plyfile = psmrts_formats_path( "ply/data/Bennu_Radar.ply" );
     psmrts::PsmrtsPLYFormat ply_data_loader( plyfile );
     
-    std::string objfile = psmrts_formats_path( "obj/data/Bennu_Radar.obj" );
+    std::string objfile = psmrts_formats_path( "ply/data/Bennu_Radar.obj" );
     psmrts::PsmrtsOBJFormat obj_data_loader( objfile );
 
+    auto ply_floats = ply_data_loader.get_float_vectors();
     auto obj_floats = obj_data_loader.get_float_vectors();
     float sum_float = 0;
     for (int j = 0; j < obj_floats.size(); j++) {
@@ -187,7 +199,8 @@ TEST_CASE( "PLY FORMAT Asset Test - OBJ Data Value Test", "[format][ply][obj]" )
 
     CHECK_THAT( sum_float, Catch::Matchers::WithinAbs(0.0, tolerance));
 
-    auto obj_doubles = obj_data_loader.get_double_vectors();
+    auto ply_doubles  = ply_data_loader.get_double_vectors();
+    auto obj_doubles  = obj_data_loader.get_double_vectors();
     double sum_double = 0;
     for (int k=0; k< obj_doubles.size(); k++) {
         sum_double += fabs(ply_doubles(k)[0] - obj_doubles(k)[0]);
@@ -196,6 +209,4 @@ TEST_CASE( "PLY FORMAT Asset Test - OBJ Data Value Test", "[format][ply][obj]" )
     }
 
     CHECK_THAT( sum_double, Catch::Matchers::WithinAbs(0.0, tolerance));
-    
 }
-#endif
