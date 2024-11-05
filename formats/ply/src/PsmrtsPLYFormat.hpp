@@ -204,17 +204,25 @@ namespace psmrts {
             // Add file properties such as name and type in a "file" structure
 
 
-            nlohmann::json j_result;
+            nlohmann::ordered_json j_result; 
+            nlohmann::ordered_json j_header;
+
+            j_header["file"] = m_ply_source;
+            j_header["type"] = m_file_type;
+            j_header["nElements"] = reader.num_elements();
+
+            j_result["header"] = j_header;
+
             for (uint32_t i=0; i < reader.num_elements(); i++) {
                 const miniply::PLYElement* elem = reader.get_element(i);
 
-                nlohmann::json j_element;
+                nlohmann::ordered_json j_element;
                 j_element["element"] = elem->name;
                 j_element["size"]    = elem->count;
 
                 nlohmann::json j_properties_list = nlohmann::json::array();
                 for(const miniply::PLYProperty& prop : elem->properties) {
-                    nlohmann::json j_property;
+                    nlohmann::ordered_json j_property;
                     if (prop.countType != miniply::PLYPropertyType::None) {
                         j_property["property"] = prop.name;
                         j_property["type"] = property_type_string(prop.type);
@@ -231,6 +239,7 @@ namespace psmrts {
 
                 j_result["elements"].push_back(j_element);
             }
+            j_result = {{"header", j_result["header"]}, {"elements", j_result["elements"]}};
             m_config = j_result;
             return;
         }
