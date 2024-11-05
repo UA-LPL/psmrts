@@ -220,7 +220,7 @@ namespace psmrts {
                 j_element["element"] = elem->name;
                 j_element["size"]    = elem->count;
 
-                nlohmann::json j_properties_list = nlohmann::json::array();
+                nlohmann::ordered_json j_properties_list = nlohmann::ordered_json::array();
                 for(const miniply::PLYProperty& prop : elem->properties) {
                     nlohmann::ordered_json j_property;
                     if (prop.countType != miniply::PLYPropertyType::None) {
