@@ -41,10 +41,11 @@ namespace psmrts {
         public:
 
         /** Default Constructor */
-        PsmrtsPLYFormat() : m_ply_source(), m_mesh(), m_tracker() {}
+        PsmrtsPLYFormat() : m_ply_source(), m_file_type("unknown"), 
+                            m_mesh(), m_tracker(), m_config() {}
 
         /** Construct a ply_file object */
-        PsmrtsPLYFormat( const std::string &plyfile, const bool prefer_double = false )  {
+        PsmrtsPLYFormat( const std::string &plyfile )  {
             (void) load_ply_file( plyfile );
         }
 
@@ -65,6 +66,10 @@ namespace psmrts {
             return ( m_ply_source );
         }
     
+        inline std::string file_type() const {
+          return ( m_file_type );
+        }
+
         inline size_t nVertexes() const {
             return ( m_mesh.nvectors() );
         }
@@ -122,6 +127,7 @@ namespace psmrts {
 
             // Init section
             m_ply_source = plyfile;
+            m_file_type  = "unknown";
             m_mesh       = PsmrtsMeshData();  // Resets the state
             m_tracker    = PsmrtsThreadSafeCounter();
 
@@ -131,9 +137,16 @@ namespace psmrts {
                 throw std::runtime_error("Failed to open file: " + plyfile );
             }
             
+            // Determine the file type
+            if ( reader.file_type() == miniply::PLYFileType::ASCII ) {
+                m_file_type = "ascii";
+            }
+            else {
+                m_file_type = "binary";
+            }
+
             // Config header data to json
             parse_config(reader);
-    
 
             // Lets assume only triangles in the ply, which is more efficient to read here. See
             // https://github.com/vilya/miniply#loading-from-a-ply-file-known-to-only-contain-triangles
@@ -147,19 +160,17 @@ namespace psmrts {
             faceElem->convert_list_to_fixed_size(faceElem->find_property("vertex_indices"), 3, faceIdxs);
 
             uint32_t indexes[3];
-            bool gotVerts = false, gotFaces = false;
 
             PsmrtsVector3d p_vectors;
             PsmrtsVector3i p_indexes;
-            // miniply::PLYPropertyType vtype =  miniply::PLYPropertyType::Double;
-            size_t vbytes = sizeof( double );
+            miniply::PLYPropertyType v_type =  miniply::PLYPropertyType::Double;
 
             while ( reader.has_element() && (!p_vectors.isValid()|| !p_indexes.isValid() ))  {
 
                 if (reader.element_is(miniply::kPLYVertexElement) && reader.load_element() && reader.find_pos(indexes)) {
                   size_t  nverts  = reader.num_rows();
                   p_vectors = PsmrtsVector3d( nverts );
-                  reader.extract_properties(indexes, 3, miniply::PLYPropertyType::Double,  p_vectors(0).data() );
+                  reader.extract_properties(indexes, 3, v_type,  p_vectors(0).data() );
                 }
                 else if ( !p_indexes.isValid() && reader.element_is(miniply::kPLYFaceElement) && reader.load_element()) {
                   size_t nindexes = reader.num_rows();
@@ -170,8 +181,8 @@ namespace psmrts {
                 reader.next_element();
             }
             // Check to see if we have the mesh -- throw error if vectors/indexes are invalid
-            if ( !(p_vectors.isValid()  && p_indexes.isValid()) ) {
-                throw std::runtime_error( "Vectors or Indexes are not valid in: " + plyfile);
+            if ( !( p_vectors.isValid() && p_indexes.isValid() ) ) {
+                throw std::runtime_error( "Vectors or Indexes are not valid/present in: " + plyfile);
             }
 
             // Allocate a mesh now    
@@ -188,7 +199,11 @@ namespace psmrts {
          * 
          * @param reader miniply file reader 
          */
-        inline void parse_config(miniply::PLYReader& reader) {
+        inline void parse_config( miniply::PLYReader& reader )  {
+
+            // Add file properties such as name and type in a "file" structure
+
+
             nlohmann::json j_result;
             for (uint32_t i=0; i < reader.num_elements(); i++) {
                 const miniply::PLYElement* elem = reader.get_element(i);
@@ -216,7 +231,7 @@ namespace psmrts {
 
                 j_result["elements"].push_back(j_element);
             }
-            m_json = j_result;
+            m_config = j_result;
             return;
         }
 
@@ -229,7 +244,7 @@ namespace psmrts {
          * @param prop ply property type, as defined by miniply
          * @return std::string 
          */
-        inline std::string property_type_string(miniply::PLYPropertyType prop) {
+        inline std::string property_type_string( const miniply::PLYPropertyType prop) const {
             switch(prop) {
                 case miniply::PLYPropertyType::Char:
                     return "char";
@@ -253,8 +268,8 @@ namespace psmrts {
         }
 
         /** Returns the header json information */
-        inline  json config() {
-            return m_json;
+        inline  const json &config() const {
+            return m_config;
         }
 
         /** Returns the mesh as read from the file unless true is provided which returns doubles */
@@ -302,7 +317,6 @@ namespace psmrts {
 
         inline size_t track_count() const {
             return (m_tracker.count() );
-
         }
 
         /**
@@ -318,11 +332,11 @@ namespace psmrts {
         }
 
         private:
-            std::string                         m_ply_source;
-            PsmrtsMeshData                      m_mesh;
-            PsmrtsThreadSafeCounter             m_tracker;
-            std::string                         m_print;
-            json                                m_json;
+            std::string                m_ply_source;
+            std::string                m_file_type;
+            PsmrtsMeshData             m_mesh;
+            PsmrtsThreadSafeCounter    m_tracker;
+            nlohmann::json             m_config;
 
     };
 } // namespace psmrts

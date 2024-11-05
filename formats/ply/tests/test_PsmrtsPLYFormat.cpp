@@ -37,6 +37,7 @@ TEST_CASE ( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][defaul
 \"z\",\"type\":\"float\"}],\"size\":1348},{\"element\":\"face\",\"properties\":[{\"list_count_type\":\
 \"uchar\",\"property\":\"vertex_indices\",\"type\":\"int\"}],\"size\":2692}]}" );
     CHECK( ply.ply_source() == plyfile );
+    CHECK( ply.file_type()  == "binary" );
     CHECK( ply.isValid()    == true    );
     CHECK( ply.nVertexes()  == 1348    );
     CHECK( ply.nIndexes()   == 2692    );
@@ -107,6 +108,7 @@ TEST_CASE("PLY FORMAT Asset Test - Text Based Ply Reader and Comparison", "[form
 \"float\"},{\"property\":\"y\",\"type\":\"float\"},{\"property\":\"z\",\"type\":\"float\"}],\"size\":12},{\"element\":\
 \"face\",\"properties\":[{\"list_count_type\":\"uchar\",\"property\":\"vertex_indices\",\"type\":\"int\"}],\"size\":20}]}" );
     CHECK( binary_ply.ply_source() == binary_file );
+    CHECK( binary_ply.file_type()  == "binary" );
     CHECK( binary_ply.isValid()    == true    );
     CHECK( binary_ply.nVertexes()  == 12    );
     CHECK( binary_ply.nIndexes()   == 20    );
@@ -144,6 +146,7 @@ TEST_CASE("PLY FORMAT Asset Test - Text Based Ply Reader and Comparison", "[form
 
     CHECK( text_ply.config().dump() == binary_ply.config().dump());
     CHECK( text_ply.ply_source() == text_file );
+    CHECK( text_ply.file_type()  == "ascii" );
     CHECK( text_ply.isValid()    == true      );
     CHECK( text_ply.nVertexes()  == 12        );
     CHECK( text_ply.nIndexes()   == 20        );
@@ -180,7 +183,8 @@ TEST_CASE("PLY FORMAT Asset Test - Text Based Ply Reader and Comparison", "[form
 }
 
 TEST_CASE( "PLY FORMAT Asset Test - OBJ Data Value Test", "[format][ply][obj]" ) {
-    auto tolerance = 1.0e-6;
+    auto tolerance_f = 1.0e-6;
+    auto tolerance_d = 1.0e-4;
 
     std::string plyfile = psmrts_formats_path( "ply/data/Bennu_Radar.ply" );
     psmrts::PsmrtsPLYFormat ply_data_loader( plyfile );
@@ -197,7 +201,7 @@ TEST_CASE( "PLY FORMAT Asset Test - OBJ Data Value Test", "[format][ply][obj]" )
         sum_float += fabs(ply_floats(j)[2] - obj_floats(j)[2]);
     }
 
-    CHECK_THAT( sum_float, Catch::Matchers::WithinAbs(0.0, tolerance));
+    CHECK_THAT( sum_float, Catch::Matchers::WithinAbs(0.0, tolerance_f ) );
 
     auto ply_doubles  = ply_data_loader.get_double_vectors();
     auto obj_doubles  = obj_data_loader.get_double_vectors();
@@ -208,5 +212,6 @@ TEST_CASE( "PLY FORMAT Asset Test - OBJ Data Value Test", "[format][ply][obj]" )
         sum_double += fabs(ply_doubles(k)[2] - obj_doubles(k)[2]);
     }
 
-    CHECK_THAT( sum_double, Catch::Matchers::WithinAbs(0.0, tolerance));
+    // The PLY version is float and the OBJ is double
+    CHECK_THAT( sum_double, Catch::Matchers::WithinAbs(0.0, tolerance_d ) );
 }
