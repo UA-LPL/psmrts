@@ -201,45 +201,39 @@ namespace psmrts {
          */
         inline void parse_config( miniply::PLYReader& reader )  {
 
-            // Add file properties such as name and type in a "file" structure
+            nlohmann::ordered_json j_result = nlohmann::ordered_json::object(); 
 
+            j_result["header"]["file"] = m_ply_source;
+            j_result["header"]["type"] = m_file_type;
+            j_result["header"]["nElements"] = reader.num_elements();
 
-            nlohmann::ordered_json j_result; 
-            nlohmann::ordered_json j_header;
-
-            j_header["file"] = m_ply_source;
-            j_header["type"] = m_file_type;
-            j_header["nElements"] = reader.num_elements();
-
-            j_result["header"] = j_header;
+            nlohmann::ordered_json j_elements = nlohmann::ordered_json::array();
 
             for (uint32_t i=0; i < reader.num_elements(); i++) {
                 const miniply::PLYElement* elem = reader.get_element(i);
 
                 nlohmann::ordered_json j_element;
-                j_element["element"] = elem->name;
-                j_element["size"]    = elem->count;
+                j_element["element"]["name"] = elem->name;
+                j_element["element"]["size"] = elem->count;
 
                 nlohmann::ordered_json j_properties_list = nlohmann::ordered_json::array();
                 for(const miniply::PLYProperty& prop : elem->properties) {
                     nlohmann::ordered_json j_property;
-                    if (prop.countType != miniply::PLYPropertyType::None) {
-                        j_property["property"] = prop.name;
-                        j_property["type"] = property_type_string(prop.type);
-                        j_property["list_count_type"] = property_type_string(prop.countType);
-                        j_properties_list.push_back(j_property);
-                    }
-                    else {
-                        j_property["property"] = prop.name;
-                        j_property["type"] = property_type_string(prop.type);
-                        j_properties_list.push_back(j_property);
-                    }
-                }
-                j_element["properties"] = j_properties_list;
+                    j_property["property"]["name"] = prop.name;
+                    j_property["property"]["type"] = property_type_string(prop.type);
 
-                j_result["elements"].push_back(j_element);
+                    if (prop.countType != miniply::PLYPropertyType::None) {
+                        j_property["property"]["count"] = property_type_string(prop.countType);
+                    }
+
+                    j_properties_list.push_back(j_property);
+                }
+
+                j_element["properties"] = j_properties_list;
+                j_elements.push_back(j_element);
             }
-            j_result = {{"header", j_result["header"]}, {"elements", j_result["elements"]}};
+            j_result["elements"] = j_elements;
+            //j_result = {{"header", j_result["header"]}, {"elements", j_result["elements"]}};
             m_config = j_result;
             return;
         }

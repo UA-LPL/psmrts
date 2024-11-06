@@ -32,10 +32,13 @@ TEST_CASE ( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][defaul
     std::string plyfile = psmrts_formats_path("ply/data/Bennu_Radar.ply");
     psmrts::PsmrtsPLYFormat ply( plyfile );
 
-    CHECK( ply.config().dump() == "{\"elements\":[{\"element\":\"vertex\",\"properties\":[{\"property\":\
-\"x\",\"type\":\"float\"},{\"property\":\"y\",\"type\":\"float\"},{\"property\":\
-\"z\",\"type\":\"float\"}],\"size\":1348},{\"element\":\"face\",\"properties\":[{\"list_count_type\":\
-\"uchar\",\"property\":\"vertex_indices\",\"type\":\"int\"}],\"size\":2692}]}" );
+    CHECK( ply.config().dump() == "{\"elements\":[{\"element\":{\"name\":\"vertex\",\"size\":\
+1348},\"properties\":[{\"property\":{\"name\":\"x\",\"type\":\"float\"}},{\"property\":\
+{\"name\":\"y\",\"type\":\"float\"}},{\"property\":{\"name\":\"z\",\"type\":\"float\"}}]},{\"element\":\
+{\"name\":\"face\",\"size\":2692},\"properties\":[{\"property\":{\"count\":\"uchar\",\"name\":\
+\"vertex_indices\",\"type\":\"int\"}}]}],\"header\":{\"file\":\
+\"/Users/kabecker/PSMRTS/GitCheckouts/PlyMiniTesting/psmrts/formats/ply/data/Bennu_Radar.ply\",\
+\"nElements\":2,\"type\":\"binary\"}}" );
     CHECK( ply.ply_source() == plyfile );
     CHECK( ply.file_type()  == "binary" );
     CHECK( ply.isValid()    == true    );
@@ -104,9 +107,13 @@ TEST_CASE("PLY FORMAT Asset Test - Text Based Ply Reader and Comparison", "[form
 
     psmrts::PsmrtsPLYFormat binary_ply( binary_file );
 
-    CHECK( binary_ply.config().dump() == "{\"elements\":[{\"element\":\"vertex\",\"properties\":[{\"property\":\"x\",\"type\":\
-\"float\"},{\"property\":\"y\",\"type\":\"float\"},{\"property\":\"z\",\"type\":\"float\"}],\"size\":12},{\"element\":\
-\"face\",\"properties\":[{\"list_count_type\":\"uchar\",\"property\":\"vertex_indices\",\"type\":\"int\"}],\"size\":20}]}" );
+    CHECK( binary_ply.config().dump() == "{\"elements\":[{\"element\":{\"name\":\"vertex\",\"size\":12},\"properties\":\
+[{\"property\":{\"name\":\"x\",\"type\":\"float\"}},{\"property\":{\"name\":\"y\",\"type\":\
+\"float\"}},{\"property\":{\"name\":\"z\",\"type\":\"float\"}}]},{\"element\":{\"name\":\
+\"face\",\"size\":20},\"properties\":[{\"property\":{\"count\":\"uchar\",\"name\":\
+\"vertex_indices\",\"type\":\"int\"}}]}],\"header\":{\"file\":\
+\"/Users/kabecker/PSMRTS/GitCheckouts/PlyMiniTesting/psmrts/formats/ply/data/icosahedron_binary.ply\",\
+\"nElements\":2,\"type\":\"binary\"}}" );
     CHECK( binary_ply.ply_source() == binary_file );
     CHECK( binary_ply.file_type()  == "binary" );
     CHECK( binary_ply.isValid()    == true    );
@@ -144,7 +151,7 @@ TEST_CASE("PLY FORMAT Asset Test - Text Based Ply Reader and Comparison", "[form
 
     psmrts::PsmrtsPLYFormat text_ply( text_file );
 
-    CHECK( text_ply.config().dump() == binary_ply.config().dump());
+    CHECK( text_ply.config().dump() != binary_ply.config().dump());
     CHECK( text_ply.ply_source() == text_file );
     CHECK( text_ply.file_type()  == "ascii" );
     CHECK( text_ply.isValid()    == true      );
