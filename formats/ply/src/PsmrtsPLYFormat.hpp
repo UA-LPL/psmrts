@@ -34,7 +34,7 @@ namespace psmrts {
      * For binary ply files, load prefer_double is default to false,
      * Must set prefer_double settting to true for .txt ply
      * 
-     * @author Kyle A. Becker, University of Arizona
+     * @author Kris J. Becker, and Kyle A. Becker, University of Arizona
      * @history 2024-06-21
      */
     class PsmrtsPLYFormat {
@@ -117,9 +117,6 @@ namespace psmrts {
          * This function only obtains the 
          * 
          * @param plyfile       Name of PLY file to load
-         * @param prefer_double If true, prefer double precision vertex data.
-         *                        This may be possible for ascii, but makes no
-         *                        sense for binary PLY data
          * @return true         If the load was successful
          * @return false        If the load failed
          */
@@ -203,7 +200,7 @@ namespace psmrts {
 
             nlohmann::ordered_json j_result = nlohmann::ordered_json::object(); 
 
-            j_result["header"]["file"] = m_ply_source;
+            j_result["header"]["file"] = psmrts_file_basename(m_ply_source);
             j_result["header"]["type"] = m_file_type;
             j_result["header"]["nElements"] = reader.num_elements();
 
@@ -233,7 +230,7 @@ namespace psmrts {
                 j_elements.push_back(j_element);
             }
             j_result["elements"] = j_elements;
-            //j_result = {{"header", j_result["header"]}, {"elements", j_result["elements"]}};
+          
             m_config = j_result;
             return;
         }

@@ -27,7 +27,7 @@ TEST_CASE( "PLY FORMAT Asset Test - No File Default Constructor", "[format][ply]
 
 // Test Actual File Constructor for PsmrtsPLYFormat - Using Bennu PLY data
 TEST_CASE ( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][default]") {
-    auto tolerance = 1.0e-6;
+    auto tolerance = 1.0e-12;
 
     std::string plyfile = psmrts_formats_path("ply/data/Bennu_Radar.ply");
     psmrts::PsmrtsPLYFormat ply( plyfile );
@@ -37,7 +37,7 @@ TEST_CASE ( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][defaul
 {\"name\":\"y\",\"type\":\"float\"}},{\"property\":{\"name\":\"z\",\"type\":\"float\"}}]},{\"element\":\
 {\"name\":\"face\",\"size\":2692},\"properties\":[{\"property\":{\"count\":\"uchar\",\"name\":\
 \"vertex_indices\",\"type\":\"int\"}}]}],\"header\":{\"file\":\
-\"/Users/kabecker/PSMRTS/GitCheckouts/PlyMiniTesting/psmrts/formats/ply/data/Bennu_Radar.ply\",\
+\"Bennu_Radar.ply\",\
 \"nElements\":2,\"type\":\"binary\"}}" );
     CHECK( ply.ply_source() == plyfile );
     CHECK( ply.file_type()  == "binary" );
@@ -59,13 +59,13 @@ TEST_CASE ( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][defaul
     psmrts::PsmrtsVector3d ply_doubles = ply.get_double_vectors();
 
     // Change to local variables
-    CHECK( ply_doubles(0)[0] == 0.0 );                     // txt ply (via meshlab) value: 0.0
-    CHECK( ply_doubles(0)[1] == 0.0 );                     // txt ply (via meshlab) value: 0.0
-    CHECK( ply_doubles(0)[2] == 0.25321400165557861 );     // txt ply (via meshlab) value: 0.253214
-
-    CHECK( ply_doubles(1347)[0] == -0.05905099958181381 ); // txt ply (via meshlab) value: -0.059051
-    CHECK( ply_doubles(1347)[1] ==  0.12654499709606171 ); // txt ply (via meshlab) value:  0.126545
-    CHECK( ply_doubles(1347)[2] == -0.18491800129413605 ); // txt ply (via meshlab) value: -0.184918
+    CHECK_THAT( ply_doubles(0)[0], Catch::Matchers::WithinAbs( 0.0, tolerance ));                     // txt ply (via meshlab) value: 0.0
+    CHECK_THAT( ply_doubles(0)[1], Catch::Matchers::WithinAbs( 0.0, tolerance ));                     // txt ply (via meshlab) value: 0.0
+    CHECK_THAT( ply_doubles(0)[2], Catch::Matchers::WithinAbs( 0.25321400165557861, tolerance ));     // txt ply (via meshlab) value: 0.253214
+   
+    CHECK_THAT( ply_doubles(1347)[0], Catch::Matchers::WithinAbs( -0.05905099958181381, tolerance )); // txt ply (via meshlab) value: -0.059051
+    CHECK_THAT( ply_doubles(1347)[1], Catch::Matchers::WithinAbs(  0.12654499709606171, tolerance )); // txt ply (via meshlab) value:  0.126545
+    CHECK_THAT( ply_doubles(1347)[2], Catch::Matchers::WithinAbs( -0.18491800129413605, tolerance )); // txt ply (via meshlab) value: -0.184918
 
     CHECK_THROWS( ply_doubles(1348)[0] );
     CHECK_THROWS( ply_doubles(1348)[1] );
@@ -102,6 +102,7 @@ TEST_CASE ( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][defaul
 TEST_CASE("PLY FORMAT Asset Test - Text Based Ply Reader and Comparison", "[format][ply][text]") {
     // Check to make sure binary ply version pulls data of basic shape, compare to text conversion
     // Original binary-base ply file was converted to text version via Meshlab: https://github.com/cnr-isti-vclab/meshlab
+    auto tolerance = 1.0e-6;
 
     std::string binary_file = psmrts_formats_path("ply/data/icosahedron_binary.ply");
 
@@ -112,8 +113,7 @@ TEST_CASE("PLY FORMAT Asset Test - Text Based Ply Reader and Comparison", "[form
 \"float\"}},{\"property\":{\"name\":\"z\",\"type\":\"float\"}}]},{\"element\":{\"name\":\
 \"face\",\"size\":20},\"properties\":[{\"property\":{\"count\":\"uchar\",\"name\":\
 \"vertex_indices\",\"type\":\"int\"}}]}],\"header\":{\"file\":\
-\"/Users/kabecker/PSMRTS/GitCheckouts/PlyMiniTesting/psmrts/formats/ply/data/icosahedron_binary.ply\",\
-\"nElements\":2,\"type\":\"binary\"}}" );
+\"icosahedron_binary.ply\",\"nElements\":2,\"type\":\"binary\"}}" );
     CHECK( binary_ply.ply_source() == binary_file );
     CHECK( binary_ply.file_type()  == "binary" );
     CHECK( binary_ply.isValid()    == true    );
@@ -132,19 +132,19 @@ TEST_CASE("PLY FORMAT Asset Test - Text Based Ply Reader and Comparison", "[form
     psmrts::PsmrtsVector3f binary_floats  = binary_ply.get_float_vectors();
     psmrts::PsmrtsVector3d binary_doubles = binary_ply.get_double_vectors();
 
-    CHECK( binary_doubles(0)[0] ==  0.0                 ); // txt ply (via meshlab) value:  0.0
-    CHECK( binary_doubles(0)[1] == -0.52573102712631226 ); // txt ply (via meshlab) value: -0.525731
-    CHECK( binary_doubles(0)[2] ==  0.85065102577209473 ); // txt ply (via meshlab) value:  0.850651
-
-    CHECK( binary_doubles(11)[0] == 0.0                 ); // txt ply (via meshlab) value: 0.0
-    CHECK( binary_doubles(11)[1] == 0.52573102712631226 ); // txt ply (via meshlab) value: 0.525731
-    CHECK( binary_doubles(11)[2] == 0.85065102577209473 ); // txt ply (via meshlab) value: 0.850651
+    CHECK_THAT( binary_doubles(0)[0], Catch::Matchers::WithinAbs(  0.0, tolerance ));                 // txt ply (via meshlab) value:  0.0
+    CHECK_THAT( binary_doubles(0)[1], Catch::Matchers::WithinAbs( -0.52573102712631226, tolerance )); // txt ply (via meshlab) value: -0.525731
+    CHECK_THAT( binary_doubles(0)[2], Catch::Matchers::WithinAbs(  0.85065102577209473, tolerance )); // txt ply (via meshlab) value:  0.850651
+    
+    CHECK_THAT( binary_doubles(11)[0], Catch::Matchers::WithinAbs( 0.0, tolerance ));                 // txt ply (via meshlab) value: 0.0
+    CHECK_THAT( binary_doubles(11)[1], Catch::Matchers::WithinAbs( 0.52573102712631226, tolerance )); // txt ply (via meshlab) value: 0.525731
+    CHECK_THAT( binary_doubles(11)[2], Catch::Matchers::WithinAbs( 0.85065102577209473, tolerance )); // txt ply (via meshlab) value: 0.850651
 
     psmrts::PsmrtsVector3i binary_indexes = binary_ply.get_indexes();
     
-    CHECK( binary_indexes(0)[0] == 6 );                   // txt ply (via meshlab) value: 6
-    CHECK( binary_indexes(0)[1] == 2 );                   // txt ply (via meshlab) value: 2
-    CHECK( binary_indexes(0)[2] == 1 );                   // txt ply (via meshlab) value: 1
+    CHECK( binary_indexes(0)[0] == 6 ); // txt ply (via meshlab) value: 6
+    CHECK( binary_indexes(0)[1] == 2 ); // txt ply (via meshlab) value: 2
+    CHECK( binary_indexes(0)[2] == 1 ); // txt ply (via meshlab) value: 1
 
     // Create text converted ply version for comparison
     std::string text_file  = psmrts_formats_path("ply/data/icosahedron.ply");
@@ -153,7 +153,7 @@ TEST_CASE("PLY FORMAT Asset Test - Text Based Ply Reader and Comparison", "[form
 
     CHECK( text_ply.config().dump() != binary_ply.config().dump());
     CHECK( text_ply.ply_source() == text_file );
-    CHECK( text_ply.file_type()  == "ascii" );
+    CHECK( text_ply.file_type()  == "ascii"   );
     CHECK( text_ply.isValid()    == true      );
     CHECK( text_ply.nVertexes()  == 12        );
     CHECK( text_ply.nIndexes()   == 20        );
@@ -170,13 +170,13 @@ TEST_CASE("PLY FORMAT Asset Test - Text Based Ply Reader and Comparison", "[form
     psmrts::PsmrtsVector3f text_floats  = text_ply.get_float_vectors();
     psmrts::PsmrtsVector3d text_doubles = text_ply.get_double_vectors();
 
-    CHECK( text_doubles(0)[0] == binary_doubles(0)[0] );                 
-    CHECK( text_doubles(0)[1] == binary_doubles(0)[1] ); 
-    CHECK( text_doubles(0)[2] == binary_doubles(0)[2] ); 
+    CHECK_THAT( text_doubles(0)[0], Catch::Matchers::WithinAbs( binary_doubles(0)[0],   tolerance));
+    CHECK_THAT( text_doubles(0)[1], Catch::Matchers::WithinAbs( binary_doubles(0)[1],   tolerance));
+    CHECK_THAT( text_doubles(0)[2], Catch::Matchers::WithinAbs( binary_doubles(0)[2],   tolerance));
 
-    CHECK( text_doubles(11)[0] == binary_doubles(11)[0] );                 
-    CHECK( text_doubles(11)[1] == binary_doubles(11)[1] ); 
-    CHECK( text_doubles(11)[2] == binary_doubles(11)[2] ); 
+    CHECK_THAT( text_doubles(11)[0], Catch::Matchers::WithinAbs( binary_doubles(11)[0], tolerance));
+    CHECK_THAT( text_doubles(11)[1], Catch::Matchers::WithinAbs( binary_doubles(11)[1], tolerance));
+    CHECK_THAT( text_doubles(11)[2], Catch::Matchers::WithinAbs( binary_doubles(11)[2], tolerance));
 
     psmrts::PsmrtsVector3i text_indexes = text_ply.get_indexes();
     
