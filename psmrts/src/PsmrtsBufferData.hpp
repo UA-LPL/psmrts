@@ -154,7 +154,7 @@ namespace psmrts {
       /** Validate the index into a T value */
       inline int validate( const int index ) const {
         if ( (index < 0 ) || ( index >= m_size ) ) {
-          std::string mess = "Invalid index ( " + std::to_string( index ) +
+          std::string mess = "Invalid index (" + std::to_string( index ) +
                               "), valid index range is (0, " + std::to_string( m_size ) + " - 1)";
           throw std::runtime_error( mess );
         }

@@ -1,6 +1,6 @@
 {
   "name": "psmrts",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "dependencies": [
     "vcpkg-cmake",
     "nlohmann-json",
@@ -10,6 +10,7 @@
     "embree3",
     "catch2",
     "spdlog",
+    "miniply",
     {
       "name": "bullet3",
       "features": ["double-precision", "extras"]

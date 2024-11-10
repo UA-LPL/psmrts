@@ -127,7 +127,7 @@ namespace psmrts {
 
       /** Construct an array of values */
       PsmrtsMeshData( const PsmrtsVector3i &mesh_indexes, 
-                      const PsmrtsVector3d  &mesh_vectors_d ) {
+                      const PsmrtsVector3d &mesh_vectors_d ) {
         init_mesh( mesh_indexes, mesh_vectors_d );
       }
 

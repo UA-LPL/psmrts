@@ -153,6 +153,29 @@ template <typename T>
   typedef PsmrtsVector3<int>      PsmrtsVector3i;
 
 
+  /**
+   * @brief Convert from one vector type to another
+   * 
+   * @tparam TO_T    Desired type of the new vector array set
+   * @tparam FROM_T  Source type of the vector data
+   * @param v_from   Array containig the data to convert to TO_T
+   * @return PsmrtsVector3<TO_T> The new data vector
+   */
+  template <typename TO_T, typename FROM_T> 
+    PsmrtsVector3<TO_T> vector_to_type( const PsmrtsVector3<FROM_T> &v_from ) {
+      typedef typename PsmrtsVector3<TO_T>::vector_type   vector_type;
+
+      PsmrtsVector3<TO_T> v_to( v_from.size() );
+
+      for ( size_t v = 0 ; v < v_from.size() ; v++ ) {
+        auto f_t { v_from( v ) };
+        v_to( v ) = vector_type( { static_cast<TO_T>( f_t[0] ),
+                                   static_cast<TO_T>( f_t[1] ),
+                                   static_cast<TO_T>( f_t[2] ) } );
+      }
+      return ( v_to );
+    }
+
 }  // namespace psmrts
 
 #endif // PsmrtsVector3_hpp
