@@ -200,7 +200,7 @@ namespace psmrts {
 
             nlohmann::ordered_json j_result = nlohmann::ordered_json::object(); 
 
-            j_result["header"]["file"] = psmrts_file_basename(m_ply_source);
+            j_result["header"]["file"] = m_ply_source;
             j_result["header"]["type"] = m_file_type;
             j_result["header"]["nElements"] = reader.num_elements();
 

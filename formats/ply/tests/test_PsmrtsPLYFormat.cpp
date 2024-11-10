@@ -31,19 +31,24 @@ TEST_CASE ( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][defaul
 
     std::string plyfile = psmrts_formats_path("ply/data/Bennu_Radar.ply");
     psmrts::PsmrtsPLYFormat ply( plyfile );
+    
+    std::string file_path = ply.config()["header"]["file"];
 
-    CHECK( ply.config().dump() == "{\"elements\":[{\"element\":{\"name\":\"vertex\",\"size\":\
+    CHECK( psmrts::psmrts_file_basename(file_path) == "Bennu_Radar.ply" );
+    CHECK( file_path != "Bennu_Radar.ply" );
+    CHECK( ply.config()["header"]["type"].dump() == "\"binary\"" );
+    CHECK( ply.config()["header"]["nElements"].dump() == "2" );
+    CHECK( ply.config()["elements"].dump() == "[{\"element\":{\"name\":\"vertex\",\"size\":\
 1348},\"properties\":[{\"property\":{\"name\":\"x\",\"type\":\"float\"}},{\"property\":\
 {\"name\":\"y\",\"type\":\"float\"}},{\"property\":{\"name\":\"z\",\"type\":\"float\"}}]},{\"element\":\
 {\"name\":\"face\",\"size\":2692},\"properties\":[{\"property\":{\"count\":\"uchar\",\"name\":\
-\"vertex_indices\",\"type\":\"int\"}}]}],\"header\":{\"file\":\
-\"Bennu_Radar.ply\",\
-\"nElements\":2,\"type\":\"binary\"}}" );
-    CHECK( ply.ply_source() == plyfile );
+\"vertex_indices\",\"type\":\"int\"}}]}]" );
+    
+    CHECK( ply.ply_source() == plyfile  );
     CHECK( ply.file_type()  == "binary" );
-    CHECK( ply.isValid()    == true    );
-    CHECK( ply.nVertexes()  == 1348    );
-    CHECK( ply.nIndexes()   == 2692    );
+    CHECK( ply.isValid()    == true     );
+    CHECK( ply.nVertexes()  == 1348     );
+    CHECK( ply.nIndexes()   == 2692     );
 
     CHECK( ply.get_mesh().isValid()            == true  );
     CHECK( ply.get_mesh().isVectorDouble()     == true  );
@@ -108,12 +113,18 @@ TEST_CASE("PLY FORMAT Asset Test - Text Based Ply Reader and Comparison", "[form
 
     psmrts::PsmrtsPLYFormat binary_ply( binary_file );
 
-    CHECK( binary_ply.config().dump() == "{\"elements\":[{\"element\":{\"name\":\"vertex\",\"size\":12},\"properties\":\
+    std::string file_path = binary_ply.config()["header"]["file"];
+    
+    CHECK( psmrts::psmrts_file_basename(file_path) == "icosahedron_binary.ply");
+    CHECK( file_path != "icosahedron_binary.ply");
+    CHECK( binary_ply.config()["header"]["type"].dump() == "\"binary\"" );
+    CHECK( binary_ply.config()["header"]["nElements"].dump() == "2" );
+    CHECK( binary_ply.config()["elements"].dump() == "[{\"element\":{\"name\":\"vertex\",\"size\":12},\"properties\":\
 [{\"property\":{\"name\":\"x\",\"type\":\"float\"}},{\"property\":{\"name\":\"y\",\"type\":\
 \"float\"}},{\"property\":{\"name\":\"z\",\"type\":\"float\"}}]},{\"element\":{\"name\":\
 \"face\",\"size\":20},\"properties\":[{\"property\":{\"count\":\"uchar\",\"name\":\
-\"vertex_indices\",\"type\":\"int\"}}]}],\"header\":{\"file\":\
-\"icosahedron_binary.ply\",\"nElements\":2,\"type\":\"binary\"}}" );
+\"vertex_indices\",\"type\":\"int\"}}]}]");
+
     CHECK( binary_ply.ply_source() == binary_file );
     CHECK( binary_ply.file_type()  == "binary" );
     CHECK( binary_ply.isValid()    == true    );
@@ -151,7 +162,15 @@ TEST_CASE("PLY FORMAT Asset Test - Text Based Ply Reader and Comparison", "[form
 
     psmrts::PsmrtsPLYFormat text_ply( text_file );
 
-    CHECK( text_ply.config().dump() != binary_ply.config().dump());
+    CHECK( text_ply.config().dump() != binary_ply.config().dump() );
+
+    std::string text_path = text_ply.config()["header"]["file"];
+    CHECK( psmrts::psmrts_file_basename(text_path) == "icosahedron.ply" );
+    CHECK( text_path != "icosahedron.ply");
+    CHECK( text_ply.config()["header"]["type"].dump() == "\"ascii\"" );
+    CHECK( text_ply.config()["header"]["nElements"].dump() == binary_ply.config()["header"]["nElements"].dump() );
+    CHECK( text_ply.config()["elements"].dump() == binary_ply.config()["elements"].dump() );
+
     CHECK( text_ply.ply_source() == text_file );
     CHECK( text_ply.file_type()  == "ascii"   );
     CHECK( text_ply.isValid()    == true      );
