@@ -1,0 +1,469 @@
+#pragma once
+
+#include <string>
+#include <memory>
+#include <type_traits>
+#include <exception>
+
+#include <PsmrtsUtilities.hpp>
+#include <PsmrtsParameters.hpp>
+#include <PsmrtsRayTrace.hpp>
+
+namespace psmrts { 
+
+  namespace traits { 
+
+      template <class, class = void> 
+        struct has_type_member : std::false_type {};
+
+      template <class T> 
+        struct has_type_member<T, std::void_t<typename T::type>> : std::true_type {};
+
+      template <class, class = void> 
+        struct has_valid_member : std::false_type {};
+
+      template <class T> 
+        struct has_valid_member<T, std::void_t<typename T::type>> : std::true_type {};
+
+      template < typename = bool, typename = void, typename... Args> 
+      struct is_process_callable : std::false_type { };
+
+      template < typename T, typename... Args>
+      struct is_process_callable< bool, T, std::void_t<decltype( std::declval<T>.process( std::declval<Args>()... ))>, Args...> : std::true_type {};
+
+      template < typename R, typename T, typename... Args>
+      inline constexpr bool has_process_method = is_process_callable<R, T, Args...>::value;
+
+      // Used to detects functions of the following form 
+      //   void Compute(int, int&) { std::cout << "Computing int\n"; }
+      //   void Compute(double, double&) { std::cout << "Computing double\n"; }
+      //
+      // See http://coliru.stacked-crooked.com/a/dff6ff04ab058c29
+
+      //template < typename T, typename = void>
+      // struct is_process_available : std::false_type {};
+      // template <typename C, typename T>
+      // struct is_process_available<C, std::void_t<decltype(std::declval<C>().process( std::declval<T&>() ) ) >> : std::true_type {};
+
+      // helper variable template
+      // template< typename C, typename T> 
+      // inline constexpr bool is_process_available_v = is_process_available<C,T>::value;
+
+  } // namespace traits
+
+
+
+
+  /**
+   * @brief Producer request submit dispatch function
+   * 
+   * This template function will attempt to call a method in PRODUCER that has
+   * a pattern of PRODUCER::process( REQUEST &request ). This dispatch function
+   * will determine if the function can be called and invokes/runs it with the
+   * given REQUEST parameter, returning the value returned from the
+   * PRODUCER::process(). 
+   * 
+   * This function provides compile-time detection of any
+   * PRODUCER::process(REQUEST&) method and will run the method if it exists.
+   * This function can be used in virtually any class even if no valid process()
+   * method exists. It will compile and return status where the run count is
+   * incremented but REQUEST::was_invoked() will return false for avery call.
+   * 
+   * This is designed to take avantage of the PsmrtsRequest base class features
+   * that provides a tracking mechnism. It counts the number of times the request
+   * has been invoked (which could serve as a unique ID), and if a process() 
+   * methods was actually invoked. The follwing methods are requred to exist
+   * in REQUEST, which is found in the PsmrtsRequest base class:
+   * 
+   * @code {.language-id}
+   *   REQUEST::process_running();
+   *   REQUEST::process_complete( bool );
+   *   REQUEST::add_error( std::runtime_error );
+   * @endcode
+   *  
+   * This function traps exceptions and adds them to the REQUEST object. Derived
+   * classes can call REQUEST::reset() to clear status.
+   * 
+   * @tparam PRODUCER Any class PRODUCER that may contain a process( REQUEST&) method
+   * @tparam REQUEST  The PMSRTS request to be processed by the PRODUCER 
+   * @param producer  PRODUCER object that will be called with the REQUEST object, request
+   * @param request   A functioniod-type state object that contains resources to receive
+   *                   and/or process PSMRST requests.
+   * @return true     If the function excuted successfuly
+   * @return false    If the function does not exist or the process() method returned
+   *                   a false condition
+   */
+  #if 1
+  template <typename PRODUCER, typename REQUEST>
+    bool submit_producer_request( PRODUCER &producer, REQUEST &request ) {
+      bool retval   = false;
+      try {
+
+        // See https://en.cppreference.com/w/cpp/types/is_invocable (c++17)
+        if constexpr ( psmrts::traits::has_process_method< PRODUCER, REQUEST > ) {
+          request.process_running();
+          request.process_complete( false );
+          retval = std::invoke<bool, std::declval( producer.process ), request >;
+          request.process_complete( true );
+          // request.process_finished();
+        }
+
+      }
+      catch ( const std::runtime_error &rte ) {
+        request.add_error( rte );
+      }
+      catch ( const std::exception &e ) {
+        request.add_error( std::runtime_error( e.what() ) );
+      }
+      catch ( ... ) {
+        std::string mess = "Undefined exception occured in " + request.name();
+        request.add_error( std::runtime_error( mess ) ); 
+      }
+      
+      return ( retval );
+    }
+
+#endif
+
+  /**
+   * @brief Base class of all PSMRTS requests
+   * 
+   * This class privides the fundamental base class of all PSMRTS requests.
+   * It tracks counts of execution attempts, if a method was actually executed
+   * and returns any exceptions that may have been thrown during processing.
+   * 
+   * This is to be used in conjuction with the psmrts::submit_producer_request()
+   * function that is to be used to dispatch 
+   * 
+   */
+  class PsmrtsRequest {
+    public:
+      PsmrtsRequest( ) { this->init( ); }
+
+      PsmrtsRequest( const std::string &name ) { 
+        this->init( name );
+      }
+
+      virtual ~PsmrtsRequest() { }
+
+      inline const std::string &name () const {
+        return ( m_name );
+      }
+
+      inline void process_running() {
+        m_times_run++;
+        return;
+      }
+
+      inline void process_complete( const bool status = true ) {
+        m_was_invoked = status;
+        return;
+      }
+
+      inline void add_error( const std::runtime_error &e ) {
+        m_errors.push_back( e );
+        return;
+      }
+
+      inline size_t run_count() const {
+        return ( m_times_run );
+      }
+
+      /** Was the process method invoked on the previous run */
+      inline bool was_invoked( ) const {
+        return ( m_was_invoked );
+      }
+
+      inline size_t error_count() const {
+        return ( m_errors.size() );
+      }
+
+      inline const std::vector<std::runtime_error> &errors() const {
+        return ( m_errors );
+      }
+
+      inline void throw_errors() const {
+        if ( this->error_count() > 0 ) {
+          std::string mess = "*** " + this->name() + " the following errors occured:\n";
+          for ( const auto &e : this->errors() ) {
+            mess += std::string( e.what() ) + "\n"; 
+          }
+          throw std::runtime_error( mess );
+        }
+        return;
+      }
+
+      inline void clear_errors() {
+        m_errors.clear();
+        return;
+      }
+
+    protected:
+      std::string      m_name;
+      bool             m_was_invoked;
+      size_t           m_times_run;
+      std::vector<std::runtime_error> m_errors;
+
+
+      inline void reset() {
+        m_was_invoked = false;
+        m_times_run = 0;
+        m_errors.clear();
+        return;
+      }
+
+    private:
+      inline void init( const std::string &name = "PsmrtsRequest" ) {
+        this->reset();
+        m_name = name;
+        return;
+      }
+  };
+
+
+
+
+  class PRQVersion : public PsmrtsRequest {
+    public:
+      PRQVersion( ) : PsmrtsRequest( "PsmrtsVersion" ), 
+                         m_version(  ) {  }
+      virtual ~PRQVersion() { }
+
+      inline const std::string &system_version ( ) const {
+        return ( psmrts::psmrts_version() );
+      }
+
+      inline const std::string &version() const {
+        return ( m_version );
+      }
+
+      inline bool set_version ( const std::string &v ) {
+        m_version = v;
+        return ( true );
+      }
+
+    public:
+      /** This scope may be changed if necessary */
+      std::string m_version;
+  };
+
+  class PRQFeatures : public PsmrtsRequest {
+    public:
+      PRQFeatures( ) : PsmrtsRequest( "PRQFeatures" ), 
+                      m_features(  ) {  }
+      virtual ~PRQFeatures() { }
+
+      inline void add_feature ( const psmrts_json &feature ) {
+        m_features += feature;
+        return;
+      }
+
+      inline std::string to_string( ) const {
+        return ( std::string( m_features.dump() ) );
+      }
+
+      inline const psmrts_json &config() const {
+        return ( m_features );
+      }
+
+    public:
+      /** This scope may be changed if necessary */
+      psmrts_json  m_features;
+  };
+
+
+
+  class PRQRayTrace : public PsmrtsRequest {
+    public:
+    /** default constructable */
+      PRQRayTrace() : PsmrtsRequest( "PRQRayTrace" ),
+                                 m_sc_to_surface( ) { }
+      PRQRayTrace( const Eigen::Vector3d &observer, 
+                   const Eigen::Vector3d &lookdir ) : 
+                   PsmrtsRequest( "PRQRayTrace" ),
+                   m_sc_to_surface( observer, lookdir ) { }                                 
+      PRQRayTrace( const PsmrtsRayTrace &observer_and_lookdir ) : 
+                   PsmrtsRequest( "PRQRayTrace" ),
+                   m_sc_to_surface( observer_and_lookdir ) { }
+      virtual ~PRQRayTrace() { }
+ 
+      using PsmrtsRequest::name;
+      using PsmrtsRequest::run_count;
+      using PsmrtsRequest::was_invoked;
+      using PsmrtsRequest::error_count;
+      using PsmrtsRequest::errors;
+
+      inline bool isValid() const {
+        return ( m_sc_to_surface.hasHit() );
+      }
+
+      inline double incidence( const PsmrtsRayTrace &other ) const {
+        return ( m_sc_to_surface.incidence( other ) );
+      }
+
+      inline double emission( ) const {
+        return ( m_sc_to_surface.emission( ) );
+      }
+
+      inline double phase( const PsmrtsRayTrace &other ) const {
+        return ( m_sc_to_surface.phase( other ) );
+      }
+
+      inline const PsmrtsRayTrace &trace() const {
+        return ( m_sc_to_surface );
+      }
+
+      inline PsmrtsRayTrace &trace() {
+        return ( m_sc_to_surface );
+      }
+
+    public:
+      /** This scope may be changed if necessary */
+     PsmrtsRayTrace m_sc_to_surface;
+     // PsmrtsShapeTracer *m_tracer;
+
+  };
+
+
+  class PRQPhotometricTrace : public PsmrtsRequest {
+    public:
+    /** default constructable */
+      PRQPhotometricTrace() : PsmrtsRequest( "PRQPhotometricTrace" ),
+                              m_sc_to_surface( ),
+                              m_sun_to_surface( ) { }
+      PRQPhotometricTrace( const PsmrtsRayTrace &observer_and_lookdir,
+                           const Eigen::Vector3d &sunpos ) : 
+                           PsmrtsRequest( "PRQPhotometricTrace" ),
+                           m_sc_to_surface( observer_and_lookdir ),
+                           m_sun_to_surface( sunpos, { 0, 0, 0 } ) { }
+      PRQPhotometricTrace( const Eigen::Vector3d &observer, 
+                           const Eigen::Vector3d &lookdir,
+                           const Eigen::Vector3d &sunpos ) : 
+                           PsmrtsRequest( "PRQPhotometricTrace" ),
+                           m_sc_to_surface( observer, lookdir ),
+                           m_sun_to_surface( sunpos, { 0, 0, 0 } ) { }                           
+      virtual ~PRQPhotometricTrace() { }
+
+      using PsmrtsRequest::name;
+      using PsmrtsRequest::run_count;
+      using PsmrtsRequest::was_invoked;
+      using PsmrtsRequest::error_count;
+      using PsmrtsRequest::errors;
+
+      inline bool isValid() const {
+        return ( m_sc_to_surface.isValid() && m_sun_to_surface.isValid() );
+      }
+
+      inline double incidence( ) const {
+        return ( m_sc_to_surface.trace().incidence( m_sun_to_surface.trace() ) );
+      }
+
+      inline double emission( ) const {
+        return ( m_sc_to_surface.trace().emission( ) );
+      }
+
+      inline double phase( ) const {
+        return ( m_sc_to_surface.trace().phase( m_sun_to_surface.trace() ) );
+      }
+
+      inline const PsmrtsRayTrace &observer_trace() const {
+        return ( m_sc_to_surface.trace() );
+      }
+
+      inline const PsmrtsRayTrace &sun_trace() const {
+        return ( m_sun_to_surface.trace() );
+      }      
+
+      inline PsmrtsRayTrace &observer_trace() {
+        return ( m_sc_to_surface.trace() );
+      }
+
+      inline PsmrtsRayTrace &sun_trace() {
+        return ( m_sun_to_surface.trace() );
+      } 
+
+      inline bool compute_sun_lookdir( ) {
+        if ( this->observer_trace().hasHit() ) {
+          Eigen::Vector3d lookdir_s = this->observer_trace().xyz() - this->sun_trace().observer();
+          this->sun_trace().reset( this->sun_trace().observer(), lookdir_s );
+          return ( psmrts::isnull( lookdir_s[0]) );
+        }
+        return ( false );
+      }
+
+      inline const PRQRayTrace &observer() const {
+        return ( m_sc_to_surface );
+      }
+
+      inline const PRQRayTrace &sunpos() const {
+        return ( m_sun_to_surface );
+      }
+
+
+      inline PRQRayTrace &observer()  {
+        return ( m_sc_to_surface );
+      }
+
+      inline PRQRayTrace &sunpos()  {
+        return ( m_sun_to_surface );
+      }
+
+
+    public:
+      /** This scope may be changed if necessary */
+     PRQRayTrace m_sc_to_surface;
+     PRQRayTrace m_sun_to_surface;
+     // PsmrtsShapeTracer *m_tracer;
+
+  };
+
+
+  class PRQFacet : public PsmrtsRequest {
+    public:
+      typedef PsmrtsRayTrace::FacetDatum  FacetDatum;
+
+    /** default constructable */
+      PRQFacet() : PsmrtsRequest( "PRQFacet" ),
+                                 m_trace( ) { }
+      PRQFacet( const PsmrtsRayTrace &observer_and_lookdir ) : 
+                   PsmrtsRequest( "PRQFacet" ),
+                   m_trace( observer_and_lookdir ) { }
+      virtual ~PRQFacet() { }
+ 
+      using PsmrtsRequest::name;
+      using PsmrtsRequest::run_count;
+      using PsmrtsRequest::was_invoked;
+      using PsmrtsRequest::error_count;
+      using PsmrtsRequest::errors;
+
+      inline bool isValid() const {
+        return ( m_trace.isValid() );
+      }
+
+      inline const PsmrtsRayTrace &trace() const {
+        return ( m_trace.trace() );
+      }
+
+      inline const PRQRayTrace &prq_trace() const {
+        return ( m_trace);
+      }
+
+      inline const FacetDatum &facet() const {
+        return ( m_facet );
+      }
+
+      inline FacetDatum &facet() {
+        return ( m_facet );
+      }      
+
+    public:
+      /** This scope may be changed if necessary */
+     PRQRayTrace m_trace;
+     FacetDatum  m_facet;
+     // PsmrtsShapeTracer *m_tracer;
+
+  };
+
+
+
+} // namespace psmrts
