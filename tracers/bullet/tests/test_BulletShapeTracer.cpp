@@ -4,14 +4,47 @@
 #include <BulletTracerModel.hpp>
 #include <BulletShapeTracer.hpp>
 #include <PsmrtsOBJFormat.hpp>
+#include <PsmrtsUtilities.hpp>
 
 TEST_CASE ( "Bullet Shape Tracer - Default Constructor", "[default][bullet][shapetracer]" ) {
     psmrts::BulletShapeTracer b_tracer;
 
     psmrts::PRQFeatures features;
     CHECK( b_tracer.process( features ) == true );
-    CHECK( features.to_string()== "bullet" );
+
+    CHECK( features.to_string()     == "[[[\"name\",\"bullet\"],[\"product\",\"shapetracer\"]\
+,[\"mesh\",true],[\"optimizebvh\",false],[\"vectortype\",[\"double\",\"float\"]]]]" );
+    CHECK( features.config().dump() == "[[[\"name\",\"bullet\"],[\"product\",\"shapetracer\"]\
+,[\"mesh\",true],[\"optimizebvh\",false],[\"vectortype\",[\"double\",\"float\"]]]]" );
+
+    psmrts_json add = "tracer";
+    CHECK_NOTHROW(features.add_feature(add));
+    CHECK(features.to_string() == "[[[\"name\",\"bullet\"],[\"product\",\"shapetracer\"]\
+,[\"mesh\",true],[\"optimizebvh\",false],[\"vectortype\",[\"double\",\"float\"]]],\"tracer\"]");
     // etc...
+
+    // Base Request Functions
+    CHECK( features.name() == "PRQFeatures" ); 
+
+    CHECK_NOTHROW( features.process_running() );
+    CHECK_NOTHROW( features.process_complete() );
+ 
+    CHECK( features.run_count()     == 1 );
+    CHECK( features.was_invoked()   == true );
+    CHECK( features.error_count()   == 0 );
+    CHECK( features.errors().size() == 0 ); 
+
+    CHECK_NOTHROW( features.throw_errors() ); 
+    CHECK_NOTHROW( features.clear_errors() );
+
+    // Default Photometric Functions
+    psmrts::PRQPhotometricTrace photoTrace;
+    CHECK( b_tracer.process( photoTrace ) == true ); 
+    CHECK( photoTrace.isValid() == false );
+    CHECK( photoTrace.incidence() == 0.0 );
+    CHECK( photoTrace.emission() == 0.0 );
+    CHECK( photoTrace.phase() == 0.0 );
+    CHECK( photoTrace.compute_sun_lookdir() == false );
 
 }
 
@@ -81,4 +114,16 @@ TEST_CASE( "Bullet Shape Tracer Test", "[bullet][shapetracer]" ) {
     CHECK_THAT( xyz[0], Catch::Matchers::WithinAbs( prq_ray.trace().xyz()[0], tolerance_km ) );
     CHECK_THAT( xyz[1], Catch::Matchers::WithinAbs( prq_ray.trace().xyz()[1], tolerance_km ) );
     CHECK_THAT( xyz[2], Catch::Matchers::WithinAbs( prq_ray.trace().xyz()[2], tolerance_km ) );
+
+    psmrts::PRQFacet prq_facet( prq_ray.trace() );
+    CHECK( prq_facet.isValid() == true );
+    //CHECK( prq_facet.facet().isValid() == true ); \\shouldnt this be true..?
+    CHECK( prq_facet.prq_trace().emission() == prq_ray.emission() ); 
+
+    Eigen::Vector3d facet_xyz( prq_facet.trace().xyz() );
+    CHECK_THAT( facet_xyz[0], Catch::Matchers::WithinAbs( xyz[0], tolerance_km));
+    CHECK_THAT( facet_xyz[1], Catch::Matchers::WithinAbs( xyz[1], tolerance_km));
+    CHECK_THAT( facet_xyz[2], Catch::Matchers::WithinAbs( xyz[2], tolerance_km));
+
+
 }

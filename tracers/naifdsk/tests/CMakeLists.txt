@@ -19,7 +19,8 @@ add_executable( naif_test_suite  naif_catch2_main.cpp
                                  test_NaifPsmrtsPriorityTracer.cpp
                                  test_PsmrtsShapeTracerAdapter.cpp
                                  test_PsmrtsPriorityTracer.cpp 
-                                 test_PsmrtsRayTrace.cpp )
+                                 test_PsmrtsRayTrace.cpp
+                                 test_NaifDskShapeTracer.cpp )
 
 
 # Add required libraries as needed for psmrts_test_suite

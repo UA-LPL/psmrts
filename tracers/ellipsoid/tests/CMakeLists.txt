@@ -11,7 +11,8 @@ include_directories( ${PSMRTS_PROJECT_DIR}/psmrts/tests )
 
 # Build all-in-one renderer test application
 add_executable( ellipsoid_test_suite  ellipsoid_catch2_main.cpp
-                                      test_EllipsoidTracerModel.cpp )
+                                      test_EllipsoidTracerModel.cpp 
+                                      test_EllipsoidShapeTracer.cpp )
 
 
 # Add required libraries as needed for psmrts_test_suite

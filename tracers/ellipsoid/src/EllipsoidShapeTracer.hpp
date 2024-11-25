@@ -46,10 +46,10 @@ namespace psmrts  {
 
       inline bool process( PRQFeatures &features ) const {
         psmrts_json f_e;
-        f_e = { "name" , "ellisoid" };
-        f_e = { "product" , "shapetracer" };
-        f_e = { "mesh" , false };
-        f_e = { "radii",  { 1, 2, 3 } };
+        f_e["name"] = "ellisoid" ;
+        f_e["product"] = "shapetracer" ;
+        f_e["mesh"] = false ;
+        f_e["radii"] = { 1, 2, 3 } ;
         features.add_feature( f_e );
         return ( true );
       }
