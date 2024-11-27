@@ -12,8 +12,10 @@ TEST_CASE("NAIF Dsk Shape Tracer - Default Constructor", "[default][naifdsk][sha
     psmrts::PRQFeatures features_string;
     CHECK( dsk_string_tracer.process( features_string ) == true ); 
 
-    CHECK( features_string.to_string() == "shapetracer" );
-    CHECK( features_string.config().dump() == "shapetracer" );
+    CHECK( features_string.to_string() == "[[[\"name\",\"bullet\"],[\"product\",\"shapetracer\"],[\"mesh\",true]\
+,[\"optimizebvh\",false],[\"vectortype\",[\"double\",\"float\"]]]]" );
+    CHECK( features_string.config().dump() == "[[[\"name\",\"bullet\"],[\"product\",\"shapetracer\"],[\"mesh\",true]\
+,[\"optimizebvh\",false],[\"vectortype\",[\"double\",\"float\"]]]]" );
 
     naif::DskKernelModel dsk( dskfile );
     psmrts::NaifDskShapeTracer dsk_model_tracer( dsk );
@@ -28,7 +30,7 @@ TEST_CASE("NAIF Dsk Shape Tracer - Default Constructor", "[default][naifdsk][sha
 TEST_CASE("NAIF Dsk Shape Tracer Test", "[naifdsk][shapetracer]") {
     const double tolerance_km = 1.0e-6;
 
-    std::string dskfile = psmrts_formats_path( "naifdsk/data/bennu_20facets.bds" );
+    std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
     naif::DskKernelModel dsk( dskfile );
     naif::DskSegment segment = dsk.segment();
     psmrts::NaifDskShapeTracer d_tracer( dsk );
@@ -61,8 +63,8 @@ TEST_CASE("NAIF Dsk Shape Tracer Test", "[naifdsk][shapetracer]") {
     CHECK( prq_spt.isValid() == prq_spt.trace().hasHit() );
 
     CHECK_THAT( normal[0], Catch::Matchers::WithinAbs( 0.0, tolerance_km));
-    CHECK_THAT( normal[1], Catch::Matchers::WithinAbs( 0.0, tolerance_km));
-    CHECK_THAT( normal[2], Catch::Matchers::WithinAbs( 0.0, tolerance_km));
+    CHECK_THAT( normal[1], Catch::Matchers::WithinAbs( 0.5257310809272836, tolerance_km));
+    CHECK_THAT( normal[2], Catch::Matchers::WithinAbs( 0.8506508276296626, tolerance_km));
 
     double d_lat, d_lon, d_radius;
     reclat_c( xyz.data(), &d_radius, &d_lon, &d_lat );

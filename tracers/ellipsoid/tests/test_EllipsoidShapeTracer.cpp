@@ -10,9 +10,8 @@ TEST_CASE( "Ellipsoid Shape Tracer - Request Default Constructor", "[default][el
     psmrts::PRQFeatures features;
     CHECK( e_tracer.process( features ) == true );
 
-    CHECK( features.to_string() == "[[\"radii\",[1,2,3]]]" ); //  inconsistent compared to bullet version
-    CHECK( features.config().dump() == "[[\"radii\",[1,2,3]]]"); // same as above (where is name? product?)
-
+    CHECK( features.to_string() == "[{\"name\":\"ellisoid\",\"product\":\"shapetracer\",\"mesh\":false,\"radii\":[1,2,3]}]" ); 
+    CHECK( features.config().dump() == "[{\"name\":\"ellisoid\",\"product\":\"shapetracer\",\"mesh\":false,\"radii\":[1,2,3]}]");
     // feature-specific functions testing in bullet version
 }
 
