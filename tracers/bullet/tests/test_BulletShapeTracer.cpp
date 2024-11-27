@@ -72,7 +72,7 @@ TEST_CASE( "Bullet Shape Tracer Test", "[bullet][shapetracer]" ) {
     latrec_c ( radius, obs_long, obs_lat, obs.data() );
     obs = obs * 10.0;
 
-    // Compute the surface point at (45, 50 ). This is our surface target
+    // Compute the surface point at ( 45, 50 ). This is our surface target
     Eigen::Vector3d surf;
     double surf_lon = 45.0 * rpd_c();
     double surf_lat = 50.0 * rpd_c();
@@ -126,5 +126,68 @@ TEST_CASE( "Bullet Shape Tracer Test", "[bullet][shapetracer]" ) {
     CHECK_THAT( facet_xyz[1], Catch::Matchers::WithinAbs( xyz[1], tolerance_km));
     CHECK_THAT( facet_xyz[2], Catch::Matchers::WithinAbs( xyz[2], tolerance_km));
 
-
 }
+
+#if 1
+TEST_CASE( "Bullet Shape Tracer Photometric Values Test", "[bullet][shapetracer][photometric]") {
+    const double tolerance = 1.0e-6;
+
+    std::string objfile = psmrts_formats_path( "obj/data/bennu_20facets.obj" );
+
+    psmrts::bullet::PsmrtsBulletWorldModel bt_world( psmrts::bullet::PsmrtsBulletMeshMap ( psmrts::PsmrtsOBJFormat( objfile ) ), objfile );
+    psmrts::BulletShapeTracer b_tracer( bt_world );
+
+    // Compute the position of the observer at ( 45,45 ) degrees
+    Eigen::Vector3d obs;
+    double radius = 1.0;
+    double obs_long = 45.0 * rpd_c();
+    double obs_lat = 45.0 * rpd_c();
+    latrec_c ( radius, obs_long, obs_lat, obs.data() );
+    obs = obs * 10.0;
+
+    // Compute the surface point at (45, 50 ). This is our surface target
+    Eigen::Vector3d surf;
+    double surf_lon = 45.0 * rpd_c();
+    double surf_lat = 50.0 * rpd_c();
+    latrec_c ( radius, surf_lon, surf_lat, surf.data() );
+
+    // Find the real surface point using bullet
+    Eigen::Vector3d surf_obs = surf * 1.5;
+    psmrts::PRQRayTrace prq_ray(surf_obs, -surf_obs );
+    CHECK( b_tracer.process( prq_ray ) == true );
+    CHECK( surf_obs == prq_ray.trace().observer() ); 
+
+    // Now compute expected/precise look vector from observer to surface intercept point
+    Eigen::Vector3d lkdr = prq_ray.trace().xyz() - obs;
+    
+    // Computing look direction
+    psmrts::PRQRayTrace prq_surf(obs, lkdr );
+    CHECK( b_tracer.process( prq_surf ) == true );
+
+    psmrts::PRQRayTrace prq_obs(obs, prq_surf.trace().surfpt() );
+    CHECK( b_tracer.process( prq_obs ) == true );
+    
+    // Set up a sun position
+    Eigen::Vector3d sun_pos;
+    double sun_lon = 0.0 * rpd_c();
+    double sun_lat = 0.0 * rpd_c();
+    latrec_c( radius, sun_lon, sun_lat, sun_pos.data());
+    sun_pos = sun_pos * 100;
+
+    Eigen::Vector3d lookdir_s = prq_obs.trace().xyz() - sun_pos;
+    psmrts::PRQRayTrace prq_sun(sun_pos, lookdir_s );
+    CHECK( b_tracer.process( prq_sun ) == true );
+    CHECK( (prq_obs.incidence( prq_sun.trace() ) * dpr_c()) == 45.0 );
+    CHECK( (prq_obs.phase( prq_sun.trace() ) * dpr_c()) == 45.0 );
+    
+
+    psmrts::PRQPhotometricTrace prq_photo( obs, prq_surf.trace().surfpt(), sun_pos );
+    CHECK( prq_photo.observer_trace().observer() == obs ); 
+    CHECK( prq_photo.sun_trace().observer() == sun_pos ); 
+    CHECK( prq_photo.observer_trace().xyz() == prq_surf.trace().xyz() );
+    CHECK( prq_photo.observer_trace().hasHit()  == true );
+    CHECK( prq_photo.sun_trace().hasHit() == true );
+    CHECK( prq_photo.isValid() == true );
+   // REQUIRE( b_tracer.process( prq_photo ) == true );
+}
+#endif
