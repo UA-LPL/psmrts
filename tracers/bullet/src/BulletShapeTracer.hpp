@@ -43,11 +43,11 @@ namespace psmrts  {
 
       inline bool process( PRQFeatures &features ) const {
         psmrts_json f_e;
-        f_e += { "name" , "bullet" };
-        f_e += { "product" , "shapetracer" };
-        f_e += { "mesh" , true };
-        f_e += { "optimizebvh" , false };
-        f_e += { "vectortype" , { "double", "float" } };
+        f_e["name"]        = "bullet";
+        f_e["product"]     = "shapetracer";
+        f_e["mesh"]        = true;
+        f_e["optimizebvh"] = false;
+        f_e["vectortype"]  = { "double", "float" };
         features.add_feature( f_e );
         return ( true );
       }
