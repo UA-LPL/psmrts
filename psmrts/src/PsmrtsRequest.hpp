@@ -385,8 +385,8 @@ namespace psmrts {
       inline bool compute_sun_lookdir( ) {
         if ( this->observer_trace().hasHit() ) {
           Eigen::Vector3d lookdir_s = this->observer_trace().xyz() - this->sun_trace().observer();
-          this->sun_trace().reset( this->sun_trace().observer(), lookdir_s );
-          return ( psmrts::isnull( lookdir_s[0]) );
+          this->sun_trace().datum().m_lookdir = lookdir_s;
+          return ( !psmrts::isnull( lookdir_s[0]) );
         }
         return ( false );
       }
