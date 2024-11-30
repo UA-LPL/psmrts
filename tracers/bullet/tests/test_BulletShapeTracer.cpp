@@ -12,15 +12,15 @@ TEST_CASE ( "Bullet Shape Tracer - Default Constructor", "[default][bullet][shap
     psmrts::PRQFeatures features;
     CHECK( b_tracer.process( features ) == true );
 
-    CHECK( features.to_string()     == "[[[\"name\",\"bullet\"],[\"product\",\"shapetracer\"]\
-,[\"mesh\",true],[\"optimizebvh\",false],[\"vectortype\",[\"double\",\"float\"]]]]" );
-    CHECK( features.config().dump() == "[[[\"name\",\"bullet\"],[\"product\",\"shapetracer\"]\
-,[\"mesh\",true],[\"optimizebvh\",false],[\"vectortype\",[\"double\",\"float\"]]]]" );
+    CHECK( features.to_string()     == "[{\"name\":\"bullet\",\"product\":\"shapetracer\",\"mesh\":true,\"optimizebvh\":\
+false,\"vectortype\":[\"double\",\"float\"]}]");
+    CHECK( features.config().dump() == "[{\"name\":\"bullet\",\"product\":\"shapetracer\",\"mesh\":true,\"optimizebvh\":\
+false,\"vectortype\":[\"double\",\"float\"]}]");
 
     psmrts_json add = "tracer";
     CHECK_NOTHROW(features.add_feature(add));
-    CHECK(features.to_string() == "[[[\"name\",\"bullet\"],[\"product\",\"shapetracer\"]\
-,[\"mesh\",true],[\"optimizebvh\",false],[\"vectortype\",[\"double\",\"float\"]]],\"tracer\"]");
+    CHECK(features.to_string() == "[{\"name\":\"bullet\",\"product\":\"shapetracer\",\"mesh\":true,\"optimizebvh\":\
+false,\"vectortype\":[\"double\",\"float\"]},\"tracer\"]");
     // etc...
 
     // Base Request Functions
@@ -37,15 +37,14 @@ TEST_CASE ( "Bullet Shape Tracer - Default Constructor", "[default][bullet][shap
     CHECK_NOTHROW( features.throw_errors() ); 
     CHECK_NOTHROW( features.clear_errors() );
 
-    // Default Photometric Functions
-    // Needs reference RT or NaN Errors
-    // psmrts::PRQPhotometricTrace photoTrace;
-    // CHECK( b_tracer.process( photoTrace ) == false ); 
-    // CHECK( photoTrace.isValid() == false );
-    // CHECK( photoTrace.incidence() == 0.0 );
-    // CHECK( photoTrace.emission() == 0.0 );
-    // CHECK( photoTrace.phase() == 0.0 );
-    // CHECK( photoTrace.compute_sun_lookdir() == false );
+    
+    psmrts::PRQPhotometricTrace photoTrace;
+    CHECK_THROWS( b_tracer.process( photoTrace )   == false ); 
+    CHECK( photoTrace.isValid()             == false );
+    CHECK_THAT( photoTrace.incidence(), Catch::Matchers::IsNaN() );
+    CHECK_THAT( photoTrace.emission(),  Catch::Matchers::IsNaN() );
+    CHECK_THAT( photoTrace.phase(),     Catch::Matchers::IsNaN() );
+    CHECK( photoTrace.compute_sun_lookdir() == false );
 
 }
 
@@ -163,24 +162,32 @@ TEST_CASE( "Bullet Shape Tracer Photometric Values Test", "[bullet][shapetracer]
     // Create trace from observer to surface xyz = (45d, 50d, r km)
     psmrts::PRQRayTrace prq_ray( observer, lookdir );
     CHECK( b_tracer.process( prq_ray ) == true );
+    //CHECK( prq_ray.trace().lookdir() == lookdir );
 
     // Rigorous check of surface points
     Eigen::Vector3d ps_xyz  = prq_surf.trace().xyz();
     Eigen::Vector3d pr_xyz  = prq_ray.trace().xyz();
-    CHECK_THAT( ps_xyz[0], Catch::Matchers::WithinAbs( pr_xyz[0], tolerance) );
+    CHECK_THAT( ps_xyz[0], Catch::Matchers::WithinAbs( pr_xyz[0], tolerance ) );
     CHECK_THAT( ps_xyz[1], Catch::Matchers::WithinAbs( pr_xyz[1], tolerance ) );
     CHECK_THAT( ps_xyz[2], Catch::Matchers::WithinAbs( pr_xyz[2], tolerance ) );
 
     // Create a duplicate of observer but with the computed lookdir result
-    psmrts::PRQRayTrace prq_obs(observer, prq_ray.trace().surfpt() );
+    psmrts::PRQRayTrace prq_obs(observer, prq_ray.trace().surfpt() ); 
     CHECK( b_tracer.process( prq_obs ) == true );
     
     // Rigorous check of surface points
     Eigen::Vector3d po_xyz  = prq_obs.trace().xyz();
     pr_xyz  = prq_ray.trace().xyz();
-    CHECK_THAT( po_xyz[0], Catch::Matchers::WithinAbs( pr_xyz[0], tolerance) );
+    CHECK_THAT( po_xyz[0], Catch::Matchers::WithinAbs( pr_xyz[0], tolerance ) );
     CHECK_THAT( po_xyz[1], Catch::Matchers::WithinAbs( pr_xyz[1], tolerance ) );
     CHECK_THAT( po_xyz[2], Catch::Matchers::WithinAbs( pr_xyz[2], tolerance ) );
+
+    Eigen::Vector3d po_surfpt = prq_obs.trace().surfpt();
+    Eigen::Vector3d pr_surfpt = prq_ray.trace().surfpt();
+
+    CHECK_THAT( po_surfpt[0], Catch::Matchers::WithinAbs( pr_surfpt[0], tolerance ));
+    CHECK_THAT( po_surfpt[1], Catch::Matchers::WithinAbs( pr_surfpt[1], tolerance ));
+    CHECK_THAT( po_surfpt[2], Catch::Matchers::WithinAbs( pr_surfpt[2], tolerance ));
 
     // Set up a sun position
     Eigen::Vector3d sun_pos;
@@ -194,10 +201,11 @@ TEST_CASE( "Bullet Shape Tracer Photometric Values Test", "[bullet][shapetracer]
     CHECK_THAT( speangle, Catch::Matchers::WithinAbs( 32.4294097676788482, tolerance) );
 
     // Compute the look direction from sun to surface point
-    Eigen::Vector3d lookdir_s = prq_obs.trace().xyz() - sun_pos;
+    Eigen::Vector3d lookdir_s = prq_ray.trace().xyz() - sun_pos;
     psmrts::PRQRayTrace prq_sun(sun_pos, lookdir_s );
     CHECK( b_tracer.process( prq_sun ) == true );
-    CHECK( prq_sun.trace().hasHit() == true );
+    CHECK( prq_sun.trace().hasHit()    == true );
+    // CHECK( prq_sun.trace().lookdir()   == lookdir_s ); - lookdir being recalculated in PsmrtsBulletWorldModel
 
     // Compute/check photometric angles
     CHECK_THAT( psmrts::radians_to_degrees( prq_obs.emission(  ) ), Catch::Matchers::WithinAbs( 30.3643509807580, tolerance) );
@@ -207,17 +215,21 @@ TEST_CASE( "Bullet Shape Tracer Photometric Values Test", "[bullet][shapetracer]
 
     // FINALLY create the Photometric trace and run it!
     psmrts::PRQPhotometricTrace prq_photo( observer, lookdir, sun_pos );
-    CHECK( b_tracer.process( prq_photo ) == true );
+    CHECK( b_tracer.process( prq_photo )         == true );
 
-    CHECK( prq_photo.isValid() == true );
-    CHECK( prq_photo.observer_trace().hasHit()  == true );
-    CHECK( prq_photo.sun_trace().hasHit() == true );
+    CHECK( prq_photo.isValid()                   == true );
+    CHECK( prq_photo.observer_trace().hasHit()   == true );
+    CHECK( prq_photo.sun_trace().hasHit()        == true );
 
     CHECK( prq_photo.observer_trace().observer() == observer ); 
-    CHECK( prq_photo.observer_trace().lookdir()  == lookdir );
+    // CHECK( prq_photo.observer_trace().lookdir()  == lookdir  ); - lookdir being recalculated in PsmrtsBulletWorldModel
+    CHECK( prq_photo.observer_trace().observer() == prq_ray.trace().observer() );
+    CHECK( prq_photo.observer_trace().lookdir()  == prq_ray.trace().lookdir()  );
 
-    CHECK( prq_photo.sun_trace().observer()      == sun_pos );
-    CHECK( prq_photo.sun_trace().lookdir()       == lookdir_s );
+    CHECK( prq_photo.sun_trace().observer()      == sun_pos   );
+    // CHECK( prq_photo.sun_trace().lookdir()       == lookdir_s ); - lookdir being recalculated in PsmrtsBulletWorldModel
+    CHECK( prq_photo.sun_trace().observer()      == prq_sun.trace().observer() );
+    CHECK( prq_photo.sun_trace().lookdir()       == prq_sun.trace().lookdir()  );
 
     // Compare surface intercept points of observer and sun
     Eigen::Vector3d o_xyz = prq_photo.observer_trace().xyz();

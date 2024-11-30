@@ -67,7 +67,7 @@ namespace psmrts {
    * PRODUCER::process(REQUEST&) method and will run the method if it exists.
    * This function can be used in virtually any class even if no valid process()
    * method exists. It will compile and return status where the run count is
-   * incremented but REQUEST::was_invoked() will return false for avery call.
+   * incremented but REQUEST::was_invoked() will return false for every call.
    * 
    * This is designed to take avantage of the PsmrtsRequest base class features
    * that provides a tracking mechnism. It counts the number of times the request
