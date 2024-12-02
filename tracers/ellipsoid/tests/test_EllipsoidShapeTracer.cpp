@@ -68,51 +68,113 @@ TEST_CASE( "Ellipsoid Shape Tracer Test", "[ellipsoid][shapetracer]") {
     CHECK_THAT( xyz[2], Catch::Matchers::WithinAbs( prq_ray.trace().xyz()[2], tolerance_km));
 }
 
-#if 0
-TEST_CASE( "Ellipsoid Shape Tracer Photometric Values Test", "[ellipsoid][shapetracer][photometric]") {
+TEST_CASE("Ellipsoid Shape Tracer Photometric Values Test", "[ellipsoid][shapetracer][photometric]") {
     const double tolerance = 1.0e-6;
 
-    Eigen::Vector3d radii( {0.5, 0.5, 0.5} );
+    Eigen::Vector3d radii( {1.0, 1.0, 1.0 } );
     psmrts::EllipsoidShapeTracer e_tracer( radii );
 
-    #if 0
-    Eigen::Vector3d obs = {1.0, 1.0, 1.0};
-    Eigen::Vector3d surf = {0.0, 0.5, 0.0};
-    Eigen::Vector3d lkdr = -obs + surf;
-
-    Eigen::Vector3d surf2 = {0.0, 0.5, 0.1};
-    Eigen::Vector3d sun_pos = -obs + (surf2 * 10.0);
-
-    psmrts::PRQPhotometricTrace e_photo( obs, lkdr, sun_pos );
-    REQUIRE( e_photo.isValid() == true );
-    #endif
-
-    Eigen::Vector3d obs;
+    // Compute the position of the observer at (45, 45, 10)
+    Eigen::Vector3d observer;
     double radius = 1.0;
-    double obs_long = 45.0 * rpd_c();
-    double obs_lat = 45.0 * rpd_c();
-    latrec_c ( radius, obs_long, obs_lat, obs.data() );
-    obs = obs * 10.0;
+    double obs_long = psmrts::degrees_to_radians( 45.0 );
+    double obs_lat = psmrts::degrees_to_radians( 45.0 );
+    latrec_c( radius, obs_long, obs_lat, observer.data() );
+    observer = observer * 10.0;
 
+    // Compute the surface vector at (45, 50, 1). This is our surface target vector
     Eigen::Vector3d surf;
-    double surf_lon = 45.0 * rpd_c();
-    double surf_lat = 50.0 * rpd_c();
-    latrec_c ( radius, surf_lon, surf_lat, surf.data() );
+    double surf_lon = psmrts::degrees_to_radians( 45.0 );
+    double surf_lat = psmrts::degrees_to_radians( 50.0 );
+    latrec_c( radius, surf_lon, surf_lat, surf.data() );
 
-    Eigen::Vector3d surf_obs = surf*1.5;
-    psmrts::PRQRayTrace prq_ray(surf_obs, -surf_obs );
-    REQUIRE( e_tracer.process( prq_ray ) == true ); 
+    // Calculate real surface point 
+    Eigen::Vector3d surf_obs = surf * 1.5; 
+    psmrts::PRQRayTrace prq_surf( surf_obs, -surf_obs );
+    CHECK( e_tracer.process( prq_surf ) == true );
+    CHECK( surf_obs == prq_surf.trace().observer() );
 
-    Eigen::Vector3d lkdr = prq_ray.trace().xyz() - obs;
+    // Now compute expected/precise look vector from observer to surface intercept point
+    Eigen::Vector3d lookdir = prq_surf.trace().xyz() - observer;
 
-    Eigen::Vector3d sun_obs;
-    double sun_long = 45.5 * rpd_c();
-    double sun_lat = 45.0 * rpd_c();
-    latrec_c( radius*20.0, sun_long, sun_lat, sun_obs.data());
+    // Create trace from observer to surface xyz = ( 45, 50, r km )
+    psmrts::PRQRayTrace prq_ray( observer, lookdir );
+    CHECK( e_tracer.process( prq_ray ) == true );
+
+    // Rigorous check of surface points
+    Eigen::Vector3d ps_xyz = prq_surf.trace().xyz();
+    Eigen::Vector3d pr_xyz = prq_ray.trace().xyz();
+    CHECK_THAT( ps_xyz[0], Catch::Matchers::WithinAbs( pr_xyz[0], tolerance ));
+    CHECK_THAT( ps_xyz[1], Catch::Matchers::WithinAbs( pr_xyz[1], tolerance ));
+    CHECK_THAT( ps_xyz[2], Catch::Matchers::WithinAbs( pr_xyz[2], tolerance ));
     
+    // Duplicate of observer but with the computed lookdir result
+    psmrts::PRQRayTrace prq_obs(observer, prq_ray.trace().surfpt() );
+    CHECK( e_tracer.process( prq_obs ) == true ); 
 
-    psmrts::PRQPhotometricTrace e_photo ( obs, lkdr, sun_obs );
-    REQUIRE( e_photo.isValid() == true );
+    // Rigorous check of surface pointns
+    Eigen::Vector3d po_xyz = prq_obs.trace().xyz();
+    pr_xyz = prq_ray.trace().xyz();
+    CHECK_THAT( po_xyz[0], Catch::Matchers::WithinAbs( pr_xyz[0], tolerance ));
+    CHECK_THAT( po_xyz[1], Catch::Matchers::WithinAbs( pr_xyz[1], tolerance ));
+    CHECK_THAT( po_xyz[2], Catch::Matchers::WithinAbs( pr_xyz[2], tolerance ));
 
+    Eigen::Vector3d po_surfpt = prq_obs.trace().surfpt();
+    Eigen::Vector3d pr_surfpt = prq_ray.trace().surfpt();
+
+    CHECK_THAT( po_surfpt[0], Catch::Matchers::WithinAbs( pr_surfpt[0], tolerance ));
+    CHECK_THAT( po_surfpt[1], Catch::Matchers::WithinAbs( pr_surfpt[1], tolerance ));
+    CHECK_THAT( po_surfpt[2], Catch::Matchers::WithinAbs( pr_surfpt[2], tolerance ));
+
+    // Sun Position
+    Eigen::Vector3d sun_pos;
+    double sun_lon = psmrts::degrees_to_radians( 20.0 ); 
+    double sun_lat = psmrts::degrees_to_radians( 20.0 );
+    latrec_c( radius, sun_lon, sun_lat, sun_pos.data() );
+    sun_pos = sun_pos *  50.0; 
+
+    // Angle between the observer and sun
+    double speangle = psmrts::radians_to_degrees( psmrts::PsmrtsRayTrace::separation_angle( observer, sun_pos ) );
+
+    // Compute the look direction from sun to surface point
+    Eigen::Vector3d lookdir_s = prq_ray.trace().xyz() - sun_pos;
+    psmrts::PRQRayTrace prq_sun( sun_pos, lookdir_s );
+    CHECK( e_tracer.process( prq_sun ) ==  true );
+    CHECK( prq_sun.trace().hasHit() == true );
+
+    // Compute/check photometric angles
+    CHECK_THAT( psmrts::radians_to_degrees( prq_obs.emission(  ) ), Catch::Matchers::WithinAbs( 5.55459887153097576, tolerance) );
+    CHECK_THAT( psmrts::radians_to_degrees( prq_sun.emission(  ) ), Catch::Matchers::WithinAbs( 36.64334758469316, tolerance) );
+    CHECK_THAT( psmrts::radians_to_degrees( prq_obs.incidence( prq_sun.trace() ) ), Catch::Matchers::WithinAbs( 36.64334758469323816, tolerance) );
+    CHECK_THAT( psmrts::radians_to_degrees( prq_obs.phase( prq_sun.trace() ) ),     Catch::Matchers::WithinAbs( 32.73787834081892356, tolerance) );
+
+    // Create Photometric trace and run
+    psmrts::PRQPhotometricTrace prq_photo( observer, lookdir, sun_pos );
+    CHECK( e_tracer.process( prq_photo ) == true );
+
+    CHECK( prq_photo.isValid() == true );
+    CHECK( prq_photo.observer_trace().hasHit() == true ); 
+    CHECK( prq_photo.sun_trace().hasHit() == true );
+
+    CHECK( prq_photo.observer_trace().observer() == observer );
+    CHECK( prq_photo.observer_trace().lookdir() == lookdir );
+    CHECK( prq_photo.observer_trace().observer() == prq_ray.trace().observer() );
+    CHECK( prq_photo.observer_trace().lookdir() == prq_ray.trace().lookdir() );
+
+    CHECK( prq_photo.sun_trace().observer() == sun_pos );
+    CHECK( prq_photo.sun_trace().lookdir() == lookdir_s);
+    CHECK( prq_photo.sun_trace().observer() == prq_sun.trace().observer() );
+    CHECK( prq_photo.sun_trace().lookdir() == prq_sun.trace().lookdir() );
+
+    // Compare surface intercept points of observer and sun
+    Eigen::Vector3d o_xyz = prq_photo.observer_trace().xyz();
+    Eigen::Vector3d s_xyz = prq_photo.sun_trace().xyz();
+    CHECK_THAT( o_xyz[0], Catch::Matchers::WithinAbs( s_xyz[0], tolerance) );
+    CHECK_THAT( o_xyz[1], Catch::Matchers::WithinAbs( s_xyz[1], tolerance ) );
+    CHECK_THAT( o_xyz[2], Catch::Matchers::WithinAbs( s_xyz[2], tolerance ) );
+
+    // Compute/check photometric angles compared to prq_obs above
+    CHECK_THAT( psmrts::radians_to_degrees( prq_photo.emission(  ) ), Catch::Matchers::WithinAbs( 5.55459887153097576, tolerance) );
+    CHECK_THAT( psmrts::radians_to_degrees( prq_photo.incidence( ) ), Catch::Matchers::WithinAbs( 36.64334758469323816, tolerance) );
+    CHECK_THAT( psmrts::radians_to_degrees( prq_photo.phase( ) ),     Catch::Matchers::WithinAbs( 32.73787834081892356, tolerance) ); 
 }
-#endif
