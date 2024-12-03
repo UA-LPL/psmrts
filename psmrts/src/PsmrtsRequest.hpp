@@ -128,7 +128,7 @@ namespace psmrts {
   /**
    * @brief Base class of all PSMRTS requests
    * 
-   * This class privides the fundamental base class of all PSMRTS requests.
+   * This class provides the fundamental base class of all PSMRTS requests.
    * It tracks counts of execution attempts, if a method was actually executed
    * and returns any exceptions that may have been thrown during processing.
    * 
@@ -324,6 +324,50 @@ namespace psmrts {
 
   };
 
+class PRQRayTraceArray : public PsmrtsRequest {
+    public:
+      using PRQRayTraceList = std::vector<PRQRayTrace>;
+
+    /** default constructable */
+      PRQRayTraceArray() : PsmrtsRequest( "PRQRayTraceArray" ),
+                           m_traces( ) { }
+      PRQRayTraceArray( const std::vector<PRQRayTrace> &traces ) : 
+                        PsmrtsRequest( "PRQRayTraceArray" ),
+                        m_traces( traces ) { }                                 
+      virtual ~PRQRayTraceArray() { }
+ 
+      using PsmrtsRequest::name;
+      using PsmrtsRequest::run_count;
+      using PsmrtsRequest::was_invoked;
+      using PsmrtsRequest::error_count;
+      using PsmrtsRequest::errors;
+
+      inline size_t size() const {
+        return ( m_traces.size() );
+      }
+
+      inline void add_trace( const Eigen::Vector3d &observer, 
+                             const Eigen::Vector3d &lookdir ) {
+        m_traces.push_back( PRQRayTrace( observer, lookdir ) );
+      }
+
+      inline void add_trace( const PRQRayTrace &trace ) {
+        m_traces.push_back( trace );
+      }
+
+      inline const PRQRayTraceList &traces() const {
+        return ( m_traces );
+      }
+
+      inline PRQRayTraceList &traces() {
+        return ( m_traces );
+      }
+
+    public:
+      /** This scope may be changed if necessary */
+     PRQRayTraceList m_traces;
+     // PsmrtsShapeTracer *m_tracer;
+  };
 
   class PRQPhotometricTrace : public PsmrtsRequest {
     public:
@@ -417,6 +461,51 @@ namespace psmrts {
 
   };
 
+class PRQPhotometricTraceArray : public PsmrtsRequest {
+    public:
+      using PRQPhotometricTraceList = std::vector<PRQPhotometricTrace>;
+
+    /** default constructable */
+      PRQPhotometricTraceArray() : PsmrtsRequest( "PRQPhotometricTraceArray" ),
+                           m_traces( ) { }
+      PRQPhotometricTraceArray( const PRQPhotometricTraceList &traces ) : 
+                        PsmrtsRequest( "PRQPhotometricTraceArray" ),
+                        m_traces( traces ) { }                                 
+      virtual ~PRQPhotometricTraceArray() { }
+ 
+      using PsmrtsRequest::name;
+      using PsmrtsRequest::run_count;
+      using PsmrtsRequest::was_invoked;
+      using PsmrtsRequest::error_count;
+      using PsmrtsRequest::errors;
+
+      inline size_t size() const {
+        return ( m_traces.size() );
+      }
+
+      inline void add_trace( const Eigen::Vector3d &observer, 
+                             const Eigen::Vector3d &lookdir,
+                             const Eigen::Vector3d &sunpos ) {
+        m_traces.push_back( PRQPhotometricTrace( observer, lookdir, sunpos ) );
+      }
+
+      inline void add_trace( const PRQPhotometricTrace &trace ) {
+        m_traces.push_back( trace );
+      }
+
+      inline const PRQPhotometricTraceList &traces() const {
+        return ( m_traces );
+      }
+
+      inline PRQPhotometricTraceList &traces() {
+        return ( m_traces );
+      }
+
+    public:
+      /** This scope may be changed if necessary */
+     PRQPhotometricTraceList m_traces;
+     // PsmrtsShapeTracer *m_tracer;
+  };
 
   class PRQFacet : public PsmrtsRequest {
     public:

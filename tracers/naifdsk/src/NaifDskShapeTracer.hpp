@@ -27,6 +27,13 @@ namespace psmrts  {
         return ( this->ray_trace( observer, lookdir, trace.trace() ) );
       }
 
+      inline bool process ( PRQRayTraceArray &tracelist ) const {
+        for ( auto &trace : tracelist.traces() ) {
+          this->process( trace );
+        }
+        return ( true );
+      }
+
 
       inline bool process( PRQFacet &facet ) const {
          return ( m_model.get_facet( facet.trace(), facet.facet() ) );
@@ -40,6 +47,13 @@ namespace psmrts  {
         }
 
         return ( false );
+      }
+
+       inline bool process ( PRQPhotometricTraceArray &tracelist ) const {
+        for ( auto &trace : tracelist.traces() ) {
+          this->process( trace );
+        }
+        return ( true );
       }
 
       inline bool process( PRQFeatures &features ) const {
