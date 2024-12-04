@@ -28,10 +28,14 @@ namespace psmrts  {
       }
 
       inline bool process ( PRQRayTraceArray &tracelist ) const {
+        size_t n_good = 0;
         for ( auto &trace : tracelist.traces() ) {
-          this->process( trace );
+          if ( this->process( trace ) ) {
+            n_good++;
+          }
         }
-        return ( true );
+        
+        return ( n_good > 0 );
       }
 
 
@@ -50,10 +54,14 @@ namespace psmrts  {
       }
 
        inline bool process ( PRQPhotometricTraceArray &tracelist ) const {
+        size_t n_good = 0;
         for ( auto &trace : tracelist.traces() ) {
-          this->process( trace );
+          if ( this->process( trace ) ) {
+            n_good++;
+          }
         }
-        return ( true );
+        
+        return ( n_good > 0 );
       }
 
       inline bool process( PRQFeatures &features ) const {

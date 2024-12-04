@@ -37,15 +37,70 @@ false,\"vectortype\":[\"double\",\"float\"]},\"tracer\"]");
     CHECK_NOTHROW( features.throw_errors() ); 
     CHECK_NOTHROW( features.clear_errors() );
 
-    
     psmrts::PRQPhotometricTrace photoTrace;
-    CHECK_THROWS( b_tracer.process( photoTrace )   == false ); 
-    CHECK( photoTrace.isValid()             == false );
+    CHECK( b_tracer.process( photoTrace )          == false ); 
+    CHECK( photoTrace.isValid()                    == false );
+    CHECK( photoTrace.observer_trace().hasHit()    == false );
+    CHECK( photoTrace.sun_trace().hasHit()         == false );
     CHECK_THAT( photoTrace.incidence(), Catch::Matchers::IsNaN() );
     CHECK_THAT( photoTrace.emission(),  Catch::Matchers::IsNaN() );
     CHECK_THAT( photoTrace.phase(),     Catch::Matchers::IsNaN() );
-    CHECK( photoTrace.compute_sun_lookdir() == false );
+    CHECK( photoTrace.compute_sun_lookdir()        == false );
 
+    // Photometric Array Default
+    psmrts::PRQPhotometricTraceArray pt_array;
+    CHECK( pt_array.size()           == 0 );
+    CHECK( pt_array.traces().empty() == true );
+
+    pt_array.add_trace( photoTrace );
+
+    CHECK( pt_array.size() == 1 );
+
+    psmrts::PRQPhotometricTrace photoTrace2;
+    pt_array.add_trace( photoTrace2 );
+
+    CHECK( pt_array.size() == 2 );
+
+    CHECK( b_tracer.process( pt_array ) == false ); 
+    
+    // Photometric Array List Default
+    std::vector<psmrts::PRQPhotometricTrace> pt_list;
+    pt_list.push_back( photoTrace );
+    pt_list.push_back( photoTrace2 );
+
+    psmrts::PRQPhotometricTraceArray pt_array2 ( pt_list );
+    CHECK( pt_array2.size() == 2 );
+    CHECK( pt_array2.traces().empty() == false );
+
+    CHECK( b_tracer.process( pt_array2 ) == false ); 
+
+    // Ray Trace Array Default
+    psmrts::PRQRayTraceArray rt_array;
+    CHECK( rt_array.size() == 0 );
+    CHECK( rt_array.traces().empty() == true );
+
+    psmrts::PRQRayTrace ray;
+    rt_array.add_trace( ray );
+
+    CHECK( rt_array.size() == 1 );
+
+    psmrts::PRQRayTrace ray2;
+    rt_array.add_trace( ray2 );
+
+    CHECK( rt_array.size() == 2 );
+
+    CHECK( b_tracer.process( rt_array ) == false ); 
+
+    // Ray Trace Array List Default
+    std::vector<psmrts::PRQRayTrace> rt_list;
+    rt_list.push_back( ray );
+    rt_list.push_back( ray2 );
+
+    psmrts::PRQRayTraceArray rt_array2( rt_list );
+    CHECK( rt_array2.size() == 2 );
+    CHECK( rt_array2.traces().empty() == false  );
+
+    CHECK( b_tracer.process( rt_array2 ) == false ); 
 }
 
 // Load a mesh and inspect contents of Bullet world
@@ -124,6 +179,95 @@ TEST_CASE( "Bullet Shape Tracer Test", "[bullet][shapetracer]" ) {
     CHECK_THAT( facet_xyz[0], Catch::Matchers::WithinAbs( xyz[0], tolerance_km));
     CHECK_THAT( facet_xyz[1], Catch::Matchers::WithinAbs( xyz[1], tolerance_km));
     CHECK_THAT( facet_xyz[2], Catch::Matchers::WithinAbs( xyz[2], tolerance_km));
+
+}
+
+TEST_CASE( "Bullet Shape Tracer Ray Trace Array Test", "[bullet][shapetracer][raytrace][array]") {
+    const double tolerance = 1.0e-6;
+
+    std::string objfile = psmrts_formats_path( "obj/data/bennu_20facets.obj" ); 
+
+    psmrts::bullet::PsmrtsBulletWorldModel bt_world( psmrts::bullet::PsmrtsBulletMeshMap ( psmrts::PsmrtsOBJFormat( objfile ) ), objfile );
+    psmrts::BulletShapeTracer b_tracer( bt_world );
+
+    // Ray Trace 1
+    Eigen::Vector3d obs1;
+    double radius1 = 1.0;
+    double obs_long1 = 45.0 * rpd_c();
+    double obs_lat1 = 45.0 * rpd_c();
+    latrec_c ( radius1, obs_long1, obs_lat1, obs1.data() );
+    obs1 = obs1 * 10.0;
+
+    Eigen::Vector3d surf1;
+    double surf_lon1 = 45.0 * rpd_c();
+    double surf_lat1 = 50.0 * rpd_c();
+    latrec_c ( radius1, surf_lon1, surf_lat1, surf1.data() );
+
+    Eigen::Vector3d surf_obs1 = surf1 * 1.5;
+    psmrts::PRQRayTrace prq_ray1(surf_obs1, -surf_obs1 );
+    REQUIRE( b_tracer.process( prq_ray1 ) == true );
+
+    Eigen::Vector3d lookdir1 = prq_ray1.trace().xyz() - obs1;
+
+    psmrts::PRQRayTrace prq_spt1( obs1, lookdir1 );
+    REQUIRE( b_tracer.process( prq_spt1 ) );
+    CHECK( prq_spt1.trace().hasHit() == true ); 
+
+    // Ray Trace 2
+    Eigen::Vector3d obs2;
+    double radius2 = 1.0;
+    double obs_long2 = 45.0 * rpd_c();
+    double obs_lat2 = 45.0 * rpd_c();
+    latrec_c ( radius2, obs_long2, obs_lat2, obs2.data() );
+    obs2 = obs2 * 10.0;
+
+    Eigen::Vector3d surf2;
+    double surf_lon2 = 50.0 * rpd_c();
+    double surf_lat2 = 45.0 * rpd_c();
+    latrec_c ( radius2, surf_lon2, surf_lat2, surf2.data() );
+
+    Eigen::Vector3d surf_obs2 = surf2 * 1.5;
+    psmrts::PRQRayTrace prq_ray2(surf_obs2, -surf_obs2 );
+    REQUIRE( b_tracer.process( prq_ray2 ) == true );
+
+    Eigen::Vector3d lookdir2 = prq_ray2.trace().xyz() - obs2;
+
+    psmrts::PRQRayTrace prq_spt2(obs2, lookdir2 );
+    REQUIRE( b_tracer.process( prq_spt2 ) );
+    CHECK( prq_spt2.trace().hasHit() == true ); 
+
+
+    // Ray Trace 3
+    Eigen::Vector3d obs3;
+    double radius3 = 1.0;
+    double obs_long3 = 45.0 * rpd_c();
+    double obs_lat3 = 45.0 * rpd_c();
+    latrec_c ( radius3, obs_long3, obs_lat3, obs3.data() );
+    obs3 = obs3 * 10.0;
+
+    Eigen::Vector3d surf3;
+    double surf_lon3 = 120.0 * rpd_c();
+    double surf_lat3 = -45.0 * rpd_c();
+    latrec_c ( radius3, surf_lon3, surf_lat3, surf3.data() );
+
+    Eigen::Vector3d lookdir3 = surf3 - obs3; 
+
+    psmrts::PRQRayTrace prq_spt3(obs3, lookdir3 );
+    CHECK( b_tracer.process( prq_spt3 ) == false );
+    CHECK( prq_spt3.trace().hasHit() == false ); 
+
+    psmrts::PRQRayTraceArray ray_array;
+    ray_array.add_trace(prq_spt1);
+    ray_array.add_trace(prq_spt2);
+    //ray_array.add_trace(prq_spt3);
+
+    CHECK ( b_tracer.process( ray_array ) == true );
+
+    ray_array.add_trace(prq_spt3);
+
+    CHECK ( b_tracer.process( ray_array ) == true );
+
+    //CHECK_THROWS( b_tracer.process( ray_array ) ); // Supposed to throw if even one no-hit?
 
 }
 
@@ -244,3 +388,9 @@ TEST_CASE( "Bullet Shape Tracer Photometric Values Test", "[bullet][shapetracer]
     CHECK_THAT( psmrts::radians_to_degrees( prq_photo.phase( ) ),     Catch::Matchers::WithinAbs( 32.5950452371838324, tolerance) );    
 }
 #endif
+
+TEST_CASE( "Bullet Shape Tracer Photometric Values Test", "[bullet][shapetracer][photometric][array]") {
+    const double tolerance = 1.0e-6;
+
+
+}
