@@ -35,6 +35,8 @@ TEST_CASE("NAIF Dsk Shape Tracer Test", "[naifdsk][shapetracer]") {
     naif::DskSegment segment = dsk.segment();
     psmrts::NaifDskShapeTracer d_tracer( dsk );
 
+    const double max_radius = dsk.maximum_radius();
+
     Eigen::Vector3d obs;
     double radius = segment.maximum_radius();
     double obs_long = 90.0 * rpd_c();
@@ -47,7 +49,7 @@ TEST_CASE("NAIF Dsk Shape Tracer Test", "[naifdsk][shapetracer]") {
     double surf_lat = 45.0 * rpd_c();
     latrec_c( radius, surf_lon, surf_lat, surf.data() );
 
-    Eigen::Vector3d surf_obs = surf * 1.5;
+    Eigen::Vector3d surf_obs = surf * (max_radius + 1.5);
     psmrts::PRQRayTrace prq_ray(surf_obs, -surf_obs);
     REQUIRE( d_tracer.process( prq_ray ) == true );
 
@@ -79,6 +81,97 @@ TEST_CASE("NAIF Dsk Shape Tracer Test", "[naifdsk][shapetracer]") {
     CHECK_THAT( xyz[0], Catch::Matchers::WithinAbs( prq_ray.trace().xyz()[0], tolerance_km )); 
     CHECK_THAT( xyz[1], Catch::Matchers::WithinAbs( prq_ray.trace().xyz()[1], tolerance_km )); 
     CHECK_THAT( xyz[2], Catch::Matchers::WithinAbs( prq_ray.trace().xyz()[2], tolerance_km )); 
+}
+
+TEST_CASE( "NAIF Dsk Shape Tracer Ray Trace Array Test", "[naifdsk][shapetracer][raytrace][array]") {
+    const double tolerance = 1.0e-6;
+
+    std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
+    naif::DskKernelModel dsk( dskfile );
+    naif::DskSegment segment = dsk.segment();
+    psmrts::NaifDskShapeTracer d_tracer( dsk );
+
+    const double max_radius = dsk.maximum_radius();
+
+    // Ray Trace 1
+    Eigen::Vector3d obs1;
+    double radius1 = 1.0;
+    double obs_long1 = 45.0 * rpd_c();
+    double obs_lat1 = 45.0 * rpd_c();
+    latrec_c ( radius1, obs_long1, obs_lat1, obs1.data() );
+    obs1 = obs1 * 10.0;
+
+    Eigen::Vector3d surf1;
+    double surf_lon1 = 45.0 * rpd_c();
+    double surf_lat1 = 50.0 * rpd_c();
+    latrec_c ( radius1, surf_lon1, surf_lat1, surf1.data() );
+
+    Eigen::Vector3d surf_obs1 = surf1 * (max_radius + 1.5);
+    psmrts::PRQRayTrace prq_ray1(surf_obs1, -surf_obs1 );
+    REQUIRE( d_tracer.process( prq_ray1 ) == true );
+
+    Eigen::Vector3d lookdir1 = prq_ray1.trace().xyz() - obs1;
+
+    psmrts::PRQRayTrace prq_spt1( obs1, lookdir1 );
+    REQUIRE( d_tracer.process( prq_spt1 ) );
+    CHECK( prq_spt1.trace().hasHit() == true );
+
+    // Ray Trace 2
+    Eigen::Vector3d obs2;
+    double radius2 = 1.0;
+    double obs_long2 = 45.0 * rpd_c();
+    double obs_lat2 = 45.0 * rpd_c();
+    latrec_c ( radius2, obs_long2, obs_lat2, obs2.data() );
+    obs2 = obs2 * 10.0;
+
+    Eigen::Vector3d surf2;
+    double surf_lon2 = 50.0 * rpd_c();
+    double surf_lat2 = 45.0 * rpd_c();
+    latrec_c ( radius2, surf_lon2, surf_lat2, surf2.data() );
+
+    Eigen::Vector3d surf_obs2 = surf2 * (max_radius + 1.5);
+    psmrts::PRQRayTrace prq_ray2(surf_obs2, -surf_obs2 );
+    REQUIRE( d_tracer.process( prq_ray2 ) == true );
+
+    Eigen::Vector3d lookdir2 = prq_ray2.trace().xyz() - obs2;
+
+    psmrts::PRQRayTrace prq_spt2(obs2, lookdir2 );
+    REQUIRE( d_tracer.process( prq_spt2 ) );
+    CHECK( prq_spt2.trace().hasHit() == true ); 
+
+    // Ray Trace 3 (No hit condition)
+    Eigen::Vector3d obs3;
+    double radius3 = 1.0;
+    double obs_long3 = 45.0 * rpd_c();
+    double obs_lat3 = 45.0 * rpd_c();
+    latrec_c ( radius3, obs_long3, obs_lat3, obs3.data() );
+    obs3 = obs3 * 10.0;
+
+    Eigen::Vector3d surf3;
+    double surf_lon3 = 120.0 * rpd_c();
+    double surf_lat3 = -45.0 * rpd_c();
+    latrec_c ( radius3, surf_lon3, surf_lat3, surf3.data() );
+
+    Eigen::Vector3d lookdir3 = surf3 - obs3; 
+
+    psmrts::PRQRayTrace prq_spt3(obs3, lookdir3 );
+    CHECK( d_tracer.process( prq_spt3 ) == false );
+    CHECK( prq_spt3.trace().hasHit() == false ); 
+
+    psmrts::PRQRayTraceArray ray_array;
+    // empty, no hits
+    CHECK( d_tracer.process( ray_array ) == false );
+
+    // add one miss - should still be false
+    ray_array.add_trace(prq_spt3);
+    CHECK( d_tracer.process( ray_array ) == false );
+
+    // add two hits
+    ray_array.add_trace(prq_spt1);
+    ray_array.add_trace(prq_spt2);
+
+    // needs at least one hit to be true
+    CHECK ( d_tracer.process( ray_array ) == true );
 }
 
 TEST_CASE( "NAIF Dsk Shape Tracer Photometric Values Test", "[naifdsk][shapetracer][photometric]") {

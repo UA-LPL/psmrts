@@ -21,7 +21,7 @@ TEST_CASE( "Ellipsoid Shape Tracer Test", "[ellipsoid][shapetracer]") {
     Eigen::Vector3d radii( {1.0, 1.0, 1.0} );
 
     psmrts::EllipsoidShapeTracer e_tracer( radii );
-
+     
     Eigen::Vector3d obs;
     double radius = 1.0;
     double obs_long = 45.0 * rpd_c();
@@ -66,6 +66,95 @@ TEST_CASE( "Ellipsoid Shape Tracer Test", "[ellipsoid][shapetracer]") {
     CHECK_THAT( xyz[0], Catch::Matchers::WithinAbs( prq_ray.trace().xyz()[0], tolerance_km));
     CHECK_THAT( xyz[1], Catch::Matchers::WithinAbs( prq_ray.trace().xyz()[1], tolerance_km));
     CHECK_THAT( xyz[2], Catch::Matchers::WithinAbs( prq_ray.trace().xyz()[2], tolerance_km));
+}
+
+TEST_CASE( "Ellipsoid Shape Tracer Ray Trace Array Test", "[ellipsoid][shapetracer][raytrace][array]") {
+    // WIP - Needing debugging for miss condition
+    const double tolerance_km = 1.0e-6;
+
+    Eigen::Vector3d radii( {1.0, 1.0, 1.0} );
+
+    psmrts::EllipsoidShapeTracer e_tracer( radii );
+
+    // Ray Trace 1
+    Eigen::Vector3d obs1;
+    double radius1 = 1.0;
+    double obs_long1 = 45.0 * rpd_c();
+    double obs_lat1 = 45.0 * rpd_c();
+    latrec_c ( radius1, obs_long1, obs_lat1, obs1.data() );
+    obs1 = obs1 * 10.0;
+
+    Eigen::Vector3d surf1;
+    double surf_lon1 = 45.0 * rpd_c();
+    double surf_lat1 = 50.0 * rpd_c();
+    latrec_c ( radius1, surf_lon1, surf_lat1, surf1.data() );
+
+    Eigen::Vector3d surf_obs1 = surf1 * 1.5;
+    psmrts::PRQRayTrace prq_ray1(surf_obs1, -surf_obs1 );
+    REQUIRE( e_tracer.process( prq_ray1 ) == true );
+
+    Eigen::Vector3d lookdir1 = prq_ray1.trace().xyz() - obs1;
+
+    psmrts::PRQRayTrace prq_spt1( obs1, lookdir1 );
+    REQUIRE( e_tracer.process( prq_spt1 ) );
+    CHECK( prq_spt1.trace().hasHit() == true ); 
+
+    // Ray Trace 2
+    Eigen::Vector3d obs2;
+    double radius2 = 1.0;
+    double obs_long2 = 45.0 * rpd_c();
+    double obs_lat2 = 45.0 * rpd_c();
+    latrec_c ( radius2, obs_long2, obs_lat2, obs2.data() );
+    obs2 = obs2 * 10.0;
+
+    Eigen::Vector3d surf2;
+    double surf_lon2 = 50.0 * rpd_c();
+    double surf_lat2 = 45.0 * rpd_c();
+    latrec_c ( radius2, surf_lon2, surf_lat2, surf2.data() );
+
+    Eigen::Vector3d surf_obs2 = surf2 * 1.5;
+    psmrts::PRQRayTrace prq_ray2(surf_obs2, -surf_obs2 );
+    REQUIRE( e_tracer.process( prq_ray2 ) == true );
+
+    Eigen::Vector3d lookdir2 = prq_ray2.trace().xyz() - obs2;
+
+    psmrts::PRQRayTrace prq_spt2(obs2, lookdir2 );
+    REQUIRE( e_tracer.process( prq_spt2 ) );
+    CHECK( prq_spt2.trace().hasHit() == true ); 
+
+    // Ray Trace 3 (No hit condition)
+    Eigen::Vector3d obs3;
+    double radius3 = 1.0;
+    double obs_long3 = 45.0 * rpd_c();
+    double obs_lat3 = 45.0 * rpd_c();
+    latrec_c ( radius3, obs_long3, obs_lat3, obs3.data() );
+    obs3 = obs3 * 10.0;
+
+    Eigen::Vector3d surf3;
+    double surf_lon3 = 120.0 * rpd_c();
+    double surf_lat3 = -45.0 * rpd_c();
+    latrec_c ( radius3, surf_lon3, surf_lat3, surf3.data() );
+
+    Eigen::Vector3d lookdir3 = surf3 - obs3; 
+
+    psmrts::PRQRayTrace prq_spt3(obs3, lookdir3 );
+    //CHECK( e_tracer.process( prq_spt3 ) == false ); - should be false
+    //CHECK( prq_spt3.trace().hasHit() == false ); - should be false
+
+    psmrts::PRQRayTraceArray ray_array;
+    // empty, no hits
+    CHECK( e_tracer.process( ray_array ) == false );
+
+    // add one miss - should still be false
+    ray_array.add_trace(prq_spt3);
+    // CHECK( e_tracer.process( ray_array ) == false ); - related to false above
+
+    // add two hits
+    ray_array.add_trace(prq_spt1);
+    ray_array.add_trace(prq_spt2);
+
+    // needs at least one hit to be true
+    CHECK ( e_tracer.process( ray_array ) == true );
 }
 
 TEST_CASE("Ellipsoid Shape Tracer Photometric Values Test", "[ellipsoid][shapetracer][photometric]") {

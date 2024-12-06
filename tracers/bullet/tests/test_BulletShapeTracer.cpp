@@ -117,7 +117,8 @@ TEST_CASE( "Bullet Shape Tracer Test", "[bullet][shapetracer]" ) {
     REQUIRE( bt_world.isValid() == true );
 
     psmrts::BulletShapeTracer b_tracer( bt_world );
-
+    const double max_radius = bt_world.mesh().maximum_radius();
+    
     // Compute the position of the observer at ( 45,45 ) degrees
     Eigen::Vector3d obs;
     double radius = 1.0;
@@ -133,7 +134,7 @@ TEST_CASE( "Bullet Shape Tracer Test", "[bullet][shapetracer]" ) {
     latrec_c ( radius, surf_lon, surf_lat, surf.data() );
 
     // Find the real surface point using bullet
-    Eigen::Vector3d surf_obs = surf * 1.5;
+    Eigen::Vector3d surf_obs = surf * (max_radius + 1.5);
     psmrts::PRQRayTrace prq_ray(surf_obs, -surf_obs );
     REQUIRE( b_tracer.process( prq_ray ) == true );
 
@@ -190,6 +191,9 @@ TEST_CASE( "Bullet Shape Tracer Ray Trace Array Test", "[bullet][shapetracer][ra
     psmrts::bullet::PsmrtsBulletWorldModel bt_world( psmrts::bullet::PsmrtsBulletMeshMap ( psmrts::PsmrtsOBJFormat( objfile ) ), objfile );
     psmrts::BulletShapeTracer b_tracer( bt_world );
 
+    // Max radius of object: 0.28306500000006685
+    const double max_radius = bt_world.mesh().maximum_radius();
+
     // Ray Trace 1
     Eigen::Vector3d obs1;
     double radius1 = 1.0;
@@ -203,7 +207,7 @@ TEST_CASE( "Bullet Shape Tracer Ray Trace Array Test", "[bullet][shapetracer][ra
     double surf_lat1 = 50.0 * rpd_c();
     latrec_c ( radius1, surf_lon1, surf_lat1, surf1.data() );
 
-    Eigen::Vector3d surf_obs1 = surf1 * 1.5;
+    Eigen::Vector3d surf_obs1 = surf1 * (max_radius + 1.5);
     psmrts::PRQRayTrace prq_ray1(surf_obs1, -surf_obs1 );
     REQUIRE( b_tracer.process( prq_ray1 ) == true );
 
@@ -226,7 +230,7 @@ TEST_CASE( "Bullet Shape Tracer Ray Trace Array Test", "[bullet][shapetracer][ra
     double surf_lat2 = 45.0 * rpd_c();
     latrec_c ( radius2, surf_lon2, surf_lat2, surf2.data() );
 
-    Eigen::Vector3d surf_obs2 = surf2 * 1.5;
+    Eigen::Vector3d surf_obs2 = surf2 * (max_radius + 1.5);
     psmrts::PRQRayTrace prq_ray2(surf_obs2, -surf_obs2 );
     REQUIRE( b_tracer.process( prq_ray2 ) == true );
 
@@ -236,8 +240,7 @@ TEST_CASE( "Bullet Shape Tracer Ray Trace Array Test", "[bullet][shapetracer][ra
     REQUIRE( b_tracer.process( prq_spt2 ) );
     CHECK( prq_spt2.trace().hasHit() == true ); 
 
-
-    // Ray Trace 3
+    // Ray Trace 3 (No hit condition)
     Eigen::Vector3d obs3;
     double radius3 = 1.0;
     double obs_long3 = 45.0 * rpd_c();
@@ -257,17 +260,19 @@ TEST_CASE( "Bullet Shape Tracer Ray Trace Array Test", "[bullet][shapetracer][ra
     CHECK( prq_spt3.trace().hasHit() == false ); 
 
     psmrts::PRQRayTraceArray ray_array;
+    // empty, no hits
+    CHECK( b_tracer.process( ray_array ) == false );
+
+    // add one miss - should still be false
+    ray_array.add_trace(prq_spt3);
+    CHECK( b_tracer.process( ray_array ) == false );
+
+    // add two hits
     ray_array.add_trace(prq_spt1);
     ray_array.add_trace(prq_spt2);
-    //ray_array.add_trace(prq_spt3);
 
+    // needs at least one hit to be true
     CHECK ( b_tracer.process( ray_array ) == true );
-
-    ray_array.add_trace(prq_spt3);
-
-    CHECK ( b_tracer.process( ray_array ) == true );
-
-    //CHECK_THROWS( b_tracer.process( ray_array ) ); // Supposed to throw if even one no-hit?
 
 }
 
@@ -279,6 +284,9 @@ TEST_CASE( "Bullet Shape Tracer Photometric Values Test", "[bullet][shapetracer]
 
     psmrts::bullet::PsmrtsBulletWorldModel bt_world( psmrts::bullet::PsmrtsBulletMeshMap ( psmrts::PsmrtsOBJFormat( objfile ) ), objfile );
     psmrts::BulletShapeTracer b_tracer( bt_world );
+
+    // Max radius of object: 0.28306500000006685
+    const double max_radius = bt_world.mesh().maximum_radius();
 
     // Compute the position of the observer at ( 45d, 45d, 10 km )
     Eigen::Vector3d observer;
@@ -295,7 +303,7 @@ TEST_CASE( "Bullet Shape Tracer Photometric Values Test", "[bullet][shapetracer]
     latrec_c ( radius, surf_lon, surf_lat, surf.data() );
 
     // Find the real surface point using bullet surf_obs( 45d, 50d, 1.5 km)
-    Eigen::Vector3d surf_obs = surf * 1.5;
+    Eigen::Vector3d surf_obs = surf * (max_radius + 1.5);
     psmrts::PRQRayTrace prq_surf(surf_obs, -surf_obs );
     CHECK( b_tracer.process( prq_surf ) == true );
     CHECK( surf_obs == prq_surf.trace().observer() ); 
@@ -389,8 +397,142 @@ TEST_CASE( "Bullet Shape Tracer Photometric Values Test", "[bullet][shapetracer]
 }
 #endif
 
-TEST_CASE( "Bullet Shape Tracer Photometric Values Test", "[bullet][shapetracer][photometric][array]") {
+TEST_CASE( "Bullet Shape Tracer Photometric Array Test", "[bullet][shapetracer][photometric][array]") {
     const double tolerance = 1.0e-6;
 
+    std::string objfile = psmrts_formats_path( "obj/data/bennu_20facets.obj" );
+
+    psmrts::bullet::PsmrtsBulletWorldModel bt_world( psmrts::bullet::PsmrtsBulletMeshMap ( psmrts::PsmrtsOBJFormat( objfile ) ), objfile );
+    psmrts::BulletShapeTracer b_tracer( bt_world );
+
+    // Max radius of object: 0.28306500000006685
+    const double max_radius = bt_world.mesh().maximum_radius();
+
+    // Photometric Trace 1
+    Eigen::Vector3d observer1;
+    double radius = 1.0;
+    double obs_long1 = psmrts::degrees_to_radians( 45.0 );
+    double obs_lat1  = psmrts::degrees_to_radians( 45.0 );
+    latrec_c ( radius, obs_long1, obs_lat1, observer1.data() );
+    observer1 = observer1 * 10.0;
+
+    Eigen::Vector3d surf1;
+    double surf_lon1 = psmrts::degrees_to_radians( 45.0 );
+    double surf_lat1 = psmrts::degrees_to_radians( 50.0 );
+    latrec_c ( radius, surf_lon1, surf_lat1, surf1.data() );
+
+    Eigen::Vector3d surf_obs1 = surf1 * (max_radius + 1.5);
+    psmrts::PRQRayTrace prq_surf1(surf_obs1, -surf_obs1 );
+    CHECK( b_tracer.process( prq_surf1 ) == true );
+    CHECK( surf_obs1 == prq_surf1.trace().observer() );
+
+    Eigen::Vector3d lookdir1 = prq_surf1.trace().xyz() - observer1;
+
+    psmrts::PRQRayTrace prq_ray1( observer1, lookdir1 );
+    CHECK( b_tracer.process( prq_ray1 ) == true );
+
+    Eigen::Vector3d sun_pos1;
+    double sun_lon1 = psmrts::degrees_to_radians( 20.0 );
+    double sun_lat1 = psmrts::degrees_to_radians( 20.0 );
+    latrec_c( radius, sun_lon1, sun_lat1, sun_pos1.data());
+    sun_pos1 = sun_pos1 * 50.0;
+
+    Eigen::Vector3d lookdir_s1 = prq_ray1.trace().xyz() - sun_pos1;
+    psmrts::PRQRayTrace prq_sun1(sun_pos1, lookdir_s1 );
+    CHECK( b_tracer.process( prq_sun1 ) == true );
+    CHECK( prq_sun1.trace().hasHit()    == true );
+
+    psmrts::PRQPhotometricTrace prq_photo1( observer1, lookdir1, sun_pos1 );
+    CHECK( b_tracer.process( prq_photo1 )         == true );
+    CHECK( prq_photo1.isValid()                   == true );
+    CHECK( prq_photo1.observer_trace().hasHit()   == true );
+    CHECK( prq_photo1.sun_trace().hasHit()        == true );
+
+    // Photometric Trace 2
+    Eigen::Vector3d observer2;
+    double obs_long2 = psmrts::degrees_to_radians( 45.0 );
+    double obs_lat2  = psmrts::degrees_to_radians( 45.0 );
+    latrec_c ( radius, obs_long2, obs_lat2, observer2.data() );
+    observer2 = observer2 * 10.0;
+
+    Eigen::Vector3d surf2;
+    double surf_lon2 = psmrts::degrees_to_radians( 50.0 );
+    double surf_lat2 = psmrts::degrees_to_radians( 45.0 );
+    latrec_c ( radius, surf_lon2, surf_lat2, surf2.data() );
+
+    Eigen::Vector3d surf_obs2 = surf2 * (max_radius + 1.5);
+    psmrts::PRQRayTrace prq_surf2(surf_obs2, -surf_obs2 );
+    CHECK( b_tracer.process( prq_surf2 ) == true );
+    CHECK( surf_obs2 == prq_surf2.trace().observer() );
+
+    Eigen::Vector3d lookdir2 = prq_surf2.trace().xyz() - observer2;
+
+    psmrts::PRQRayTrace prq_ray2( observer2, lookdir2 );
+    CHECK( b_tracer.process( prq_ray2 ) == true );
+
+    Eigen::Vector3d sun_pos2;
+    double sun_lon2 = psmrts::degrees_to_radians( 20.0 );
+    double sun_lat2 = psmrts::degrees_to_radians( 20.0 );
+    latrec_c( radius, sun_lon2, sun_lat2, sun_pos2.data());
+    sun_pos2 = sun_pos2 * 50.0;
+
+    Eigen::Vector3d lookdir_s2 = prq_ray2.trace().xyz() - sun_pos2;
+    psmrts::PRQRayTrace prq_sun2(sun_pos2, lookdir_s2 );
+    CHECK( b_tracer.process( prq_sun2 ) == true );
+    CHECK( prq_sun2.trace().hasHit()    == true );
+
+    psmrts::PRQPhotometricTrace prq_photo2( observer2, lookdir2, sun_pos2 );
+    CHECK( b_tracer.process( prq_photo2 )         == true );
+    CHECK( prq_photo2.isValid()                   == true );
+    CHECK( prq_photo2.observer_trace().hasHit()   == true );
+    CHECK( prq_photo2.sun_trace().hasHit()        == true );
+    
+    // Photometric Trace 3 (No hit condition for observer / sun)
+    Eigen::Vector3d observer3;
+    double obs_long3 = psmrts::degrees_to_radians( 45.0 );
+    double obs_lat3  = psmrts::degrees_to_radians( 45.0 );
+    latrec_c ( radius, obs_long3, obs_lat3, observer3.data() );
+    observer3 = observer3 * 10.0;
+
+    Eigen::Vector3d surf3;
+    double surf_lon3 = psmrts::degrees_to_radians( 120.0 );
+    double surf_lat3 = psmrts::degrees_to_radians( -45.0 );
+    latrec_c ( radius, surf_lon3, surf_lat3, surf3.data() );
+
+    Eigen::Vector3d lookdir3 = surf3 - observer3;
+
+    psmrts::PRQRayTrace prq_ray3( observer3, lookdir3 );
+    CHECK( b_tracer.process( prq_ray3 ) == false );
+    CHECK( prq_ray3.trace().hasHit() == false );
+
+    Eigen::Vector3d sun_pos3;
+    double sun_lon3 = psmrts::degrees_to_radians( 20.0 );
+    double sun_lat3 = psmrts::degrees_to_radians( 20.0 );
+    latrec_c( radius, sun_lon3, sun_lat3, sun_pos3.data());
+    sun_pos3 = sun_pos3 * 50.0;
+
+    Eigen::Vector3d lookdir_s3 = prq_ray3.trace().xyz() - sun_pos3;
+    psmrts::PRQRayTrace prq_sun3(sun_pos3, lookdir_s3 );
+    CHECK( b_tracer.process( prq_sun3 ) == false );
+    CHECK( prq_sun3.trace().hasHit()    == false );
+
+    psmrts::PRQPhotometricTrace prq_photo3( observer3, lookdir3, sun_pos3 );
+    CHECK( b_tracer.process( prq_photo3 )         == false );
+    CHECK( prq_photo3.isValid()                   == false );
+    CHECK( prq_photo3.observer_trace().hasHit()   == false );
+    CHECK( prq_photo3.sun_trace().hasHit()        == false );
+
+    psmrts::PRQPhotometricTraceArray photo_array;
+    CHECK( b_tracer.process( photo_array ) == false );
+
+    // add one miss, should still be false
+    photo_array.add_trace( prq_photo3 );
+    CHECK( b_tracer.process( photo_array ) == false );
+
+    // add two hits, should now be true - array needs at least 1 hit
+    photo_array.add_trace( prq_photo1 );
+    photo_array.add_trace( prq_photo2 );
+    CHECK( b_tracer.process( photo_array ) == true );
 
 }
+
