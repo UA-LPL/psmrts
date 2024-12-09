@@ -67,7 +67,7 @@ namespace psmrts  {
 
       /** Total verticies in the model */
       virtual size_t vertex_count() const {
-        return ( m_model.plate_count() );
+        return ( m_model.vertex_count() ); // was plate_count() - kab
       };
 
       /** Returns the maximum radius in the modek */

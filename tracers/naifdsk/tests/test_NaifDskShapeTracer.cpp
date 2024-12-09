@@ -293,3 +293,140 @@ TEST_CASE( "NAIF Dsk Shape Tracer Photometric Values Test", "[naifdsk][shapetrac
     // Related to lookdir calculation handling?
 
 }
+
+TEST_CASE( "NAIF Dsk Shape Tracer Photometric Array Test", "[naifdsk][shapetracer][photometric][array]") {
+    const double tolerance = 1.0e-6;
+
+    std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
+    naif::DskKernelModel dsk( dskfile );
+    naif::DskSegment segment = dsk.segment();
+    psmrts::NaifDskShapeTracer d_tracer( dsk );
+
+    const double max_radius = dsk.maximum_radius();
+
+    // Photometric Trace 1
+    Eigen::Vector3d observer1;
+    double radius = 1.0;
+    double obs_long1 = psmrts::degrees_to_radians( 45.0 );
+    double obs_lat1  = psmrts::degrees_to_radians( 45.0 );
+    latrec_c ( radius, obs_long1, obs_lat1, observer1.data() );
+    observer1 = observer1 * 10.0;
+
+    Eigen::Vector3d surf1;
+    double surf_lon1 = psmrts::degrees_to_radians( 45.0 );
+    double surf_lat1 = psmrts::degrees_to_radians( 50.0 );
+    latrec_c ( radius, surf_lon1, surf_lat1, surf1.data() );
+
+    Eigen::Vector3d surf_obs1 = surf1 * (max_radius + 1.5);
+    psmrts::PRQRayTrace prq_surf1(surf_obs1, -surf_obs1 );
+    CHECK( d_tracer.process( prq_surf1 ) == true );
+    CHECK( surf_obs1 == prq_surf1.trace().observer() );
+
+    Eigen::Vector3d lookdir1 = prq_surf1.trace().xyz() - observer1;
+
+    psmrts::PRQRayTrace prq_ray1( observer1, lookdir1 );
+    CHECK( d_tracer.process( prq_ray1 ) == true );
+
+    Eigen::Vector3d sun_pos1;
+    double sun_lon1 = psmrts::degrees_to_radians( 20.0 );
+    double sun_lat1 = psmrts::degrees_to_radians( 20.0 );
+    latrec_c( radius, sun_lon1, sun_lat1, sun_pos1.data());
+    sun_pos1 = sun_pos1 * 50.0;
+
+    Eigen::Vector3d lookdir_s1 = prq_ray1.trace().xyz() - sun_pos1;
+    psmrts::PRQRayTrace prq_sun1(sun_pos1, lookdir_s1 );
+    CHECK( d_tracer.process( prq_sun1 ) == true );
+    CHECK( prq_sun1.trace().hasHit()    == true );
+
+    psmrts::PRQPhotometricTrace prq_photo1( observer1, lookdir1, sun_pos1 );
+    CHECK( d_tracer.process( prq_photo1 )         == true );
+    CHECK( prq_photo1.isValid()                   == true );
+    CHECK( prq_photo1.observer_trace().hasHit()   == true );
+    CHECK( prq_photo1.sun_trace().hasHit()        == true );
+
+    // Photometric Trace 2
+    Eigen::Vector3d observer2;
+    double obs_long2 = psmrts::degrees_to_radians( 45.0 );
+    double obs_lat2  = psmrts::degrees_to_radians( 45.0 );
+    latrec_c ( radius, obs_long2, obs_lat2, observer2.data() );
+    observer2 = observer2 * 10.0;
+
+    Eigen::Vector3d surf2;
+    double surf_lon2 = psmrts::degrees_to_radians( 50.0 );
+    double surf_lat2 = psmrts::degrees_to_radians( 45.0 );
+    latrec_c ( radius, surf_lon2, surf_lat2, surf2.data() );
+
+    Eigen::Vector3d surf_obs2 = surf2 * (max_radius + 1.5);
+    psmrts::PRQRayTrace prq_surf2(surf_obs2, -surf_obs2 );
+    CHECK( d_tracer.process( prq_surf2 ) == true );
+    CHECK( surf_obs2 == prq_surf2.trace().observer() );
+
+    Eigen::Vector3d lookdir2 = prq_surf2.trace().xyz() - observer2;
+
+    psmrts::PRQRayTrace prq_ray2( observer2, lookdir2 );
+    CHECK( d_tracer.process( prq_ray2 ) == true );
+
+    Eigen::Vector3d sun_pos2;
+    double sun_lon2 = psmrts::degrees_to_radians( 20.0 );
+    double sun_lat2 = psmrts::degrees_to_radians( 20.0 );
+    latrec_c( radius, sun_lon2, sun_lat2, sun_pos2.data());
+    sun_pos2 = sun_pos2 * 50.0;
+
+    Eigen::Vector3d lookdir_s2 = prq_ray2.trace().xyz() - sun_pos2;
+    psmrts::PRQRayTrace prq_sun2(sun_pos2, lookdir_s2 );
+    CHECK( d_tracer.process( prq_sun2 ) == true );
+    CHECK( prq_sun2.trace().hasHit()    == true );
+
+    psmrts::PRQPhotometricTrace prq_photo2( observer2, lookdir2, sun_pos2 );
+    CHECK( d_tracer.process( prq_photo2 )         == true );
+    CHECK( prq_photo2.isValid()                   == true );
+    CHECK( prq_photo2.observer_trace().hasHit()   == true );
+    CHECK( prq_photo2.sun_trace().hasHit()        == true );
+
+    // Photometric Trace 3 (No hit condition for observer / sun)
+    Eigen::Vector3d observer3;
+    double obs_long3 = psmrts::degrees_to_radians( 45.0 );
+    double obs_lat3  = psmrts::degrees_to_radians( 45.0 );
+    latrec_c ( radius, obs_long3, obs_lat3, observer3.data() );
+    observer3 = observer3 * 10.0;
+
+    Eigen::Vector3d surf3;
+    double surf_lon3 = psmrts::degrees_to_radians( 120.0 );
+    double surf_lat3 = psmrts::degrees_to_radians( -45.0 );
+    latrec_c ( radius, surf_lon3, surf_lat3, surf3.data() );
+
+    Eigen::Vector3d lookdir3 = surf3 - observer3;
+
+    psmrts::PRQRayTrace prq_ray3( observer3, lookdir3 );
+    CHECK( d_tracer.process( prq_ray3 ) == false );
+    CHECK( prq_ray3.trace().hasHit() == false );
+
+    Eigen::Vector3d sun_pos3;
+    double sun_lon3 = psmrts::degrees_to_radians( 20.0 );
+    double sun_lat3 = psmrts::degrees_to_radians( 20.0 );
+    latrec_c( radius, sun_lon3, sun_lat3, sun_pos3.data());
+    sun_pos3 = sun_pos3 * 50.0;
+
+    Eigen::Vector3d lookdir_s3 = prq_ray3.trace().xyz() - sun_pos3;
+    psmrts::PRQRayTrace prq_sun3(sun_pos3, lookdir_s3 );
+    CHECK( d_tracer.process( prq_sun3 ) == true ); // Should be false?
+    CHECK( prq_sun3.trace().hasHit()    == true ); // should be false?
+
+    psmrts::PRQPhotometricTrace prq_photo3( observer3, lookdir3, sun_pos3 );
+    CHECK( d_tracer.process( prq_photo3 )         == false );
+    CHECK( prq_photo3.isValid()                   == false );
+    CHECK( prq_photo3.observer_trace().hasHit()   == false );
+    CHECK( prq_photo3.sun_trace().hasHit()        == false );
+
+    psmrts::PRQPhotometricTraceArray photo_array;
+    CHECK( d_tracer.process( photo_array ) == false );
+
+    // add one miss, should still be false
+    photo_array.add_trace( prq_photo3 );
+    CHECK( d_tracer.process( photo_array ) == false );
+
+    // add two hits, should now be true - array needs at least 1 hit
+    photo_array.add_trace( prq_photo1 );
+    photo_array.add_trace( prq_photo2 );
+    CHECK( d_tracer.process( photo_array ) == true );
+}

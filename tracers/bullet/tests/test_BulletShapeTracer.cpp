@@ -103,10 +103,6 @@ false,\"vectortype\":[\"double\",\"float\"]},\"tracer\"]");
     CHECK( b_tracer.process( rt_array2 ) == false ); 
 }
 
-// Load a mesh and inspect contents of Bullet world
-
-// Load mesh and run some traces
-
 TEST_CASE( "Bullet Shape Tracer Test", "[bullet][shapetracer]" ) {
     const double tolerance_km = 1.0e-6;
 
