@@ -4,6 +4,7 @@
 #include <PsmrtsOBJFormat.hpp>
 #include <PsmrtsUtilities.hpp>
 
+/**
 TEST_CASE( "Bullet Tracer Model - Default Constructor", "[default][bullet][tracer][model]") {
     psmrts::bullet::BulletTracerModel b_model;
     
@@ -23,6 +24,7 @@ TEST_CASE( "Bullet Tracer Model - Default Constructor", "[default][bullet][trace
     psmrts::PsmrtsTracerModel *e_model   = b_model.ellipsoid();
     CHECK( e_model->tracer_model_name() == "ellipsoid" );
 }
+*/
 
 TEST_CASE( "Bullet Tracer Model - Ray Trace / Values Test", "[default][bullet][tracer][model][values]") {
     const double tolerance = 1.0e-6;
@@ -85,4 +87,11 @@ TEST_CASE( "Bullet Tracer Model - Ray Trace / Values Test", "[default][bullet][t
     CHECK_THAT( f_normal[0], Catch::Matchers::WithinAbs( 0.0, tolerance) );
     CHECK_THAT( f_normal[1], Catch::Matchers::WithinAbs( 0.525731, tolerance) );
     CHECK_THAT( f_normal[2], Catch::Matchers::WithinAbs( 0.850651, tolerance) );
+
+    psmrts::PsmrtsTracerModel *b2_model   = b_model.clone();
+    CHECK( b2_model                      != &b_model );
+    CHECK( b2_model->tracer_model_name() == "bullet" );
+
+    psmrts::PsmrtsTracerModel *e_model   = b_model.ellipsoid();
+    CHECK( e_model->tracer_model_name() == "NaifEllipsoid" );
 }

@@ -58,6 +58,8 @@ TEST_CASE( "PsmrtsStridingBuffer Values Test", "[striding][buffer][values]") {
     CHECK_THROWS( stride_buffer.get(45) );
     CHECK_THROWS( stride_buffer.get(35) ); 
 
+    CHECK_THROWS( stride_buffer.validate_index(-1) == false );
+
     psmrts::PsmrtsStridingBuffer stride_slice = stride_buffer.slice(4, 5);
     CHECK( stride_slice.size()        == 5 );
     CHECK( stride_slice.stride_size() == 4 );
