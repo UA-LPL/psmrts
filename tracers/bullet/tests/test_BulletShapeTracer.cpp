@@ -12,6 +12,16 @@ TEST_CASE ( "Bullet Shape Tracer - Default Constructor", "[default][bullet][shap
     psmrts::PRQFeatures features;
     CHECK( b_tracer.process( features ) == true );
 
+    nlohmann::ordered_json j_output;
+    nlohmann::ordered_json j_add;
+    j_add["name"]        = "bullet";
+    j_add["product"]     = "shapetracer";
+    j_add["mesh"]        = true;
+    j_add["optimizebvh"] = false;
+    j_add["vectortype"]  = { "double", "float" };
+    j_output += j_add;
+
+    // WIP
     CHECK( features.to_string()     == "[{\"name\":\"bullet\",\"product\":\"shapetracer\",\"mesh\":true,\"optimizebvh\":\
 false,\"vectortype\":[\"double\",\"float\"]}]");
     CHECK( features.config().dump() == "[{\"name\":\"bullet\",\"product\":\"shapetracer\",\"mesh\":true,\"optimizebvh\":\

@@ -197,5 +197,8 @@ TEST_CASE( "PsmrtsVector3 Slice / Deep Copy Test", "[vector3][buffer][slice][cop
 
   CHECK ( p_model.size() != p_slice.size() );
   CHECK ( p_model.value(2) == p_slice.value(0) );
+
+  // slice constructor
+  CHECK_NOTHROW( psmrts::PsmrtsVector3<int> ( p_model, 0,  n_data ) );
   
 }

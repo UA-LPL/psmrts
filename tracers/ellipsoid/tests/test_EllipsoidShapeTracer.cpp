@@ -10,9 +10,23 @@ TEST_CASE( "Ellipsoid Shape Tracer - Request Default Constructor", "[default][el
     psmrts::PRQFeatures features;
     CHECK( e_tracer.process( features ) == true );
 
-    CHECK( features.to_string() == "[{\"name\":\"ellisoid\",\"product\":\"shapetracer\",\"mesh\":false,\"radii\":[1,2,3]}]" ); 
-    CHECK( features.config().dump() == "[{\"name\":\"ellisoid\",\"product\":\"shapetracer\",\"mesh\":false,\"radii\":[1,2,3]}]");
-    // feature-specific functions testing in bullet version
+    nlohmann::ordered_json j_output;
+    nlohmann::ordered_json j_add;
+    j_add["name"] = "ellisoid" ;
+    j_add["product"] = "shapetracer" ;
+    j_add["mesh"] = false ;
+
+    // Note: this reflects the object can have 1, 2, or 3 radii values
+    j_add["radii"] = { 1, 2, 3 } ;
+
+    j_output += j_add;
+
+    auto feat_diff = nlohmann::ordered_json::diff(features.config(), j_output);
+    CHECK( feat_diff.empty() );
+
+    CHECK( features.to_string() == features.config().dump() );
+
+    // Note: feature-specific functions testing in bullet version
 }
 
 TEST_CASE( "Ellipsoid Shape Tracer Test", "[ellipsoid][shapetracer]") {

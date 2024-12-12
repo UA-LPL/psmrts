@@ -1,6 +1,7 @@
 #include <psmrts_catch2_environment.hpp>
 
 #include <PsmrtsStridingBuffer.hpp>
+#include <PsmrtsBufferData.hpp>
 
 /*
 StridingBuffer allocates and assigns data as bytes, rather than hard data.
@@ -59,6 +60,7 @@ TEST_CASE( "PsmrtsStridingBuffer Values Test", "[striding][buffer][values]") {
     CHECK_THROWS( stride_buffer.get(35) ); 
 
     CHECK_THROWS( stride_buffer.validate_index(-1) == false );
+    CHECK( stride_buffer.validate_index(-1, false) == false ); 
 
     psmrts::PsmrtsStridingBuffer stride_slice = stride_buffer.slice(4, 5);
     CHECK( stride_slice.size()        == 5 );
@@ -77,4 +79,14 @@ TEST_CASE( "PsmrtsStridingBuffer Values Test", "[striding][buffer][values]") {
     CHECK( *stride_deep.get(1)       == 4.0 ); 
     CHECK( &stride_deep.ref(9)       == stride_deep.get(9) );
     CHECK( stride_deep.validate_index(0) == true );
+
+    // make_slice( start_index = 0, nstrides = 0 )
+    psmrts::PsmrtsStridingBuffer slice_error;
+    CHECK_THROWS( slice_error = stride_buffer.slice( -1, 5 ) );
+    CHECK_THROWS( slice_error = stride_buffer.slice( 0, -1 ) );
+    CHECK_NOTHROW( slice_error = stride_buffer.slice( 0, 0 ) );
+
+    // validate_stride_buffer() fail check
+    psmrts::PsmrtsBufferData pb_data;
+    CHECK_THROWS( psmrts::PsmrtsStridingBuffer( pb_data, 1, 0 ));
 }

@@ -12,10 +12,19 @@ TEST_CASE("NAIF Dsk Shape Tracer - Default Constructor", "[default][naifdsk][sha
     psmrts::PRQFeatures features_string;
     CHECK( dsk_string_tracer.process( features_string ) == true ); 
 
-    CHECK( features_string.to_string() == "[[[\"name\",\"bullet\"],[\"product\",\"shapetracer\"],[\"mesh\",true]\
-,[\"optimizebvh\",false],[\"vectortype\",[\"double\",\"float\"]]]]" );
-    CHECK( features_string.config().dump() == "[[[\"name\",\"bullet\"],[\"product\",\"shapetracer\"],[\"mesh\",true]\
-,[\"optimizebvh\",false],[\"vectortype\",[\"double\",\"float\"]]]]" );
+    nlohmann::ordered_json j_output;
+    nlohmann::ordered_json j_add;
+    j_add += { "name" , "bullet" };
+    j_add += { "product" , "shapetracer" };
+    j_add += { "mesh" , true };
+    j_add += { "optimizebvh" , false };
+    j_add += { "vectortype" , { "double", "float" } };
+    j_output += j_add;
+
+    auto feat_diff = nlohmann::ordered_json::diff(features_string.config(), j_output);
+    CHECK( feat_diff.empty() );
+    
+    CHECK( features_string.to_string() == features_string.config().dump());
 
     naif::DskKernelModel dsk( dskfile );
     psmrts::NaifDskShapeTracer dsk_model_tracer( dsk );
