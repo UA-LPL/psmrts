@@ -21,17 +21,19 @@ TEST_CASE ( "Bullet Shape Tracer - Default Constructor", "[default][bullet][shap
     j_add["vectortype"]  = { "double", "float" };
     j_output += j_add;
 
-    // WIP
-    CHECK( features.to_string()     == "[{\"name\":\"bullet\",\"product\":\"shapetracer\",\"mesh\":true,\"optimizebvh\":\
-false,\"vectortype\":[\"double\",\"float\"]}]");
-    CHECK( features.config().dump() == "[{\"name\":\"bullet\",\"product\":\"shapetracer\",\"mesh\":true,\"optimizebvh\":\
-false,\"vectortype\":[\"double\",\"float\"]}]");
+    auto feat_diff = nlohmann::ordered_json::diff(features.config(), j_output);
 
+    CHECK( feat_diff.empty() );
+
+    CHECK( features.to_string() == features.config().dump() );
+    
+    j_output += "tracer";
     psmrts_json add = "tracer";
     CHECK_NOTHROW(features.add_feature(add));
-    CHECK(features.to_string() == "[{\"name\":\"bullet\",\"product\":\"shapetracer\",\"mesh\":true,\"optimizebvh\":\
-false,\"vectortype\":[\"double\",\"float\"]},\"tracer\"]");
-    // etc...
+    
+    auto feat_add = nlohmann::ordered_json::diff(features.config(), j_output );
+
+    CHECK( feat_add.empty() );
 
     // Base Request Functions
     CHECK( features.name() == "PRQFeatures" ); 
