@@ -29,7 +29,7 @@ namespace psmrts {
       struct is_process_callable : std::false_type { };
 
       template < typename T, typename... Args>
-      struct is_process_callable< bool, T, std::void_t<decltype( std::declval<T>.process( std::declval<Args>()... ))>, Args...> : std::true_type {};
+      struct is_process_callable< bool, T, std::void_t<decltype( std::declval<T>().process( std::declval<Args>()... ))>, Args...> : std::true_type {};
 
       template < typename R, typename T, typename... Args>
       inline constexpr bool has_process_method = is_process_callable<R, T, Args...>::value;
