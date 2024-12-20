@@ -6,8 +6,9 @@ testopts=""
 codecovopts=""
 extraopts=""
 buildopts="-DCMAKE_BUILD_TYPE=Release"
+usecpus=""
 
-while getopts ":htcdx" o; do
+while getopts ":htcdxj:" o; do
     case "${o}" in
         t)
             testopts="-DBUILD_TESTING=ON"
@@ -23,6 +24,9 @@ while getopts ":htcdx" o; do
         d)
             buildopts="-DCMAKE_BUILD_TYPE=Debug"
             ;;
+        j)
+            usecpus="-j ${OPTARG}"
+            ;;
         *)
             echo "Usage: $0 [-t] [-c] [-x]"
             return 1
@@ -34,4 +38,4 @@ shift $((OPTIND-1))
 
 mkdir -p build
 cmake -B build . ${buildopts} ${testopts} ${codecovopts} ${extraopts} -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake
-make  -C build
+make  -C build ${usecpus}
