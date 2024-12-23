@@ -72,7 +72,7 @@ if( BUILD_TESTING )
       NAME coverage
       EXECUTABLE ctest --schedule-random
       DEPENDENCIES psmrts_test_suite naif_test_suite bullet_test_suite
-      EXCLUDE "build/vcpkg_installed/*"
+      EXCLUDE ".*/test_.*\\*.cpp$" "build/vcpkg_installed/*"
     )
   endif(BUILD_COVERAGE)
 
