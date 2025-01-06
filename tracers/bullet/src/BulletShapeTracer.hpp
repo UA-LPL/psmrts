@@ -21,6 +21,7 @@ namespace psmrts  {
       virtual ~BulletShapeTracer() { }
 
       inline bool process ( PRQRayTrace &trace ) const {
+        trace.trace().validate_lookdir();
         Eigen::Vector3d observer ( trace.trace().observer() );
         Eigen::Vector3d lookdir ( trace.trace().lookdir() );
         return ( this->ray_trace( observer, lookdir, trace.trace() ) );

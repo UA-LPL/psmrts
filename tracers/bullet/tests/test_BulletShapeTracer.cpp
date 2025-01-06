@@ -50,10 +50,11 @@ TEST_CASE ( "Bullet Shape Tracer - Default Constructor", "[default][bullet][shap
     CHECK_NOTHROW( features.clear_errors() );
 
     psmrts::PRQPhotometricTrace photoTrace;
-    CHECK( b_tracer.process( photoTrace )          == false ); 
+    CHECK_THROWS( b_tracer.process( photoTrace ) ); 
     CHECK( photoTrace.isValid()                    == false );
     CHECK( photoTrace.observer_trace().hasHit()    == false );
     CHECK( photoTrace.sun_trace().hasHit()         == false );
+
     CHECK_THAT( photoTrace.incidence(), Catch::Matchers::IsNaN() );
     CHECK_THAT( photoTrace.emission(),  Catch::Matchers::IsNaN() );
     CHECK_THAT( photoTrace.phase(),     Catch::Matchers::IsNaN() );
@@ -73,7 +74,7 @@ TEST_CASE ( "Bullet Shape Tracer - Default Constructor", "[default][bullet][shap
 
     CHECK( pt_array.size() == 2 );
 
-    CHECK( b_tracer.process( pt_array ) == false ); 
+    CHECK_THROWS( b_tracer.process( pt_array ) ); 
     
     // Photometric Array List Default
     std::vector<psmrts::PRQPhotometricTrace> pt_list;
@@ -84,7 +85,7 @@ TEST_CASE ( "Bullet Shape Tracer - Default Constructor", "[default][bullet][shap
     CHECK( pt_array2.size() == 2 );
     CHECK( pt_array2.traces().empty() == false );
 
-    CHECK( b_tracer.process( pt_array2 ) == false ); 
+    CHECK_THROWS( b_tracer.process( pt_array2 ) ); 
 
     // Ray Trace Array Default
     psmrts::PRQRayTraceArray rt_array;
@@ -101,7 +102,7 @@ TEST_CASE ( "Bullet Shape Tracer - Default Constructor", "[default][bullet][shap
 
     CHECK( rt_array.size() == 2 );
 
-    CHECK( b_tracer.process( rt_array ) == false ); 
+    CHECK_THROWS( b_tracer.process( rt_array ) ); 
 
     // Ray Trace Array List Default
     std::vector<psmrts::PRQRayTrace> rt_list;
@@ -112,7 +113,7 @@ TEST_CASE ( "Bullet Shape Tracer - Default Constructor", "[default][bullet][shap
     CHECK( rt_array2.size() == 2 );
     CHECK( rt_array2.traces().empty() == false  );
 
-    CHECK( b_tracer.process( rt_array2 ) == false ); 
+    CHECK_THROWS( b_tracer.process( rt_array2 ) ); 
 }
 
 TEST_CASE( "Bullet Shape Tracer Test", "[bullet][shapetracer]" ) {
@@ -521,7 +522,7 @@ TEST_CASE( "Bullet Shape Tracer Photometric Array Test", "[bullet][shapetracer][
 
     Eigen::Vector3d lookdir_s3 = prq_ray3.trace().xyz() - sun_pos3;
     psmrts::PRQRayTrace prq_sun3(sun_pos3, lookdir_s3 );
-    CHECK( b_tracer.process( prq_sun3 ) == false );
+    CHECK_THROWS( b_tracer.process( prq_sun3 ) );
     CHECK( prq_sun3.trace().hasHit()    == false );
 
     psmrts::PRQPhotometricTrace prq_photo3( observer3, lookdir3, sun_pos3 );

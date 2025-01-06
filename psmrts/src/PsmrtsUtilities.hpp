@@ -119,6 +119,15 @@ namespace psmrts {
     return ( std::isnan( v ) );
   }
 
+  inline bool isnull( const Eigen::Vector3d &v ) {
+    for ( size_t i = 0 ; i < v.size() ; i++ ) {
+      if ( isnull( v[i] ) ) { 
+        return ( true );
+      }
+    }
+    return ( false );
+  }
+
   /** Convert degrees to radians */
   inline double degrees_to_radians( const double v_d ) {
     return ( ( v_d / 180.0 * M_PI ) );
