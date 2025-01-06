@@ -4,7 +4,7 @@
 #include <PsmrtsOBJFormat.hpp>
 #include <PsmrtsUtilities.hpp>
 
-/**
+
 TEST_CASE( "Bullet Tracer Model - Default Constructor", "[default][bullet][tracer][model]") {
     psmrts::bullet::BulletTracerModel b_model;
     
@@ -17,14 +17,10 @@ TEST_CASE( "Bullet Tracer Model - Default Constructor", "[default][bullet][trace
     psmrts::PsmrtsTracerModel *b2_model   = b_model.clone();
     CHECK( b2_model                      != &b_model );
     CHECK( b2_model->tracer_model_name() == "bullet" );
-    // Interesting error here: 
-    // "due to unexpected exception with message:
-    // Invalid radii (0.000000,0.000000,0.000000 - must be > 0" - missing that right paren, it seems
-
-    psmrts::PsmrtsTracerModel *e_model   = b_model.ellipsoid();
-    CHECK( e_model->tracer_model_name() == "ellipsoid" );
+   
+    CHECK_THROWS( b_model.ellipsoid() );
 }
-*/
+
 
 TEST_CASE( "Bullet Tracer Model - Ray Trace / Values Test", "[default][bullet][tracer][model][values]") {
     const double tolerance = 1.0e-6;

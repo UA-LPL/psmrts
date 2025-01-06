@@ -80,6 +80,33 @@ TEST_CASE( "Ellipsoid Shape Tracer Test", "[ellipsoid][shapetracer]") {
     CHECK_THAT( xyz[0], Catch::Matchers::WithinAbs( prq_ray.trace().xyz()[0], tolerance_km));
     CHECK_THAT( xyz[1], Catch::Matchers::WithinAbs( prq_ray.trace().xyz()[1], tolerance_km));
     CHECK_THAT( xyz[2], Catch::Matchers::WithinAbs( prq_ray.trace().xyz()[2], tolerance_km));
+
+    psmrts::PRQFacet prq_facet( prq_ray.trace() );
+    CHECK( prq_facet.isValid()                == true ); // Returns ray validity?
+    CHECK( e_tracer.process( prq_facet )      == false );
+    CHECK( prq_facet.trace().segment_number() == -1 );
+    CHECK( prq_facet.trace().plateid()        == -1 );
+
+    CHECK( prq_facet.facet().m_indexes[0] == -1 );
+    CHECK( prq_facet.facet().m_indexes[1] == -1 );
+    CHECK( prq_facet.facet().m_indexes[2] == -1 );
+
+    CHECK( prq_facet.facet().m_normal[0] == 0 );
+    CHECK( prq_facet.facet().m_normal[1] == 0 );
+    CHECK( prq_facet.facet().m_normal[2] == 0 );
+
+    CHECK( prq_facet.facet().m_vector1[0] == 0 );
+    CHECK( prq_facet.facet().m_vector1[1] == 0 );
+    CHECK( prq_facet.facet().m_vector1[2] == 0 );
+
+    CHECK( prq_facet.facet().m_vector2[0] == 0 );
+    CHECK( prq_facet.facet().m_vector2[1] == 0 );
+    CHECK( prq_facet.facet().m_vector2[2] == 0 );
+
+    CHECK( prq_facet.facet().m_vector3[0] == 0 );
+    CHECK( prq_facet.facet().m_vector3[1] == 0 );
+    CHECK( prq_facet.facet().m_vector3[2] == 0 );
+
 }
 
 TEST_CASE( "Ellipsoid Shape Tracer Ray Trace Array Test", "[ellipsoid][shapetracer][raytrace][array]") {
@@ -142,7 +169,7 @@ TEST_CASE( "Ellipsoid Shape Tracer Ray Trace Array Test", "[ellipsoid][shapetrac
     double obs_long3 = 45.0 * rpd_c();
     double obs_lat3 = 45.0 * rpd_c();
     latrec_c ( radius3, obs_long3, obs_lat3, obs3.data() );
-    obs3 = obs3 * 10.0;
+    obs3 = obs3 * 2.5;
 
     Eigen::Vector3d surf3;
     double surf_lon3 = 120.0 * rpd_c();
@@ -152,16 +179,18 @@ TEST_CASE( "Ellipsoid Shape Tracer Ray Trace Array Test", "[ellipsoid][shapetrac
     Eigen::Vector3d lookdir3 = surf3 - obs3; 
 
     psmrts::PRQRayTrace prq_spt3(obs3, lookdir3 );
-    //CHECK( e_tracer.process( prq_spt3 ) == false ); - should be false
-    //CHECK( prq_spt3.trace().hasHit() == false ); - should be false
-
+    CHECK( e_tracer.process( prq_spt3 ) == true ); // Different from Bullet
+    CHECK( prq_spt3.trace().hasHit() == true ); 
+    // Check the rays xyz - prq_spt3.trace().xyz(), convert to lat/lon
+    // should match the ones that surf3.data() contains
+    
     psmrts::PRQRayTraceArray ray_array;
     // empty, no hits
     CHECK( e_tracer.process( ray_array ) == false );
 
     // add one miss - should still be false
     ray_array.add_trace(prq_spt3);
-    // CHECK( e_tracer.process( ray_array ) == false ); - related to false above
+    CHECK( e_tracer.process( ray_array ) == true ); // - related to false above
 
     // add two hits
     ray_array.add_trace(prq_spt1);

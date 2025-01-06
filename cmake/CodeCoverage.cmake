@@ -533,7 +533,7 @@ function(setup_target_for_coverage_gcovr_html)
     endforeach()
 
     # For testing purposes: Attempting to remove .test_files from report
-    list(APPEND GCOVR_EXCLUDES ".*/test_.*\\.cpp$")
+    # list(APPEND GCOVR_EXCLUDES ".*/test_.*\\.cpp$")
 
     list(REMOVE_DUPLICATES GCOVR_EXCLUDES)
 

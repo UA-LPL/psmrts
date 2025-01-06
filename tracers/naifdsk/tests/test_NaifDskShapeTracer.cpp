@@ -90,6 +90,35 @@ TEST_CASE("NAIF Dsk Shape Tracer Test", "[naifdsk][shapetracer]") {
     CHECK_THAT( xyz[0], Catch::Matchers::WithinAbs( prq_ray.trace().xyz()[0], tolerance_km )); 
     CHECK_THAT( xyz[1], Catch::Matchers::WithinAbs( prq_ray.trace().xyz()[1], tolerance_km )); 
     CHECK_THAT( xyz[2], Catch::Matchers::WithinAbs( prq_ray.trace().xyz()[2], tolerance_km )); 
+
+    // Compare Values to OBJ/Bullet - should they be the same given similar parameters?
+    psmrts::PRQFacet prq_facet( prq_ray.trace() );
+    CHECK( prq_facet.isValid() == true );
+    CHECK( d_tracer.process( prq_facet ) );
+    CHECK( prq_facet.facet().isValid() == true ); 
+    CHECK( prq_facet.prq_trace().emission() == prq_ray.emission() ); 
+
+    CHECK( prq_facet.trace().segment_number() == 2101955 );
+    CHECK( prq_facet.trace().plateid()        == 31 ); 
+    CHECK( prq_facet.facet().m_indexes[0]     == 12 );
+    CHECK( prq_facet.facet().m_indexes[1]     == 11 );
+    CHECK( prq_facet.facet().m_indexes[2]     == 5 );
+
+    CHECK_THAT( prq_facet.facet().m_normal[0], Catch::Matchers::WithinAbs( 0.00000002599305449, tolerance_km));
+    CHECK_THAT( prq_facet.facet().m_normal[1], Catch::Matchers::WithinAbs( 0.52573108811158831, tolerance_km));
+    CHECK_THAT( prq_facet.facet().m_normal[2], Catch::Matchers::WithinAbs( 0.85065082318951801, tolerance_km));
+    
+    CHECK_THAT( prq_facet.facet().m_vector1[0], Catch::Matchers::WithinAbs( -0.10100385653540001, tolerance_km ) );
+    CHECK_THAT( prq_facet.facet().m_vector1[1], Catch::Matchers::WithinAbs( 0.0, tolerance_km ) );
+    CHECK_THAT( prq_facet.facet().m_vector1[2], Catch::Matchers::WithinAbs( 0.26443149432320001, tolerance_km ) );
+
+    CHECK_THAT( prq_facet.facet().m_vector2[0], Catch::Matchers::WithinAbs( 0.10100385653540001, tolerance_km ) );
+    CHECK_THAT( prq_facet.facet().m_vector2[1], Catch::Matchers::WithinAbs( 0.0, tolerance_km ) );
+    CHECK_THAT( prq_facet.facet().m_vector2[2], Catch::Matchers::WithinAbs( 0.26443149432320001, tolerance_km ) );
+
+    CHECK_THAT( prq_facet.facet().m_vector3[0], Catch::Matchers::WithinAbs( 0.0, tolerance_km ) );
+    CHECK_THAT( prq_facet.facet().m_vector3[1], Catch::Matchers::WithinAbs( 0.26443149432320001, tolerance_km ) );
+    CHECK_THAT( prq_facet.facet().m_vector3[2], Catch::Matchers::WithinAbs( 0.10100385653540001, tolerance_km ) );
 }
 
 TEST_CASE( "NAIF Dsk Shape Tracer Ray Trace Array Test", "[naifdsk][shapetracer][raytrace][array]") {
@@ -438,4 +467,55 @@ TEST_CASE( "NAIF Dsk Shape Tracer Photometric Array Test", "[naifdsk][shapetrace
     photo_array.add_trace( prq_photo1 );
     photo_array.add_trace( prq_photo2 );
     CHECK( d_tracer.process( photo_array ) == true );
+}
+
+// This test compares facet data resulting from a dsk Ray Trace to a PRQRequest Ray Trace,
+// ensuring they target the same segment/plate.
+TEST_CASE( "NAIF Dsk Shape Tracer Ray-Facet Test", "[naifdsk][shapetracer][raytrace][facet]") {
+    const double tolerance_km = 1.0e-6;
+
+    std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
+    naif::DskKernelModel dsk( dskfile );
+    psmrts::NaifDskShapeTracer d_tracer( dsk );
+
+    const double max_radius = dsk.maximum_radius();
+
+    double dsk_lon = GENERATE( -360.0, -245.0, -175.0, -90.0, -45.0, 0.0, 45.0, 90.0, 175.0, 245.0, 360.0 );
+    double dsk_lat = GENERATE( -90.0, -75.0, -45.0, 0.0, 45.0, 75.0, 90.0 );
+
+    Eigen::Vector3d surf;
+    latrec_c( 1.0, dsk_lon, dsk_lat, surf.data() ); 
+
+    Eigen::Vector3d surf_obs = surf * (max_radius + 1.5 );
+    psmrts::PRQRayTrace prq_ray( surf_obs, -surf_obs );
+
+    CHECK( d_tracer.process( prq_ray ));
+    psmrts::PRQFacet prq_facet( prq_ray.trace() );
+    CHECK( prq_facet.isValid() == true );
+    CHECK( d_tracer.process( prq_facet ) );
+
+    psmrts::PsmrtsRayTrace dsk_ray;
+    CHECK( dsk.ray_trace( surf_obs, -surf_obs, dsk_ray) );
+    psmrts::PsmrtsRayTrace::FacetDatum dsk_facet;
+    CHECK( dsk.get_facet( dsk_ray, dsk_facet ) );
+
+    CHECK( prq_facet.trace().segment_number() == dsk_ray.datum().m_segment );
+    CHECK( prq_facet.trace().plateid()        == dsk_ray.datum().m_plateid );
+    CHECK( prq_facet.facet().m_indexes        == dsk_facet.m_indexes );
+
+    CHECK_THAT( prq_facet.facet().m_normal[0], Catch::Matchers::WithinAbs( dsk_facet.m_normal[0], tolerance_km));
+    CHECK_THAT( prq_facet.facet().m_normal[1], Catch::Matchers::WithinAbs( dsk_facet.m_normal[1], tolerance_km));
+    CHECK_THAT( prq_facet.facet().m_normal[2], Catch::Matchers::WithinAbs( dsk_facet.m_normal[2], tolerance_km));
+    
+    CHECK_THAT( prq_facet.facet().m_vector1[0], Catch::Matchers::WithinAbs( dsk_facet.m_vector1[0], tolerance_km ) );
+    CHECK_THAT( prq_facet.facet().m_vector1[1], Catch::Matchers::WithinAbs( dsk_facet.m_vector1[1], tolerance_km ) );
+    CHECK_THAT( prq_facet.facet().m_vector1[2], Catch::Matchers::WithinAbs( dsk_facet.m_vector1[2], tolerance_km ) );
+
+    CHECK_THAT( prq_facet.facet().m_vector2[0], Catch::Matchers::WithinAbs( dsk_facet.m_vector2[0], tolerance_km ) );
+    CHECK_THAT( prq_facet.facet().m_vector2[1], Catch::Matchers::WithinAbs( dsk_facet.m_vector2[1], tolerance_km ) );
+    CHECK_THAT( prq_facet.facet().m_vector2[2], Catch::Matchers::WithinAbs( dsk_facet.m_vector2[2], tolerance_km ) );
+
+    CHECK_THAT( prq_facet.facet().m_vector3[0], Catch::Matchers::WithinAbs( dsk_facet.m_vector3[0], tolerance_km ) );
+    CHECK_THAT( prq_facet.facet().m_vector3[1], Catch::Matchers::WithinAbs( dsk_facet.m_vector3[1], tolerance_km ) );
+    CHECK_THAT( prq_facet.facet().m_vector3[2], Catch::Matchers::WithinAbs( dsk_facet.m_vector3[2], tolerance_km ) );
 }

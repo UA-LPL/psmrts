@@ -116,7 +116,7 @@ TEST_CASE ( "Bullet Shape Tracer - Default Constructor", "[default][bullet][shap
     CHECK_THROWS( b_tracer.process( rt_array2 ) ); 
 }
 
-TEST_CASE( "Bullet Shape Tracer Test", "[bullet][shapetracer]" ) {
+TEST_CASE( "Bullet Shape Tracer Test - Ray Trace / Values", "[bullet][shapetracer][values]" ) {
     const double tolerance_km = 1.0e-6;
 
     std::string objfile = psmrts_formats_path( "obj/data/bennu_20facets.obj" );
@@ -182,13 +182,37 @@ TEST_CASE( "Bullet Shape Tracer Test", "[bullet][shapetracer]" ) {
 
     psmrts::PRQFacet prq_facet( prq_ray.trace() );
     CHECK( prq_facet.isValid() == true );
-    //CHECK( prq_facet.facet().isValid() == true ); \\shouldnt this be true..?
+    CHECK( b_tracer.process( prq_facet ) );
+    CHECK( prq_facet.facet().isValid() == true ); 
     CHECK( prq_facet.prq_trace().emission() == prq_ray.emission() ); 
 
     Eigen::Vector3d facet_xyz( prq_facet.trace().xyz() );
     CHECK_THAT( facet_xyz[0], Catch::Matchers::WithinAbs( xyz[0], tolerance_km));
     CHECK_THAT( facet_xyz[1], Catch::Matchers::WithinAbs( xyz[1], tolerance_km));
     CHECK_THAT( facet_xyz[2], Catch::Matchers::WithinAbs( xyz[2], tolerance_km));
+
+    // get plate id, segment id (may always be 0 in bullet)
+    CHECK( prq_facet.trace().segment_number() == 0 );
+    CHECK( prq_facet.trace().plateid()        == 30 ); 
+    CHECK( prq_facet.facet().m_indexes[0]     == 11 );
+    CHECK( prq_facet.facet().m_indexes[1]     == 14 );
+    CHECK( prq_facet.facet().m_indexes[2]     == 5 );
+
+    CHECK_THAT( prq_facet.facet().m_normal[0], Catch::Matchers::WithinAbs( 0.00000002599305449, tolerance_km));
+    CHECK_THAT( prq_facet.facet().m_normal[1], Catch::Matchers::WithinAbs( 0.52573108811158831, tolerance_km));
+    CHECK_THAT( prq_facet.facet().m_normal[2], Catch::Matchers::WithinAbs( 0.85065082318951801, tolerance_km));
+    
+    CHECK_THAT( prq_facet.facet().m_vector1[0], Catch::Matchers::WithinAbs( 0.10100385653540001, tolerance_km ) );
+    CHECK_THAT( prq_facet.facet().m_vector1[1], Catch::Matchers::WithinAbs( 0.0, tolerance_km ) );
+    CHECK_THAT( prq_facet.facet().m_vector1[2], Catch::Matchers::WithinAbs( 0.26443149432320001, tolerance_km ) );
+
+    CHECK_THAT( prq_facet.facet().m_vector2[0], Catch::Matchers::WithinAbs( 0.1634276539482 , tolerance_km ) );
+    CHECK_THAT( prq_facet.facet().m_vector2[1], Catch::Matchers::WithinAbs( 0.1634276539482, tolerance_km ) );
+    CHECK_THAT( prq_facet.facet().m_vector2[2], Catch::Matchers::WithinAbs( 0.1634276539482, tolerance_km ) );
+
+    CHECK_THAT( prq_facet.facet().m_vector3[0], Catch::Matchers::WithinAbs( 0.0, tolerance_km ) );
+    CHECK_THAT( prq_facet.facet().m_vector3[1], Catch::Matchers::WithinAbs( 0.26443149432320001, tolerance_km ) );
+    CHECK_THAT( prq_facet.facet().m_vector3[2], Catch::Matchers::WithinAbs( 0.10100385653540001, tolerance_km ) );
 
 }
 
@@ -258,12 +282,14 @@ TEST_CASE( "Bullet Shape Tracer Ray Trace Array Test", "[bullet][shapetracer][ra
     obs3 = obs3 * 10.0;
 
     Eigen::Vector3d surf3;
-    double surf_lon3 = 120.0 * rpd_c();
-    double surf_lat3 = -45.0 * rpd_c();
+    double surf_lon3 = 135.0 * rpd_c();
+    double surf_lat3 = 45.0 * rpd_c();
     latrec_c ( radius3, surf_lon3, surf_lat3, surf3.data() );
 
     Eigen::Vector3d lookdir3 = surf3 - obs3; 
 
+    // Check to see where the fail intercepts on the surface
+    // These tests should be true, but are not
     psmrts::PRQRayTrace prq_spt3(obs3, lookdir3 );
     CHECK( b_tracer.process( prq_spt3 ) == false );
     CHECK( prq_spt3.trace().hasHit() == false ); 
