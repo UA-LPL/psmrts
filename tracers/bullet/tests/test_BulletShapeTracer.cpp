@@ -311,7 +311,6 @@ TEST_CASE( "Bullet Shape Tracer Ray Trace Array Test", "[bullet][shapetracer][ra
 
 }
 
-#if 1
 TEST_CASE( "Bullet Shape Tracer Photometric Values Test", "[bullet][shapetracer][photometric]") {
     const double tolerance = 1.0e-6;
 
@@ -430,7 +429,6 @@ TEST_CASE( "Bullet Shape Tracer Photometric Values Test", "[bullet][shapetracer]
     CHECK_THAT( psmrts::radians_to_degrees( prq_photo.incidence( ) ), Catch::Matchers::WithinAbs( 62.95821025018705086, tolerance) );
     CHECK_THAT( psmrts::radians_to_degrees( prq_photo.phase( ) ),     Catch::Matchers::WithinAbs( 32.5950452371838324, tolerance) );    
 }
-#endif
 
 TEST_CASE( "Bullet Shape Tracer Photometric Array Test", "[bullet][shapetracer][photometric][array]") {
     const double tolerance = 1.0e-6;
