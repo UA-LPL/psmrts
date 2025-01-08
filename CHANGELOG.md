@@ -47,15 +47,9 @@ release.
     - NaifDskShapeTracer
 - CodeCoverage.cmake - Code Coverage updated to exclude test files when outputing results.
 - Doxyfile added for Doxygen documentation config.
-- PsmrtsOBJImplementation.hpp, PsmrtsPLYImplementation.hpp - removed, functionality changed to PsmrtsOBJFormat.hpp, PsmrtsPLYFormat.hpp.
-- PsmrtsPLYFormat.hpp - Removed tinyply implementation, changed to reader utilizing [miniply](https://github.com/vilya/miniply) instead. Adjusted JSON config handling. Added test file, test_PsmrtsPLYFormat.cpp.
-- Bennu_Radar.obj, Bennu_Radar.ply, icosahedron.ply, icosahedron_binary.ply - Files added for PLY format testing.
-- PsmrtsBufferData.hpp - Minor text formatting fix in validate function.
-- PsmrtsMeshData.hpp - Minor code clean up.
 - PsmrtsRayTrace.hpp - added validate_lookdir function to handle invalid look direction values.
 - PsmrtsRequest.hpp - Added, including ray and photometric trace array PRQ functors.
 - PsmrtsUtilities.hpp - Added versioning, microsecond timing, null-check function, and updated JSON config.
-- PsmrtsVector3.hpp - Added new template function to convert vector arrays.
 - test_PsmrtsStridingBuffer.cpp - Minor checks added to test invalid stride conditions, and improve code coverage.
 - test_PsmrtsVector3.cpp - Minor check added to test slice constructor.
 - BulletShapeTracer.hpp - Added, implementated with base PRQ functors and PRQRayTraceArray / PRQPhotometricTraceArray processes. Slight edit to include lookdir validation. Added related test file, test_BulletShapeTracer.cpp - edited for correct process checking, THROWS vs FALSE conditions.
@@ -67,9 +61,19 @@ release.
 - NaifDskTracerModel.hpp - Bug fixes, correcting various function returns.
 - README.md - Included lcov/gcovr instruction note.
 - build_psmrts.sh - Added -j parameter to indicate desired number of CPUs used for builds.
-- vcpkg.json - Adjusted for PLY changes, tinyply replaced with miniply. 
 - Some CmakeLists.txt and related configurations adjusted to reflect files additions and changes. 
 - Updated CHANGELOG.md and set version to [0.0.10]
+
+## [PR #8] 2024-11-10
+- PsmrtsOBJImplementation.hpp, PsmrtsPLYImplementation.hpp - removed, functionality changed to PsmrtsOBJFormat.hpp, PsmrtsPLYFormat.hpp.
+- PsmrtsPLYFormat.hpp - Removed tinyply implementation, changed to reader utilizing [miniply](https://github.com/vilya/miniply) instead. Adjusted JSON config handling. Added test file, test_PsmrtsPLYFormat.cpp.
+- Bennu_Radar.obj, Bennu_Radar.ply, icosahedron.ply, icosahedron_binary.ply - Files added for PLY format testing.
+- PsmrtsBufferData.hpp - Minor text formatting fix in validate function.
+- PsmrtsMeshData.hpp - Minor code clean up.
+- PsmrtsVector3.hpp - Added new template function to convert vector arrays.
+- vcpkg.json - Adjusted for PLY changes, tinyply replaced with miniply. 
+
+
 
 ## [0.0.9] 2024-08-01
 - The Bullet Physics ray tracing system has been integrated into a PSMRTS tracer model. Lots of refactoring and improvements were also made during this cycle to accomodate the flexible, but complex, striding buffer concept. This provides the BulletTracerModel class PsmrtsTracerModel, the PSMRTS tracer base class of al tracers, which is an abstract base class (ABC).
