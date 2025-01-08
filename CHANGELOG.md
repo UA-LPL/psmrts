@@ -73,8 +73,6 @@ release.
 - PsmrtsVector3.hpp - Added new template function to convert vector arrays.
 - vcpkg.json - Adjusted for PLY changes, tinyply replaced with miniply. 
 
-
-
 ## [0.0.9] 2024-08-01
 - The Bullet Physics ray tracing system has been integrated into a PSMRTS tracer model. Lots of refactoring and improvements were also made during this cycle to accomodate the flexible, but complex, striding buffer concept. This provides the BulletTracerModel class PsmrtsTracerModel, the PSMRTS tracer base class of al tracers, which is an abstract base class (ABC).
 - Developed a flexible data buffering class hierarchy system to streamline data access and efficient management. Every buffer is shared although deep copies can be made. Arbitrary data types are allocated and managed by the fundamental class PsmrtsBufferData. Next is a type-agnostic mapping of stride size lengths into a PsmrtsBufferData call the PsmrtsStridingBuffer. This the fundamental reference to type data that can be mapped into the PsmrtsBuffer<T> template class. Finally, the PsmrtsVector3<T> class provides generic typing of 3-element vectors of arbitrary types. PSMRTS main data mesh types are PsmrtVector3<int> for indexes, and PsmrtsVector3<double> or PsmrtsVector3<float> vectors.
