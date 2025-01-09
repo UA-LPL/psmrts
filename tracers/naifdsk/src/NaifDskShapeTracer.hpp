@@ -68,7 +68,7 @@ namespace psmrts  {
         psmrts_json f_e;
         f_e += { "name" , "naifdsk" };
         f_e += { "product" , "shapetracer" };
-        f_e += { "mesh" , false };
+        f_e += { "mesh" , true };
         features.add_feature( f_e );
         return ( true );
       }
