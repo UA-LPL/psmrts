@@ -16,7 +16,7 @@ TEST_CASE("NAIF Dsk Shape Tracer - Default Constructor", "[default][naifdsk][sha
     nlohmann::ordered_json j_add;
     j_add += { "name" , "naifdsk" };
     j_add += { "product" , "shapetracer" };
-    j_add += { "mesh" , false };
+    j_add += { "mesh" , true };
     j_output += j_add;
 
     auto feat_diff = nlohmann::ordered_json::diff(features_string.config(), j_output);
