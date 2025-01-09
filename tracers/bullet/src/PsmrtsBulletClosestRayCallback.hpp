@@ -184,8 +184,7 @@ namespace psmrts::bullet {
           return ( m_point );
         }
 
-        throw std::runtime_error( "No hits in ray trace so no surface point!" );
-        return ( btVector3(0.0, 0.0, 0.0) );
+        return ( btVector3( null(), null(), null() ) );
       }
 
 
@@ -206,8 +205,7 @@ namespace psmrts::bullet {
           return ( m_normal );
         }
 
-        throw std::runtime_error( "No hits in ray trace so no normal!" ); 
-        return btVector3(0.0, 0.0, 0.0);
+        return ( btVector3( null(), null(), null() ) );
       }
 
 

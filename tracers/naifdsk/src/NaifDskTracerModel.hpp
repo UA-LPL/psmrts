@@ -52,7 +52,7 @@ namespace psmrts  {
 
       /** Unique tracer id of this instance */
       virtual std::string shape_tracer_id()   const {
-        return ( m_model.tracer_model_id()  );
+        return ( m_model.shape_tracer_id()  );
       }
 
       /** Name of the shape model source */
@@ -67,7 +67,7 @@ namespace psmrts  {
 
       /** Total verticies in the model */
       virtual size_t vertex_count() const {
-        return ( m_model.plate_count() );
+        return ( m_model.vertex_count() ); // was plate_count() - kab
       };
 
       /** Returns the maximum radius in the modek */
@@ -124,7 +124,7 @@ namespace psmrts  {
 
       /** Return an ellipsoid tracer for the shape */
       virtual PsmrtsTracerModel *ellipsoid() const {
-        return ( EllipsoidTracerModel( m_model.radii() ) );
+        return ( new EllipsoidTracerModel( m_model.radii() ) );
       }
     
       inline NaifDskTracerModel *tracer_from_id( const int surfaceId ) const {

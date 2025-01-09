@@ -33,9 +33,15 @@
 using namespace nlohmann::literals;
 using json         = nlohmann::json;
 using ordered_json = nlohmann::ordered_json;
+using psmrts_json  = nlohmann::ordered_json;
 
 
 namespace psmrts {
+
+  inline const std::string &psmrts_version() {
+    static const std::string psmrst_version_string( std::string(PROJECT_NAME) + " - [" + std::string(PSMRTS_VERSION) + "]" );
+    return ( psmrst_version_string );
+  }
 
   ////--- Timimg functions
   typedef std::chrono::time_point<std::chrono::steady_clock> SYSTEM_CLOCK_TIME;
@@ -70,6 +76,11 @@ namespace psmrts {
                                        const SYSTEM_CLOCK_TIME &end_time ) {
     return ( std::chrono::duration_cast<std::chrono::milliseconds>( end_time - start_time ).count() );
   }  
+
+  inline double elapsed_clock_time_microseconds( const SYSTEM_CLOCK_TIME &start_time,
+                                                 const SYSTEM_CLOCK_TIME &end_time ) {
+    return ( std::chrono::duration_cast<std::chrono::microseconds>( end_time - start_time ).count() );
+  } 
 
   /**
    * @brief Standard, typesafe method to cast shared pointer to another type
@@ -106,6 +117,15 @@ namespace psmrts {
   /** Test for the NULL value */
   inline bool isnull( const double &v ) {
     return ( std::isnan( v ) );
+  }
+
+  inline bool isnull( const Eigen::Vector3d &v ) {
+    for ( size_t i = 0 ; i < v.size() ; i++ ) {
+      if ( isnull( v[i] ) ) { 
+        return ( true );
+      }
+    }
+    return ( false );
   }
 
   /** Convert degrees to radians */
@@ -388,17 +408,11 @@ namespace psmrts {
           PsmrtsThreadSafeCounter timer_t;
           ordered_json json_t;
 
-          json_t["start_time"] = to_localtime( this->born_on_date() );
-          
-          double elapsed_time_s = elapsed_clock_time_s( this->start_time(), timer_t.start_time() ); 
-          json_t["elapsed_time_s"] = elapsed_time_s;
-
-          double elapsed_time_ms = elapsed_clock_time_ms( this->start_time(), timer_t.start_time() ); 
-          json_t["elapsed_time_ms"] = elapsed_time_ms;          
-          
-          json_t += { "count", this->count() };
-
-          json_t["end_time"] = to_localtime( timer_t.born_on_date() );
+          json_t["start_time"]      = to_localtime( this->born_on_date() );
+          json_t["elapsed_time_s"]  = elapsed_clock_time_s( this->start_time(), timer_t.start_time() );;
+          json_t["elapsed_time_ms"] = elapsed_clock_time_ms( this->start_time(), timer_t.start_time() ); ;          
+          json_t["count"]           = this->count();
+          json_t["end_time"]        = to_localtime( timer_t.born_on_date() );
 
           return ( json_t );
 

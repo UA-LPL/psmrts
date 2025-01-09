@@ -11,15 +11,17 @@ include_directories( ${PSMRTS_PROJECT_DIR}/psmrts/tests )
 
 # Build all-in-one renderer test application
 add_executable( naif_test_suite  naif_catch2_main.cpp
-                                 test_NaifEllipsoidShape.cpp 
-                                 test_NaifUtilities.cpp 
+                                 test_DskKernelModel.cpp 
                                  test_KernelFileSystem.cpp
-                                 test_DskKernelModel.cpp
-                                 test_NaifShapeTracerAdapter.cpp
+                                 test_NaifDskShapeTracer.cpp
+                                 test_NaifDskTracerModel.cpp
+                                 test_NaifEllipsoidShape.cpp 
                                  test_NaifPsmrtsPriorityTracer.cpp
-                                 test_PsmrtsShapeTracerAdapter.cpp
+                                 test_NaifShapeTracerAdapter.cpp
+                                 test_NaifUtilities.cpp 
                                  test_PsmrtsPriorityTracer.cpp 
-                                 test_PsmrtsRayTrace.cpp )
+                                 test_PsmrtsRayTrace.cpp
+                                 test_PsmrtsShapeTracerAdapter.cpp )
 
 
 # Add required libraries as needed for psmrts_test_suite

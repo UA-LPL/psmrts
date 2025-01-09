@@ -15,11 +15,12 @@ add_executable( psmrts_test_suite  psmrts_catch2_main.cpp
                                    test_PsmrtsParameters.cpp
                                    test_PsmrtsPriorityTracer.cpp
                                    test_PsmrtsRayTrace.cpp
+                                   test_PsmrtsRequest.cpp
                                    test_PsmrtsShapeTracerAdapter.cpp
                                    test_PsmrtsStridingBuffer.cpp
                                    test_PsmrtsTracerModel.cpp
                                    test_PsmrtsUtilities.cpp 
-                                   test_PsmrtsVector3.cpp  )
+                                   test_PsmrtsVector3.cpp )
 
 
 # Add required libraries as needed for psmrts_test_suite

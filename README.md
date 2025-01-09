@@ -29,7 +29,8 @@ The `psmrts` is contained in the `./psmrts` directory. One command is used to co
 
 1. `cd psmrts`
 2. `./make_psmrts.sh`
-   - Add `-t` to enable testing here
+   - Add `-t` to enable testing
+   - Add '-c' to enable code coverage
 
 The executable called `psmrts` will be in the ./build directory. It can be copied to any location and ran from anywhere. The script `make_psmrts.sh` runs several other scripts that can be ran separately if needed. Note that these scripts must be run from the `./psmrts` directory.
 
@@ -53,7 +54,7 @@ cd build
 ctest
 ```
 
-#### Code Coverage in PSMRTS
+#### Code Coverage and Doxygen Documentation in PSMRTS
 
 Code coverage can be ran on psmrts code by providing the `-c` flag to the PSMRTS build scripts. PSMRTS uses a custom CMake code coverage script called [CodeCoverage.cmake](https://github.com/bilke/cmake-modules/blob/master/CodeCoverage.cmake). This file is included in the code repository in the `./cmake` directory.
 
@@ -70,14 +71,26 @@ make coverage
 open ./coverage/index.html.
 ```
 
-The open command will load the HTML code coverage report that you can then use to look at each code file.
+The [Doxygen](https://www.doxygen.nl/index.html) configuration file, Doxyfile, is located in the docs directory. To access the documentation enter the following commands:
 
+```
+cd docs
+doxygen Doxyfile
+open ./html/index.html
+```
+The open commands for each process will load the related interactable HTML reports to the default browser.
 
-#### Running Code Coverage
+#### Running Code Coverage and Doxygen
 
-Activating Code Coverage capabilities for any PSMRTS build first requires a pre-download of gcovr / lcov utilities. Linux based systems will generally have the lcovr utilities already installed. Mac users can check if it is already available by running `which gcovr` or `which lcov` commands in the terminal. These utilities can be downloaded through Miniconda by running the `conda install gcovr lcov` command. The utility [gcovr](https://gcovr.com/en/stable/), and its' Linux extension lcov, is used to create HTML-based Coverage visualizations for each file, function, and line coded into the PSMRTS system, presented via the user's default browser. Users can get in-depth breakdowns for each file by clicking on their individually designated links in the generated browser window.
+Activating Code Coverage and Doxygen capabilities for any PSMRTS build first requires a pre-download of gcovr / lcov / Doxygen related utilities. Linux based systems will generally have the lcovr utilities already installed. Mac users can check if it is already available by running `which gcovr` or `which lcov` commands in the terminal. These utilities can be downloaded through Miniconda by running the `conda install gcovr lcov` command. The utility [gcovr](https://gcovr.com/en/stable/), and its' Linux extension lcov, is used to create HTML-based Coverage visualizations for each file, function, and line coded into the PSMRTS system, presented via the user's default browser. Users can get in-depth breakdowns for each file by clicking on their individually designated links in the generated browser window. Doxygen is similar as it also creates an HTML representation of the documentation for each file, including relevant inheretance, collaboration, and call/caller graphs. It requires [doxygen](https://www.doxygen.nl/index.html) and [graphviz](https://graphviz.org) as dependencies.
 
-Note: Linux users may use the following commands to ensure lcov/gcovr is installed:
+The build_addons.yml file can be used to create a conda environment that ensures access to these utilities, using the following commands while in the top psmrts directory:
+```
+conda env create -n <chosen name of environment, eg. MonthDayYear> -f build_addons.yml
+conda activate <name of environment from above>
+```
+
+Note: Linux users may also use the following commands to ensure lcov/gcovr is installed:
 ```
 sudo apt-get update
 sudo apt-get install -y lcov gcovr

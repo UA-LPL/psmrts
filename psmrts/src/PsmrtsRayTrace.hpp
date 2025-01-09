@@ -248,6 +248,17 @@ namespace psmrts {
         datum().reset( observer, lookdir );
       }
 
+      inline bool validate_lookdir( const bool throwOnError = true ) const {
+        if ( psmrts::isnull( this->lookdir() ) || psmrts::isEqual( this->lookdir(), Eigen::Vector3d::Zero() ) ) {
+          if ( true == throwOnError ) {
+            throw std::runtime_error( "Invalid look direction is zero/undefined" );
+          }
+          return ( false );
+        }
+
+        return ( true );
+      }
+
     private:
       RayTraceDatum m_trace_datum;    //!! The ray trace data
 
