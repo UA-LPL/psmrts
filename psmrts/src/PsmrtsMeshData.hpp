@@ -140,6 +140,7 @@ namespace psmrts {
       /** Destructor */
       virtual ~PsmrtsMeshData() { }
 
+      /** Returns validity of the mesh */
       inline bool isValid() const {
         return ( this->vectors().isValid() );
       }
@@ -149,14 +150,17 @@ namespace psmrts {
         return ( m_vectors.buffer().size() );
       }
 
+      /** Returns the data type of the vectors - float / double */
       inline PsmrtsDataType vector_type( ) const {
         return ( m_vectors.type() );
       }
 
+      /** Returns boolean confirmation if vectors are double */
       inline bool isVectorDouble() const {
         return ( this->vector_type() == PsmrtsDouble );
       }
 
+      /** Returns reference to vector data */
       inline const MeshVector &vectors() const {
         return ( m_vectors );
       }
@@ -166,24 +170,29 @@ namespace psmrts {
         return ( m_indexes.size() );
       }
 
+      /** Returns reference to index data */
       inline const PsmrtsVector3i &indexes() const {
         return ( m_indexes );
       }
- 
+
+      /** Returns index value specified by parameter-designated index position */
       inline Eigen::Vector3i get_index( const int index = 0 ) const {
         return ( m_indexes( index ) );
       }
 
+      /** Returns vector value specified by parameter-designated index position */
       inline Eigen::Vector3d get_vector( const int index = 0  ) const {
         return ( m_vectors( index ) );
       }
 
+      /** Returns the computed normal vector of the facet parameter */
       inline static Eigen::Vector3d facet_normal( const FacetDatum &facet ) {
         Eigen::Vector3d a = facet.m_vector2 - facet.m_vector1;
         Eigen::Vector3d b = facet.m_vector3 - facet.m_vector1;
         return ( a.cross( b ).normalized() );
       }
 
+      /** Returns the nth facet of the mesh */
       inline FacetDatum get_facet( const int nth ) const {
           FacetDatum mf;
 
@@ -201,18 +210,22 @@ namespace psmrts {
           return ( mf );
       }
 
+      /** Returns reference to the mesh's minimum axis */
       inline const Eigen::Vector3d &axis_mins() const {
         return ( m_min_axes );
       }
 
+      /** Returns reference to the mesh's maximum axis */
       inline const Eigen::Vector3d &axis_maxs() const {
         return ( m_max_axes );
       }
 
+      /** Returns the minimum radius of the mesh */
       inline double minimum_radius() const {
         return ( m_min_radius );
       }
 
+      /** Returns the maximum radius of the mesh */
       inline double maximum_radius() const {
         return ( m_max_radius );
       }     

@@ -50,56 +50,89 @@ namespace naif {
       // Destructor
       virtual ~NaifEllipsoidShape() { }
 
+      /** Returns the model type, eg. psmrts */
       inline std::string tracer_model_type() const {
         return ( std::string( "psmrts" ) );
       }
 
+      /** Returns the model name, eg. NaifEllipsoid */
       inline std::string tracer_model_name() const {
         return ( std::string( "NaifEllipsoid" )) ;
       }
 
+      /** Returns combination of model type, model name, and the shape name */
       inline std::string shape_tracer_id() const {
         std::string shapename = shapefile();
         if ( shapename.length() == 0 ) shapename = "none";
         return ( tracer_model_type() + "::" + tracer_model_name() + "::" + shapename );
       }      
 
+      /** Returns name of the shapefile, indicated by name in constructor used above */
       inline std::string shapefile() const {
-        return ( m_body ); //  Changed from "Ellipsoid" to m_body (changes also reflected above, default = Ellipsoid)
+        return ( m_body ); 
       }
 
+      /** Returns value of a */
       const double &a() const {
         return ( m_a_radius );
       }
 
+      /** Returns value of b */
       const double &b() const {
         return ( m_b_radius );
       }
 
+      /** Returns value of c */
       const double &c() const {
         return ( m_c_radius );
       }
 
+      /** Returns radii vector */
       inline Eigen::Vector3d radii() const {
         return ( Eigen::Vector3d( { a(), b(), c() } ) );
       }
 
+      /** Returns minimum radius */
       inline double minimum_radius() const {
         return ( std::min( a(), std::min( b(), c() ) ) );
       }
 
+      /** Returns maximum radius */
       inline double maximum_radius() const {
         return ( std::max( a(), std::max( b(), c() ) ) );
       }
 
+      /** Returns number of plates, eg. 0 due to nature of Ellipsoid */
       inline size_t plate_count() const {
         return ( 0 );
       }
 
+      /** Returns number of vertices, eg. 0 due to nature of Ellipsoid */
       inline size_t vertex_count() const {
         return ( 0 );
       }
 
+      /**
+       * @brief Ray Trace method for Ellipsoid Shape - Point Result
+       * 
+       * This method is used to run individual body-fixed ray traces
+       * from an observer point and look direction. The origin of the
+       * "observer" vector is the origin of the planet body and presumeably
+       * extends outward beyond the maximum radius of the surface. From 
+       * that point, is the origin of the "lookdir" vector from which
+       * to trace for an intersection with the shape model.
+       * 
+       * In this function, the results of the ray are stored into
+       * an Eigen::Vector3d, point.
+       * 
+       * @param observer Location of the observer (s/c) relative to the
+       *                   center of the target body
+       * @param lookdir Look direction of the ray from the observer to
+       *                   trace for intersections
+       * @param point   Eigen::Vector3d holding the trace results 
+       * @return true   If the trace intercepts the shape 
+       * @return false  If the trace fails to intercept
+       */
       inline bool ray_trace( const Eigen::Vector3d &observer,
                              const Eigen::Vector3d &lookdir,
                              Eigen::Vector3d &point) const {
@@ -111,12 +144,35 @@ namespace naif {
         return ( found == SPICETRUE );
       }
 
+      /** Retuns the vector normal of the input point */
       inline Eigen::Vector3d normal( const Eigen::Vector3d &point ) const {  
         Eigen::Vector3d normvec;
         (void) surfnm_c( a(), b(), c(), point.data(), normvec.data() );
         return ( normvec );
       }
 
+      /**
+       * @brief Ray Trace method for Ellipsoid Shape - PsmrtsRayTrace Result
+       * 
+       * The main method used to run individual body-fixed ray traces from 
+       * an observer point and a look direction vector. The origin of the
+       * "observer" vector is the origin of the planet body and extends
+       * outward, presumeably, beyond the maximum radius of the surface in
+       * this model. From that point, is the origin of the "lookdir" vector
+       * from which to trace for an intersection with the shape model
+       * surface. 
+       * 
+       * The PsmrtsRayTrace class contains the results of the ray trace and can
+       * be used in subsequent operations.
+       * 
+       * @param observer Location of the observer (s/c) relative to the
+       *                   center of the target body
+       * @param lookdir  Look direction of the ray from the observer to
+       *                   trace for intersections
+       * @param ray      PsmrtsRayTrace returns the results of the trace
+       * @return true    If the trace intercepts the shape
+       * @return false   If no ray trace intercept was found
+       */
       inline bool ray_trace( const Eigen::Vector3d &observer, 
                              const Eigen::Vector3d &lookdir,
                              psmrts::PsmrtsRayTrace &ray ) const {
@@ -133,6 +189,7 @@ namespace naif {
         return ( ray.hasHit() );
       }
 
+      /** Virtual facet getter method - generally inapplicable to Ellipsoid models */
       virtual bool get_facet( const psmrts::PsmrtsRayTrace &ray,
                               psmrts::PsmrtsRayTrace::FacetDatum &facet ) const {
 
@@ -141,6 +198,7 @@ namespace naif {
         return ( facet.isValid() );
       }
 
+      /** Returns clone of Ellipsoid shape */
       inline NaifEllipsoidShape clone() const {
         return ( *this );
       }

@@ -102,14 +102,17 @@ namespace psmrts {
         return ( m_size );
       }
 
+      /** Returns validity state of data buffer */
       inline bool isValid() const {
         return ( nullptr != m_data_ptr );
       }
 
+      /** Returns pointer to a parameter-designated index target in the data buffer */
       inline pointer data_get( const int index = 0 ) {
         return ( m_data_ptr + this->validate_index( index ) );
       }
 
+      /** Returns a const pointer to a parameter-designated index target in the data buffer */
       inline const_pointer data_get( const int index = 0 ) const {
         return ( m_data_ptr + this->validate_index( index ) );
       }

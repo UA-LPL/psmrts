@@ -36,6 +36,8 @@ TEST_CASE ( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][defaul
 
     CHECK( psmrts::psmrts_file_basename(file_path) == "Bennu_Radar.ply" );
     CHECK( file_path != "Bennu_Radar.ply" );
+
+    /*
     CHECK( ply.config()["header"]["type"].dump() == "\"binary\"" );
     CHECK( ply.config()["header"]["nElements"].dump() == "2" );
     CHECK( ply.config()["elements"].dump() == "[{\"element\":{\"name\":\"vertex\",\"size\":\
@@ -43,12 +45,66 @@ TEST_CASE ( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][defaul
 {\"name\":\"y\",\"type\":\"float\"}},{\"property\":{\"name\":\"z\",\"type\":\"float\"}}]},{\"element\":\
 {\"name\":\"face\",\"size\":2692},\"properties\":[{\"property\":{\"count\":\"uchar\",\"name\":\
 \"vertex_indices\",\"type\":\"int\"}}]}]" );
+    */
     
-    CHECK( ply.ply_source() == plyfile  );
-    CHECK( ply.file_type()  == "binary" );
-    CHECK( ply.isValid()    == true     );
-    CHECK( ply.nVertexes()  == 1348     );
-    CHECK( ply.nIndexes()   == 2692     );
+    nlohmann::ordered_json j_result = nlohmann::ordered_json::object();
+
+    j_result["header"]["file"]      = ply.ply_source();
+    j_result["header"]["type"]      = ply.file_type();
+    j_result["header"]["nElements"] = 2;
+    
+    nlohmann::ordered_json j_elements = nlohmann::ordered_json::array();
+
+    nlohmann::ordered_json j_el1;
+    j_el1["element"]["name"] = "vertex";
+    j_el1["element"]["size"] = 1348;
+
+    nlohmann::ordered_json j_proplist1 = nlohmann::ordered_json::array();
+
+    nlohmann::ordered_json j_prop1;
+    j_prop1["property"]["name"] = "x";
+    j_prop1["property"]["type"] = "float";
+    j_proplist1.push_back(j_prop1);
+
+    nlohmann::ordered_json j_prop2;
+    j_prop2["property"]["name"] = "y";
+    j_prop2["property"]["type"] = "float";
+    j_proplist1.push_back(j_prop2);
+
+    nlohmann::ordered_json j_prop3;
+    j_prop3["property"]["name"] = "z";
+    j_prop3["property"]["type"] = "float";
+    j_proplist1.push_back(j_prop3);
+
+    j_el1["properties"] = j_proplist1;
+
+    nlohmann::ordered_json j_el2;
+    j_el2["element"]["name"] = "face";
+    j_el2["element"]["size"] = 2692;
+
+    nlohmann::ordered_json j_proplist2 = nlohmann::ordered_json::array();
+
+    nlohmann::ordered_json j_prop4;
+    j_prop4["property"]["name"]  = "vertex_indices";
+    j_prop4["property"]["type"]  = "int";
+    j_prop4["property"]["count"] = "uchar";
+    j_proplist2.push_back(j_prop4);
+
+    j_el2["properties"] = j_proplist2;
+
+    j_elements.push_back(j_el1);
+    j_elements.push_back(j_el2);
+    j_result["elements"]   = j_elements;
+    nlohmann::json j_final = j_result;
+
+    CHECK( nlohmann::ordered_json::diff( j_final, ply.config() ).empty() );
+
+    CHECK( ply.format_model_source() == plyfile  );
+    CHECK( ply.ply_source()          == plyfile  );
+    CHECK( ply.file_type()           == "binary" );
+    CHECK( ply.isValid()             == true     );
+    CHECK( ply.nVertexes()           == 1348     );
+    CHECK( ply.nIndexes()            == 2692     );
 
     CHECK( ply.get_mesh().isValid()            == true  );
     CHECK( ply.get_mesh().isVectorDouble()     == true  );
@@ -117,6 +173,8 @@ TEST_CASE("PLY FORMAT Asset Test - Text Based Ply Reader and Comparison", "[form
     
     CHECK( psmrts::psmrts_file_basename(file_path) == "icosahedron_binary.ply");
     CHECK( file_path != "icosahedron_binary.ply");
+
+    /**
     CHECK( binary_ply.config()["header"]["type"].dump() == "\"binary\"" );
     CHECK( binary_ply.config()["header"]["nElements"].dump() == "2" );
     CHECK( binary_ply.config()["elements"].dump() == "[{\"element\":{\"name\":\"vertex\",\"size\":12},\"properties\":\
@@ -124,6 +182,59 @@ TEST_CASE("PLY FORMAT Asset Test - Text Based Ply Reader and Comparison", "[form
 \"float\"}},{\"property\":{\"name\":\"z\",\"type\":\"float\"}}]},{\"element\":{\"name\":\
 \"face\",\"size\":20},\"properties\":[{\"property\":{\"count\":\"uchar\",\"name\":\
 \"vertex_indices\",\"type\":\"int\"}}]}]");
+    */
+
+    nlohmann::ordered_json j_result = nlohmann::ordered_json::object();
+
+    j_result["header"]["file"]      = binary_ply.ply_source();
+    j_result["header"]["type"]      = binary_ply.file_type();
+    j_result["header"]["nElements"] = 2;
+    
+    nlohmann::ordered_json j_elements = nlohmann::ordered_json::array();
+
+    nlohmann::ordered_json j_el1;
+    j_el1["element"]["name"] = "vertex";
+    j_el1["element"]["size"] = 12;
+
+    nlohmann::ordered_json j_proplist1 = nlohmann::ordered_json::array();
+
+    nlohmann::ordered_json j_prop1;
+    j_prop1["property"]["name"] = "x";
+    j_prop1["property"]["type"] = "float";
+    j_proplist1.push_back(j_prop1);
+
+    nlohmann::ordered_json j_prop2;
+    j_prop2["property"]["name"] = "y";
+    j_prop2["property"]["type"] = "float";
+    j_proplist1.push_back(j_prop2);
+
+    nlohmann::ordered_json j_prop3;
+    j_prop3["property"]["name"] = "z";
+    j_prop3["property"]["type"] = "float";
+    j_proplist1.push_back(j_prop3);
+
+    j_el1["properties"] = j_proplist1;
+
+    nlohmann::ordered_json j_el2;
+    j_el2["element"]["name"] = "face";
+    j_el2["element"]["size"] = 20;
+
+    nlohmann::ordered_json j_proplist2 = nlohmann::ordered_json::array();
+
+    nlohmann::ordered_json j_prop4;
+    j_prop4["property"]["name"]  = "vertex_indices";
+    j_prop4["property"]["type"]  = "int";
+    j_prop4["property"]["count"] = "uchar";
+    j_proplist2.push_back(j_prop4);
+
+    j_el2["properties"] = j_proplist2;
+
+    j_elements.push_back(j_el1);
+    j_elements.push_back(j_el2);
+    j_result["elements"]   = j_elements;
+    nlohmann::json j_final = j_result;
+
+    CHECK( nlohmann::ordered_json::diff( j_final, binary_ply.config() ).empty() );
 
     CHECK( binary_ply.ply_source() == binary_file );
     CHECK( binary_ply.file_type()  == "binary" );

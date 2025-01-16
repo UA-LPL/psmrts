@@ -46,37 +46,46 @@ namespace psmrts {
   ////--- Timimg functions
   typedef std::chrono::time_point<std::chrono::steady_clock> SYSTEM_CLOCK_TIME;
   
+  /** Returns current calendar time */
   inline std::time_t current_time() {
     return ( std::time( nullptr ) );
   }
 
+  /** Returns string representing input time value */
   inline std::string to_time_str( const std::tm *my_tm )  {
     char buffer_t[128];
     strftime( buffer_t, sizeof( buffer_t ), "%FT%T %Z", my_tm );
     return ( std::string( buffer_t ) );
   }
 
+  /** Returns string of time converted to UTC */
   inline std::string to_utc( const std::time_t &my_t )  {
     return ( to_time_str( gmtime( &my_t ) ) );
   }
 
+  /** Returns string of time converted to local timezone */
   inline std::string to_localtime( const std::time_t &my_t )  {
     return ( to_time_str( localtime( &my_t ) ) );
   }
+
+  /** Returns current system clock time */
   inline SYSTEM_CLOCK_TIME system_clock_time() {
     return ( SYSTEM_CLOCK_TIME( std::chrono::steady_clock::now() ) );
   }
 
+  /** Returns elapsed time in seconds */
   inline double elapsed_clock_time_s( const SYSTEM_CLOCK_TIME &start_time,
                                       const SYSTEM_CLOCK_TIME &end_time ) {
     return ( std::chrono::duration_cast<std::chrono::seconds>( end_time - start_time ).count() );
   }
 
+  /** Returns elapsed time in milliseconds */
   inline double elapsed_clock_time_ms( const SYSTEM_CLOCK_TIME &start_time,
                                        const SYSTEM_CLOCK_TIME &end_time ) {
     return ( std::chrono::duration_cast<std::chrono::milliseconds>( end_time - start_time ).count() );
   }  
 
+  /** Returns elapsed time in microseconds */
   inline double elapsed_clock_time_microseconds( const SYSTEM_CLOCK_TIME &start_time,
                                                  const SYSTEM_CLOCK_TIME &end_time ) {
     return ( std::chrono::duration_cast<std::chrono::microseconds>( end_time - start_time ).count() );
@@ -119,6 +128,7 @@ namespace psmrts {
     return ( std::isnan( v ) );
   }
 
+  /** Returns true if provided Eigen::Vector3d contains a null */
   inline bool isnull( const Eigen::Vector3d &v ) {
     for ( size_t i = 0 ; i < v.size() ; i++ ) {
       if ( isnull( v[i] ) ) { 
@@ -164,13 +174,15 @@ namespace psmrts {
 
     return ( lon_adj );
   }
-
+  
+  /** Returns true if the data of two Eigen::Vector3d have same relative values, with adjustable tolerance */
   inline bool isEqual( const Eigen::Vector3d &v1, 
                        const Eigen::Vector3d &v2,
                        const double v_tolerance = 1.0e-12 ) {
     return ( v1.isApprox( v2, v_tolerance ) );                    
   }
 
+  /** Computes the resulting normal of three Eigen vectors (double) */
   inline Eigen::Vector3d compute_normal( const Eigen::Vector3d &v1, 
                                          const Eigen::Vector3d &v2,
                                          const Eigen::Vector3d &v3 ) {
@@ -181,7 +193,7 @@ namespace psmrts {
 
 
 ////---> String utlitities
-
+  /** Returns string completely converted to lower case */
   inline std::string psmrts_tolower( const std::string &s ) {
     std::string s_t = s;
     std::locale locale;
@@ -190,6 +202,7 @@ namespace psmrts {
     return ( s_t );    
   }
 
+  /** Returns string completely converted to upper case */
   inline std::string psmrts_toupper( const std::string &s ) {
     std::string s_t = s;
     std::locale locale;
@@ -221,6 +234,7 @@ namespace psmrts {
     return ( directory + dpathdelim + pathpart );
   }
 
+  /** Returns file type extension, ie. cpp, hpp, etc.. */
   inline std::string psmrts_file_extension( const std::string &pathname ) {
     std::string extension_f( "" );
     if ( pathname.length() > 0 ) {
@@ -233,6 +247,7 @@ namespace psmrts {
     return ( extension_f );
   }
 
+  /** Returns direct parent directory of file */
   inline std::string psmrts_file_path( const std::string &pathname ) {
     std::string path_f( "" );
     if ( pathname.length() > 0 ) {
@@ -247,6 +262,7 @@ namespace psmrts {
     return ( path_f );
   }
 
+  /** Returns just the file name, with no preceeding path information */
   inline std::string psmrts_file_basename( const std::string &pathname ) {
     std::string base_f( "" );
     if ( pathname.length() > 0 ) {

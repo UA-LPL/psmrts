@@ -99,22 +99,27 @@ namespace psmrts::bullet {
       /** Destructor */
       virtual ~PsmrtsBulletMeshMap() { }
 
+      /** Returns mesh name, ie. bullet */
       inline const std::string &name() const {
         return ( m_name );
       }
 
+      /** Returns mesh's shape identifier */
       inline int id() const {
         return ( m_shape_id );
       }
 
+      /** Returns mesh part number */
       inline int partno() const {
         return ( m_part_no );
       }          
 
+      /** Returns the mesh's type - bullet */
       inline std::string mesh_type() const {
         return ( std::string( "bullet" ) );
       }
 
+      /** Returns mesh's data name, type, shape id, and part number */
       inline std::string mesh_data_id() const {
         std::string dataname = name();
         if ( dataname.length() == 0 ) dataname = "StridingMesh";
@@ -125,14 +130,17 @@ namespace psmrts::bullet {
         return ( mesh_id_str );
       }
 
+      /** Returns a pointer to the mesh data */
       inline const btTriangleIndexVertexArray *mesh() const {
         return ( m_bullet_mesh.get() );
       }
 
+      /** Returns vector of partitioned shapes in the mesh */
       inline const std::vector<PsmrtsVector3i> &shapes() const {
         return ( m_shapes );
       }
 
+      /** Creates a triangle mesh mapping with a designated max number of parts */
       inline btTriangleIndexVertexArray *create_map_mesh( const size_t maxparts = 0 ) const {
         
         // Set mesh state
@@ -165,7 +173,7 @@ namespace psmrts::bullet {
 
             btIndexedMesh mesh_t;
 
-            // Set up acess to range of triangle mesh indexes
+            // Set up access to range of triangle mesh indexes
             mesh_t.m_numTriangles        = n_indexes;
             mesh_t.m_triangleIndexStride = index_m.stride_size();
             mesh_t.m_triangleIndexBase   = index_m.get( index_t );
@@ -202,7 +210,7 @@ namespace psmrts::bullet {
         return ( new btBvhTriangleMeshShape( mesh, useCompression, buildBvh ) );
       }
 
-
+      /** Creates a triangle mesh based on internal mesh data */
       inline  btBvhTriangleMeshShape *create_collision_shape( const bool useCompression = true,
                                                               const bool buildBvh = true ) const {
 

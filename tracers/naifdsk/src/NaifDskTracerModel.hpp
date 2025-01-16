@@ -70,7 +70,7 @@ namespace psmrts  {
         return ( m_model.vertex_count() ); // was plate_count() - kab
       };
 
-      /** Returns the maximum radius in the modek */
+      /** Returns the maximum radius in the model */
       virtual double maximum_radius() const {
         return ( m_model.maximum_radius() );
       };
@@ -127,6 +127,7 @@ namespace psmrts  {
         return ( new EllipsoidTracerModel( m_model.radii() ) );
       }
     
+      /** Returns a new DSK tracer model using target surface ID */
       inline NaifDskTracerModel *tracer_from_id( const int surfaceId ) const {
         if ( nullptr != m_model.get_segment_with_id( surfaceId ) ) {
           return ( new NaifDskTracerModel( m_model.create_from_id( surfaceId ) ) );
@@ -136,6 +137,7 @@ namespace psmrts  {
         return ( nullptr );
       }
 
+      /** Returns the associated Kernel Model */
       inline const naif::DskKernelModel &tracer() const {
         return ( m_model );
       }

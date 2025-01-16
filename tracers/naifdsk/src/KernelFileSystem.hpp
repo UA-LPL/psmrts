@@ -35,26 +35,32 @@ namespace naif {
     SpiceInt     m_handle;
     SpiceBoolean m_found;
 
+    /** Returns true if specified file could be located */
     inline bool found() const {
       return ( SPICETRUE == m_found );
     }
 
+    /** Returns validity state of kernel - true if located/accessible */
     inline bool isValid() const {
       return ( found() );
     }
 
+    /** Returns handle attached to file */
     inline SpiceInt handle() const {
       return ( m_handle );
     }
 
+    /** Returns file name */
     inline const std::string &filename() const {
       return ( m_kernel_file );
     }
 
+    /** Returns name of source file */
     inline const std::string &source() const {
       return ( m_source_file );
     }
 
+    /** Returns type of kernel */
     inline const std::string &type() const {
       return ( m_kernel_type );
     }

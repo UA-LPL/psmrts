@@ -53,15 +53,17 @@ namespace psmrts::bullet {
         m_collision.reset();
       }
 
-
+      /** Returns validity state of the world model and its' datum */
       inline bool isValid() const {
         return ( m_bt_object.datum().isValid() );
       }
 
+      /** Returns world model name, ie. Body-Fixed-Coordinate-System */
       inline const std::string &name() const {
         return ( m_name );
       }
 
+      /** Adds an additional body object to the world model */
       inline btCollisionObject *add_body( btBvhTriangleMeshShape *shape,
                                           void *userptr = nullptr ) {
 
@@ -79,6 +81,7 @@ namespace psmrts::bullet {
         return ( m_bt_object.datum().object() );
       }
 
+      /** Adds an additional body object, compressed and optimized, to the world model */
       inline btCollisionObject *add_body( const PsmrtsBulletMeshMap &mesh,
                                           const bool useCompression = true,
                                           const bool buildBvh = true,
@@ -90,7 +93,7 @@ namespace psmrts::bullet {
         return ( add_body( mesh.create_collision_shape( useCompression, buildBvh ), userptr ) );
       }
 
-
+      /** Returns true if ray trace result contains a hit, directing the ray data into the ray parameter */
       inline bool extract_ray_trace_results( const PsmrtsBulletClosestRayCallback &results,
                                              PsmrtsRayTrace &ray ) const {
 
@@ -106,7 +109,28 @@ namespace psmrts::bullet {
 
         return ( ray.hasHit() );
       }
-
+      /**
+       * @brief Bullet World Model Ray Trace
+       * 
+       * This method is used to run an individual body-fixed ray trace from
+       * an observer point and a look direction vector. The origin of the
+       * "observer" vector is the origin of the planet body and extends
+       * outward, presumeably, beyond the maximum radius of the surface in
+       * this model. From that point, is the origin of the "lookdir" vector
+       * from which to trace for an intersection with the shape model
+       * surface. 
+       * 
+       * The PsmrtsRayTrace class parameter contains the results of the trace,
+       * and returns true if results hit.
+       * 
+       * @param observer Location of the observer (s/c) relative to the
+       *                   center of the target body
+       * @param lookdir Look direction of the ray from the observer to
+       *                   trace for intersections
+       * @param ray     PsmrtsRayTrace returns the results of the trace
+       * @return true   If the trace intercepts the shape
+       * @return false  If no ray trace intercept was found
+       */
       inline bool ray_trace( const Eigen::Vector3d &observer, 
                              const Eigen::Vector3d &lookdir,
                              PsmrtsRayTrace &ray ) const {
@@ -122,6 +146,29 @@ namespace psmrts::bullet {
         return ( extract_ray_trace_results( results, ray ) );
       }
 
+      /**
+       * @brief Bullet World Model Callback Ray Trace
+       * 
+       * This method is used to run a bullet-specific individual body-fixed ray 
+       * trace from an observer point and a look direction vector. The origin 
+       * of the "observer" vector is the origin of the planet body and extends
+       * outward, presumeably, beyond the maximum radius of the surface in
+       * this model. From that point, is the origin of the "lookdir" vector
+       * from which to trace for an intersection with the shape model
+       * surface. 
+       * 
+       * The PsmrtsBulletClosestRayCallback class parameter contains the results 
+       * of the trace, and returns true if results hit.
+       * 
+       * @param observer Location of the observer (s/c) relative to the
+       *                   center of the target body
+       * @param lookdir Look direction of the ray from the observer to
+       *                   trace for intersections
+       * @param results PsmrtsBulletClosestRayCallback class holds trace
+       *                   results
+       * @return true   If the trace intercepts the shape
+       * @return false  If no ray trace intercept was found
+       */
       inline bool bullet_ray_trace( const Eigen::Vector3d &observer, 
                                     const Eigen::Vector3d &lookdir,
                                     PsmrtsBulletClosestRayCallback &results ) const {
@@ -145,6 +192,7 @@ namespace psmrts::bullet {
         return ( results.hasHit() );
       }
 
+      /** Returns the model's associated mesh */
       inline const PsmrtsBulletMeshMap &mesh() const {
         return ( m_mesh_map );
       }
