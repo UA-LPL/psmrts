@@ -110,7 +110,7 @@ namespace psmrts {
         return ( this->data_get( this->stride_data_offset( index ) ) );
       }
 
-      /** Returns const referencee to designated index position */
+      /** Returns const reference to designated index position */
       inline const_reference ref( const int index = 0 ) const {
         return ( this->data_ref( this->stride_data_offset( index ) ) );
       }

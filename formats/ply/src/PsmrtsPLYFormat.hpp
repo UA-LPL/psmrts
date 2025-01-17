@@ -68,7 +68,7 @@ namespace psmrts {
             return ( m_ply_source );
         }
 
-        /** Returns the type of the referred PLY file - (eg, binary or text) */
+        /** Returns the type of the referred PLY file - ie. binary or text */
         inline std::string file_type() const {
           return ( m_file_type );
         }

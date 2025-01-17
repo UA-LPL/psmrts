@@ -50,12 +50,12 @@ namespace naif {
       // Destructor
       virtual ~NaifEllipsoidShape() { }
 
-      /** Returns the model type, eg. psmrts */
+      /** Returns the model type, ie. psmrts */
       inline std::string tracer_model_type() const {
         return ( std::string( "psmrts" ) );
       }
 
-      /** Returns the model name, eg. NaifEllipsoid */
+      /** Returns the model name, ie. NaifEllipsoid */
       inline std::string tracer_model_name() const {
         return ( std::string( "NaifEllipsoid" )) ;
       }
@@ -102,12 +102,12 @@ namespace naif {
         return ( std::max( a(), std::max( b(), c() ) ) );
       }
 
-      /** Returns number of plates, eg. 0 due to nature of Ellipsoid */
+      /** Returns number of plates (0 due to nature of Ellipsoid format) */
       inline size_t plate_count() const {
         return ( 0 );
       }
 
-      /** Returns number of vertices, eg. 0 due to nature of Ellipsoid */
+      /** Returns number of vertices (0 due to nature of Ellipsoid format) */
       inline size_t vertex_count() const {
         return ( 0 );
       }

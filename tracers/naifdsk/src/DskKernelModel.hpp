@@ -45,12 +45,12 @@ namespace naif {
       typedef psmrts::PsmrtsVector3i            DskIndexDataModel;
       typedef psmrts::PsmrtsVector3d            DskVectorDataModel;
 
-      /** Returns model type, eg. naifdsk */
+      /** Returns model type, ie. naifdsk */
       inline std::string tracer_model_type() const {
         return ( std::string( "naifdsk" ) );
       }
 
-      /** Returns model name, eg. DskKernelModel */
+      /** Returns model name, ie. DskKernelModel */
       inline std::string tracer_model_name() const {
         return ( std::string( "DskKernelModel" )) ;
       }

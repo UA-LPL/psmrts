@@ -140,7 +140,7 @@ namespace psmrts {
       /** Destructor */
       virtual ~PsmrtsMeshData() { }
 
-      /** Returns validity of the mesh */
+      /** Returns validity state of the mesh */
       inline bool isValid() const {
         return ( this->vectors().isValid() );
       }

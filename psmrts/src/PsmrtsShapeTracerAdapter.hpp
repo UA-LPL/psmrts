@@ -31,12 +31,12 @@ namespace psmrts {
 
         virtual ~PsmrtsShapeTracerAdapter() { }
 
-        /** Returns type of tracer model, eg. naifdsk */
+        /** Returns type of tracer model, ie. naifdsk */
         virtual std::string tracer_model_type() const {
           return ( m_model_pst.tracer_model_type() );
         }
 
-        /** Returns tracer model name, eg. bullet, DskKernelModel */
+        /** Returns tracer model name, ie. bullet, DskKernelModel */
         virtual std::string tracer_model_name() const  {
           return ( m_model_pst.tracer_model_name() );
         }
@@ -46,7 +46,7 @@ namespace psmrts {
           return ( m_model_pst.shape_tracer_id() );
         }
 
-        /** Returns related file or shape related information, ie. referred file name or specific Ellipsoid shape */
+        /** Returns related file or shape related information, eg. referred file name or specific Ellipsoid shape */
         virtual std::string shapefile()         const  {
           return ( m_model_pst.shapefile() );
         }

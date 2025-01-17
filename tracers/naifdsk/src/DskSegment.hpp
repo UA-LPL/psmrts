@@ -116,7 +116,7 @@ namespace naif {
         return ( m_min_radius );
       }
 
-      /** Returns segment's mximum radius */
+      /** Returns segment's maximum radius */
       inline double maximum_radius( ) const {
         return ( m_max_radius );
       }
