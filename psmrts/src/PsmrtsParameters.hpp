@@ -30,11 +30,12 @@ namespace Eigen {
     q = Eigen::Quaterniond( { j["w"], j["x"], j["y"], j["z"] } );
   }    
 
+  /** Translate an Eigen::Vector3d to JSON array */
   inline void to_json( json &j, const Eigen::Vector3d &v )  {
     j = json::array( { v[0], v[1], v[2] } );
   }
 
-  
+  /** Translate an Eigen::Vector3i to JSON array */
   inline void to_json( json &j, const Eigen::Vector3i &v )  {
     j = json::array( { v[0], v[1], v[2] } );
   }
@@ -116,6 +117,19 @@ namespace psmrts {
       return ( parsedjson );
     }
     
+    /**
+     * @brief Creates a JSON file from ordered_json object data
+     * 
+     * Converts provided JSON data to a JSON file, with string name
+     * identifier, and default 2nd-level indentation.
+     * 
+     * An indentation level of 0 will only insert newlines, -1 provides the most compact
+     * representation. https://json.nlohmann.me/api/basic_json/dump/
+     * 
+     * @param j_data      Provided JSON data
+     * @param fname       File name identifier
+     * @param j_indent    Level of indentation
+     */
     inline void write_json_file( const ordered_json &j_data, 
                                   const std::string &fname,
                                   const int j_indent = 2 ) {
@@ -146,14 +160,17 @@ namespace psmrts {
       explicit PsmrtsParameters( const ordered_json &config ) : m_json( config )  { }
       virtual ~PsmrtsParameters() { }
 
+      /** Returns size of the Parameters */
       inline int size() const {
         return ( m_json.size() );
       }
 
+      /** Returns boolean confirmation if target key is in Parameters */
       inline bool contains( const std::string &key ) const {
         return ( m_json.contains( psmrts_tolower( key ) ) );
       }
 
+      /** Returns string version of key if it exists in Parameters */
       inline std::string get_string_parameter( const std::string &key, 
                                                const std::string &value_d = "" ) const {
         std::string s_t = value_d;
@@ -164,6 +181,7 @@ namespace psmrts {
         return ( s_t );
       }
 
+      /** Returns double value of key if it exists in Parameters */
       inline double get_double_parameter( const std::string &key, 
                                                const double &value_d = std::nan("null") ) const {
         double d_t = value_d;
@@ -174,6 +192,7 @@ namespace psmrts {
         return ( d_t );
       }
 
+      /** Returns integer value of key if it exists in Parameters */
       inline int get_int_parameter( const std::string &key, 
                                             const int &value_d = 0 ) const {
         int d_t = value_d;

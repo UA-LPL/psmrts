@@ -52,10 +52,12 @@ namespace psmrts {
         /** Destructor */
         virtual ~PsmrtsPLYFormat() {}
 
+        /** Returns the data source of the format model - PLY filepath */
         virtual std::string format_model_source() {
             return ( ply_source() );
         }
 
+        /** Returns validity state of the object's mesh */
         inline bool isValid() const {
             if ( !m_mesh.isValid() ) return (false);
             return ( true );
@@ -65,15 +67,18 @@ namespace psmrts {
         inline const std::string &ply_source() const {
             return ( m_ply_source );
         }
-    
+
+        /** Returns the type of the referred PLY file - ie. binary or text */
         inline std::string file_type() const {
           return ( m_file_type );
         }
-
+        
+        /** Returns number of vertexes */
         inline size_t nVertexes() const {
             return ( m_mesh.nvectors() );
         }
 
+        /** Returns number of indexes */
         inline size_t nIndexes() const {
             return ( m_mesh.nfacets() );
         }

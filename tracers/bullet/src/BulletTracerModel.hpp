@@ -30,6 +30,7 @@ namespace psmrts::bullet {
 
       virtual ~BulletTracerModel() { }
 
+      /** Returns name of tracer model, ie. bullet */
       inline std::string tracer_model_name() const {
         return ( m_bullet_model.mesh().mesh_type() );
       }
@@ -49,7 +50,7 @@ namespace psmrts::bullet {
         return ( m_bullet_model.mesh().nvectors() );
       }
 
-      /** Returns the maximum radius in the modek */
+      /** Returns the maximum radius in the model */
       virtual double maximum_radius() const {
         return ( m_bullet_model.mesh().maximum_radius() );
       }

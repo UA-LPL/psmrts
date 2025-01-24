@@ -248,6 +248,7 @@ namespace psmrts {
         datum().reset( observer, lookdir );
       }
 
+      /** Ensures look direction value is not null or zero, returns false/throws error if case of either condition */
       inline bool validate_lookdir( const bool throwOnError = true ) const {
         if ( psmrts::isnull( this->lookdir() ) || psmrts::isEqual( this->lookdir(), Eigen::Vector3d::Zero() ) ) {
           if ( true == throwOnError ) {

@@ -262,7 +262,7 @@ namespace psmrts {
         return ( true );
       } 
 
-
+      /** Returns vectors converted to double precision */
       inline PsmrtsVector3d get_double_vectors( ) const {
         tinyobj_real_type *v = const_cast<tinyobj_real_type *> (&m_obj_reader->GetAttrib().vertices[0] );
         OBJVectorArray bt_vector_map( v, this->nVertexes() );
@@ -276,6 +276,7 @@ namespace psmrts {
         return ( out_vectors );
       }
 
+      /** Returns vectors converted to float precision */
       inline PsmrtsVector3f get_float_vectors( ) const {
 
         tinyobj_real_type *v = const_cast<tinyobj_real_type *> (&m_obj_reader->GetAttrib().vertices[0] );
@@ -290,7 +291,7 @@ namespace psmrts {
         return ( out_vectors );
       }
 
-
+      /** Returns vector containing index data of object */
       inline PsmrtsVector3i get_indexes( ) const {
 
         PsmrtsVector3i out_indexes( this->count_facets() );
@@ -316,6 +317,21 @@ namespace psmrts {
         return ( out_indexes );
       }
 
+      /**
+       * @brief Get the index shape map object.
+       * 
+       * This function accepts a PsmrtsVector3i of indexes, checks to ensure it contains the 
+       * same number of data as facets of the associated OBJ file, then creates and outputs
+       * a standard vector containing PsmrtsVector3i objects representative of the shapes
+       * located in the file. A PsmrtsVector3i input that contains a different ratio of indexes
+       * relative to the number of facets in the file will result in a runtime error.
+       * 
+       * @param indexes                       Requires a PsmrtsVector3i representative of the OBJ file's
+       *                                      index data, which should align with the OBJ's number of facets. 
+       *                                      The function will throw an error if their counts are different.
+       * @return std::vector<PsmrtsVector3i>  Returns a vector of PsmrtsVector3i representing the shapes present
+       *                                      in the OBJ, and their relative facets.
+       */
       inline std::vector<PsmrtsVector3i> get_index_shape_map( const PsmrtsVector3i &indexes ) const {
 
         if ( indexes.size() != this->count_facets() ) {
@@ -336,6 +352,7 @@ namespace psmrts {
         return ( obj_shape_maps );
       }
 
+      /** Returns mesh of object's index/vector data */
       inline PsmrtsMeshData get_mesh( ) const {
         m_tracker++;  // Track the number of meshes this instance creates
         return ( PsmrtsMeshData( get_indexes(), get_double_vectors() ) );

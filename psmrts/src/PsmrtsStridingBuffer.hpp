@@ -85,34 +85,55 @@ namespace psmrts {
         return ( m_size_s );
       }
 
+      /** Total number of bytes in each stride - defaults to 1, value used in division elsewhere */
       inline size_t stride_size() const { 
         return ( m_stride_size_b );
       }
 
+      /** Total number of bytes in buffer */
       inline size_t volume_size() const {
         return ( this->size() * this->stride_size() );
       }
 
+      /** Returns a reference to buffer data  */
       inline const PsmrtsBufferData &data() const {
         return ( *this );
       }
 
+      /** Returns const pointer to designated index position */
       inline const_pointer get( const int index = 0 ) const {
         return ( this->data_get( this->stride_data_offset( index ) ) );
       }
 
+      /** Returns pointer to designated index poisition */
       inline pointer get( const int index = 0) {
         return ( this->data_get( this->stride_data_offset( index ) ) );
       }
 
+      /** Returns const reference to designated index position */
       inline const_reference ref( const int index = 0 ) const {
         return ( this->data_ref( this->stride_data_offset( index ) ) );
       }
 
+      /** Returns reference to designated index position */
       inline reference ref( const int index = 0) {
         return ( this->data_ref( this->stride_data_offset( index ) ) );
       }
 
+      /**
+       * @brief Provides a specific slice of the buffer
+       * 
+       * Returns a designated segment of the buffer as indicated by the 
+       * start_index, representing the starting index of the desired 
+       * slice location, and nstrides being the total number of data
+       * values sized to the stride amount.
+       * 
+       * @param start_index             Start index for target slice
+       * @param nstrides                Number of values to include in slice,
+       *                                 sized to the stride value
+       * @return PsmrtsStridingBuffer   Returns a PsmrtsStridingBuffer containing
+       *                                 the slice as determined by above parameters
+       */
       inline PsmrtsStridingBuffer slice( const int start_index, 
                                          const int nstrides = 0) 
                                          const {
@@ -183,12 +204,13 @@ namespace psmrts {
         return ( *this );
       }
 
+      /** Calculates the designated stride offset */
       inline int stride_data_offset( const int index_t = 0 ) const {
         return ( index_t * this->stride_size() );
       }
 
       /**
-       * @brief Validates the stride buffer condifiguration
+       * @brief Validates the stride buffer configuration
        * 
        * This method can be called at any time to determine the state of the 
        * stride buffer configuration.
@@ -223,6 +245,15 @@ namespace psmrts {
         return ( isValid );
       }
 
+      /**
+       * @brief Allocates the stride buffer configuration
+       * 
+       * This method is used to directly construct the striding buffer,
+       * based on a provided size, and number, of strides. 
+       * 
+       * @param nstrides      Desired number of strides
+       * @param stride_size_b Desired stride size, in bytes
+       */
       inline void allocate_striding_buffer( const int nstrides,
                                             const int stride_size_b ) {
 

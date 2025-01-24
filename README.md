@@ -30,7 +30,7 @@ The `psmrts` is contained in the `./psmrts` directory. One command is used to co
 1. `cd psmrts`
 2. `./make_psmrts.sh`
    - Add `-t` to enable testing
-   - Add '-c' to enable code coverage
+   - Add `-c` to enable code coverage
 
 The executable called `psmrts` will be in the ./build directory. It can be copied to any location and ran from anywhere. The script `make_psmrts.sh` runs several other scripts that can be ran separately if needed. Note that these scripts must be run from the `./psmrts` directory.
 
