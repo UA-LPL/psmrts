@@ -37,16 +37,6 @@ TEST_CASE ( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][defaul
     CHECK( psmrts::psmrts_file_basename(file_path) == "Bennu_Radar.ply" );
     CHECK( file_path != "Bennu_Radar.ply" );
 
-    /*
-    CHECK( ply.config()["header"]["type"].dump() == "\"binary\"" );
-    CHECK( ply.config()["header"]["nElements"].dump() == "2" );
-    CHECK( ply.config()["elements"].dump() == "[{\"element\":{\"name\":\"vertex\",\"size\":\
-1348},\"properties\":[{\"property\":{\"name\":\"x\",\"type\":\"float\"}},{\"property\":\
-{\"name\":\"y\",\"type\":\"float\"}},{\"property\":{\"name\":\"z\",\"type\":\"float\"}}]},{\"element\":\
-{\"name\":\"face\",\"size\":2692},\"properties\":[{\"property\":{\"count\":\"uchar\",\"name\":\
-\"vertex_indices\",\"type\":\"int\"}}]}]" );
-    */
-    
     nlohmann::ordered_json j_result = nlohmann::ordered_json::object();
 
     j_result["header"]["file"]      = ply.ply_source();
@@ -173,16 +163,6 @@ TEST_CASE("PLY FORMAT Asset Test - Text Based Ply Reader and Comparison", "[form
     
     CHECK( psmrts::psmrts_file_basename(file_path) == "icosahedron_binary.ply");
     CHECK( file_path != "icosahedron_binary.ply");
-
-    /**
-    CHECK( binary_ply.config()["header"]["type"].dump() == "\"binary\"" );
-    CHECK( binary_ply.config()["header"]["nElements"].dump() == "2" );
-    CHECK( binary_ply.config()["elements"].dump() == "[{\"element\":{\"name\":\"vertex\",\"size\":12},\"properties\":\
-[{\"property\":{\"name\":\"x\",\"type\":\"float\"}},{\"property\":{\"name\":\"y\",\"type\":\
-\"float\"}},{\"property\":{\"name\":\"z\",\"type\":\"float\"}}]},{\"element\":{\"name\":\
-\"face\",\"size\":20},\"properties\":[{\"property\":{\"count\":\"uchar\",\"name\":\
-\"vertex_indices\",\"type\":\"int\"}}]}]");
-    */
 
     nlohmann::ordered_json j_result = nlohmann::ordered_json::object();
 

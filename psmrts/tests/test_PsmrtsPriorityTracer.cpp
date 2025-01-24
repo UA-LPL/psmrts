@@ -77,12 +77,14 @@ TEST_CASE( "PsmrtsPriorityTrace Values Test", "[priority][tracer][values]") {
     latrec_c ( radius, surf_lon, surf_lat, surf.data() );
 
     Eigen::Vector3d lookdir = surf - obs;
-
     psmrts::PsmrtsRayTrace ray;
 
-    CHECK( p_tracer.ray_trace(obs, lookdir, ray)->shapefile() == psmrts_formats_path( "obj/data/bennu_20facets.obj" ) );
+    const psmrts::PsmrtsTracerModel* ray_result = p_tracer.ray_trace( obs, lookdir, ray );
+
+    REQUIRE( ray_result            != nullptr );
+    CHECK( ray_result->shapefile() == psmrts_formats_path( "obj/data/bennu_20facets.obj" ) );
 
     p_tracer.clear();
-    CHECK( p_tracer.size() == 0 );
+    CHECK( p_tracer.size()    == 0 );
     CHECK( p_tracer.isValid() == false );
 }

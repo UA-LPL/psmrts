@@ -159,7 +159,23 @@ namespace psmrts  {
         return ( true );
       }
 
-      /** Virtual ray trace method */
+      /**
+       * @brief NAIF Dsk Virtual Ray Trace Method
+       * 
+       * Deriving classes must implement this method as is specified for 
+       * shape models.
+       * 
+       * It must include designated values necessary for a Ray Trace (observer, look direction),
+       * return true if trace results in an intercept, and store the relevant result data into 
+       * a PsmrtsRayTrace object.
+       * 
+       * @param observer Location of the observer (s/c) relative to the target body
+       * @param lookdir  Look direction of the ray from the observer to
+       *                   trace for intersections
+       * @param ray      PsmrtsRayTrace returns the results of the trace
+       * @return true    If trace intercepts shape
+       * @return false   If trace fails to intercept
+       */
       virtual bool ray_trace( const Eigen::Vector3d &observer,
                               const Eigen::Vector3d &lookdir,
                               PsmrtsRayTrace &ray ) const {

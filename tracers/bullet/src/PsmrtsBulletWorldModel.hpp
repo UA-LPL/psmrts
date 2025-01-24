@@ -93,7 +93,7 @@ namespace psmrts::bullet {
         return ( add_body( mesh.create_collision_shape( useCompression, buildBvh ), userptr ) );
       }
 
-      /** Returns true if ray trace result contains a hit, directing the ray data into the ray parameter */
+      /** Returns true if ray trace result contains a hit, directing the trace data into the ray parameter */
       inline bool extract_ray_trace_results( const PsmrtsBulletClosestRayCallback &results,
                                              PsmrtsRayTrace &ray ) const {
 
