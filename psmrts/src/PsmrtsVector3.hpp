@@ -86,6 +86,7 @@ template <typename T>
       using PsmrtsBuffer<T>::track_count;
       using PsmrtsBuffer<T>::performance_snapshot;      
 
+      /** Returns size of vector */
       inline size_t vector_size() const { 
         return ( VectorSize );
       }
@@ -98,6 +99,7 @@ template <typename T>
         return ( vector_reference( this->buffer_ptr( index ) ) );
       }
 
+      /** Returns value specified by index */
       inline vector_type value( const int index = 0 ) const {
         return ( vector_type( this->buffer_ptr( index ) ) );
       }
@@ -127,7 +129,7 @@ template <typename T>
       using PsmrtsBuffer<T>::buffer_ref;
 
     private:
-
+      /** Returns false/throws error if stride size is inappropriately allocated */
       inline bool validate_state( const bool throwOnError = true ) const {
         bool isGood = true;
         if ( this->stride_size() < VectorBytes ) {

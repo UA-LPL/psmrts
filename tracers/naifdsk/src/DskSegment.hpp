@@ -46,7 +46,7 @@ namespace naif {
 
       virtual ~DskSegment() { }
 
-
+      /** Returns validity state of segment - valid so long as it contains vertices */
       inline bool isValid() const {
         return ( m_vertices > 0 );
       }
@@ -61,51 +61,62 @@ namespace naif {
         return ( surfaceid() );
       }
       
+      /** Returns number of vertices in segment */
       inline SpiceInt n_vertices() const {
         return ( m_vertices );
       }
-           
+      
+      /** Returns number of plates in segment */
       inline SpiceInt n_plates() const {
         return ( m_plates );
       }
 
+      /** Returns number of vectors in segment (vertices) */
       inline SpiceInt n_vectors() const {
         return ( n_vertices() );
       }      
-           
+      
+      /** Returns DLA Descriptor associated with segment */
       inline const SpiceDLADescr &dladsc() const {
         return ( m_dla_descr );
       }
 
+      /** Returns pointer to DLA Descriptor associated with segment */
       inline SpiceDLADescr *dladsc_ptr()  {
         return ( &m_dla_descr );
       }
 
+      /** Returns pointer to DLA Descriptor associated with segment */
       inline const SpiceDLADescr *dladsc_ptr() const {
         return ( &m_dla_descr );
       }
 
+      /** Returns DSK Descriptor */
       inline const SpiceDSKDescr &dskdsc() const {
         return ( m_dsk_descr );
       }
       
-
+      /** Returns pointer to DSK Descriptor */
       inline SpiceDSKDescr *dskdsc_ptr()  {
         return ( &m_dsk_descr );
       }
 
+      /** Returns pointer to DSK Descriptor */
       inline const SpiceDSKDescr *dskdsc_ptr() const {
         return ( &m_dsk_descr );
       }
       
+      /** Returns radii vector */
       inline Eigen::Vector3d radii( ) const {
         return ( m_radii );
       }
 
+      /** Returns segment's minimum radius */
       inline double minimum_radius( ) const {
         return ( m_min_radius );
       }
 
+      /** Returns segment's maximum radius */
       inline double maximum_radius( ) const {
         return ( m_max_radius );
       }
@@ -120,14 +131,17 @@ namespace naif {
         return ( dskdsc().surfce );
       }
 
+      /** Returns frame id */
       inline SpiceInt frameid() const {
         return ( dskdsc().frmcde );
       }
 
+      /** Returns the DSK segment data type */
       inline SpiceInt dtype() const {
         return ( dskdsc().dtype );
       }
 
+      /** Returns the data class of the segment (aspects of topology) */
       inline SpiceInt dclass() const {
         return ( dskdsc().dclass );
       }

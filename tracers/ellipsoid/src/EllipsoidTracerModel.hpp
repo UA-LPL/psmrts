@@ -46,7 +46,7 @@ namespace psmrts  {
         return ( m_model.tracer_model_type() );
       };
 
-      /** Name of tracer model such as  "naifdsk" and "bullet" */
+      /** Name of tracer model, ie. NaifEllipsoid */
       virtual std::string tracer_model_name() const {
         return ( m_model.tracer_model_name() );
       }

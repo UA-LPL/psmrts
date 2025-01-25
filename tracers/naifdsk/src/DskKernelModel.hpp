@@ -45,14 +45,17 @@ namespace naif {
       typedef psmrts::PsmrtsVector3i            DskIndexDataModel;
       typedef psmrts::PsmrtsVector3d            DskVectorDataModel;
 
+      /** Returns model type, ie. naifdsk */
       inline std::string tracer_model_type() const {
         return ( std::string( "naifdsk" ) );
       }
 
+      /** Returns model name, ie. DskKernelModel */
       inline std::string tracer_model_name() const {
         return ( std::string( "DskKernelModel" )) ;
       }
 
+      /** Returns tracer identification as a combination of model type, model name, and shape name */
       inline std::string shape_tracer_id() const {
         std::string shapename = shapefile();
         if ( shapename.length() == 0 ) shapename = "none";
@@ -139,18 +142,21 @@ namespace naif {
         return ( m_total_vertices );
       }
 
+      /** Return number of vertices */
       inline size_t vertex_count() const {
         return ( this->n_total_vertices() );
       }
 
-      /** Return to tal number of facets/plates in all DSK segments */
+      /** Return total number of facets/plates in all DSK segments */
       inline size_t n_total_plates() const {
         return ( m_total_plates );
       }
 
+      /** Return number of plates */
       inline size_t plate_count() const {
         return ( n_total_plates() );
       }
+
       /** Returns the number of DSKs contained in this object */
       inline size_t n_dsk_segments() const {
         return ( m_segments.size() );
@@ -197,14 +203,17 @@ namespace naif {
         return ( nullptr );
       }
 
+      /** Returns minimum radius */
       inline double minimum_radius() const {
         return ( this->segment().maximum_radius() );
       }
 
+      /** Returns maximum radius */
       inline double maximum_radius() const {
         return ( this->segment().minimum_radius() );
       }
 
+      /** Returns radii vector */
       inline Eigen::Vector3d radii() const {
         return ( m_radii );
       }      
@@ -442,7 +451,7 @@ namespace naif {
         return ( dskvec );
       }
 
-
+      /** Returns a clone of the model */
       inline DskKernelModel clone() const {
         return ( *this );
       }
