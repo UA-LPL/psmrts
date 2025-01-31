@@ -48,6 +48,15 @@ TEST_CASE( "EllipsoidTracerModel Default Test", "[ellipsoid][default]") {
     CHECK ( etm_radii_ellipse.vertex_count() == 0 );
     CHECK ( etm_radii_ellipse.maximum_radius() == 2.0 );
 
+    // Deliberate Empty Name Check and Clone
+    psmrts::EllipsoidTracerModel etm_NoName (e_radii, "");
+    CHECK( etm_NoName.shapefile().length() == 0 );
+    CHECK( etm_NoName.shape_tracer_id() == "psmrts::NaifEllipsoid::none" );
+    CHECK_NOTHROW( etm_NoName.performance_snapshot() );
+
+    psmrts::PsmrtsTracerModel* etm_clone;
+    CHECK_NOTHROW( etm_clone = etm_NoName.ellipsoid() );
+    CHECK( etm_clone->maximum_radius() == 2.0 );
 }
 
 TEST_CASE ("EllipsoidTracerModel Basic Values / RayTrace Test", "[tracer][ellipsoid][raytrace]") {
