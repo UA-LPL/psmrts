@@ -71,8 +71,13 @@ if( BUILD_TESTING )
     setup_target_for_coverage_gcovr_html(
       NAME coverage
       EXECUTABLE ctest --schedule-random
-      DEPENDENCIES psmrts_test_suite naif_test_suite bullet_test_suite
-      EXCLUDE ".*/test_.*\\.cpp$" "build/vcpkg_installed/*"
+      DEPENDENCIES psmrts_test_suite 
+                   naif_test_suite
+                   bullet_test_suite
+                   ellipsoid_test_suite
+                   obj_test_suite
+                   ply_test_suite
+      EXCLUDE ".*test/" "build/vcpkg_installed/*"
     )
   endif(BUILD_COVERAGE)
 
