@@ -60,6 +60,15 @@ extern PSMRTSRayTrace *psmrts_ray_trace( PSMRTSShapeTracer *tracer, const double
 
 extern PSMRTS_BOOL psmrts_isvalid( const PSMRTSRayTrace *trace );
 
+/*============ PSMRTS memory functions ============*/
+
+extern void psmrts_free( PSMRTSRayTrace *trace );
+extern void psmrts_free( PSMRTSShape *shape );
+extern void psmrts_free( PSMRTSTracer *tracer );
+extern void psmrts_free( PSMRTSShapeTracer *stracer );
+extern void psmrts_free( PSMRTSPriorityTracer *ptracer );
+
+
 #ifdef __cplusplus
 }
 #endif

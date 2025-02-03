@@ -15,15 +15,15 @@ int main( int argc, char *argv[] ) {
   char *shape, *tracer;
   shape = argv[1];
   tracer = argv[2];
-  PSMRTSShapeTracer p_tracer;
-  tracer  = *psmrt_load_shape( shape, tracer );
+  PSMRTSShapeTracer *tracer;
+  tracer  = *psmrts_load_shape( shape, tracer );
   if ( !tracer ) {
     printf("\nFailed to open %s with a %s tracer\n", shape, tracer );
     return ( 2 );
   }
 
   /* Run a trace at the poles and equator */
-  PSMRTSRayTrace *trace;
+  PSMRTSRayTrace *ray;
   double scpos[3];
   double lookdir[3];
   double radius;
@@ -38,16 +38,21 @@ int main( int argc, char *argv[] ) {
   printf("\nLOOKDIR = %g, %g, %g\n", lookdir[0], lookdir[1], lookdir[2] );
 
   /* run the trace */
-  trace = psmrts_ray_trace( tracer, scpos, lookdir );
-  if ( psmrts_isvalid( trace ) == PSMRTS_TRUE ) {
+  ray = psmrts_ray_trace( tracer, scpos, lookdir );
+  if ( psmrts_isvalid( ray ) == PSMRTS_TRUE ) {
     double xyz[3];
-    psmrts_surface_xyz( trace, xyz );
+    psmrts_surface_xyz( ray, xyz );
     printf("\nXYZ = %f, %f, %d\n", xyz[0], xyz[1], xyz[2] );
   }
   else {
     printf("\nTrace failed!\n");
     return ( 3 );
   }
+
+  psmrts_free( ray );
+  psmrts_free( tracer );
+
+  typedef std::shared_ptr<PSMRTSRayTrace, psmrts_free> PSMRTSRayTracePtr;
 
   return ( 0 );
 }
