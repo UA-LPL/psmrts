@@ -22,8 +22,25 @@ extern "C" {
 #endif
 
 
+/*---> Have CMAKE generate PSMRTS CAPI versioning here! */
+
+
+/*============ Type definitions ============*/
+enum PSMRTSTypes {
+  PSMRTS_RAYTRACE,
+  PSMRTS_SHAPE,
+  PSMRTS_TRACER,
+  PSMRTS_SHAPE_TRACER,
+  PSMRTS_PRIORITY_TRACER
+};
+
+/* Conditional types */
+typedef int    PSMRTS_BOOL;
+#define PSMRTS_TRUE       1
+#define PSMRTS_FALSE      0
+
+
 /*============ PSMRTS C API type definitions ============*/
-typedef struct psmrts_mesh            PSMRTSMesh;
 typedef struct psmrts_raytrace        PSMRTSRayTrace;
 typedef struct psmrts_shape           PSMRTSShape;
 typedef struct psmrts_tracer          PSMRTSTracer;
@@ -34,6 +51,14 @@ typedef struct psmrts_priority_tracer PSMRTSPriorityTracer;
 extern const char PSMRTS_DLL *psmrts_version();
 extern const char PSMRTS_DLL *psmrts_info();
 
+/*============ PSMRTS tracing functions ============*/
+
+extern PSMRTSShapeTracer *psmrts_load_shape( const char *shape, const char *tracer );
+extern void psmrts_lonlat_to_xyz( const double longitude_d, const double latitude_d, const double radius_km, double xyz[3] );
+extern void psmrts_vector_scale( const double v[3], const double scale, double vout[3] );
+extern PSMRTSRayTrace *psmrts_ray_trace( PSMRTSShapeTracer *tracer, const double scpos[3], const double lookdir[3] );
+
+extern PSMRTS_BOOL psmrts_isvalid( const PSMRTSRayTrace *trace );
 
 #ifdef __cplusplus
 }

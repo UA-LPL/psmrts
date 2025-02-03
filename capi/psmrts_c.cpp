@@ -12,7 +12,6 @@
 
 /*============ PSMRTS C API type definitions ============*/
 /* Must be defined before including psmrts_c.h */
-typedef PSMRTSMesh           PsmrtsVector3d;
 typedef PSMRTSRayTrace       PsmrtsRayTrace;
 typedef PSMRTSShape          PsmrtsMeshData;
 typedef PSMRTSTracer         PsmrtsTracerModel;
@@ -24,7 +23,7 @@ typedef PSMRTSPriorityTracer PsmsrtsPriorityTracer;
 #include <psmrts_c.h>
 
 extern "C" {
-  
+
 /*============ PSMRTS information functions ============*/
 
 const char *psmrts_version() {
