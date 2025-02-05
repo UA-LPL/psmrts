@@ -189,21 +189,21 @@ TEST_CASE( "PsmrtsVector3 Slice / Deep Copy Test", "[vector3][buffer][slice][cop
   auto p_model  = ObjIndexData( n_data );
   auto p_copy = p_model.deep_copy();
 
-  CHECK ( p_copy.isValid() == true );
-  CHECK ( &p_model         != &p_copy );
-  CHECK ( p_model.value(0) == p_copy.value(0) );
-  CHECK ( p_model.value(9) == p_copy.value(9) );
+  CHECK ( p_copy.isValid()       == true );
+  CHECK ( p_model.buffer().get() != p_copy.buffer().get() );
+  CHECK ( p_model.value(0)       == p_copy.value(0) );
+  CHECK ( p_model.value(9)       == p_copy.value(9) );
   
   auto p_slice = p_model.slice(2, 8);
 
-  CHECK ( p_model.size() != p_slice.size() );
+  CHECK ( p_model.size()   != p_slice.size() );
   CHECK ( p_model.value(2) == p_slice.value(0) );
 
   // slice constructor
   CHECK_NOTHROW( psmrts::PsmrtsVector3<int> ( p_model, 0,  n_data ) );
 
-  // Intentional Fail-State
-  psmrts::PsmrtsBuffer<int>::value_type* data;
+  // Intentional Fail-State To Ensure Coverage of PsmrtsVector3::validate_state()
+  psmrts::PsmrtsBuffer<int>::value_type* data = 0;
   CHECK_THROWS( psmrts::PsmrtsVector3i (data, n_data, 1) );
   
 }

@@ -77,7 +77,7 @@ if( BUILD_TESTING )
                    ellipsoid_test_suite
                    obj_test_suite
                    ply_test_suite
-      EXCLUDE ".*test/" "build/vcpkg_installed/*"
+      EXCLUDE "*/tests/" "build/vcpkg_installed/*"
     )
   endif(BUILD_COVERAGE)
 

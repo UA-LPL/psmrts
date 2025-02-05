@@ -113,11 +113,13 @@ template <typename T>
       /** Extract a slice from the original dataset */
       inline PsmrtsVector3 slice( const int start_index, 
                                   const int n_data = 0 ) const {
-        return ( PsmrtsVector3( this->buffer().slice( start_index, n_data ) ) ); }
+        return ( PsmrtsVector3( this->buffer().slice( start_index, n_data ) ) ); 
+      }
 
       /** Get a deep copy of the buffer */
       inline PsmrtsVector3 deep_copy( ) const {
-        return ( PsmrtsVector3( this->buffer().deep_copy() ) ); }
+        return ( PsmrtsVector3( this->buffer().deep_copy() ) ); 
+      }
 
       using PsmrtsBuffer<T>::buffer;
 
