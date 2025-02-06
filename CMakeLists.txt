@@ -77,7 +77,14 @@ if( BUILD_TESTING )
                    ellipsoid_test_suite
                    obj_test_suite
                    ply_test_suite
-      EXCLUDE "*/tests/" "build/vcpkg_installed/*"
+      BASE_DIRECTORY "${PSMRTS_PROJECT_DIR}"
+      EXCLUDE "psmrts/tests/*" 
+              "tracers/bullet/tests/*"
+              "tracers/ellipsoid/tests/*"
+              "tracers/naifdsk/tests/*"
+              "formats/ply/tests/*"
+              "formats/obj/tests/*"
+              "build/vcpkg_installed/*"
     )
   endif(BUILD_COVERAGE)
 
