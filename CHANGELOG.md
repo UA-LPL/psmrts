@@ -36,6 +36,21 @@ release.
 - Bullet Physics Tracer Model
   - Implement multi-threaded version of tinyobjloader
 
+## [0.0.11] 2025-02-07
+- PR #10 and PR #11 Changes - Documentation and Code Coverage Improvements
+- README.md - minor typo fix.
+- CMakeLists.txt - Expanded test suite dependencies, improved test directory exclusions in main Cmake file. Added bullet/tinyobjloader library links
+and tinyobjloader package to psmrts/tests CMake file. 
+- Comment documentation added to: PsmrtsOBJFormat.hpp, PsmrtsPlyFormat.hpp, PsmrtsBufferData.hpp, PsmrtsMeshData.hpp, PsmrtsParameters.hpp, PsmrtsPriorityTracer.hpp,
+PsmrtsRayTrace.hpp, PsmrtsShapeTracerAdapter.hpp, PsmrtsStridingBuffer.hpp, PsmrtsUtilities.hpp, PsmrtsVector3.hpp, BulletShapeTracer.hpp, BulletTracerModel.hpp,
+PsmrtsBulletMeshMap.hpp, PsmrtsBulletWorldModel.hpp, EllipsoidShapeTracer.hpp, EllipsoidTracerModel.hpp, DskKernelModel.hpp, DskSegment.hpp, NaifDskShapeTracer.hpp,
+NaifDskTracerModel.hpp, and NaifEllipsoidShape.hpp.
+- test_EllipsoidTracerModel.cpp - Improved clone testing and coverage.
+- test_PsmrtsPLYFormat.cpp - Improved json output comparisons for better readability.
+- test_PsmrtsPriorityTracer.cpp - Added format testing, improvements.
+- test_PsmrtsVector3.cpp - Improved test for coverage and validation catching.
+- Updated CHANGELOG.md and set version to [0.0.11]
+ 
 ## [0.0.10] 2025-01-06
 - Implemented an initial PSMRTS Request System, with PSMRTS Functor and Process() methods:
   - PRQRayTrace: Basic ray trace with a defined observer and look direction using body-fixed coordinates.

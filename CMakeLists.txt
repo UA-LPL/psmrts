@@ -32,8 +32,8 @@ set( PSMRTS_FORMAT_DIR   ${CMAKE_SOURCE_DIR}/formats )
 
 set( VERSION_MAJOR 0)
 set( VERSION_MINOR 0)
-set( VERSION_PATCH 10)
-set( VERSION_DATE  "2025-01-08")
+set( VERSION_PATCH 11)
+set( VERSION_DATE  "2025-02-07")
 # set( PSMRTS_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 # Configure the project include files
@@ -72,9 +72,9 @@ if( BUILD_TESTING )
       NAME coverage
       EXECUTABLE ctest --schedule-random
       DEPENDENCIES psmrts_test_suite 
-                   naif_test_suite
                    bullet_test_suite
                    ellipsoid_test_suite
+                   naif_test_suite
                    obj_test_suite
                    ply_test_suite
       BASE_DIRECTORY "${PSMRTS_PROJECT_DIR}"
@@ -82,8 +82,8 @@ if( BUILD_TESTING )
               "tracers/bullet/tests/*"
               "tracers/ellipsoid/tests/*"
               "tracers/naifdsk/tests/*"
-              "formats/ply/tests/*"
               "formats/obj/tests/*"
+              "formats/ply/tests/*"
               "build/vcpkg_installed/*"
     )
   endif(BUILD_COVERAGE)
