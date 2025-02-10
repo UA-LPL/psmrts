@@ -72,9 +72,9 @@ if( BUILD_TESTING )
       NAME coverage
       EXECUTABLE ctest --schedule-random
       DEPENDENCIES psmrts_test_suite 
-                   naif_test_suite
                    bullet_test_suite
                    ellipsoid_test_suite
+                   naif_test_suite
                    obj_test_suite
                    ply_test_suite
       BASE_DIRECTORY "${PSMRTS_PROJECT_DIR}"
@@ -82,8 +82,8 @@ if( BUILD_TESTING )
               "tracers/bullet/tests/*"
               "tracers/ellipsoid/tests/*"
               "tracers/naifdsk/tests/*"
-              "formats/ply/tests/*"
               "formats/obj/tests/*"
+              "formats/ply/tests/*"
               "build/vcpkg_installed/*"
     )
   endif(BUILD_COVERAGE)
