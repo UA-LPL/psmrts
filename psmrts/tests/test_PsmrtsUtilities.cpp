@@ -53,13 +53,31 @@ TEST_CASE( "PSMRTS Clock Time Tests", "[utilities][time]" ) {
     CHECK( psmrts::isEqual(ev_one, ev_four) == false );
     CHECK( psmrts::isEqual(ev_one, ev_five) == true ); // Base tolerance: 1.0e-12
     CHECK( psmrts::isEqual(ev_one, ev_five, 1.0e-16) == false );
+}
 
+TEST_CASE( "PSMRTS String Functions Test", "[utilities][string]" ) {
     CHECK( psmrts::psmrts_tolower( "tHiS iS A LOWERcasE strINg") == "this is a lowercase string" );
     CHECK( psmrts::psmrts_tolower( "1. THIS? is *ALSO* lowerCASE&") == "1. this? is *also* lowercase&" );
     CHECK( psmrts::psmrts_toupper( "tHiS iS A upPErcasE strINg") == "THIS IS A UPPERCASE STRING" );
     CHECK( psmrts::psmrts_toupper("2. this *IS* also --UPPER--case!!") == "2. THIS *IS* ALSO --UPPER--CASE!!" );
 
+    std::string ellipsoid1 = "ellipsoid:0.298,0.1,0.3";
+    std::string ellipsoid2 = "ellipsoid:0.298";
+    std::string ellipsoid3 = "ellipsoid:0.298,0.1";
+    std::string empty_e    = "ellipsoid:";
+    std::string empty_all  = "";
+    
+
+    CHECK( psmrts::string_tokenizer(ellipsoid1)       == std::vector<std::string> {"ellipsoid:0.298", "0.1", "0.3"} );
+    CHECK( psmrts::string_tokenizer(ellipsoid2)       == std::vector<std::string> {"ellipsoid:0.298"} );
+    CHECK( psmrts::string_tokenizer(ellipsoid3)       == std::vector<std::string> {"ellipsoid:0.298", "0.1"} );
+    CHECK( psmrts::string_tokenizer(ellipsoid1, ":,") == std::vector<std::string> {"ellipsoid", "0.298", "0.1", "0.3"} );
+    CHECK( psmrts::string_tokenizer(ellipsoid2, ":,") == std::vector<std::string> {"ellipsoid", "0.298"} );
+    CHECK( psmrts::string_tokenizer(ellipsoid3, ":,") == std::vector<std::string> {"ellipsoid", "0.298", "0.1"} );
+    CHECK( psmrts::string_tokenizer(empty_e)          == std::vector<std::string> {"ellipsoid:"} );
+    CHECK( psmrts::string_tokenizer(empty_all)        == std::vector<std::string> { "" } );
 }
+
 
 TEST_CASE( "PSMRTS Make Path Test", "[utilities][path]") {
 // Test psmrts_make_path --> string conversion for complete path

@@ -212,6 +212,45 @@ namespace psmrts {
   }
 
   /**
+   * @brief tokenization of an Ellipsoid string of a/b/c values
+   * 
+   * This function is meant to tokenize the string with multiple value
+   * character seperators as provided in a string. 
+   *
+   * It is desiged to accept strings similar to the following forms:
+   * - "Tracer:value"
+   * - "Tracer:value,value"
+   * - "Tracer:value,value,value"
+   * 
+   * This code parses the string format above and creates a string vector:
+   *  - { "Tracer", "value" }
+   * @code 
+   * auto tokens = string_tokenizer(s, ":,");
+   * @endcode
+   * 
+   * 
+   * @param s                         An string in the forms detailed above
+   * @param t_sep                     Default separator character, ','.
+   * @return std::vector<std::string> Returns a string vector of one or more values, unless provided
+   *                                  an incorrectly formatted string input
+   */
+  inline std::vector<std::string> string_tokenizer(const std::string &s,
+                                                   const std::string &t_sep = ",") {
+    std::vector<std::string> values;
+    std::string::size_type spos = 0;
+    size_t s_size = s.length();
+
+    for (std::string::size_type i=0; i != std::string::npos; spos = i+1) {
+      i = s.find_first_of(t_sep, spos);
+      std::string::size_type slen = (std::string::npos == i) ? i : i - spos;
+      if (slen > 0 ) {
+        values.push_back( s.substr(spos, slen) );
+      }
+    }
+    return values;
+  }
+
+  /**
    * @brief Constructs a path that is OS sensitive
    * 
    * @param directory    Top level directory 
