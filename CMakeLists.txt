@@ -46,6 +46,7 @@ target_include_directories(psmrts INTERFACE ${PSMRTS_DIR}/src
                                             ${PSMRTS_TRACER_DIR}/naifdsk/src
                                             ${PSMRTS_TRACER_DIR}/bullet/src
                                             ${PSMRTS_TRACER_DIR}/ellipsoid/src
+                                            ${PSMRTS_FORMAT_DIR}/dsk/src
                                             ${PSMRTS_FORMAT_DIR}/obj/src
                                             ${PSMRTS_FORMAT_DIR}/ply/src )
 
@@ -75,6 +76,7 @@ if( BUILD_TESTING )
                    bullet_test_suite
                    ellipsoid_test_suite
                    naif_test_suite
+                   dsk_test_suite
                    obj_test_suite
                    ply_test_suite
       BASE_DIRECTORY "${PSMRTS_PROJECT_DIR}"
@@ -82,6 +84,7 @@ if( BUILD_TESTING )
               "tracers/bullet/tests/*"
               "tracers/ellipsoid/tests/*"
               "tracers/naifdsk/tests/*"
+              "formats/dsk/tests/*"
               "formats/obj/tests/*"
               "formats/ply/tests/*"
               "build/vcpkg_installed/*"
@@ -92,6 +95,7 @@ if( BUILD_TESTING )
   add_subdirectory( tracers/naifdsk/tests )
   add_subdirectory( tracers/ellipsoid/tests )
   add_subdirectory( tracers/bullet/tests )
+  add_subdirectory( formats/dsk/tests )
   add_subdirectory( formats/obj/tests )
   add_subdirectory( formats/ply/tests )
   enable_testing()
