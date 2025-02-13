@@ -64,6 +64,18 @@ namespace psmrts {
             return ( m_mesh.nfacets() ); 
         }
 
+        /** 
+         * @brief Loads a DSK file mesh data
+         * 
+         * This is the main method that will load a mesh based on a DSK
+         * file. It retrieves and allocates appropriate index and double
+         * vector data. It is advisable to input the correct pathing
+         * prefaced by the PsmrtsUtilities' psmrts_formats_path function.
+         * 
+         * @param dskfile      Absolute path string of the target DSK file
+         * @return true        If the load was successful
+         * @return false       If the load failed
+         */
         inline bool load_dsk_file( const std::string &dskfile ) {
             m_dsk_source = dskfile;
             m_mesh = PsmrtsMeshData();
@@ -91,6 +103,32 @@ namespace psmrts {
             }
             return (m_mesh);
         }
+
+        /** Get a double precision vector array */
+        inline PsmrtsVector3d get_double_vectors() const {
+            PsmrtsVector3d v_vectors = m_mesh.vectors().double_vectors();
+            if (m_mesh.vectors().isFloat()) {
+                v_vectors = vector_to_type<PsmrtsVector3d::value_type>(m_mesh.vectors().float_vectors() );
+            }
+
+            return ( v_vectors );
+        }
+
+        /** Get a float precision vector array */
+        inline PsmrtsVector3f get_float_vectors() const {
+            PsmrtsVector3f v_vectors = m_mesh.vectors().float_vectors();
+            if ( m_mesh.vectors().isDouble() ) {
+                v_vectors = vector_to_type<PsmrtsVector3f::value_type>( m_mesh.vectors().double_vectors() );
+            }
+             
+            return ( v_vectors );
+        }
+
+        /** Get index buffer from DSK file mesh */
+        inline PsmrtsVector3i get_indexes() const {
+            return ( m_mesh.indexes() );
+        }
+
 
         private:
             std::string         m_dsk_source;
