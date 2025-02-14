@@ -3,6 +3,8 @@
 #include <PsmrtsDSKFormat.hpp>
 
 TEST_CASE( "DSK FORMAT Asset Test - Default Constructor", "[format][dsk][default]") {
+    CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() ); // Reset/Initialize the kernel system
+
     std::string no_file = psmrts_formats_path( "dsk/data/bad_path.bds" );
     psmrts::PsmrtsDSKFormat d_loader;
 
@@ -12,7 +14,7 @@ TEST_CASE( "DSK FORMAT Asset Test - Default Constructor", "[format][dsk][default
     CHECK( d_loader.nVertexes()           == 0 );
     CHECK( d_loader.nIndexes()            == 0 );
 
-    //CHECK_THROWS( d_loader.load_dsk_file( no_file ) );
+    CHECK_THROWS( d_loader.load_dsk_file( no_file ) );
 
     CHECK( d_loader.get_mesh().isValid()        == false );
     CHECK( d_loader.get_float_vectors().size()  == 0 );
