@@ -3,7 +3,6 @@
 #include <PsmrtsDSKFormat.hpp>
 
 TEST_CASE( "DSK FORMAT Asset Test - Default Constructor", "[format][dsk][default]") {
-    CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() ); // Reset/Initialize the kernel system
 
     std::string no_file = psmrts_formats_path( "dsk/data/bad_path.bds" );
     psmrts::PsmrtsDSKFormat d_loader;

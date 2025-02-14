@@ -89,7 +89,7 @@ namespace naif {
        * @param kernelfile         Name of the kernel to find
        * @return KernelDescriptor  Structure containing results from NAIF file system
        */
-      static inline KernelDescriptor kernel_info( const std::string &kernelfile ) {
+      inline static KernelDescriptor kernel_info( const std::string &kernelfile ) {
 
         SpiceChar filtyp[KernelDescriptor::K_MAX_STRING_LENGTH];
         SpiceChar srcfil[KernelDescriptor::K_MAX_STRING_LENGTH];
@@ -125,7 +125,7 @@ namespace naif {
        *              of the type to check. Default: "ALL".
        * @return int Number of kernels
        */
-      static inline int kernel_count( const std::string &ktype = "ALL" ) {
+      inline static int kernel_count( const std::string &ktype = "ALL" ) {
         SpiceInt n_kernels;
         (void) ktotal_c( ktype.c_str(), &n_kernels );
         return ( n_kernels );
@@ -143,7 +143,7 @@ namespace naif {
        * @see kernel_count()
        * @see kernel_info()
        */
-      static inline KernelFileList kernel_filetype_info( const std::string &kerneltypes = "ALL" ) {
+      inline static KernelFileList kernel_filetype_info( const std::string &kerneltypes = "ALL" ) {
 
         SpiceChar file[KernelDescriptor::K_MAX_STRING_LENGTH];
         SpiceChar filtyp[KernelDescriptor::K_MAX_STRING_LENGTH];
@@ -172,11 +172,35 @@ namespace naif {
       }
 
       /**
+       * @brief Fundamental initialization of NAIF toolkit library
+       * 
+       * This function is needed to prevent NAIF's error system from crashing
+       * with a fatal abort. This clears the cache and sets appropriate
+       * NAIF internals to avoid default behavior which is to abort the
+       * application. The PSMRTS NAIF implemenation requires use of
+       * the check_naif_error() method to check and report occurances of
+       * errors.
+       * 
+       * This method is rentrant in that it will only initialize once.
+       * Users can also call the initKernelSystem() directly at any point
+       * to initialize as needed.
+       */
+      inline static void initialize_naif_system( ) {
+        static bool naif_initialized = false;
+        if ( false == naif_initialized ) {
+          initKernelSystem( );
+          naif_initialized = true;
+        }
+        return;
+      }
+
+      /**
        * @brief Open a kernel that does not exist in the managed (DSK) pool
        * 
        * @param kfile 
        */
-      static void open_kernel( const std::string &kfile ) {
+      inline static void open_kernel( const std::string &kfile ) {
+        initialize_naif_system();
         if ( !KernelFileSystem::has_kernel( kfile ) ) {
           load_kernel( kfile.c_str() );
         }
@@ -187,7 +211,7 @@ namespace naif {
        * 
        * @param kfile 
        */
-      static void close_kernel( const std::string &kfile ) {
+      inline static void close_kernel( const std::string &kfile ) {
         // If its not in the inventory, unload it
         if ( !KernelFileSystem::has_kernel( kfile ) ) {
           unload_kernel( kfile.c_str() );
@@ -195,7 +219,7 @@ namespace naif {
       }
 
       //***** Shared Kernel Descriptor APi *****
-      static size_t size( ) {
+      inline static size_t size( ) {
         return ( s_kernel_inventory.size() );
       }
 
@@ -209,7 +233,7 @@ namespace naif {
        * @return true 
        * @return false 
        */
-      static bool has_kernel( const std::string &kernelfile ) {
+      inline static bool has_kernel( const std::string &kernelfile ) {
         // Lock up inventory access for thread safety ( >=c++17 )
         // std::scoped_lock mylocker( s_mutex );  
 
@@ -217,7 +241,7 @@ namespace naif {
         return ( kern != s_kernel_inventory.end() );
       }
 
-      static SharedDskDescriptor get_shared_descriptor( const std::string &kernelfile ) {
+      inline static SharedDskDescriptor get_shared_descriptor( const std::string &kernelfile ) {
 
         // Lock up inventory access for thread safety ( >=c++17 )
         std::scoped_lock mylocker( s_mutex );  
@@ -251,7 +275,7 @@ namespace naif {
         return ( kern->second );
       }
 
-      static bool safe_disposal_of( const std::string &kfile ) {
+      inline static bool safe_disposal_of( const std::string &kfile ) {
 
         // Lock up inventory access for thread safety ( >=c++17 )
         std::scoped_lock mylocker( s_mutex );           
@@ -277,7 +301,7 @@ namespace naif {
       }
 
       /** Reset the entire Kernel pool system, which closes all kernels and flushes pool */
-      static void reset_kernel_system() {
+      inline static void reset_kernel_system() {
 
         const bool ResetPoolSystem = true;
 
