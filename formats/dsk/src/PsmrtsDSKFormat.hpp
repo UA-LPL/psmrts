@@ -94,7 +94,6 @@ namespace psmrts {
         inline PsmrtsMeshData get_mesh( const bool make_it_a_double = false ) const {
             if ( true == make_it_a_double ) {
                 if ( !m_mesh.isVectorDouble() ) {
-                    // need index and vector functions
                     return ( PsmrtsMeshData( this->get_indexes(), this->get_double_vectors() ) );
                 }
             }
