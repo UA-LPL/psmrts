@@ -90,10 +90,7 @@ namespace psmrts {
             return (m_mesh.isValid() );
         }
         
-        // Possible to access dskdsc? Protected via DskKernelModel? For config?
-
-        // WIP - Need index/double vector data 
-        // Do we need to worry about encapsulation here? Should we return a mesh replica?
+        /** Returns Psmrts Mesh of DSK Index / Vector data */
         inline PsmrtsMeshData get_mesh( const bool make_it_a_double = false ) const {
             if ( true == make_it_a_double ) {
                 if ( !m_mesh.isVectorDouble() ) {
