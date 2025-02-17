@@ -36,6 +36,28 @@ TEST_CASE( "DSK FORMAT Basic Load/Innit Test", "[format][dsk][shape][bennu]") {
     CHECK( d_loader.get_float_vectors().size()  == 20 );
     CHECK( d_loader.get_double_vectors().size() == 20 );
     CHECK( d_loader.get_indexes().size()        == 36 );
+
+    nlohmann::ordered_json j_result = nlohmann::ordered_json::object();
+
+    j_result["header"]["file"] = d_loader.dsk_source();
+    j_result["header"]["nSegments"] = 1;
+
+    nlohmann::ordered_json j_segments = nlohmann::ordered_json::array();
+
+    nlohmann::ordered_json j_seg1;
+    j_seg1["number"]   = 0;
+    j_seg1["id"]       = 0;
+    j_seg1["vertices"] = 0;
+    j_seg1["plates"]   = 0;
+    j_seg1["bodyId"]   = 0;
+    j_seg1["frameId"]  = 0;
+    j_seg1["dtype"]    = 0;
+    j_seg1["dclass"]   = 0;
+
+    j_segments.push_back(j_seg1);
+    j_result["segments"] = j_segments;
+
+    CHECK( nlohmann::ordered_json::diff( j_result, d_loader.config() ).empty() );
 }
 
 TEST_CASE( "DSK FORMAT Comparative Values Test", "[format][dsk][kernel][bennu]") {

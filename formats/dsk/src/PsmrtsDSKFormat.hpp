@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include <Eigen/Geometry>
+#include <nlohmann/json.hpp>
 
 #include <PsmrtsUtilities.hpp>
 #include <PsmrtsBufferData.hpp>
@@ -87,6 +88,8 @@ namespace psmrts {
 
             m_mesh = PsmrtsMeshData( dsk_indexes, dsk_vectors );
 
+            parse_config( d_model ); 
+
             return (m_mesh.isValid() );
         }
         
@@ -125,10 +128,43 @@ namespace psmrts {
             return ( m_mesh.indexes() );
         }
 
+        inline void parse_config( naif::DskKernelModel &model ) {
+            nlohmann::ordered_json j_result = nlohmann::ordered_json::object();
+            j_result["header"]["file"] = m_dsk_source;
+            int seg_num = model.n_dsk_segments();
+            j_result["header"]["nSegments"] = seg_num;
+
+            nlohmann::ordered_json j_segments = nlohmann::ordered_json::array();
+            // JSON: [Segment(s)]. (Get list of Segments - DskSegmentList &segments)
+            for (int i=0; i < seg_num; i++ ) {
+                const naif::DskSegment seg = *model.get_segment_with_id(i);
+
+                nlohmann::ordered_json j_segment;
+                j_segment["number"]   = seg.segment_number();
+                j_segment["id"]       = seg.id();
+                j_segment["vertices"] = seg.n_vertices();
+                j_segment["plates"]   = seg.n_plates();
+                j_segment["bodyId"]   = seg.bodyid();
+                j_segment["frameId"]  = seg.frameid();
+                j_segment["dtype"]    = seg.dtype();
+                j_segment["dclass"]   = seg.dclass();
+
+                j_segments.push_back(j_segment);
+            } 
+            j_result["segments"] = j_segments;
+
+            m_config = j_result;
+            return;
+        }
+
+        inline const json &config() const {
+            return m_config;
+        }
 
         private:
-            std::string         m_dsk_source;
-            PsmrtsMeshData      m_mesh;
+            std::string           m_dsk_source;
+            PsmrtsMeshData        m_mesh;
+            nlohmann::json        m_config;
     };
 } // namespace psmrts
 
