@@ -88,7 +88,7 @@ namespace psmrts {
 
             m_mesh = PsmrtsMeshData( dsk_indexes, dsk_vectors );
 
-            parse_config( d_model ); 
+            //parse_config( d_model ); 
 
             return (m_mesh.isValid() );
         }
