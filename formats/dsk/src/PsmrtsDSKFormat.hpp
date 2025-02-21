@@ -88,7 +88,7 @@ namespace psmrts {
 
             m_mesh = PsmrtsMeshData( dsk_indexes, dsk_vectors );
 
-            //parse_config( d_model ); 
+            parse_config( d_model ); 
 
             return (m_mesh.isValid() );
         }
@@ -137,7 +137,7 @@ namespace psmrts {
             nlohmann::ordered_json j_segments = nlohmann::ordered_json::array();
             // JSON: [Segment(s)]. (Get list of Segments - DskSegmentList &segments)
             for (int i=0; i < seg_num; i++ ) {
-                const naif::DskSegment seg = *model.get_segment_with_id(i);
+                const naif::DskSegment seg = model.segment(i);
 
                 nlohmann::ordered_json j_segment;
                 j_segment["number"]   = seg.segment_number();
