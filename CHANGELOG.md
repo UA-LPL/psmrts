@@ -36,6 +36,15 @@ release.
 - Bullet Physics Tracer Model
   - Implement multi-threaded version of tinyobjloader
 
+## [0.0.12] 2025-02-14
+- PsmrtsDSKFormat.hpp - Added DSK implementation to formats.
+- test_PsmrtsDSKFormat.cpp - Added, includes base DSK format testing. Included related Bennu file to directory for test assistance.
+- CMakeLists.txt - Added/adjusted related CMake files to include above dsk tests and
+implementation.
+- dsk_catch2_main.cpp - Added, DSK format to be included in Catch2 configuration.
+- KernelFileSystem.hpp - Small adjustments, includes NAIF error system bugfix.
+- Updated CHANGELOG.md and set version to [0.0.12]
+
 ## [0.0.11] 2025-02-07
 - PR #10 and PR #11 Changes - Documentation and Code Coverage Improvements
 - README.md - minor typo fix.

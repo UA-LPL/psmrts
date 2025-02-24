@@ -119,8 +119,6 @@ namespace psmrts {
          * PLY file. The only elements read here are facets and vertex data.
          * Other elements can be read from this file. See also read_ply_file().
          * 
-         * This function only obtains the 
-         * 
          * @param plyfile       Name of PLY file to load
          * @return true         If the load was successful
          * @return false        If the load failed
