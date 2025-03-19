@@ -32,8 +32,8 @@ set( PSMRTS_FORMAT_DIR   ${CMAKE_SOURCE_DIR}/formats )
 
 set( VERSION_MAJOR 0)
 set( VERSION_MINOR 0)
-set( VERSION_PATCH 10)
-set( VERSION_DATE  "2025-01-08")
+set( VERSION_PATCH 12)
+set( VERSION_DATE  "2025-02-14")
 # set( PSMRTS_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 # Configure the project include files
@@ -46,6 +46,7 @@ target_include_directories(psmrts INTERFACE ${PSMRTS_DIR}/src
                                             ${PSMRTS_TRACER_DIR}/naifdsk/src
                                             ${PSMRTS_TRACER_DIR}/bullet/src
                                             ${PSMRTS_TRACER_DIR}/ellipsoid/src
+                                            ${PSMRTS_FORMAT_DIR}/dsk/src
                                             ${PSMRTS_FORMAT_DIR}/obj/src
                                             ${PSMRTS_FORMAT_DIR}/ply/src )
 
@@ -71,8 +72,22 @@ if( BUILD_TESTING )
     setup_target_for_coverage_gcovr_html(
       NAME coverage
       EXECUTABLE ctest --schedule-random
-      DEPENDENCIES psmrts_test_suite naif_test_suite bullet_test_suite
-      EXCLUDE ".*/test_.*\\.cpp$" "build/vcpkg_installed/*"
+      DEPENDENCIES psmrts_test_suite 
+                   bullet_test_suite
+                   ellipsoid_test_suite
+                   naif_test_suite
+                   dsk_test_suite
+                   obj_test_suite
+                   ply_test_suite
+      BASE_DIRECTORY "${PSMRTS_PROJECT_DIR}"
+      EXCLUDE "psmrts/tests/*" 
+              "tracers/bullet/tests/*"
+              "tracers/ellipsoid/tests/*"
+              "tracers/naifdsk/tests/*"
+              "formats/dsk/tests/*"
+              "formats/obj/tests/*"
+              "formats/ply/tests/*"
+              "build/vcpkg_installed/*"
     )
   endif(BUILD_COVERAGE)
 
@@ -80,6 +95,7 @@ if( BUILD_TESTING )
   add_subdirectory( tracers/naifdsk/tests )
   add_subdirectory( tracers/ellipsoid/tests )
   add_subdirectory( tracers/bullet/tests )
+  add_subdirectory( formats/dsk/tests )
   add_subdirectory( formats/obj/tests )
   add_subdirectory( formats/ply/tests )
   enable_testing()
