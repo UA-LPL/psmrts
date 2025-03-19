@@ -3,6 +3,7 @@ if(NOT PSMRTS_PROJECT_DIR)
 endif()
 
 set(PSMRTS_INCLUDE_DIRS "${PSMRTS_INCLUDE_DIRS}" 
+                         ${PSMRTS_FORMAT_DIR}/dsk/src
                          ${PSMRTS_FORMAT_DIR}/obj/src
                          ${PSMRTS_FORMAT_DIR}/ply/src )
 # message("FormatsIncludes: ${PSMRTS_INCLUDE_DIRS}")
