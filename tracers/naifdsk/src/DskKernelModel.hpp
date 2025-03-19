@@ -253,7 +253,7 @@ namespace naif {
         SpiceBoolean found;
         (void) dskx02_c( kernel().handle(), segment.dladsc_ptr(), 
                          datum_r.m_observer.data(), datum_r.m_lookdir.data(),
-                         &datum_r.m_plateid, datum_r.m_xyz.data(), &found);
+                         reinterpret_cast<SpiceInt*>(&datum_r.m_plateid), datum_r.m_xyz.data(), &found);
         check_naif_errors();
         
         datum_r.m_hit = ( SPICETRUE == found );

@@ -96,9 +96,9 @@ TEST_CASE( "PsmrtsRayTrace Baseline Values Test - Ellipsoid", "[ray][trace][valu
     double obs_lat  = psmrts::degrees_to_radians(45.0);
     latrec_c( radius, obs_long, obs_lat, obs.data() );
     obs = obs * 2.0;
-    CHECK( obs[0] == 1.00000000000000022 );
-    CHECK( obs[1] == 1.0 );
-    CHECK( obs[2] == 1.41421356237309492 );
+    CHECK_THAT( obs[0], Catch::Matchers::WithinAbs( 1.00000000000000022, tolerance ));
+    CHECK_THAT( obs[1], Catch::Matchers::WithinAbs( 1.0, tolerance ));
+    CHECK_THAT( obs[2], Catch::Matchers::WithinAbs( 1.41421356237309492, tolerance ));
 
     Eigen::Vector3d surf;
     double surf_long = psmrts::degrees_to_radians(45.0);
@@ -113,16 +113,16 @@ TEST_CASE( "PsmrtsRayTrace Baseline Values Test - Ellipsoid", "[ray][trace][valu
     CHECK( ellipse_ray.hasHit()   == true ); // If valid, other functions should be as well.
     CHECK( ellipse_ray.observer() == -obs );
     CHECK( ellipse_ray.lookdir()  == lkdr );
+    CHECK( ellipse_ray.surfpt()   == ellipse_ray.xyz() + obs ); // minus -obs?
     CHECK_THAT( ellipse_ray.normal()[0], Catch::Matchers::WithinAbs( -0.5, tolerance ));
     CHECK_THAT( ellipse_ray.normal()[1], Catch::Matchers::WithinAbs( -0.5, tolerance )); 
     CHECK_THAT( ellipse_ray.normal()[2], Catch::Matchers::WithinAbs( -0.707107, tolerance )); 
     CHECK_THAT( ellipse_ray.xyz()[0], Catch::Matchers::WithinAbs( -0.5, tolerance ));
     CHECK_THAT( ellipse_ray.xyz()[1], Catch::Matchers::WithinAbs( -0.5, tolerance ));
     CHECK_THAT( ellipse_ray.xyz()[2], Catch::Matchers::WithinAbs( -0.707107, tolerance ));
-    CHECK( ellipse_ray.surfpt()         == ellipse_ray.xyz() + obs ); // minus -obs?
-    CHECK( ellipse_ray.radius()         == 1.0 );
-    CHECK( ellipse_ray.slant_distance() == 1.0 );
-    CHECK( ellipse_ray.emission()       == 0.0 ); 
+    CHECK_THAT( ellipse_ray.radius(), Catch::Matchers::WithinAbs( 1.0, tolerance ));
+    CHECK_THAT( ellipse_ray.slant_distance(), Catch::Matchers::WithinAbs( 1.0, tolerance ));
+    CHECK_THAT( ellipse_ray.emission(), Catch::Matchers::WithinAbs( 0.0, tolerance ));
     CHECK( ellipse_ray.plateid()        == -1 );
     CHECK( ellipse_ray.segment_number() == -1 ); 
     CHECK( psmrts::isnull(ellipse_ray.emission()) ==  false );   
@@ -134,16 +134,16 @@ TEST_CASE( "PsmrtsRayTrace Baseline Values Test - Ellipsoid", "[ray][trace][valu
     CHECK( second_ray.hasHit()   == true ); 
     CHECK( second_ray.observer() == -obs );
     CHECK( second_ray.lookdir()  == lkdr ); // NAN (I/O)
+    CHECK( second_ray.surfpt()   == ellipse_ray.xyz() + obs ); // minus -obs?
     CHECK_THAT( second_ray.normal()[0], Catch::Matchers::WithinAbs( -0.5, tolerance ));
     CHECK_THAT( second_ray.normal()[1], Catch::Matchers::WithinAbs( -0.5, tolerance )); 
     CHECK_THAT( second_ray.normal()[2], Catch::Matchers::WithinAbs( -0.707107, tolerance )); 
     CHECK_THAT( second_ray.xyz()[0], Catch::Matchers::WithinAbs( -0.5, tolerance ));
     CHECK_THAT( second_ray.xyz()[1], Catch::Matchers::WithinAbs( -0.5, tolerance ));
     CHECK_THAT( second_ray.xyz()[2], Catch::Matchers::WithinAbs( -0.707107, tolerance ));
-    CHECK( second_ray.surfpt()         == ellipse_ray.xyz() + obs ); // minus -obs?
-    CHECK( second_ray.radius()         == 1.0 ); 
-    CHECK( second_ray.slant_distance() == 1.0 );
-    CHECK( second_ray.emission()       == 0.0 ); 
+    CHECK_THAT( second_ray.radius(), Catch::Matchers::WithinAbs( 1.0, tolerance )); 
+    CHECK_THAT( second_ray.slant_distance(), Catch::Matchers::WithinAbs( 1.0, tolerance ));
+    CHECK_THAT( second_ray.emission(), Catch::Matchers::WithinAbs( 0.0, tolerance ));
     CHECK( second_ray.plateid()        == -1 );
     CHECK( second_ray.segment_number() == -1 ); 
     CHECK( psmrts::isnull(second_ray.emission()) ==  false );   

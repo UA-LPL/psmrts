@@ -23,4 +23,4 @@ target_link_libraries( bullet_test_suite PRIVATE Catch2::Catch2WithMain )
 include ( CTest )
 include ( Catch )
 
-catch_discover_tests( bullet_test_suite WORKING_DIRECTORY $(CMAKE_BINARY_DIR))
+catch_discover_tests( bullet_test_suite WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
