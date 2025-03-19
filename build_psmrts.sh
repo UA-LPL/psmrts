@@ -36,6 +36,5 @@ done
 shift $((OPTIND-1))
 
 
-mkdir -p build
-cmake -B build . ${buildopts} ${testopts} ${codecovopts} ${extraopts} -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake
-make  -C build ${usecpus}
+cmake  -B build -S . ${buildopts} ${testopts} ${codecovopts} ${extraopts} -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake
+cmake  --build build ${usecpus}
