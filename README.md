@@ -125,3 +125,21 @@ cd build
 ```
 
 User can then proceed with another ctest.
+
+### Windows Builds
+
+Development of `PSMRTS` was done and tested mainly using Mac and Linux platforms, but includes limited ongoing Windows support. The related scripts are Windows [PowerShell](https://learn.microsoft.com/en-us/powershell/scripting/overview?view=powershell-7.5) specific, and builds require the following to be installed with appropriate pathing:
+- [Visual Studio](https://visualstudio.microsoft.com/), with related packages such as Desktop development with C++ (specifically MSVC, C++ CMake tools for Windows, Windows SDK, vcpkg package manager, and GitHub Copilot)
+- [CMake](https://cmake.org/download/) Release Version
+
+Similar to above, once changed to an appropriate directory made to hold `PSMRTS`, and cloned using the `git clone https://github.com/UA-LPL/psmrts.git` , the following commands will build the system and run the appropriate tests:
+
+```
+cd psmrts
+.\make_psmrts.ps1 -t
+cd build
+MSBuild psmrts.sln /p:Configuration=Release
+ctest
+```
+
+Note that code coverage is not included in Windows support at this time. For any errors or complications of above, please reach out to the development team.
