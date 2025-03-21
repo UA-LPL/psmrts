@@ -2,8 +2,8 @@ param (
     [Switch]$t,
     [Switch]$c,
     [Switch]$x,
-    [Switch]$d,
-    [int]$j
+    [Switch]$d
+    #[int]$j
 )
 
 $env:VCPKG_ROOT="$PWD\vcpkg"
@@ -36,9 +36,9 @@ if ($d) {
     $buildopts = "-DCMAKE_BUILD_TYPE=Debug"
 }
 
-if ($j) {
-    $usecpus = "-j $j"
-}
+#if ($j) {
+    #$usecpus = "-j $j"
+#}
 
 if (-NOT (Test-Path -Path "build")) {
     New-Item -ItemType Directory -Path "build"

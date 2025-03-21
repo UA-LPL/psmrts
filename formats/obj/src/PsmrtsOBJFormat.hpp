@@ -270,10 +270,10 @@ namespace psmrts {
 
         for ( size_t i = 0 ; i < bt_vector_map.size() ; i++ ) {
           auto iVec = bt_vector_map( i );
-          out_vectors( i ) =  Eigen::Vector3f( { 
-            static_cast<float>(iVec[0]), 
-            static_cast<float>(iVec[1]), 
-            static_cast<float>(iVec[2]) } );
+          out_vectors( i ) =  Eigen::Vector3d( { 
+            static_cast<double>(iVec[0]), 
+            static_cast<double>(iVec[1]), 
+            static_cast<double>(iVec[2]) } );
         }
 
         return ( out_vectors );
@@ -288,7 +288,10 @@ namespace psmrts {
 
         for ( size_t i = 0 ; i < bt_vector_map.size() ; i++ ) {
           auto iVec = bt_vector_map( i );
-          out_vectors( i ) = Eigen::Vector3f( { iVec[0], iVec[1], iVec[2] } );
+          out_vectors( i ) = Eigen::Vector3f( {
+            static_cast<float>(iVec[0]),
+            static_cast<float>(iVec[1]),
+            static_cast<float>(iVec[2]) });
         }
 
         return ( out_vectors );

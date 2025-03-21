@@ -9,4 +9,4 @@ if (-Not (Test-Path -Path "vcpkg" -PathType Container)) {
 .\vcpkg\bootstrap-vcpkg.bat -disableMetrics
 .\vcpkg\vcpkg integrate install
 
-env:VCPKG_ROOT="$PWD\vcpkg"
+$env:VCPKG_ROOT="$PWD\vcpkg"
