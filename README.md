@@ -49,7 +49,7 @@ Catch2 is used for testing framework for the `psmrts`. These tests are contained
 ```
 cd $PROJECT_ROOT/psmrts
 /bin/rm -rf build
-./build_psmrts.sh -t
+./build_psmrts.sh
 cd build
 ctest
 ```
