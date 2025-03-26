@@ -2,7 +2,8 @@ param (
     [Switch]$t,
     [Switch]$c,
     [Switch]$x,
-    [Switch]$d
+    [Switch]$d,
+    [Switch]$j
 )
 
 $env:PSMRTS_ROOT=$PWD
@@ -48,7 +49,7 @@ if (-NOT (Test-Path -Path "build")) {
 #cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DCMAKE_TOOLCHAIN-DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake
 cmake -B build -S . $buildopts $testopts $codecovopts $extraopts -DCMAKE_TOOLCHAIN-DCMAKE_TOOLCHAIN_FILE="$PWD\vcpkg\scripts\buildsystems\vcpkg.cmake"
 if ($j) {
-    Write-Host "CPUs Selected: $j"
+    Write-Host " ---- CPUs Selected: $j ---- "
     cmake --build build $j
 }
 else {
