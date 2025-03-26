@@ -3,7 +3,7 @@ param (
     [Switch]$c,
     [Switch]$x,
     [Switch]$d,
-    [Switch]$j
+    [int]$j
 )
 
 $env:PSMRTS_ROOT=$PWD
