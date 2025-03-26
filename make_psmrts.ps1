@@ -15,7 +15,7 @@ $buildopts = "-DCMAKE_BUILD_TYPE=Release"
 #$usecpus = ""
 
 function Show-Usage {
-    Write-Host "Usage: make_psmrts.ps1 [-t][-c][-x][-d][-j <number of cpus>]"
+    Write-Host "Usage: make_psmrts.ps1 [-t][-x][-d][-j <number of cpus>]"
     exit 1
 }
 
@@ -47,7 +47,13 @@ if (-NOT (Test-Path -Path "build")) {
 # This is min required for testing purposes:
 #cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DCMAKE_TOOLCHAIN-DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake
 cmake -B build -S . $buildopts $testopts $codecovopts $extraopts -DCMAKE_TOOLCHAIN-DCMAKE_TOOLCHAIN_FILE="$PWD\vcpkg\scripts\buildsystems\vcpkg.cmake"
-cmake  --build build
+if ($j) {
+    cmake --build build $j
+}
+else {
+    cmake --build build
+}
+#cmake  --build build
 
 
 #!/usr/bin/env pwsh
