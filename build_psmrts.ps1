@@ -18,7 +18,7 @@ function Show-Usage {
 }
 
 if ($t) {
-    $testopts = "-DBUILD_tESTING=ON"
+    $testopts = "-DBUILD_TESTING=ON"
 }
 
 #if ($c) {
