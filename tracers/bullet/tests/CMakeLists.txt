@@ -1,8 +1,7 @@
 # CMakeLists.txt
 
-# Warning: heuristically generated, may not be correct
+# Add the catch2 package
 find_package( Catch2 CONFIG REQUIRED )
-find_package(tinyobjloader CONFIG REQUIRED)
 
 # Add test directory for includes
 set( CMAKE_INCLUDE_CURRENT_DIR ON )
@@ -18,13 +17,8 @@ add_executable( bullet_test_suite  bullet_catch2_main.cpp
                                    test_PsmrtsBulletWorldModel.cpp )  
 
 # Add required libraries as needed fo psmrts_test_suite
-target_link_libraries( bullet_test_suite PRIVATE psmrts )
+target_link_libraries( bullet_test_suite PRIVATE psmrts::psmrts )
 target_link_libraries( bullet_test_suite PRIVATE Catch2::Catch2WithMain )
-target_link_libraries( bullet_test_suite PRIVATE nlohmann_json::nlohmann_json )
-target_link_libraries( bullet_test_suite PRIVATE Eigen3::Eigen )
-target_link_libraries( bullet_test_suite PRIVATE "${SPICE_LIB}" )
-target_link_libraries( bullet_test_suite PRIVATE ${BULLET_LIBRARIES})
-target_link_libraries( bullet_test_suite PRIVATE tinyobjloader::tinyobjloader_double )
 
 include ( CTest )
 include ( Catch )

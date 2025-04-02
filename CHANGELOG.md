@@ -36,6 +36,14 @@ release.
 - Bullet Physics Tracer Model
   - Implement multi-threaded version of tinyobjloader
 
+## [0.0.13] 2025-03-19
+- General improvements to the PSMRTS CMake build system
+- Reworked top level build in make_psmrts.sh to not directly install the vcpg dependencies. This essentially eliminates the need for install_vcpkg_packages.sh (CMake does this nicely); use cmake commands for the configure and build instructions.
+- Add dsk format to psmrts_format.cmake
+- CMakeLists.txt - improved CMake structure to better streamline adding formats and tracers; define PSMRTS dependency and system targets for internal and external use.
+- Updated format, tracer and psmrts test CMakeLists.txt files to streamline building/linking PSMRTS tests.
+- Updated CHANGELOG.md and set version to [0.0.13]
+
 ## [0.0.12] 2025-02-14
 - PsmrtsDSKFormat.hpp - Added DSK implementation to formats.
 - test_PsmrtsDSKFormat.cpp - Added, includes base DSK format testing. Included related Bennu file to directory for test assistance.
