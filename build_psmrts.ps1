@@ -50,8 +50,3 @@ else {
     cmake --build build
 }
 
-# Above commands are placeholders. 
-# This is min required for testing purposes:
-#cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DCMAKE_TOOLCHAIN-DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake
-#cmake -B build -S . $buildopts $testopts $codecovopts $extraopts -DCMAKE_TOOLCHAIN-DCMAKE_TOOLCHAIN_FILE="$PWD\vcpkg\scripts\buildsystems\vcpkg.cmake"
-#cmake  --build build
