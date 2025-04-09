@@ -63,7 +63,7 @@ target_link_libraries( psmrts-dependencies INTERFACE ${BULLET_LIBRARIES} )
 target_link_libraries( psmrts-dependencies INTERFACE tinyobjloader::tinyobjloader_double )
 target_link_libraries( psmrts-dependencies INTERFACE unofficial::miniply::miniply )
 target_link_libraries( psmrts-dependencies INTERFACE spdlog::spdlog )
-add_library(psmrts::psmrts-dependencies ALIAS psmrts-dependencies)
+add_library( psmrts::psmrts-dependencies ALIAS psmrts-dependencies )
 
 # Create the PSMRTS interface export target
 add_library( psmrts INTERFACE )
