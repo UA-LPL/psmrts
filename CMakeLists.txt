@@ -3,12 +3,14 @@
 cmake_minimum_required( VERSION 3.20 )
 set( CMAKE_CXX_STANDARD 17 )
 set( CMAKE_CXX_STANDARD_REQUIRED True )
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 # Add option to build tests and tools
 option( BUILD_TESTING   "Add PSMRTS unit tests"     OFF  )
 option( BUILD_EXTRAS    "Add PSMRTS tools/extras"   OFF  )
 option( BUILD_COVERAGE  "Build with code coverage"  OFF  )
 
+# Ensure we have a valid toolchain
 if( DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE )
   set( CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
       CACHE STRING "" )
@@ -22,6 +24,7 @@ endif()
 
 # This is PROJECT_SOURCE_DIR=psmrts
 project( psmrts )
+include(GNUInstallDirs)
 
 set( PSMRTS_PROJECT_DIR  ${CMAKE_SOURCE_DIR} )
 set( PSMRTS_DIR          ${CMAKE_SOURCE_DIR}/psmrts )
@@ -32,29 +35,41 @@ set( PSMRTS_FORMAT_DIR   ${CMAKE_SOURCE_DIR}/formats )
 
 set( VERSION_MAJOR 0)
 set( VERSION_MINOR 0)
-set( VERSION_PATCH 12)
-set( VERSION_DATE  "2025-02-14")
+set( VERSION_PATCH 13)
+set( VERSION_DATE  "2025-03-19")
 # set( PSMRTS_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
-# Configure the project include files
+# Configure the project include/header files 
 configure_file( psmrts_version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/psmrts/src/psmrts_version.h @ONLY )
+include(psmrts_includes)
 
 # Set psmrts source and include directory
 set( PSMRTS_BUILD_DIR    ${CMAKE_BINARY_DIR} )
-add_library(psmrts INTERFACE)
-target_include_directories(psmrts INTERFACE ${PSMRTS_DIR}/src 
-                                            ${PSMRTS_TRACER_DIR}/naifdsk/src
-                                            ${PSMRTS_TRACER_DIR}/bullet/src
-                                            ${PSMRTS_TRACER_DIR}/ellipsoid/src
-                                            ${PSMRTS_FORMAT_DIR}/dsk/src
-                                            ${PSMRTS_FORMAT_DIR}/obj/src
-                                            ${PSMRTS_FORMAT_DIR}/ply/src )
 
-#find_package( spdlog CONFIG REQUIRED )
+# Set up link dependencies for PSMRTS
+find_package( spdlog CONFIG REQUIRED )
 find_package( nlohmann_json CONFIG REQUIRED )
 find_package( Eigen3 CONFIG REQUIRED )
 find_package( Bullet CONFIG REQUIRED )
 find_library( SPICE_LIB cspice )
+find_package( tinyobjloader CONFIG REQUIRED)
+find_package( unofficial-miniply CONFIG REQUIRED )
+
+add_library( psmrts-dependencies INTERFACE)
+target_link_libraries( psmrts-dependencies INTERFACE nlohmann_json::nlohmann_json )
+target_link_libraries( psmrts-dependencies INTERFACE Eigen3::Eigen )
+target_link_libraries( psmrts-dependencies INTERFACE "${SPICE_LIB}" )
+target_link_libraries( psmrts-dependencies INTERFACE ${BULLET_LIBRARIES} )
+target_link_libraries( psmrts-dependencies INTERFACE tinyobjloader::tinyobjloader_double )
+target_link_libraries( psmrts-dependencies INTERFACE unofficial::miniply::miniply )
+target_link_libraries( psmrts-dependencies INTERFACE spdlog::spdlog )
+add_library( psmrts::psmrts-dependencies ALIAS psmrts-dependencies )
+
+# Create the PSMRTS interface export target
+add_library( psmrts INTERFACE )
+target_include_directories( psmrts INTERFACE "${PSMRTS_INCLUDE_DIRS}" )
+target_link_libraries( psmrts INTERFACE psmrts::psmrts-dependencies )
+add_library( psmrts::psmrts ALIAS psmrts )
 
 # add_executable(psmrts src/psmrts.cpp)
 
@@ -66,7 +81,6 @@ if( BUILD_TESTING )
   # Now check for code coverage. Note this must be done
   # before adding the subdirectories!
   if(BUILD_COVERAGE)
-    list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
     include(CodeCoverage)
     append_coverage_compiler_flags()
     setup_target_for_coverage_gcovr_html(

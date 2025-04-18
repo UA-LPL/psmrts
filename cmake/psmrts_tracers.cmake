@@ -1,0 +1,9 @@
+if(NOT PSMRTS_PROJECT_DIR)
+  message(FATAL_ERROR "PSMRTS_PROJECT_DIR must be set prior to this init")
+endif()
+
+set(PSMRTS_INCLUDE_DIRS "${PSMRTS_INCLUDE_DIRS}" 
+                         ${PSMRTS_TRACER_DIR}/bullet/src
+                         ${PSMRTS_TRACER_DIR}/ellipsoid/src
+                         ${PSMRTS_TRACER_DIR}/naifdsk/src )
+# message("TracersIncludes: ${PSMRTS_INCLUDE_DIRS}")
