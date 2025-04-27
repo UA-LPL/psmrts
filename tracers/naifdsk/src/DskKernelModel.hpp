@@ -251,9 +251,11 @@ namespace naif {
         datum_r.m_segment  = segment.id();
 
         SpiceBoolean found;
+        SpiceInt plateid; //reinterpret_cast<SpiceInt*>(&datum_r.m_plateid)
         (void) dskx02_c( kernel().handle(), segment.dladsc_ptr(), 
                          datum_r.m_observer.data(), datum_r.m_lookdir.data(),
-                         &datum_r.m_plateid, datum_r.m_xyz.data(), &found);
+                         &plateid, datum_r.m_xyz.data(), &found);
+        datum_r.m_plateid = plateid;
         check_naif_errors();
         
         datum_r.m_hit = ( SPICETRUE == found );
