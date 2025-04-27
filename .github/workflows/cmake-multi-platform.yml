@@ -5,8 +5,8 @@
 name: CMake on Multiple Platforms
 
 on:
-  push:
-    branches: [ "main" ]
+  #push:
+    #branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
@@ -21,20 +21,36 @@ jobs:
       fail-fast: false
       
       matrix:
-        os: [macos-latest, ubuntu-latest]
+        os: [windows-latest, ubuntu-latest] #, macos-latest]
         build_type: [Release]
         include:
-         - os: macos-latest
-           c_compiler: gcc
-           cpp_compiler: g++
+        # - os: macos-latest
+         #  c_compiler: gcc
+         #  cpp_compiler: g++
          - os: ubuntu-latest
            c_compiler: gcc
            cpp_compiler: g++
+         - os: windows-latest
+           c_compiler: MSVC
+           cpp_compiler: MSVC
             
     steps:
     - name: Deleting Unnecessary Tool Cache Folder
+      if: runner.os != 'Windows'
       run: rm -rf /opt/hostedtoolcache
 
+    - name: Deleting Unnecessary Tool Cache Folder (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        if (Test-Path "C:\hostedtoolcache\windows") {
+          Get-ChildItem -Path C:\hostedtoolcache\windows -Recurse | ForEach-Object {
+            Write-Host "Deleting: $($_.FullName)"
+            Remove-Item -Path $_.FullName -Recurse -Force
+          }
+        }
+        else {
+          Write-Output "Directory Not Found: C:\hostedtoolcache"
+        }
       
     - uses: actions/checkout@v4
       with:
@@ -59,20 +75,42 @@ jobs:
        ./build_psmrts.sh -t -c -d
        du -sh .
 
-    - name: Build PSMRTS Environment (Mac)
-      if: runner.os == 'macOS'
-      run: |
-        export PSMRTS_ROOT=${PWD}
-        export VCPKG_ROOT=${PWD}/vcpkg
-        git clone https://github.com/microsoft/vcpkg
-        ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
-        ./install_vcpkg_packages.sh
-        ./build_psmrts.sh -t
-        du -sh .
+   # - name: Build PSMRTS Environment (Mac)
+    #  if: runner.os == 'macOS'
+    #  run: |
+     #   export PSMRTS_ROOT=${PWD}
+      #  export VCPKG_ROOT=${PWD}/vcpkg
+      #  git clone https://github.com/microsoft/vcpkg
+      #  ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
+      #  ./install_vcpkg_packages.sh
+       # ./build_psmrts.sh -t
+      #  du -sh .
+      
+    - name: Set up MSBuild
+      if: runner.os == 'Windows'
+      uses: microsoft/setup-msbuild@v1.1
 
-    - name: Run Tests
+    - name: Build PSMRTS Environment (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        .\make_psmrts.ps1 -t -j 4
+        Write-Host "Size in GB:"
+        Get-ChildItem -Recurse | Measure-Object -Property Length -Sum | ForEach-Object {
+          [math]::Round($_.Sum / 1GB, 2)
+        }
+
+    - name: Run Tests (Linux/Mac)
+      if: runner.os != 'Windows'
       run: |
         cd build
+        ctest
+
+    - name: Run Tests (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        Set-Location -Path ".\build"
+        MSBuild psmrts.sln /p:Configuration=Release
+        Get-Command ctest
         ctest
 
     - name: Basic Coverage
