@@ -18,6 +18,7 @@
 #include <cmath>
 #include <limits>
 #include <mutex>
+#include <stdexcept>
 
 #include <Eigen/Geometry>
 
@@ -215,6 +216,28 @@ namespace psmrts {
     return ( s_t );
   }
 
+    /** Remove leading white space */
+    inline std::string psmrts_ltrim( const std::string &s ) {
+      std::string strim = s;
+      auto bad_c =  std::find_if( strim.begin(), strim.end(), []( const char ch ) -> bool { return !std::isspace<char>(ch , std::locale::classic() ) ; } );
+      strim.erase( strim.begin(), bad_c );
+      return ( strim );
+    }
+  
+    /** Remove trailing white space */
+    inline std::string psmrts_rtrim( const std::string &s ) {
+      std::string strim = s;
+      auto bad_c =  std::find_if( strim.rbegin(), strim.rend(), []( const char ch ) -> bool { return !std::isspace<char>(ch , std::locale::classic() ) ; } );
+      strim.erase( bad_c.base(), strim.end() );
+      return ( strim );
+    }
+  
+  /** Remove leading and trailing white space */
+    inline std::string psmrts_trim( const std::string &s ) {
+      return ( psmrts_ltrim( psmrts_rtrim( s ) ) );
+    }
+
+    
   /**
    * @brief Constructs a path that is OS sensitive
    * 

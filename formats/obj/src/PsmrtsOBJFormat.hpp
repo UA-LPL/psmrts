@@ -11,6 +11,7 @@
 #include <PsmrtsUtilities.hpp>
 #include <PsmrtsBufferData.hpp>
 #include <PsmrtsBuffer.hpp>
+#include <PsmrtsParameters.hpp>
 #include <PsmrtsVector3.hpp>
 #include <PsmrtsMeshData.hpp>
 
@@ -48,6 +49,9 @@ namespace psmrts {
         m_obj_config = this->obj_config( mtlpath );
         m_obj_reader.reset( this->load_obj_file( objfile, m_obj_config ) );
 
+        // Call a make_config( m_obj_reader.get() );
+        // m_config_j = make_config( objfile, m_obj_reader.get() );
+
         const bool ThrowOnError = true;
         check_obj_errors( "*** PsmrtsOBJFormat(objfile)", ThrowOnError );
       }
@@ -60,6 +64,9 @@ namespace psmrts {
         m_obj_config = tinyobj::ObjReaderConfig();
         m_obj_reader.reset( obj_reader );
 
+        // Call a make_config( m_obj_reader.get() );
+        // m_config_j = make_config( objfile, m_obj_reader.get() );
+                
         const bool ThrowOnError = true;
         check_obj_errors( "*** PsmrtsOBJFormat(ObjReader)", ThrowOnError );
       }      
@@ -387,6 +394,45 @@ namespace psmrts {
         return ( m_tracker.clone() );
       }
 
+      static inline ordered_json product_options() {
+        char text[] = R"(
+        {
+          "name": "obj",
+          "product": "mesh",
+          "obj_file": "<filename>",
+          "obj_data_type": ["double",float"],
+          "obj_mtl_search_path": "<dir>" 
+        }
+        )";
+        return ( json_utils::parse_json_string( text ) );
+      }
+
+      static inline PsmrtsOBJFormat create( const ordered_json &params ) {
+
+        try {
+          PsmrtsParameters parms_p ( params );
+
+          if ( parms_p.contains( "obj_file") ) {
+            return ( PsmrtsOBJFormat( parms_p.get_string_parameter("objs_file"), parms_p.get_string_parameter( "obj_mtl_search_path" ) ) );
+          }
+          else if ( parms_p.get_string_parameter( "name" ) == "obj" ) {
+            std::string obj_file = parms_p.get_string_parameter( "file" );
+            return ( PsmrtsOBJFormat (obj_file, parms_p.get_string_parameter("obj_mtl_search_path" ) ) );
+          }
+        }
+        catch ( const std::runtime_error &re ) {
+          std::string msg = std::string( "PsmrtOBJFormat::create() failed - ").append( re.what() );
+          throw std::runtime_error( msg );          
+        }
+         
+        // Could return an invalid model here:
+        // return ( PsmrtsOBJFormat(  ) );
+        
+        // Or throw an exception
+        std::string msg = std::string( "PsmrtOBJFormat::create() invalid product request configuration" );
+        throw std::runtime_error( msg );                
+      }
+
 
     protected:
 
@@ -415,6 +461,7 @@ namespace psmrts {
       std::string                          m_obj_source;
       tinyobj::ObjReaderConfig             m_obj_config;
       std::shared_ptr<tinyobj::ObjReader>  m_obj_reader;
+      ordered_json                         m_config_j;
       PsmrtsThreadSafeCounter              m_tracker;     // Tracks times and copy counts
 
   };

@@ -40,7 +40,7 @@ namespace psmrts {
         virtual ~PsmrtsDSKFormat() {}
 
         /** Returns the data source of the format model - DSK filepath */
-        virtual std::string format_model_source() {
+        virtual std::string format_model_source() const {
             return ( dsk_source() );
         }
 
@@ -157,14 +157,14 @@ namespace psmrts {
             return;
         }
 
-        inline const json &config() const {
+        inline const ordered_json &config() const {
             return m_config;
         }
 
         private:
             std::string           m_dsk_source;
             PsmrtsMeshData        m_mesh;
-            nlohmann::json        m_config;
+            ordered_json          m_config;
     };
 } // namespace psmrts
 
