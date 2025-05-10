@@ -48,7 +48,7 @@ namespace psmrts {
         m_obj_source = objfile;
         m_obj_config = this->obj_config( mtlpath );
         m_obj_reader.reset( this->load_obj_file( objfile, m_obj_config ) );
-
+        make_config(objfile, m_obj_reader.get());
         // Call a make_config( m_obj_reader.get() );
         // m_config_j = make_config( objfile, m_obj_reader.get() );
 
@@ -394,19 +394,32 @@ namespace psmrts {
         return ( m_tracker.clone() );
       }
 
+      /**
+       * @brief Returns an ordered JSON containing relative product options
+       * and possible values 
+       * 
+       * @return ordered_json of product options
+       */
       static inline ordered_json product_options() {
         char text[] = R"(
         {
           "name": "obj",
           "product": "mesh",
           "obj_file": "<filename>",
-          "obj_data_type": ["double",float"],
+          "obj_data_type": ["double","float"],
           "obj_mtl_search_path": "<dir>" 
         }
         )";
         return ( json_utils::parse_json_string( text ) );
       }
 
+      /**
+       * @brief returns a PsmrtsOBJFormat object with the provided product option
+       * parameters
+       * 
+       * @param  params
+       * @return PsmrtsOBJFormat 
+       */
       static inline PsmrtsOBJFormat create( const ordered_json &params ) {
 
         try {
@@ -432,7 +445,63 @@ namespace psmrts {
         std::string msg = std::string( "PsmrtOBJFormat::create() invalid product request configuration" );
         throw std::runtime_error( msg );                
       }
+    
+    /**
+     * @brief sets the objects internal product options based on Objreader results
+     * and provided obj file string representation
+     * 
+     * @param  objfile path/file name of associated objfile
+     * @param  reader  reader of above file
+     * @return * void 
+     */
+    inline void make_config(std::string objfile, tinyobj::ObjReader *reader) {
+      nlohmann::ordered_json objson = nlohmann::ordered_json::object();
 
+      objson["name"] = "obj";
+      objson["product"] = "mesh";
+      objson["obj_file"] = psmrts_file_basename(objfile);
+      if (sizeof(tinyobj_real_type) == 4) {
+        objson["obj_data_type"] = "float";
+      } else {
+        objson["obj_data_type"] = "double";
+      }
+      objson["obj_mtl_search_path"] = m_obj_config.mtl_search_path;
+      m_config_j = objson;
+    }
+
+    /**
+     * @brief returns true if the input product json contains the same
+     * values as the object
+     * 
+     * @param params ordered json OBJ product config
+     * @return true  if params has same values as object
+     * @return false if params is empty or has different values
+     */
+    inline bool compare(const ordered_json &params) {
+      if (params.empty()){
+        return false;
+      }
+      for (auto aspect : m_config_j.items()) {
+        if (!params.contains(aspect.key())) {
+          return false;
+        }
+        if(params.at(aspect.key()) != aspect.value()) {
+          return false;
+        }
+      }
+      return true;
+    }
+    
+    /**
+     * @brief Get the Product Config of an OBJ object
+     * 
+     * (Temporary getter for object-specific production config speccs)
+     * 
+     * @return ordered_json 
+     */
+    inline ordered_json getProductConfig() {
+      return m_config_j;
+    }
 
     protected:
 
