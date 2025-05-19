@@ -68,7 +68,6 @@ namespace psmrts {
           if ( this->type() != other.type() ) return ( false );
 
           // Now check required
-          std::vector<std::string> errors;
           std::string all_errors;
           std::string newline("");
 
