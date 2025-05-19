@@ -14,6 +14,7 @@
 #include <PsmrtsParameters.hpp>
 #include <PsmrtsVector3.hpp>
 #include <PsmrtsMeshData.hpp>
+#include <ProductSpecification.hpp>
 
 // See PsmrtsOBJImplementation.hpp for defining the tinyobj implemantion in your main
 #include "tiny_obj_loader.h"
@@ -394,20 +395,24 @@ namespace psmrts {
         return ( m_tracker.clone() );
       }
 
+
       /**
        * @brief Returns an ordered JSON containing relative product options
        * and possible values 
        * 
-       * @return ordered_json of product options
+       * @return ProductSpecification of product options
        */
-      static inline ordered_json product_options() {
+
+      static inline ProductSpecification product_specifications() {
         char text[] = R"(
         {
           "name": "obj",
-          "product": "mesh",
+          "type": "mesh",
           "obj_file": "<filename>",
-          "obj_data_type": ["double","float"],
-          "obj_mtl_search_path": "<dir>" 
+          "obj_data_type": [ "double", float" ],
+          "obj_mtl_search_path": "<dir>",
+          "required" : [ "obj_file" ],
+          "optional": [ "obj_data_type", "obj_mlt_search_path" ]          
         }
         )";
         return ( json_utils::parse_json_string( text ) );
@@ -418,12 +423,12 @@ namespace psmrts {
        * parameters
        * 
        * @param  params
-       * @return PsmrtsOBJFormat 
+       * @return Format-relevant Mesh
        */
-      static inline PsmrtsOBJFormat create( const ordered_json &params ) {
+      static inline PsmrtsOBJFormat create( const ProductSpecification &params ) {
 
         try {
-          PsmrtsParameters parms_p ( params );
+          //PsmrtsParameters parms_p ( params );
 
           if ( parms_p.contains( "obj_file") ) {
             return ( PsmrtsOBJFormat( parms_p.get_string_parameter("objs_file"), parms_p.get_string_parameter( "obj_mtl_search_path" ) ) );
