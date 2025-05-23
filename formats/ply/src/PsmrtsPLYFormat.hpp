@@ -363,7 +363,7 @@ namespace psmrts {
             return m_config;
         }*/
         
-        inline ProductSpecification config() {
+        inline const ProductSpecification &config() const {
             return m_config;
         }
 

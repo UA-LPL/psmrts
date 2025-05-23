@@ -39,7 +39,7 @@ TEST_CASE ( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][defaul
     test["ply_file_type"] = "binary";
     test["ply_data_type"] = "float";
 
-    CHECK( ply.config().dump() == test.dump() );
+    CHECK( ply.config().specs().parameters().dump() == test.dump() );
     CHECK( ply.compare( test ) == true );
     /**
     std::string file_path = ply.config()["header"]["file"];
