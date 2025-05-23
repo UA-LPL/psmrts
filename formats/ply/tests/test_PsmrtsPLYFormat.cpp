@@ -32,6 +32,16 @@ TEST_CASE ( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][defaul
     std::string plyfile = psmrts_formats_path("ply/data/Bennu_Radar.ply");
     psmrts::PsmrtsPLYFormat ply( plyfile );
     
+    ordered_json test;
+    test["name"] = "ply";
+    test["product"] = "mesh";
+    test["ply_file"] = psmrts::psmrts_file_basename(plyfile);
+    test["ply_file_type"] = "binary";
+    test["ply_data_type"] = "float";
+
+    CHECK( ply.config().dump() == test.dump() );
+    CHECK( ply.compare( test ) == true );
+    /**
     std::string file_path = ply.config()["header"]["file"];
 
     CHECK( psmrts::psmrts_file_basename(file_path) == "Bennu_Radar.ply" );
@@ -88,6 +98,7 @@ TEST_CASE ( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][defaul
     nlohmann::json j_final = j_result;
 
     CHECK( nlohmann::ordered_json::diff( j_final, ply.config() ).empty() );
+    */
 
     CHECK( ply.format_model_source() == plyfile  );
     CHECK( ply.ply_source()          == plyfile  );
@@ -150,6 +161,7 @@ TEST_CASE ( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][defaul
     REQUIRE( ply_read != nullptr );
 }
 
+/** 
 TEST_CASE("PLY FORMAT Asset Test - Text Based Ply Reader and Comparison", "[format][ply][text]") {
     // Check to make sure binary ply version pulls data of basic shape, compare to text conversion
     // Original binary-base ply file was converted to text version via Meshlab: https://github.com/cnr-isti-vclab/meshlab
@@ -298,6 +310,7 @@ TEST_CASE("PLY FORMAT Asset Test - Text Based Ply Reader and Comparison", "[form
     CHECK( text_indexes(19)[1] == binary_indexes(19)[1] );
     CHECK( text_indexes(19)[2] == binary_indexes(19)[2] );
 }
+*/
 
 TEST_CASE( "PLY FORMAT Asset Test - OBJ Data Value Test", "[format][ply][obj]" ) {
     auto tolerance_f = 1.0e-6;

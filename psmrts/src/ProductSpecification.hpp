@@ -76,12 +76,12 @@ namespace psmrts {
             if ( other.specs().parameters().contains( key ) ) {
               ordered_json diff_j = json::diff( other.specs().parameters()[key], this->specs().parameters()[key] );
               if ( diff_j.size() != 0 ) {
-                all_errors.push_back( newline + "Required product " + key + " does not match product spec value" );                
+                all_errors += newline + "Required product " + key + " does not match product spec value";                
                 newline = "\n";
               }
             }
             else {
-              all_errors.push_back( newline + "Required product " + key + " does not exist in other spec" );
+              all_errors += newline + "Required product " + key + " does not exist in other spec";
               newline = "\n";
             }
           }
@@ -91,7 +91,7 @@ namespace psmrts {
             if ( other.specs().parameters().contains( key ) ) {
               ordered_json diff_j = json::diff( other.specs().parameters()[key], this->specs().parameters()[key] );
               if ( diff_j.size() != 0 ) {
-                all_errors.push_back( newline + "Optional key " + key + " does not match product spec value" );                
+                all_errors+= newline + "Optional key " + key + " does not match product spec value";                
                 newline = "\n";
               }
             }
@@ -116,7 +116,7 @@ namespace psmrts {
       std::string      m_type;
       PsmrtsParameters m_parameters;
 
-      inline void initialize( const std::string &name = "", const std::string &type = "",
+      inline void initialize( const std::string &name = "None", const std::string &type = "None",
                               const ordered_json &options = json_utils::json_null() ) {
         
         // Set up specs for the product

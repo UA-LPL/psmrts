@@ -1,6 +1,7 @@
 #include <psmrts_catch2_environment.hpp>
 
 #include <PsmrtsOBJFormat.hpp>
+#include <ProductSpecification.hpp>
 
 #include <DskKernelModel.hpp>
 
@@ -32,36 +33,33 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Basic Load/Init Tests", "[format][obj][shap
     CHECK( t_loader.shape() != nullptr );
     CHECK( t_loader.config().mtl_search_path == "" );
 
-    nlohmann::ordered_json test = nlohmann::ordered_json::object();
-    test["name"] = "obj";
-    test["product"] = "mesh";
-    test["obj_file"] = psmrts::psmrts_file_basename(objfile);
-    test["obj_data_type"] = "double";
-    test["obj_mtl_search_path"] = "";
-
+    ordered_json options;
+    options["obj_file"] = psmrts::psmrts_file_basename(objfile);
+    options["obj_data_type"] = "double";
+    options["obj_mtl_search_path"] = "";
+    options["required"] = {"obj_file"};
+    options["optional"] = {"obj_data_type", "obj_mtl_search_path"};
+    psmrts::ProductSpecification test("obj", "mesh", options);
     CHECK( t_loader.compare( test ) == true);
-
-    nlohmann::ordered_json test2 = nlohmann::ordered_json::object();
-    test2["name"] = "obj";
-    test2["product"] = "mesh";
-    test2["obj_file"] = psmrts::psmrts_file_basename(objfile);
-    test2["obj_data_type"] = "float";
-    test2["obj_mtl_search_path"] = "";
+    
+    ordered_json options2;
+    options["obj_file"] = psmrts::psmrts_file_basename(objfile);
+    options["obj_data_type"] = "float";
+    options["obj_mtl_search_path"] = "";
+    options["required"] = {"obj_file"};
+    options["optional"] = {"obj_data_type", "obj_mtl_search_path"};
+    psmrts::ProductSpecification test2("obj", "mesh", options2);
 
     CHECK( t_loader.compare( test2 ) == false );
 
-    nlohmann::ordered_json test3 = nlohmann::ordered_json::object();
-    test3["name"] = "obj";
-    test3["product"] = "mesh";
-    test3["obj_file"] = psmrts::psmrts_file_basename(objfile);
-    test3["obj_data_type"] = "double";
-
+    ordered_json options3;
+    options3["obj_file"] = psmrts::psmrts_file_basename(objfile);
+    options3["obj_data_type"] = "double";
+    options3["required"] = {"obj_file"};
+    options3["optional"] = {"obj_data_type", "obj_mtl_search_path"};
+    psmrts::ProductSpecification test3("obj", "mesh", options2);
+ 
     CHECK( t_loader.compare( test3 ) == false );
-
-    nlohmann::ordered_json test4 = nlohmann::ordered_json::object();
-    
-    REQUIRE( test4.empty() == true );
-    CHECK( t_loader.compare( test4 ) == false );
 }
 
 TEST_CASE ( "OBJ FORMAT Asset Test - Load Fail Tests", "[format][obj][shape][failures]" ) {

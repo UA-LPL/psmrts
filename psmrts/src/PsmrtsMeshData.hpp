@@ -294,6 +294,7 @@ namespace psmrts {
         return ( m_tracker.clone() );
       }
 
+      // product specification function TODO
   
     private:
       VectorSurrogate         m_vectors;  // Vertex data (float or double)
