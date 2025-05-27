@@ -1,0 +1,229 @@
+
+# **PSMRTS Product Specifications**
+
+  **Date**: May 24, 2025  
+  **Author**: Kris J. Becker
+
+### PSMRTS Product Concept
+`PSMRTS` product request system is similar to a transactional system that allows users to select and configure mesh data sources and apply them in ray tracing enviroments. These environments are typically tracing libraries or systems, that can be customized for planetary shape/body ray tracers created by `PSMRTS`. Priority tracers contain more than one tracer where ray tracing operations can be specialized (e.g., prioritized, nearest-observer) and customized to suite.
+
+`PSMRTS`' prime objective is to create customized/optimized ray tracing configurations primarily for small irregular planetary bodies and shapes while efficiently managing these resources for large systematic processing operations.
+
+Each element - meshes, tracers, even priority tracers - are products. Meshes come from several different file-based format sources: Wavefront OBJ, PLY and NAIF DSK BDS kernel files. Ray tracing systems in `PSMRTS` are Bullet, NAIF DSK and ellipsoids (which have no mesh). Each of these products must provide parameter specifications and customized configurations.  The configuration of a priority tracer is a merge of all the configurations of `PSMRTS` products.
+
+The implementation plan is described in this document.
+
+#### Product Description
+Each `PSMRTS` product, such as a `mesh`, `tracer`, must have a description that defines the product API specification and software driver information. This specification will be implemented in s/w as a JSON structure. Our objective is to design a product description that considers the following requirements, functionality and flexibility:
+- Products must have a unique _name_. For example, `obj`, `ply`, `dsk` (`bds`) for meshes and `bullet`, `naifdsk`, `ellipsoid` (`sphere`, `spheroid`) as tracers. **NOTE: This will also be the default of the software driver name that creates these products.**
+- Products must define its _type_. Current options are: `mesh`, `tracer` (`shapetracer`) and `prioritytracer`.
+- Add _description_ so parameters/drivers can be self documenting/described.
+- As implied above, parameters and options can have (`aliases`). This will allow the same driver to serve more than one product and minimize interfacing complexity and optimize product mapping/lookup strategies.
+- Product (_driver_) keyword options are crafted after [GDAL options](https://gdal.org/en/stable/user/configoptions.html) specifications (however, `PSMRTS` keywords are lowercase). `PSMRTS` JSON options keyword names should be preceded by the driver name and an underscore. For example, users can specify `obj_file="g_00880mm_alt_ptm_0000n00000_v020.obj"` and the `obj` driver will be selected to provide the mesh given in the `obj_file` parameter.
+- **Characteristics of Product Parameters/Keywords**
+  - `PSMRTS` will need/require a product description/specification, much like what is found in web-based shopping product profiles.
+  - Parameters should also contain a short _description_ parameter
+  - The product specification will contain a list/set of _parameters_. 
+  - Parameters can be `required` or `optional` (options). If their _status_ is not specified, the default will be **required**.
+  - Parameters can contain a list of _aliases_ that are synonymous with the parameter _name_. For example, `file` can be aliased with `obj_file` whereas the suffix of `file` will be checked for an `obj` extension and satisfy a user request if present.
+  - Parameters may contain a list of _valid_ values that are checked when creating a product from a user config.
+  - Parameters may specify the _default_ value to use for the keyword.
+  - Parameters may have to specify type and count of parameters (ex. ellipsoid with 3 radii values: `ellipsoid_radii=[0.245,0.284,0250]`)
+- This configuration is a critical part of the registration procedure that adds drivers and functionality to the `PSMRTS` system.
+- Drivers are constructed for each product and registered in a lookup table for the driver name. The table must be iterable as well to support match operations to determine if a user config matches a product specification, which would typically result in a `create()` call.
+
+#### ProductSpecification class 
+The `ProductSpecification` class defines the format for product specification. This class will maintain a product name and type along with parameterization specifications and driver information. Each product driver must provide the details shown below and subsequently discussed in the following example. This static method is required in each `PSMRTS` product implementation.
+
+The example shown here is the specification for the `tinyobjloader` OBJ reader. It also reads materials. Additional functionality can be added to support reading/retaining the materials structure and provide an object functor interface to get access to the materials data read by `tinyobjloader`.
+
+```
+      static inline ProductSpecification product_specifications() {
+        char text[] = R"(
+        {
+          "name": "obj",
+          "type": "mesh"
+          "description": "Reads Wavefront OBJ mesh files and creates a PMRTS mesh object",
+          "driver": {
+            "name": "obj",
+            "type": "system",
+            "aliases": [ "OBJ" ]
+          }
+          "parameters": [
+            {
+              "name": "obj_file",
+              "type": "file",
+              "description": "Name of OBJ file to read",
+              "status": "required",
+              "aliases": ["file", "obj_mesh", "mesh_file"],
+              "file_suffixes": [ "obj", "OBJ" ]
+            },
+            {
+              "name": "obj_string",
+              "type": "string",
+              "description": "Format-compatible string containing contents of an OBJ file",
+              "status": "optional",
+              "aliases": ["obj_mesh_string"],
+            },            
+            {
+              "name": "obj_data_type",
+              "type": "string",
+              "description": "Type of mesh vector data requested/read",
+              "status": "optional",
+              "aliases": ["mesh_data_type"],
+              "valid": ["double","float"],
+              "default": "double"
+            },         
+            {
+              "name": "obj_mtl_search_path",
+              "type": "directory",
+              "description": "Directory path to OBJ materials files",
+              "status": "optional",
+              "aliases": ["obj_materials_dir"]
+            }   
+          ]       
+        } )";
+
+        // This validates the JSON structure and provides product info to callers
+        return ( ProductSpecification( "obj", "mesh", json_utils::parse_json_string( text )));
+      }
+```
+
+Note this approach also provides some interesting possibilitites. Developers can add their own parameters that could be used to turn on debugging, logging and I/O options for analysis/debugging. We should anticipate a need for global `psmrts` parameter options (ex: `psmrts_maximum_threads=0`) that drivers could recognize and apply within their scope. Note that special types like `file` can include methods that check the `value` of the type for a `file_suffixes` to satisfy its required file extension. Note that most string values, excluding `file` and `directory`, are converted to lower case (such as JSON keyword names should all be lowercase - enforced in the ProductParameter class).
+
+
+#### ProductParameter class
+The `ProductParameter` class that maintains and provides operations on the JSON array of `"parameters"` structures. These object instances of the parsed JSON content of the `"parameters"` array will provide operations as needed such as validation of the required format and comparisons of other instances. It should also allow storage of a _value_ keyword that will be added to the ProductParameter object when specified from a user. 
+
+This class will maintain a single product parameter for each element extracted from the `"parameters"` array as shown above. Specifically, structures of the following format will be supported/expected:
+```
+char parameter_spec[] = R"(
+  {
+    "name": "obj_file",
+    "type": "file",
+    "description": "Name of OBJ file to read",
+    "status": "required",
+    "aliases": ["file", "obj_mesh", "mesh_file"],
+    "file_suffixes": [ "obj", "OBJ" ]
+  } )";
+
+ return ( ProductParameter( json_utils::parse_json_string( parameter_spec )));
+
+ // Example of direct parameter creation support for configuration purposes
+  auto parameter = ProductParameter( "name", "obj_file");
+```
+Support for a `file` _type_ will be included in match/compare operations by checking for a _file_suffix_ in a _value_ keyword. The _value_ keyword will be explicitly added to the `ProductParameter`' JSON object before passing the JSON config to a `ProductConfiguration`.
+
+A match validation call will be of the form:
+```
+  bool is_serviceable = product_parameter.validate( other_parameter );
+```
+
+Along with `ProductSpecification`, this class should provide much of the needs to support product specification, driver configuration, user parameterization and validation for every product.
+
+### ProductConfiguration class
+The `ProductConfiguration` class maintains a configuration for a particular product. `ProductConfiguration` objects originate ultimately from users, but developers produce the class instances. This class should interact directly with the `ProductSpecification` class to determine if the driver has all the required parameters and proper values for options in the product configuration. I am thinking this class can inherit the `ProductParameter` class and the ability to interogate values is added in methods here. Search capabilties on, at least, parameter names in both `ProductSpecification` and `ProductConfiguration`.
+
+An instance of a `ProductConfiguration` is intended to be a simple, linear set of keywords that define all the products needed along with customized parameters to configure a product, ultimately a `shapetracer`. This design needs to support at a minimum our three defined types: `mesh` (formats), `tracer` (`shapetracer`) and `prioritytracer`. The idea here is that each product will be checked for what is needed and calls are made in the `ProductManufacturing` class starting with tracer calls and if tracers need a mesh, it will request a mesh product from its contents. Note that validation of the configuration should be validated with JSON diff() function on the remaining parameters after each product request is fullfilled. A successful configuration occurs when no JSON keys remain after processing a product request in a `ProductConfiguration`.
+
+#### Tracer configurations
+This is an example showing how to a Bullet tracer with a DSK file is requested and its configured status:
+
+```
+char bullet_config[] = R"(
+{
+  "name": "g_00880mm_alt_ptm_0000n00000_v020.obj",
+  "type": "tracer",
+  "tracer": "bullet",
+  "bullet_optimizedbvh": false,
+  "format": "obj",
+  "file": "g_00880mm_alt_ptm_0000n00000_v020.obj"
+} )";
+
+return ( ProductConfiguration( json_utils::parse_json_string( bullet_config )));
+```
+
+Thus configuration can be minimized to the following:
+```
+char minimal_bullet_config[] = R"(
+{
+  "tracer": "bullet",
+  "obj_file": "g_00880mm_alt_ptm_0000n00000_v020.obj"
+} )";
+```
+Configure a DSK shape tracer with segment with a specific NAIF identifier:
+```
+char dsk_config[] = R"(
+{
+  "tracer": "naifdsk",
+  "dsk_file": "g_00880mm_alt_ptm_0000n00000_v020.bds",
+  "dsk_surface_id": 20001
+} )";
+
+// Alternative C++ construction
+return ( ProductConfiguration( {  
+                                  ProductParameter( "tracer", "naifdsk"), 
+                                  ProductParameter( "dsk_file", "g_00880mm_alt_ptm_0000n00000_v020.bds"), 
+                                  ProductParameter( "dsk_surface_id", 20001) 
+                               } 
+                             ) 
+       );
+```
+
+Configure a Bullet shape tracer with a DSK mesh from a specific segment number:
+```
+char bullet_dsk_config[] = R"(
+{
+  "tracer": "bullet",
+  "dsk_file": "g_00880mm_alt_ptm_0000n00000_v020.bds",
+  "dsk_segment_number": 0
+} )";
+```
+
+Configure a couple of ellipsoids:
+```
+char ellipsoid_config[] = R"(
+{
+  "tracer": "ellipsoid",
+  "radii": [0.245,0.287,0.250]
+} )";
+
+char spheroid_config[] = R"(
+{
+  "tracer": "spheroid",
+  "radii": [0.245,0.287]
+} )";
+
+char spheroid_config[] = R"(
+{
+  "tracer": "sphere",
+  "radius": 0.250
+} )";
+```
+
+#### PriorityTracer configurations
+The `PSMRTS` `prioritytracer` configuration is simply an ordered array of `ProductConfiguration`s contained in JSON format. While construction of tracers w/wo meshes can be achieved using simple `keyword=value`, which is easy for C or Python users, creating a `priortytracer` requires a chain of ordered tracers. This will require additional support for those users to create a `prioritytracer` in `PSMRTS`, which we will provide. 
+
+The format of `prioritytracer`s are of the following form:
+```
+char bennu_tag_config[] = R"(
+{
+  "name": "my_tracer",
+  "type": "prioritytracer",
+  "tracers": [
+    {
+      "tracer": "bullet",
+      "dsk_file": "l_00050mm_alt_ptm_5595n04217_v020.bds",
+      "priority": 0
+    },    
+    {
+      "tracer": "ellipsoid",
+      "radii": [ 0.283065,0.271215,0.249720],
+      "priority": 1
+    }    
+  ]
+} )";
+```
+The `bennu_tag_config` user config provides high resolution (5cm GSD) coverage at the OSIRIS_REx Bennu TAG site whilst also constructing a backup ellipsoid to ensure global geometric coverage for all of Bennu. This type of configuration is indicated in ISIS when running 'campt` as both poles are check for visibility as well as sub-s/c and sub-solar surface intercepts are needed. By leaving out _priority` values in the `tracer` specs, they will be ordered as they occur in the configuration. (__NOTE__: this requires strict ordering in JSON as data objects are read/constructed, but that requirement is not part of the JSON spec. We use nholmann::json which has this support inherently and is the default behavior.)
+
+One thing to note: `PSMRTS` will not share any instances of `ellipsoid`s. They typically have very little overhead and it simplifies support for mathematically defined shape models in `PSMRTS` to simply create unique instances of ellipsoids.
