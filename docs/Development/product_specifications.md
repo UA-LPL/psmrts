@@ -112,7 +112,7 @@ char parameter_spec[] = R"(
  // Example of direct parameter creation support for configuration purposes
   auto parameter = ProductParameter( "name", "obj_file");
 ```
-Support for a `file` _type_ will be included in match/compare operations by checking for a _file_suffix_ in a _value_ keyword. The _value_ keyword will be explicitly added to the `ProductParameter`' JSON object before passing the JSON config to a `ProductConfiguration`.
+Support for a `file` _type_ will be included in match/compare operations by checking for a _file_suffix_ in a _value_ keyword. The _value_ keyword will be explicitly added to the `ProductParameter`' JSON object before passing the JSON config to a `ProductRequest`.
 
 A match validation call will be of the form:
 ```
@@ -121,10 +121,10 @@ A match validation call will be of the form:
 
 Along with `ProductSpecification`, this class should provide much of the needs to support product specification, driver configuration, user parameterization and validation for every product.
 
-### ProductConfiguration class
-The `ProductConfiguration` class maintains a configuration for a particular product. `ProductConfiguration` objects originate ultimately from users, but developers produce the class instances. This class should interact directly with the `ProductSpecification` class to determine if the driver has all the required parameters and proper values for options in the product configuration. I am thinking this class can inherit the `ProductParameter` class and the ability to interogate values is added in methods here. Search capabilties on, at least, parameter names in both `ProductSpecification` and `ProductConfiguration`.
+### ProductRequest class
+The `ProductRequest` class maintains a configuration for a particular product. `ProductRequest` objects originate ultimately from users, but developers produce the class instances. This class should interact directly with the `ProductSpecification` class to determine if the driver has all the required parameters and proper values for options in the product configuration. I am thinking this class can inherit the `ProductParameter` class and the ability to interogate values is added in methods here. Search capabilties on, at least, parameter names in both `ProductSpecification` and `ProductRequest`.
 
-An instance of a `ProductConfiguration` is intended to be a simple, linear set of keywords that define all the products needed along with customized parameters to configure a product, ultimately a `shapetracer`. This design needs to support at a minimum our three defined types: `mesh` (formats), `tracer` (`shapetracer`) and `prioritytracer`. The idea here is that each product will be checked for what is needed and calls are made in the `ProductManufacturing` class starting with tracer calls and if tracers need a mesh, it will request a mesh product from its contents. Note that validation of the configuration should be validated with JSON diff() function on the remaining parameters after each product request is fullfilled. A successful configuration occurs when no JSON keys remain after processing a product request in a `ProductConfiguration`.
+An instance of a `ProductRequest` is intended to be a simple, linear set of keywords that define all the products needed along with customized parameters to configure a product, ultimately a `shapetracer`. This design needs to support at a minimum our three defined types: `mesh` (formats), `tracer` (`shapetracer`) and `prioritytracer`. The idea here is that each product will be checked for what is needed and calls are made in the `ProductManufacturing` class starting with tracer calls and if tracers need a mesh, it will request a mesh product from its contents. Note that validation of the configuration should be validated with JSON diff() function on the remaining parameters after each product request is fullfilled. A successful configuration occurs when no JSON keys remain after processing a product request in a `ProductRequest`.
 
 #### Tracer configurations
 This is an example showing how to a Bullet tracer with a DSK file is requested and its configured status:
@@ -140,7 +140,7 @@ char bullet_config[] = R"(
   "file": "g_00880mm_alt_ptm_0000n00000_v020.obj"
 } )";
 
-return ( ProductConfiguration( json_utils::parse_json_string( bullet_config )));
+return ( ProductRequest( json_utils::parse_json_string( bullet_config )));
 ```
 
 Thus configuration can be minimized to the following:
@@ -161,13 +161,13 @@ char dsk_config[] = R"(
 } )";
 
 // Alternative C++ construction
-return ( ProductConfiguration( {  
-                                  ProductParameter( "tracer", "naifdsk"), 
-                                  ProductParameter( "dsk_file", "g_00880mm_alt_ptm_0000n00000_v020.bds"), 
-                                  ProductParameter( "dsk_surface_id", 20001) 
-                               } 
-                             ) 
-       );
+return ( ProductRequest( {  
+                            ProductParameter( "tracer", "naifdsk"), 
+                            ProductParameter( "dsk_file", "g_00880mm_alt_ptm_0000n00000_v020.bds"), 
+                            ProductParameter( "dsk_surface_id", 20001) 
+                         } 
+                       ) 
+  );
 ```
 
 Configure a Bullet shape tracer with a DSK mesh from a specific segment number:
@@ -202,7 +202,7 @@ char sphere_config[] = R"(
 ```
 
 #### PriorityTracer configurations
-The `PSMRTS` `prioritytracer` configuration is simply an ordered array of `ProductConfiguration`s contained in JSON format. While construction of tracers w/wo meshes can be achieved using simple `keyword=value`, which is easy for C or Python users, creating a `priortytracer` requires a chain of ordered tracers. This will require additional support for those users to create a `prioritytracer` in `PSMRTS`, which we will provide. 
+The `PSMRTS` `prioritytracer` configuration is simply an ordered array of `ProductRequest`s contained in JSON format. While construction of tracers w/wo meshes can be achieved using simple `keyword=value`, which is easy for C or Python users, creating a `priortytracer` requires a chain of ordered tracers. This will require additional support for those users to create a `prioritytracer` in `PSMRTS`, which we will provide. 
 
 The format of `prioritytracer`s are of the following form:
 ```
