@@ -89,7 +89,7 @@ The example shown here is the specification for the `tinyobjloader` OBJ reader. 
       }
 ```
 
-Note this approach also provides some interesting possibilitites. Developers can add their own parameters that could be used to turn on debugging, logging and I/O options for analysis/debugging. We should anticipate a need for global `psmrts` parameter options (ex: `psmrts_maximum_threads=0`) that drivers could recognize and apply within their scope. Note that special types like `file` can include methods that check the `value` of the type for a `file_suffixes` to satisfy its required file extension. Note that most string values, excluding `file` and `directory`, are converted to lower case (such as JSON keyword names should all be lowercase - enforced in the ProductParameter class).
+Note this approach also provides some interesting possibilitites. Developers can add their own parameters that could be used to turn on debugging, logging and I/O options for analysis/debugging. We should anticipate a need for global `psmrts` parameter options (ex: `psmrts_maximum_threads=0`) that drivers could recognize and apply within their scope. Note that special types like `file` can include methods that check the _value_ of the type for a _file_suffixes_ to satisfy its required file extension. Note that most string values, excluding `file` and `directory`, are converted to lower case (such as JSON keyword names should all be lowercase - enforced in the `ProductParameter` class).
 
 
 #### ProductParameter class
@@ -194,7 +194,7 @@ char spheroid_config[] = R"(
   "radii": [0.245,0.287]
 } )";
 
-char spheroid_config[] = R"(
+char sphere_config[] = R"(
 {
   "tracer": "sphere",
   "radius": 0.250
@@ -208,7 +208,7 @@ The format of `prioritytracer`s are of the following form:
 ```
 char bennu_tag_config[] = R"(
 {
-  "name": "my_tracer",
+  "name": "bennu_tag_tracer",
   "type": "prioritytracer",
   "tracers": [
     {
@@ -224,6 +224,6 @@ char bennu_tag_config[] = R"(
   ]
 } )";
 ```
-The `bennu_tag_config` user config provides high resolution (5cm GSD) coverage at the OSIRIS_REx Bennu TAG site whilst also constructing a backup ellipsoid to ensure global geometric coverage for all of Bennu. This type of configuration is indicated in ISIS when running 'campt` as both poles are check for visibility as well as sub-s/c and sub-solar surface intercepts are needed. By leaving out _priority` values in the `tracer` specs, they will be ordered as they occur in the configuration. (__NOTE__: this requires strict ordering in JSON as data objects are read/constructed, but that requirement is not part of the JSON spec. We use nholmann::json which has this support inherently and is the default behavior.)
+The `bennu_tag_tracer` user config provides high resolution (5cm GSD) coverage at the OSIRIS_REx Bennu TAG site whilst also constructing a backup ellipsoid to ensure global geometric coverage for all of Bennu. This type of configuration is indicated in ISIS when running `campt` as both poles are check for visibility as well as sub-s/c and sub-solar surface intercepts are needed. By leaving out `priority` values in the `tracer` specs, they will be ordered as they occur in the configuration. (__NOTE__: this requires strict ordering in JSON as data objects are read/constructed, but that requirement is not part of the JSON spec. We use nholmann::json which has this support inherently and is the default behavior.)
 
 One thing to note: `PSMRTS` will not share any instances of `ellipsoid`s. They typically have very little overhead and it simplifies support for mathematically defined shape models in `PSMRTS` to simply create unique instances of ellipsoids.
