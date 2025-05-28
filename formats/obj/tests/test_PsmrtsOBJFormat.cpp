@@ -34,7 +34,7 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Basic Load/Init Tests", "[format][obj][shap
     CHECK( t_loader.config().mtl_search_path == "" );
 
     ordered_json options;
-    options["obj_file"] = psmrts::psmrts_file_basename(objfile);
+    options["obj_file"] = objfile;
     options["obj_data_type"] = "double";
     options["obj_mtl_search_path"] = "";
     options["required"] = {"obj_file"};
@@ -43,7 +43,7 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Basic Load/Init Tests", "[format][obj][shap
     CHECK( t_loader.compare( test ) == true);
     
     ordered_json options2;
-    options["obj_file"] = psmrts::psmrts_file_basename(objfile);
+    options["obj_file"] = objfile;
     options["obj_data_type"] = "float";
     options["obj_mtl_search_path"] = "";
     options["required"] = {"obj_file"};
@@ -53,7 +53,7 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Basic Load/Init Tests", "[format][obj][shap
     CHECK( t_loader.compare( test2 ) == false );
 
     ordered_json options3;
-    options3["obj_file"] = psmrts::psmrts_file_basename(objfile);
+    options3["obj_file"] = objfile;
     options3["obj_data_type"] = "double";
     options3["required"] = {"obj_file"};
     options3["optional"] = {"obj_data_type", "obj_mtl_search_path"};

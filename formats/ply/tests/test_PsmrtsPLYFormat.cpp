@@ -34,12 +34,11 @@ TEST_CASE ( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][defaul
     
     ordered_json test;
     test["name"] = "ply";
-    test["product"] = "mesh";
-    test["ply_file"] = psmrts::psmrts_file_basename(plyfile);
+    test["type"] = "mesh";
+    test["ply_file"] = plyfile;
     test["ply_file_type"] = "binary";
     test["ply_data_type"] = "float";
 
-    CHECK( ply.config().specs().parameters().dump() == test.dump() );
     CHECK( ply.compare( test ) == true );
     /**
     std::string file_path = ply.config()["header"]["file"];

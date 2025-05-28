@@ -222,7 +222,7 @@ namespace psmrts {
          */
         inline void parse_config( miniply::PLYReader& reader )  {
             ordered_json options;
-            options["ply_file"] = psmrts_file_basename( m_ply_source );
+            options["ply_file"] = m_ply_source;
             options["ply_file_type"] = m_file_type;
             
             int largest_type = 0;
