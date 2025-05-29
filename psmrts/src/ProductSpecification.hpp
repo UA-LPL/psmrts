@@ -5,10 +5,13 @@
 #include <string>
 #include <memory>
 #include <deque>
+#include <vector>
 #include <variant>
 #include <exception>
 
 #include <PsmrtsParameters.hpp>
+#include <ProductParameter.hpp>
+#include <ProductRequest.hpp>
 
 namespace psmrts { 
 
@@ -23,6 +26,7 @@ namespace psmrts {
    */
   class ProductSpecification {
     public:
+      using ProductOptionsList = std::vector<ProductParameter>;
 
       ProductSpecification( )  {
         initialize( );
@@ -58,8 +62,14 @@ namespace psmrts {
 
       inline std::vector<std::string> optional( ) const {
         return ( m_parameters.get_parameter<std::vector<std::string>>( "optional" ) );
-      }      
+      }  
+      
+      /** Checks if a user/dev request can be satisfie by this product spec */
+      inline bool satisfies( const ProductRequest &request ) const {
 
+      }
+
+      /** Compares two specfications for a match */
       inline bool matches( const ProductSpecification &other, const bool throwException = false ) const {
 
         bool it_matches = false;
@@ -98,7 +108,15 @@ namespace psmrts {
           }
           
           // Now check for any errors and return a match if none
-          if ( all_errors.length() == 0 ) it_matches = true;
+          if ( all_errors.length() == 0 ) {
+            it_matches = true;
+          }
+          else {
+            it_matches = false;
+            if ( true == throwException ) {
+              throw std::runtime_error( all_errors );  
+            }
+          }
         }
         catch ( const json::exception &je ) {
           it_matches =  false;
