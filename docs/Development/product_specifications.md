@@ -218,12 +218,133 @@ char bennu_tag_config[] = R"(
     },    
     {
       "tracer": "ellipsoid",
-      "radii": [ 0.283065,0.271215,0.249720],
+      "radii": [0.283065,0.271215,0.249720],
       "priority": 1
     }    
   ]
 } )";
 ```
-The `bennu_tag_tracer` user config provides high resolution (5cm GSD) coverage at the OSIRIS_REx Bennu TAG site whilst also constructing a backup ellipsoid to ensure global geometric coverage for all of Bennu. This type of configuration is indicated in ISIS when running `campt` as both poles are check for visibility as well as sub-s/c and sub-solar surface intercepts are needed. By leaving out `priority` values in the `tracer` specs, they will be ordered as they occur in the configuration. (__NOTE__: this requires strict ordering in JSON as data objects are read/constructed, but that requirement is not part of the JSON spec. We use nholmann::json which has this support inherently and is the default behavior.)
+The `bennu_tag_tracer` user config provides high resolution (5cm GSD) coverage at the OSIRIS_REx Bennu TAG site whilst also constructing a backup ellipsoid to ensure global geometric coverage for all of Bennu. This type of configuration is indicated in ISIS when running `campt` as both poles are check for visibility as well as sub-s/c and sub-solar surface intercepts are needed. By leaving out `priority` values in the `tracer` specs, they will be ordered as they occur in the configuration. (__NOTE__: this requires strict ordering in JSON as data objects are read/constructed, but that requirement is not part of the JSON spec. We use [nholmann::json](https://github.com/nlohmann/json) which has this support provided with [nholmann::ordered_json](https://json.nlohmann.me/api/ordered_json/) which is standardized use within PSMRTS).
 
 One thing to note: `PSMRTS` will not share any instances of `ellipsoid`s. They typically have very little overhead and it simplifies support for mathematically defined shape models in `PSMRTS` to simply create unique instances of ellipsoids.
+
+## Usage in the C API
+This framework lays the foundation for the PSMRTS C/C++ and user interface. It is not lost that some configurations can be quite complex in conveying parameterization for each product requested by a user - particularly when using text strings only. The configurations the `ellisoid`, `spheroid` and `sphere` products are the most basic types. The string configurations expected from the user and applied in the `PSMRTS` C api has the following form:
+
+```
+const char *ellipsoid_s = "tracer=ellipsoid;radii=[0.283065,0.271215,0.249720]"; /* or ellipsoid_radii=... */
+const char *spheriod_s  = "tracer=spheroid;radii=[0.283065,0.249720]"; /* or spheroid_radii=[0.283065,0.249720] */
+const char *sphere_s    = "tracer=sphere;radii=250.0";  /* or sphere_radius=250 */
+```
+These examples are consistent with configuration strings specified by users that are absorbed and processed by `PSMRTS` that results in a tracer object that either exists in the `PSMRTS` cache (for efficient sharing of resources) or is created anew and added to `PSMRTS`'s internal caching system for efficient reuse. (__OPTION__: Should users be able to opt out of caching their product and return an unshared product at create time?)
+
+So how does this look in a `PSMRTS` C application? The following is a simple C main example demonstrating initialization of the PSMRTS factory system (with the default factory), create an ellipsoid, trace an arbitrary observer/lookdir, compute observational geometry from sun position and finally clean up resources and shut down the factory. This is similar to the [PROJ C API](https://proj.org/en/stable/development/quickstart.html).
+
+```
+#include <stdio.h>
+#include <psmrts_c.h>
+
+int main( int argc, char *argv[] ) {
+
+  PSMRTS_Factory       *p_factory;
+  PSMRTS_Tracer        *ellipsoid;
+  PSMRTS_RayTrace      *ray, *sunray;
+  PSMRTS_Vector3d      observer, lookdir, sunpos, sundir, position_v, look_v;
+  PSMRTS_Vector3d      emission, incidence, phase, normal, sepang, xyz, surfpt;
+
+  double slant_d, surft_dist;
+  double radius_km;
+
+  /* Get the standard factory from PSMRTS to kick things off... */
+  p_factory = psmrts_get_factory();
+
+  /* Create an ellipsoid tracer */
+  const char *ellipsoid_s = "tracer=ellipsoid;radii=[0.283065,0.271215,0.249720]";
+  ellipsoid = psmrts_create_tracer_from_string( p_factory, ellipsoid_s );
+  if ( !psmrts_tracer_isvalid( ellipsoid ) )  ) {
+    printf("\n*** PSMRTS-C - create errors:\n%s\n", psmrts_tracer_error_str( ellipsoid ) );
+    exit ( 1 );
+  }
+
+  /** Trace a ray */
+  observer = psmrt_vector3d( 0.3, 0.0, 0.0 );
+  lookdir  = psmrt_negate( observer );
+
+  /* Trace a ray on the ellipsoid */
+  ray = psmrts_ray_trace( ellisoid, observer, lookdir );
+  if ( psmrts_ray_has_hit( ray ) ) {
+
+    /* Retrieve/calculate data from trace */
+    xyz       = psmrts_ray_xyz( ray );
+    surfpt    = psmrts_ray_surfpt( ray );
+
+    normal    = psmrts_ray_normal( ray );
+
+    slant_d   = psmrts_ray_slant_distance( ray );
+    surfpt_d  = psmrts_norm( surfpt )
+
+    radius_km = psmrts_ray_radius( ray );
+    radius_pt  = psmrts_norm( xyz )
+
+    radlatlon = psmrts_xyz_to_
+
+    /* Use sunpos to get observational geometry */
+    sunpos = psmrt_vector3d( 300, 1000, 2000 );
+    sundir = psmrts_subtract( psmrts_ray_xyz( ray ), sunpos );
+
+    /* Trace from sun position to surface intercept point */
+    sunray = psmrts_ray_trace( ellipsoid, sunpos, sundir );
+    if ( psmrts_ray_has_hit( sunray ) ) {
+      emission  = psmrts_emission( ray );
+      incidence = psmrts_incidence( ray, sunray );
+      phase     = psmrts_phase( ray, sunray );
+    }
+    else {
+      printf("\n*** PSMRTS-C - Trace from sun failed!\n");
+    }
+  }
+
+  /* Resource cleanup and factory shutdown */
+  psmrts_ray_destroy( ray );
+  psmrts_ray_destroy( sunray );
+  psmrts_tracer_destroy( ellipsoid );
+  psmrts_shutdown_factory( p_factory );
+
+  return ( 0 );
+}
+
+```
+This implies `psmrts_create_tracer_from_string()` always returns an allocated structure that requires memory to be deleted. This is also true of `psmrts_ray_trace( )`.
+
+Note that this style of a C API tends to play nicely with C++, particularly memory management. The pointer based variables can be configured with explicit memory resource release function specified in the creation of a shared point. The recommended form for C++ using this configuration are similar to this:
+```
+std::unique_ptr<PSMRTS_Factory> factory( psmrts_get_factory(), psmrts_shutdown_factory );
+
+std::shared_ptr<PSMRTS_Tracer> ellipsoid( psmrts_create_tracer_from_string( p_factory, ellipsoid_s ), psmrts_tracer_destroy );
+
+std::shared_ptr<PSMRTS_RayTrace> ray( psmrts_ray_trace( ellisoid, observer, lookdir ), psmrts_ray_destroy );
+```
+This form works really well to ensure your applications are neatly memory manageable.
+
+#### PSMRTS_Vector3d C Structure
+You can see where the PSMRTS_Vector3d plays a large part in the code above. This structure is nothing more that an analogy to Eigen::Vector3d. It is defined as a union of several convenient forms of 3 double precision data values.
+```
+typedef union {
+  struct {
+    double x;
+    double y;
+    double z;
+  };
+  struct {
+    double a;
+    double b;
+    double c;
+  };
+  double data[3];
+} PSMRTS_Vector3d;
+```
+You can see an similar approach as this [PROJ_COORD](https://proj.org/en/stable/development/reference/datatypes.html#c.PJ_COORD) structure in the PROJ system. We may need to have formal types for some of the structs just as PROJ has. Note, just to be sure, we must add a Catch2 REQUIRES test to confirm the structure is properly handled by compilers.
+```
+REQUIRE( sizeof(PSMRTS_Vector3d) == (3 * sizeof(double)) );
+```
+
