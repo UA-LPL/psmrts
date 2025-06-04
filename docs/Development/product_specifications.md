@@ -250,7 +250,7 @@ int main( int argc, char *argv[] ) {
   PSMRTS_Tracer        *ellipsoid;
   PSMRTS_RayTrace      *ray, *sunray;
   PSMRTS_Vector3d      observer, lookdir, sunpos, sundir, position_v, look_v;
-  PSMRTS_Vector3d      emission, incidence, phase, normal, sepang, xyz, surfpt;
+  PSMRTS_Vector3d      emission, incidence, phase, normal, sepang, xyz, surfpt, radlonlat;
 
   double slant_d, surft_dist;
   double radius_km;
@@ -286,7 +286,7 @@ int main( int argc, char *argv[] ) {
     radius_km = psmrts_ray_radius( ray );
     radius_pt  = psmrts_norm( xyz )
 
-    radlatlon = psmrts_xyz_to_
+    radlonlat = psmrts_xyz_to_geo( xyz ); /* Consistent with NAIF */
 
     /* Use sunpos to get observational geometry */
     sunpos = psmrt_vector3d( 300, 1000, 2000 );
