@@ -45,7 +45,6 @@ namespace psmrts {
         m_spec_j[key] = value;
       }
 
-
       /** Create parameter from contents of a JSON object */
       ProductParameter( const ordered_json &specs ) {
         m_spec_j = specs;
@@ -53,17 +52,20 @@ namespace psmrts {
 
       virtual ~ProductParameter() = default;
 
+      /**
       /// Special static creation methods...
       static inline ProductParameter from_pvl( const char *pvl_string )  {
        // Parse a PVL string of the form "keyword=value\nkeyword=value"
        return ( ProductParameter::from_pvl( std::string( pvl_string ) ) );
       }
 
+      
       static inline ProductParameter from_pvl( const std::string &s ) {
        // Parse a string of the form "keyword=value\nkeyword=value"...
           ....      
       }   
-     
+      */
+
       /** Returns number of objects/keys in the specs */
       inline int size() const {
         return ( this->specs().size() );
@@ -139,34 +141,115 @@ namespace psmrts {
       }
 
       inline bool isa_alias( const std::string &a_key ) const {
-
+        for (const auto &alias_k : this->aliases()) {
+            if (alias_k == a_key) {
+                return true;
+            }
+        }
+        return false;
       }      
-
+      
       inline ordered_json difference( const ordered_json &other ) const {
         return ( ordered_json::diff( this->specs(), other ) );
       }     
 
+      /**
+       * @brief comparatively validates other ProductParameters
+       * 
+       * Note: Files are checked for compatability via their file extension, and if 
+       * file-based should be the value of a "value" parameter. Other parameters are
+       * considered valid only if they match name (or associable alias), type, and 
+       * status values. 
+       * 
+       * e.g - if one parameter has the key/value: name: "obj_file", with the associable
+       * alias key/values that includes: aliases: ["file", "obj_mesh", "mesh_file"], then 
+       * any other parameter using one of those aliases instead of "name" would be considered
+       * valid so long as type and status is also a match.
+       * 
+       * @param other      ProductParameter to be checked for validity
+       * @param Exception  Flag to throw exceptions, if desired
+       * @return true      ProductParameter is valid
+       * @return false     ProductParameter is not valid 
+       */
       inline bool validate( const ProductParameter &other, const bool throwException = false ) const {
-
-        bool it_matches = false;
-         
         // This should check/compare each expected value for consistency...
+        // Note: Should they strictly have the same keys, or just comparing the 
+        // keys in the original?
+        //  Check name, if failed - check aliases.
+        if (this->name() != other.name() ) {
+          if ( !validate_alias( other ) )  {
+            return false;
+          }
+        }
 
+        if (this->type() != other.type()) {
+          return false;
+        }
+       
+        if (this->status() != other.status()) {
+          return false;
+        }
 
+        if (other.type() == "file") {
+          return validate_file(other);
+        }
+        
+        if (other.type() == "string") {
+          return validate_string(other); //case sensitive? if (case_insense) - convert
+        }
 
         // Return match status...
-        return ( it_matches );
+        return true;
       }
 
     protected:
       ordered_json  m_spec_j;
 
-      inline bool validate_file( const std::string &fname ) const {
+      inline bool validate_file( const ProductParameter &other ) const {
+        if (other.contains("value")) { //value contains name of file
+          std::vector<std::string> valid_wordlist{};
+          valid_wordlist = this->file_suffixes();
 
+          std::string fext = psmrts_file_extension( other.value("value", std::string("")) );
+
+          for (const auto &fvals : valid_wordlist) {
+            if (fext == fvals) {
+              return true;
+            }
+          }
+          return false; 
+        }
+        return false;
       }
 
-      inline bool validate_alias( const std::string &alias ) const {
+      
+      inline bool validate_alias( const ProductParameter &other ) const {
+        std::vector<std::string> alias_list{};
+        alias_list = this->aliases();
+        for (const auto &val : alias_list) {
+          if (other.contains(val)) {
+            if (other.value(val, std::string("")) == this->name()){
+              return true;
+            }
+          }
+        }
+        return false;
+      }
+      
+      inline bool validate_string( const ProductParameter &other ) const {
+        if (other.contains("value")) {
+          std::vector<std::string> valid_wordlist{};
+          valid_wordlist = this->value("valid", valid_wordlist);
 
+          std::string target = psmrts_tolower(other.value("value", std::string("")));
+
+          for (const auto &vals : valid_wordlist) {
+            if (target == psmrts_tolower(vals)) {
+              return true;
+            }
+          }
+        }
+        return false;
       }
 
   };

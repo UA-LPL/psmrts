@@ -64,10 +64,11 @@ namespace psmrts {
         return ( m_parameters.get_parameter<std::vector<std::string>>( "optional" ) );
       }  
       
-      /** Checks if a user/dev request can be satisfie by this product spec */
+      /** Checks if a user/dev request can be satisfie by this product spec 
       inline bool satisfies( const ProductRequest &request ) const {
 
       }
+      */
 
       /** Compares two specfications for a match */
       inline bool matches( const ProductSpecification &other, const bool throwException = false ) const {
