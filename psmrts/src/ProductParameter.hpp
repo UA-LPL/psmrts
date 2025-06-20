@@ -52,19 +52,57 @@ namespace psmrts {
 
       virtual ~ProductParameter() = default;
 
-      /**
+    
       /// Special static creation methods...
       static inline ProductParameter from_pvl( const char *pvl_string )  {
        // Parse a PVL string of the form "keyword=value\nkeyword=value"
        return ( ProductParameter::from_pvl( std::string( pvl_string ) ) );
       }
-
       
+      /**
+       * @brief Returns a ProductParameter object based on a pvl format input string
+       * 
+       * This function expects PVL string key/values to be separated by '=', where the 
+       * first part understood to be the key, and second to be the associated value.
+       * Each key/value must end, and be separated by, a ';'. 
+       * - Keys are automatically converted to lowercase.
+       * 
+       * @param s                   String in pvl format outlined above
+       * @return ProductParameter   A ProductParameter with the PVL string specifications
+       */
       static inline ProductParameter from_pvl( const std::string &s ) {
-       // Parse a string of the form "keyword=value\nkeyword=value"...
-          ....      
+        ordered_json s_specs;
+
+        size_t start = 0;
+        size_t length = 0;
+        while (start < s.length()) {
+          size_t equals = s.find('=', start);
+          size_t semicolon = s.find(';', equals);
+          if (equals == std::string::npos) {
+            break;
+          }
+
+          std::string key = s.substr(start, equals - start);
+          if (semicolon == std::string::npos) {
+            length = std::string::npos;
+          }
+          else {
+            length = semicolon - equals - 1; 
+          }
+          std::string value = s.substr(equals + 1, length);
+
+          s_specs[psmrts::psmrts_tolower(key)] = value;
+
+          if (semicolon == std::string::npos) {
+            start = s.length();
+          } else {
+            start = semicolon + 1;
+          }
+        }
+
+        return ProductParameter( s_specs );
       }   
-      */
+      
 
       /** Returns number of objects/keys in the specs */
       inline int size() const {

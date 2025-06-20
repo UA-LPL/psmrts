@@ -262,6 +262,7 @@ TEST_CASE( "ProductParameter Vaidate String Test", "[product][parameter][string]
     char bad_vals[] = R"({
         "name": "obj_string",
         "type": "string",
+        "status": "optional",
         "value": "bad_value"
     })";
     psmrts::ProductParameter check2( psmrts::json_utils::parse_json_string( bad_vals ) );
@@ -270,9 +271,36 @@ TEST_CASE( "ProductParameter Vaidate String Test", "[product][parameter][string]
 
     char miss_vals[] = R"({
         "name": "obj_string",
-        "type": "string"
+        "type": "string",
+        "status": "optional"
     })";
     psmrts::ProductParameter check3( psmrts::json_utils::parse_json_string( bad_vals ) );
 
     CHECK( param.validate( check3 ) == false );
+}
+
+
+TEST_CASE( "ProductParameter From PVL Test", "[product][parameter][pvl]") {
+    std::string empty = "";
+    REQUIRE_NOTHROW( psmrts::ProductParameter::from_pvl( empty ) );
+    psmrts::ProductParameter blank = psmrts::ProductParameter::from_pvl( empty );
+    CHECK( blank.size() == 0 );
+
+    std::string test = "name=pvl;type=string;status=required;";
+
+    REQUIRE_NOTHROW( psmrts::ProductParameter::from_pvl( test ) );
+    psmrts::ProductParameter param = psmrts::ProductParameter::from_pvl( test );
+
+    CHECK( param.name() == "pvl" );
+    CHECK( param.type() == "string" );
+    CHECK( param.status() == "required" );
+
+    const char *c_test = "name=pvl;type=string;status=optional";
+
+    REQUIRE_NOTHROW( psmrts::ProductParameter::from_pvl( c_test ) );
+    psmrts::ProductParameter c_param = psmrts::ProductParameter::from_pvl( c_test );
+
+    CHECK( c_param.name() == "pvl" );
+    CHECK( c_param.type() == "string" );
+    CHECK( c_param.status() == "optional" );
 }
