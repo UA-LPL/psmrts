@@ -31,23 +31,27 @@ namespace psmrts {
                         const ordered_json &options = json_utils::json_null() ) { 
         m_spec_j = options;
         m_spec_j[key] = value;
+        check_defaults();
       }
 
       ProductParameter( const std::string &key, const double &value,
                         const ordered_json &options = json_utils::json_null() ) { 
         m_spec_j = options;
         m_spec_j[key] = value;
+        check_defaults();
       }      
 
       ProductParameter( const std::string &key, const int &value,
                         const ordered_json &options = json_utils::json_null() ) { 
         m_spec_j = options;
         m_spec_j[key] = value;
+        check_defaults();
       }
 
       /** Create parameter from contents of a JSON object */
       ProductParameter( const ordered_json &specs ) {
         m_spec_j = specs;
+        check_defaults();
       }
 
       virtual ~ProductParameter() = default;
@@ -244,11 +248,11 @@ namespace psmrts {
       ordered_json  m_spec_j;
 
       inline bool validate_file( const ProductParameter &other ) const {
-        if (other.contains("value")) { //value contains name of file
+        if (other.contains(other.name())) { //name-value becomes key that contains file ref
           std::vector<std::string> valid_wordlist{};
           valid_wordlist = this->file_suffixes();
 
-          std::string fext = psmrts_file_extension( other.value("value", std::string("")) );
+          std::string fext = psmrts_file_extension( other.value(other.name(), std::string("")) );
 
           for (const auto &fvals : valid_wordlist) {
             if (fext == fvals) {
@@ -275,11 +279,11 @@ namespace psmrts {
       }
       
       inline bool validate_string( const ProductParameter &other ) const {
-        if (other.contains("value")) {
+        if (other.contains(other.name())) {
           std::vector<std::string> valid_wordlist{};
-          valid_wordlist = this->value("valid", valid_wordlist);
+          valid_wordlist = this->value(other.name(), valid_wordlist);
 
-          std::string target = psmrts_tolower(other.value("value", std::string("")));
+          std::string target = psmrts_tolower(other.value(other.name(), std::string("")));
 
           for (const auto &vals : valid_wordlist) {
             if (target == psmrts_tolower(vals)) {
@@ -288,6 +292,18 @@ namespace psmrts {
           }
         }
         return false;
+      }
+
+      inline void check_defaults() {
+        if (!m_spec_j.contains("type")) {
+          m_spec_j["type"] = "string";
+        }
+        if (!m_spec_j.contains("status")) {
+          m_spec_j["status"] = "required";
+        }
+        if (!m_spec_j.contains("description")) {
+          m_spec_j["description"] = "parameter";
+        }
       }
 
   };

@@ -91,20 +91,21 @@ TEST_CASE( "ProductParameter Values Test", "[product][parameter][values]") {
     })";
     psmrts::ProductParameter p_param2( "name", "test", psmrts::json_utils::parse_json_string(vals2));
 
-    CHECK( p_param2.size()                           == 7 );
-    CHECK( p_param2.contains("description")          == false );
+    CHECK( p_param2.size()                           == 8 );
+    CHECK( p_param2.contains("description")          == true ); // Sets type, status, description to default if not included
+    CHECK( p_param2.contains("unrelated_key")        == false );
     CHECK( p_param2.value("status", std::string("")) == "optional" );
 
     CHECK_NOTHROW( p_param2.add_key("default", "string")); 
-    CHECK( p_param2.size()                            == 7 );
+    CHECK( p_param2.size()                            == 8 );
     CHECK( p_param2.value("default", std::string("")) == "string" ); 
     CHECK( p_param2.value("bad_key", std::string("")) == "error" ); 
 
     CHECK( p_param2.name()          == "test" );
     CHECK( p_param2.type()          == "test_type" );
-    CHECK( p_param2.description()   == "" );
+    CHECK( p_param2.description()   == "parameter" ); // default value
     CHECK( p_param2.status()        == "optional" );
-    CHECK( p_param2.keywords()      == std::vector<std::string>{"aliases", "bad_key", "default", "file_suffixes", "name", "status", "type"} );
+    CHECK( p_param2.keywords()      == std::vector<std::string>{"aliases", "bad_key", "default", "file_suffixes", "name", "status", "type", "description"} );
     CHECK( p_param2.aliases()       == std::vector<std::string>{"test_name", "test_data"} );
     CHECK( p_param2.file_suffixes() == std::vector<std::string> {"txt", "TXT"} );
     CHECK( p_param2.is_required()   == false );
@@ -171,10 +172,10 @@ TEST_CASE( "ProductParameter Validate File Test", "[product][parameter][file]") 
         "name": "obj_file",
         "type": "file",
         "status": "required",
-        "value": "test_file.obj"
+        "obj_file": "test_file.obj"
     })";
     psmrts::ProductParameter check1( psmrts::json_utils::parse_json_string( vals2 ) );
-    REQUIRE( psmrts::psmrts_file_extension( check1.specs()["value"] ) == "obj" );
+    REQUIRE( psmrts::psmrts_file_extension( check1.specs()[check1.name()] ) == "obj" );
     CHECK( param.validate( check1 ) == true );
 
     // Check for bad extension
@@ -182,10 +183,10 @@ TEST_CASE( "ProductParameter Validate File Test", "[product][parameter][file]") 
         "name": "obj_file",
         "type": "file",
         "status": "required",
-        "value": "bad_file.ply"
+        "obj_file": "bad_file.ply"
     })";
     psmrts::ProductParameter check2( psmrts::json_utils::parse_json_string( bad_val ) );
-    REQUIRE( psmrts::psmrts_file_extension( check2.specs()["value"] ) != "obj" );
+    REQUIRE( psmrts::psmrts_file_extension( check2.specs()[check2.name()] ) != "obj" );
     CHECK( param.validate( check2 ) == false );
 }
 
@@ -245,7 +246,7 @@ TEST_CASE( "ProductParameter Vaidate String Test", "[product][parameter][string]
         "description": "Format-compatible string containing contents of an OBJ file",
         "status": "optional",
         "aliases": ["obj_mesh_string"],
-        "valid": ["test_value"]
+        "obj_string": ["test_value"]
     })";
     psmrts::ProductParameter param( psmrts::json_utils::parse_json_string(vals) );
 
@@ -253,7 +254,7 @@ TEST_CASE( "ProductParameter Vaidate String Test", "[product][parameter][string]
         "name": "obj_string",
         "type": "string",
         "status": "optional",
-        "value": "test_value"
+        "obj_string": "test_value"
     })";
     psmrts::ProductParameter check1( psmrts::json_utils::parse_json_string( vals1 ) );
 
@@ -263,7 +264,7 @@ TEST_CASE( "ProductParameter Vaidate String Test", "[product][parameter][string]
         "name": "obj_string",
         "type": "string",
         "status": "optional",
-        "value": "bad_value"
+        "obj_string": "bad_value"
     })";
     psmrts::ProductParameter check2( psmrts::json_utils::parse_json_string( bad_vals ) );
 
@@ -284,7 +285,7 @@ TEST_CASE( "ProductParameter From PVL Test", "[product][parameter][pvl]") {
     std::string empty = "";
     REQUIRE_NOTHROW( psmrts::ProductParameter::from_pvl( empty ) );
     psmrts::ProductParameter blank = psmrts::ProductParameter::from_pvl( empty );
-    CHECK( blank.size() == 0 );
+    CHECK( blank.size() == 3 );
 
     std::string test = "name=pvl;type=string;status=required;";
 
