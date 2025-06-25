@@ -52,7 +52,5 @@ int main( int argc, char *argv[] ) {
   psmrts_free( ray );
   psmrts_free( tracer );
 
-  typedef std::shared_ptr<PSMRTSRayTrace, psmrts_free> PSMRTSRayTracePtr;
-
   return ( 0 );
 }

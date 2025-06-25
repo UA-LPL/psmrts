@@ -1,4 +1,6 @@
 
+
+#include <string>
 #include <Eigen/Geometry>
 
 #include "psmrts_version.h"
@@ -6,29 +8,38 @@
 #include <PsmrtsUtilities.hpp>
 #include <PsmrtsBufferData.hpp>
 #include <PsmrtsBuffer.hpp>
+#include <PsmrtsMeshData.hpp>
 #include <PsmrtsRayTrace.hpp>
+#include <PsmrtsOBJFormat.hpp>
+#include <PsmrtsDSKFormat.hpp>
+#include <PsmrtsPLYFormat.hpp>
 #include <EllipsoidTracerModel.hpp>
+#include <PsmrtsBulletWorldModel.hpp>
 #include <PsmrtsRequest.hpp>
+#include <PsmrtsPriorityTracer.hpp>
 
 
 /*============ PSMRTS C API type definitions ============*/
 /* Must be defined before including psmrts_c.h */
-using PSMRTS_Ray            = psmrts::RRQRayTrace;
+#define PSMRTS_POINTERS 1
+using PSMRTS_Ray            = psmrts::PRQRayTrace;
 using PSMRTS_Shape          = psmrts::PsmrtsMeshData;
 using PSMRTS_Tracer         = psmrts::PsmrtsTracerModel;
-using PSMRTS_ShapeTracer    = psmrts::PsmsrtsShapeTracer;
-using PSMRTS_PriorityTracer = psmrts::PsmsrtsPriorityTracer;
+using PSMRTS_ShapeTracer    = psmrts::PsmrtsTracerModel;
+using PSMRTS_PriorityTracer = psmrts::PsmrtsPriorityTracer;
+
 
 
 /* Include the PSMRTS C api include */
-#include <psmrts_c.h>
+#include "psmrts_c.h"
 
 inline Eigen::Vector3d vector_to_eigen( const PSMRTS_Vector3d &v3d ) {
-  return ( Eigen::Vector3d( { v3d.a, v3d.b, v3d.c } );
+  return ( Eigen::Vector3d( { v3d.a, v3d.b, v3d.c } ) );
 }
 
 inline PSMRTS_Vector3d eigen_to_vector( const Eigen::Vector3d &v ) {
-   return ( PSMRTS_Vector3d( { v[0], v[1], v[2] } ) );
+  PSMRTS_Vector3d v3d = { v[0], v[1], v[2] };
+   return ( v3d );
 }
 
 extern "C" {
@@ -42,8 +53,8 @@ const char *psmrts_version() {
 const char *psmrts_info() {
   return ( PSMRTS_VERSION );
 }
-
-PSMRTSShapeTracer *psmrts_load_shape( const char *shape, const char *tracer ) {
+#if 0
+PSMRTS_ShapeTracer *psmrts_load_shape( const char *shape, const char *tracer ) {
   /* char *tracer = "tracer:bullet:optimizebvh=true"  */
   /* char *shape = "obj/data/bennu_20facets.obj"  */
   /* char *shape = "ellipsoid:0.298"  */
@@ -58,12 +69,12 @@ PSMRTSShapeTracer *psmrts_load_shape( const char *shape, const char *tracer ) {
   }
 
   try {
-    PsmrtsMeshData mesh;
-    if ( psmrts_file_extension( v_shape ) == "obj" ) {
+    psmrts::PsmrtsMeshData mesh;
+    if ( psmrts::psmrts_file_extension( v_shape ) == "obj" ) {
       mesh = psmrts::PsmrtsOBJFormat( v_shape );
     }
     else {
-      if (psmrts_file_extension( v_shape ) == "ply" ) {
+      if ( psmrts::psmrts_file_extension( v_shape ) == "ply" ) {
         mesh = psmrts::PsmrtsPLYFormat ply( v_shape );
       }
     }
@@ -73,7 +84,7 @@ PSMRTSShapeTracer *psmrts_load_shape( const char *shape, const char *tracer ) {
       return ( new psmrts::NaifDskShapeTracer ( v_shape ) );
     }
     else if ( v_tracer.find("ellipsoid") != std::string::npos ) {
-      std::vector<std::string> tokens = psmrts::string_tokenizer(v_shape, ":,");
+      std::vector<std::string> tokens = psmrts::string_tokenizer(v_shape, "=:,");
       // Ex: "ellipsoid:0.1" -> { "ellipsoid", "0.1" }
       if (tokens.size() == 2) {
         Eigen::Vector3d radii( {std::stod(tokens[1]), std::stod(tokens[1]), std::stod(tokens[1]) } );
@@ -109,6 +120,23 @@ PSMRTSShapeTracer *psmrts_load_shape( const char *shape, const char *tracer ) {
 
   return ( NULL );
 }
+#endif
+
+PSMRTS_Vector3d psmrts_vector3d( const double x, const double y, const double z ) {
+  PSMRTS_Vector3d v3d = { x, y, z };  
+  return ( v3d );
+}
+
+PSMRTS_Vector3d psmrts_negate( const PSMRTS_Vector3d &v ) {
+  PSMRTS_Vector3d v3d = { -v.x, -v.y, -v.z };  
+  return ( v3d );
+}
+
+PSMRTS_Vector3d psmrts_subtract( const PSMRTS_Vector3d &v1, const PSMRTS_Vector3d &v2 ) {
+  PSMRTS_Vector3d v3d = { v1.x-v2.x, v1.y-v2.y, v1.z-v2.z };  
+  return ( v3d );
+}
+
 
 /**
  * @brief psmrts_create_ray - Creates a ray trace componet
@@ -132,6 +160,34 @@ PSMRTS_Ray *psmrts_create_ray( const PSMRTS_Vector3d &observer, const PSMRTS_Vec
   return ( new PSMRTS_Ray( vector_to_eigen( observer ), vector_to_eigen( lookdir ) ) );
 }
 
+PSMRTS_Ray *psmrts_ray_trace( PSMRTS_Ray *ray, const PSMRTS_Tracer *tracer ) {
+  tracer->ray_trace( ray->trace().observer(), ray->trace().lookdir(), ray->trace() );
+  return ( ray );
+}
+
+PSMRTS_Ray *psmrts_ray_trace_v( const PSMRTS_Vector3d &observer,
+                                const PSMRTS_Vector3d &lookdir,
+                                const PSMRTS_Tracer *ellipsoid ) {
+  return ( psmrts_ray_trace( psmrts_create_ray( observer, lookdir ), ellipsoid ) );
+}
+
+
+PSMRTS_BOOL psmrts_ray_has_hit( const PSMRTS_Ray *ray ) {
+  return ( ray->trace().hasHit() ?  PSMRTS_TRUE : PSMRTS_FALSE );
+}
+
+PSMRTS_Vector3d psmrts_ray_xyz( const PSMRTS_Ray *ray ) {
+  return ( eigen_to_vector( ray->trace().xyz() ) );
+}
+
+PSMRTS_Vector3d psmrts_ray_normal( const PSMRTS_Ray *ray ) {
+  return ( eigen_to_vector( ray->trace().normal() ) );
+}
+
+
+PSMRTS_BOOL psmrts_tracer_valid( const PSMRTS_ShapeTracer *tracer ) {
+  return ( ( 0 != tracer ) ?  PSMRTS_TRUE : PSMRTS_FALSE );
+}
 
 
 void psmrts_free_ray( PSMRTS_Ray *trace ) {

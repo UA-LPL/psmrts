@@ -9,6 +9,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 option( BUILD_TESTING   "Add PSMRTS unit tests"     OFF  )
 option( BUILD_EXTRAS    "Add PSMRTS tools/extras"   OFF  )
 option( BUILD_COVERAGE  "Build with code coverage"  OFF  )
+option( BUILD_CAPI_APPS "Build C API and apps"      ON )
 
 # Ensure we have a valid toolchain
 if( DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE )
@@ -72,6 +73,10 @@ target_link_libraries( psmrts INTERFACE psmrts::psmrts-dependencies )
 add_library( psmrts::psmrts ALIAS psmrts )
 
 # add_executable(psmrts src/psmrts.cpp)
+# Build C-API here if requested
+if( BUILD_CAPI_APPS )
+  add_subdirectory( capi )
+endif( BUILD_CAPI_APPS )
 
 # Optionally add unit tests of psmrts classes
 if( BUILD_TESTING )
