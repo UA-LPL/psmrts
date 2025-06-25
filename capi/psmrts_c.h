@@ -65,6 +65,9 @@ typedef struct psmrts_priority_tracer PSMRTS_PriorityTracer;
 extern const char PSMRTS_DLL *psmrts_version();
 extern const char PSMRTS_DLL *psmrts_info();
 
+/*============ PSMRTS ray functions ============*/
+extern PSMRTS_Ray *psmrts_create_ray( const PSMRTS_Vector3d &observer, const PSMRTS_Vector3d &lookdir );
+
 /*============ PSMRTS tracing functions ============*/
 
 extern PSMRTS_ShapeTracer *psmrts_load_shape( const char *shape, const char *tracer );
