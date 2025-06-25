@@ -24,34 +24,41 @@ namespace psmrts {
    */
   class ProductParameter {
     public:
-
+      // Empty default, no name handling?
       ProductParameter( ) : m_spec_j() { }
+      
+      ProductParameter( const std::string &name, 
+                        const ordered_json &options = json_utils::json_null() ) {
+        m_spec_j = options;
+        m_spec_j["name"] = name;
+        validate_defaults();
+      }
 
       ProductParameter( const std::string &key, const std::string &value,
                         const ordered_json &options = json_utils::json_null() ) { 
         m_spec_j = options;
         m_spec_j[key] = value;
-        check_defaults();
+        validate_defaults();
       }
 
       ProductParameter( const std::string &key, const double &value,
                         const ordered_json &options = json_utils::json_null() ) { 
         m_spec_j = options;
         m_spec_j[key] = value;
-        check_defaults();
+        validate_defaults();
       }      
 
       ProductParameter( const std::string &key, const int &value,
                         const ordered_json &options = json_utils::json_null() ) { 
         m_spec_j = options;
         m_spec_j[key] = value;
-        check_defaults();
+        validate_defaults();
       }
 
       /** Create parameter from contents of a JSON object */
       ProductParameter( const ordered_json &specs ) {
         m_spec_j = specs;
-        check_defaults();
+        validate_defaults();
       }
 
       virtual ~ProductParameter() = default;
@@ -132,6 +139,9 @@ namespace psmrts {
       template <class T>
         inline void add_key( const std::string &key, const T &value ) {
           std::string key_t = psmrts_tolower( key );
+          if (key_t == "name" && m_spec_j.size() > 0) { // to add name to empty default
+            throw std::invalid_argument("Error: 'name' key is reserved and cannot be modified after object creation.");
+          }
           m_spec_j[key_t] = value;
         }
 
@@ -269,10 +279,8 @@ namespace psmrts {
         std::vector<std::string> alias_list{};
         alias_list = this->aliases();
         for (const auto &val : alias_list) {
-          if (other.contains(val)) {
-            if (other.value(val, std::string("")) == this->name()){
-              return true;
-            }
+          if (other.name() == val) {
+            return true;
           }
         }
         return false;
@@ -294,11 +302,14 @@ namespace psmrts {
         return false;
       }
 
-      inline void check_defaults() {
-        if (!m_spec_j.contains("type")) {
+      inline void validate_defaults() {
+        if ( !m_spec_j.contains("name") ) {
+          throw std::invalid_argument("Error: Parameter requires a 'name' key with specifying value.");
+        }
+        if ( !m_spec_j.contains("type") ) {
           m_spec_j["type"] = "string";
         }
-        if (!m_spec_j.contains("status")) {
+        if ( !m_spec_j.contains("status") ) {
           m_spec_j["status"] = "required";
         }
         if (!m_spec_j.contains("description")) {

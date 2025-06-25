@@ -33,6 +33,8 @@ TEST_CASE( "ProductParameter Constructor / Base Function Tests", "[product][para
 
     psmrts::ProductParameter p_valid;
     //CHECK( p_param.validate( p_param ) == true );
+
+
 }
 
 TEST_CASE( "ProductParameter Values Test", "[product][parameter][values]") {
@@ -146,13 +148,13 @@ TEST_CASE( "ProductParamater Validate Test", "[product][parameter][validate]") {
         "status": "required",
         "aliases": ["file", "obj_mesh", "mesh_file"],
         "file_suffixes": [ "obj", "OBJ" ],
-        "value": "test_file.obj"
+        "file": "test_file.obj"
     })";
     psmrts::ProductParameter param2( psmrts::json_utils::parse_json_string( vals2 ) );
     
-    CHECK( param1.validate( param2 ) == false ); // "names" differ, "obj_file" vs "file"
+    CHECK( param1.validate( param2 ) == true ); 
 
-    REQUIRE( param2.contains("value") == true );
+    REQUIRE( param2.contains(param2.name()) == true );
     CHECK( psmrts::psmrts_file_extension( "test_file.obj" ) == "obj" );   
 }
 
@@ -202,7 +204,7 @@ TEST_CASE( "ProductParameter Validate Alias Test", "[product][parameter][alias]"
     psmrts::ProductParameter param( psmrts::json_utils::parse_json_string( vals ) );
 
     char vals1[] = R"({
-        "file": "obj_file",
+        "name": "obj_mesh",
         "type": "other",
         "status": "required"
     })";
@@ -210,7 +212,7 @@ TEST_CASE( "ProductParameter Validate Alias Test", "[product][parameter][alias]"
     CHECK( param.validate( check1 ) == true );
 
     char vals2[] = R"({
-        "obj_mesh": "meshy",
+        "name": "bad_file",
         "type": "other",
         "status": "required"
     })";
@@ -230,7 +232,7 @@ TEST_CASE( "ProductParameter Validate Alias Test", "[product][parameter][alias]"
     psmrts::ProductParameter param2( psmrts::json_utils::parse_json_string( vals3 ) );
 
     char vals4[] = R"({
-        "mesh_file": "obj_file",
+        "name": "mesh_file",
         "type": "other",
         "status": "required"
     })";
@@ -283,9 +285,9 @@ TEST_CASE( "ProductParameter Vaidate String Test", "[product][parameter][string]
 
 TEST_CASE( "ProductParameter From PVL Test", "[product][parameter][pvl]") {
     std::string empty = "";
-    REQUIRE_NOTHROW( psmrts::ProductParameter::from_pvl( empty ) );
-    psmrts::ProductParameter blank = psmrts::ProductParameter::from_pvl( empty );
-    CHECK( blank.size() == 3 );
+    // Parameters require a name..
+    REQUIRE_THROWS( psmrts::ProductParameter::from_pvl( empty ) );
+    
 
     std::string test = "name=pvl;type=string;status=required;";
 
