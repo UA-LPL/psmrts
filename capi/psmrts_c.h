@@ -53,7 +53,6 @@ typedef union {
   };
   double data[3];
 } PSMRTS_Vector3d;
-```
 
 /*============ PSMRTS C API type definitions ============*/
 typedef struct psmrts_raytrace        PSMRTS_Ray;
