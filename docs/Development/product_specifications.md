@@ -248,7 +248,7 @@ int main( int argc, char *argv[] ) {
 
   PSMRTS_Factory       *p_factory;
   PSMRTS_Tracer        *ellipsoid;
-  PSMRTS_RayTrace      *ray, *sunray;
+  PSMRTS_Ray           *ray, *sunray;
   PSMRTS_Vector3d      observer, lookdir, sunpos, sundir, position_v, look_v;
   PSMRTS_Vector3d      emission, incidence, phase, normal, sepang, xyz, surfpt, radlonlat;
 
@@ -259,7 +259,7 @@ int main( int argc, char *argv[] ) {
   p_factory = psmrts_get_factory();
 
   /* Create an ellipsoid tracer */
-  const char *ellipsoid_s = "tracer=ellipsoid;radii=[0.283065,0.271215,0.249720]";
+  const char *ellipsoid_s = "tracer=ellipsoid;ellisoid=[0.283065,0.271215,0.249720]";
   ellipsoid = psmrts_create_tracer_from_string( p_factory, ellipsoid_s );
   if ( !psmrts_tracer_isvalid( ellipsoid ) )  ) {
     printf("\n*** PSMRTS-C - create errors:\n%s\n", psmrts_tracer_error_str( ellipsoid ) );
@@ -270,8 +270,10 @@ int main( int argc, char *argv[] ) {
   observer = psmrt_vector3d( 0.3, 0.0, 0.0 );
   lookdir  = psmrt_negate( observer );
 
-  /* Trace a ray on the ellipsoid */
-  ray = psmrts_ray_trace( ellisoid, observer, lookdir );
+  /* Trace a ray on the ellipsoid. Create a reusable ray structure  */
+  /* to minimize memory create/free overhead. */
+  ray = psmrts_create_ray( observer, lookdir );
+  ray = psmrts_ray_trace( ray, ellipsoid );
   if ( psmrts_ray_has_hit( ray ) ) {
 
     /* Retrieve/calculate data from trace */
@@ -281,10 +283,10 @@ int main( int argc, char *argv[] ) {
     normal    = psmrts_ray_normal( ray );
 
     slant_d   = psmrts_ray_slant_distance( ray );
-    surfpt_d  = psmrts_norm( surfpt )
+    surfpt_d  = psmrts_norm( surfpt );
 
     radius_km = psmrts_ray_radius( ray );
-    radius_pt  = psmrts_norm( xyz )
+    radius_pt  = psmrts_norm( xyz );
 
     radlonlat = psmrts_xyz_to_geo( xyz ); /* Consistent with NAIF */
 
@@ -293,7 +295,7 @@ int main( int argc, char *argv[] ) {
     sundir = psmrts_subtract( psmrts_ray_xyz( ray ), sunpos );
 
     /* Trace from sun position to surface intercept point */
-    sunray = psmrts_ray_trace( ellipsoid, sunpos, sundir );
+    sunray = psmrts_ray_trace( psmrts_create_ray( sunpos, sundir ), ellipsoid );
     if ( psmrts_ray_has_hit( sunray ) ) {
       emission  = psmrts_emission( ray );
       incidence = psmrts_incidence( ray, sunray );
@@ -305,9 +307,9 @@ int main( int argc, char *argv[] ) {
   }
 
   /* Resource cleanup and factory shutdown */
-  psmrts_ray_destroy( ray );
-  psmrts_ray_destroy( sunray );
-  psmrts_tracer_destroy( ellipsoid );
+  psmrts_free_ray( ray );
+  psmrts_free_ray( sunray );
+  psmrts_free_tracer( ellipsoid );
   psmrts_shutdown_factory( p_factory );
 
   return ( 0 );
@@ -319,10 +321,8 @@ This implies `psmrts_create_tracer_from_string()` always returns an allocated st
 Note that this style of a C API tends to play nicely with C++, particularly memory management. The pointer based variables can be configured with explicit memory resource release function specified in the creation of a shared point. The recommended form for C++ using this configuration are similar to this:
 ```
 std::unique_ptr<PSMRTS_Factory> factory( psmrts_get_factory(), psmrts_shutdown_factory );
-
-std::shared_ptr<PSMRTS_Tracer> ellipsoid( psmrts_create_tracer_from_string( p_factory, ellipsoid_s ), psmrts_tracer_destroy );
-
-std::shared_ptr<PSMRTS_RayTrace> ray( psmrts_ray_trace( ellisoid, observer, lookdir ), psmrts_ray_destroy );
+std::shared_ptr<PSMRTS_Tracer>  ellipsoid( psmrts_create_tracer_from_string( p_factory, ellipsoid_s ), psmrts_free_tracer );
+std::shared_ptr<PSMRTS_Ray>     ray( psmrts_ray_trace( ellisoid, observer, lookdir ), psmrts_free_ray );
 ```
 This form works really well to ensure your applications are neatly memory manageable.
 
@@ -347,4 +347,17 @@ You can see an similar approach as this [PROJ_COORD](https://proj.org/en/stable/
 ```
 REQUIRE( sizeof(PSMRTS_Vector3d) == (3 * sizeof(double)) );
 ```
+
+#### PSMRTS_Ray C Structure
+The `PSMRTS_Ray` type consists of observer position and look direction vectors. Both vectors are provided in units of kilometers (km) although the direction vectors are typically unitless and can be normalized. `PSMRTS_Ray` is an opaque pointer to a ray tracer object. In this context, they are actually _PSMRTS request functor_ (PRQ) objects. Specifically, the `PSMRTS_Ray` C API type is actually mapped to the `PRQRayTrace` functor object. These PRQ functor objects are well suited for this feature as they all contain inherent error checking/catching, with full accounting of its execution processing. All PRQ functors are contained in the header file `PsmrtsRequest.hpp`.
+
+To implement the opaque pointer method using this technique, declarations occur in both the psmrts_c.h and psmrts_c.cpp files. Keep in mind that content of `psmrts_c.h` must typically contain only code that can be compiled by both the C and C++ compilers. `psmrts_c.cpp` contain C++ elements that define the C++ interface.
+
+#### psmrts_c.cpp
+```
+using PSMRTS_Ray = psmrts::PRQRayTrace;
+```
+
+
+#### psmrts_c.h
 
