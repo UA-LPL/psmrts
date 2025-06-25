@@ -8,19 +8,28 @@
 #include <PsmrtsBuffer.hpp>
 #include <PsmrtsRayTrace.hpp>
 #include <EllipsoidTracerModel.hpp>
+#include <PsmrtsRequest.hpp>
 
 
 /*============ PSMRTS C API type definitions ============*/
 /* Must be defined before including psmrts_c.h */
-typedef PSMRTSRayTrace       PsmrtsRayTrace;
-typedef PSMRTSShape          PsmrtsMeshData;
-typedef PSMRTSTracer         PsmrtsTracerModel;
-typedef PSMRTSShapeTracer    PsmsrtsShapeTracer;
-typedef PSMRTSPriorityTracer PsmsrtsPriorityTracer;
+using PSMRTS_Ray            = psmrts::RRQRayTrace;
+using PSMRTS_Shape          = psmrts::PsmrtsMeshData;
+using PSMRTS_Tracer         = psmrts::PsmrtsTracerModel;
+using PSMRTS_ShapeTracer    = psmrts::PsmsrtsShapeTracer;
+using PSMRTS_PriorityTracer = psmrts::PsmsrtsPriorityTracer;
 
 
 /* Include the PSMRTS C api include */
 #include <psmrts_c.h>
+
+inline Eigen::Vector3d vector_to_eigen( const PSMRTS_Vector3d &v3d ) {
+  return ( Eigen::Vector3d( { v3d.a, v3d.b, v3d.c } );
+}
+
+inline PSMRTS_Vector3d eigen_to_vector( const Eigen::Vector3d &v ) {
+   return ( PSMRTS_Vector3d( { v[0], v[1], v[2] } ) );
+}
 
 extern "C" {
 
@@ -101,23 +110,47 @@ PSMRTSShapeTracer *psmrts_load_shape( const char *shape, const char *tracer ) {
   return ( NULL );
 }
 
-void psmrts_free( PSMRTSRayTrace *trace ) {
+/**
+ * @brief psmrts_create_ray - Creates a ray trace componet
+ * 
+ * This function creates a PSMRTS ray trace object that can be used to trace
+ * on a shape. 
+ * 
+ * The observer position is a vector from the shape origin to its body-fixed
+ * position relative to the target body origin.
+ * 
+ * The lookdir is converted to unit vector and eminates from the observer
+ * location toward the target body.
+ * 
+ * It is up to the caller to check for valid pointer return.
+ * 
+ * @param observer Position (km) of the observer, origin of the ray
+ * @param lookdir  Direction (km) vector from observer to trace
+ * @return PSMRTS_Ray* Pointer to the resulting ray trace
+ */
+PSMRTS_Ray *psmrts_create_ray( const PSMRTS_Vector3d &observer, const PSMRTS_Vector3d &lookdir ) {
+  return ( new PSMRTS_Ray( vector_to_eigen( observer ), vector_to_eigen( lookdir ) ) );
+}
+
+
+
+void psmrts_free_ray( PSMRTS_Ray *trace ) {
   delete trace;
 }
 
-void psmrts_free( PSMRTSShape *shape ) {
+void psmrts_free_shape( PSMRTS_Shape *shape ) {
   delete shape;
 }
 
-void psmrts_free( PSMRTSTracer *tracer ) {
+void psmrts_free_tracer( PSMRTS_Tracer *tracer ){
   delete tracer;
 }
 
-void psmrts_free( PSMRTSShapeTracer *stracer ) {
+void psmrts_free_shapetracer( PSMRTS_ShapeTracer *stracer ) {
   delete stracer;
 }
 
-void psmrts_free( PSMRTSPriorityTracer *ptracer ) {
+void psmrts_free( PSMRTS_PriorityTracer *ptracer ) {
   delete ptracer;
 }
 
