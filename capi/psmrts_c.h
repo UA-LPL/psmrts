@@ -79,6 +79,8 @@ extern PSMRTS_Ray *psmrts_ray_trace_v( const PSMRTS_Vector3d &observer,
                                        const PSMRTS_ShapeTracer *tracer );
 
 
+extern PSMRTS_Vector3d psmrts_ray_observer( const PSMRTS_Ray *ray );
+extern PSMRTS_Vector3d psmrts_ray_lookdir( const PSMRTS_Ray *ray );
 extern PSMRTS_BOOL psmrts_ray_has_hit( const PSMRTS_Ray *ray );
 extern PSMRTS_Vector3d psmrts_ray_xyz( const PSMRTS_Ray *ray );
 extern PSMRTS_Vector3d psmrts_ray_normal( const PSMRTS_Ray *ray );

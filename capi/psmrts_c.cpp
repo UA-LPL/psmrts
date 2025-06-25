@@ -176,6 +176,14 @@ PSMRTS_BOOL psmrts_ray_has_hit( const PSMRTS_Ray *ray ) {
   return ( ray->trace().hasHit() ?  PSMRTS_TRUE : PSMRTS_FALSE );
 }
 
+PSMRTS_Vector3d psmrts_ray_observer( const PSMRTS_Ray *ray ) {
+  return ( eigen_to_vector( ray->trace().observer() ) );
+}
+
+PSMRTS_Vector3d psmrts_ray_lookdir( const PSMRTS_Ray *ray ) {
+  return ( eigen_to_vector( ray->trace().lookdir() ) );
+}
+
 PSMRTS_Vector3d psmrts_ray_xyz( const PSMRTS_Ray *ray ) {
   return ( eigen_to_vector( ray->trace().xyz() ) );
 }

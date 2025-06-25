@@ -3,10 +3,12 @@
 
 int main( int argc, char *argv[] ) {
 
-  PSMRTS_ShapeTracer   *ellipsoid;
-  PSMRTS_Ray           *ray, *sunray;
+  PSMRTS_ShapeTracer   *ellipsoid = 0;
+  PSMRTS_Ray           *ray= 0, *sunray = 0;
   PSMRTS_Vector3d      observer, lookdir, sunpos, sundir, position_v, look_v;
   PSMRTS_Vector3d      emission, incidence, phase, normal, sepang, xyz, surfpt, radlonlat;
+
+  PSMRTS_Vector3d      obs_t, lkdir_t;
 
   double slant_d, surft_dist;
   double radius_km;
@@ -36,26 +38,31 @@ int main( int argc, char *argv[] ) {
   /* to minimize memory create/free overhead. */
   ray = psmrts_create_ray( observer, lookdir );
   // ray = psmrts_ray_trace( ray, ellipsoid );
-  if ( psmrts_ray_has_hit( ray ) ) {
+  // if ( psmrts_ray_has_hit( ray ) ) {
       printf("\n*** PSMRTS-C - Trace from ellipsoid succeeded!\n");
 
     /* Retrieve/calculate data from trace */
-    xyz       = psmrts_ray_xyz( ray );
-    normal    = psmrts_ray_normal( ray );
+    obs_t     = psmrts_ray_observer( ray );
+    lkdir_t   = psmrts_ray_lookdir( ray );
+    printf("\nObserver: %f %f %f\n", obs_t.x, obs_t.y, obs_t.z );
+    printf("Lookdir:  %f %f %f\n", lkdir_t.x, lkdir_t.y, lkdir_t.z );
+
 
     /* Use sunpos to get observational geometry */
     sunpos = psmrts_vector3d( 300, 1000, 2000 );
-    sundir = psmrts_subtract( psmrts_ray_xyz( ray ), sunpos );
+    sundir = psmrts_subtract( psmrts_ray_observer( ray ), sunpos );
 
+#if 0    
     /* Trace from sun position to surface intercept point */
-    // sunray = psmrts_ray_trace( psmrts_create_ray( sunpos, sundir ), ellipsoid );
+    sunray = psmrts_ray_trace( psmrts_create_ray( sunpos, sundir ), ellipsoid );
     if ( psmrts_ray_has_hit( sunray ) ) {
       printf("\n*** PSMRTS-C - Trace from sun succeeded!\n");
     }
     else {
       printf("\n*** PSMRTS-C - Trace from sun failed!\n");
     }
-  }
+#endif    
+  // }
 
   /* Resource cleanup and factory shutdown */
   psmrts_free_ray( ray );
