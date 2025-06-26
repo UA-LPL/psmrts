@@ -22,7 +22,7 @@
 /*============ PSMRTS C API type definitions ============*/
 /* Must be defined before including psmrts_c.h */
 #define PSMRTS_POINTERS 1
-using PSMRTS_Ray            = psmrts::PRQRayTrace;
+using PSMRTS_RayTrace            = psmrts::PRQRayTrace;
 using PSMRTS_Shape          = psmrts::PsmrtsMeshData;
 using PSMRTS_Tracer         = psmrts::PsmrtsTracerModel;
 using PSMRTS_ShapeTracer    = psmrts::PsmrtsTracerModel;
@@ -154,51 +154,66 @@ PSMRTS_Vector3d psmrts_subtract( const PSMRTS_Vector3d &v1, const PSMRTS_Vector3
  * 
  * @param observer Position (km) of the observer, origin of the ray
  * @param lookdir  Direction (km) vector from observer to trace
- * @return PSMRTS_Ray* Pointer to the resulting ray trace
+ * @return PSMRTS_RayTrace* Pointer to the resulting ray trace
  */
-PSMRTS_Ray *psmrts_create_ray( const PSMRTS_Vector3d &observer, const PSMRTS_Vector3d &lookdir ) {
-  return ( new PSMRTS_Ray( vector_to_eigen( observer ), vector_to_eigen( lookdir ) ) );
+PSMRTS_RayTrace *psmrts_create_ray( const PSMRTS_Vector3d &observer, const PSMRTS_Vector3d &lookdir ) {
+  return ( new PSMRTS_RayTrace( vector_to_eigen( observer ), vector_to_eigen( lookdir ) ) );
 }
 
-PSMRTS_Ray *psmrts_ray_trace( PSMRTS_Ray *ray, const PSMRTS_Tracer *tracer ) {
+PSMRTS_RayTrace *psmrts_ray_trace( PSMRTS_RayTrace *ray, const PSMRTS_Tracer *tracer ) {
   tracer->ray_trace( ray->trace().observer(), ray->trace().lookdir(), ray->trace() );
   return ( ray );
 }
 
-PSMRTS_Ray *psmrts_ray_trace_v( const PSMRTS_Vector3d &observer,
+PSMRTS_RayTrace *psmrts_ray_trace_v( const PSMRTS_Vector3d &observer,
                                 const PSMRTS_Vector3d &lookdir,
                                 const PSMRTS_Tracer *ellipsoid ) {
   return ( psmrts_ray_trace( psmrts_create_ray( observer, lookdir ), ellipsoid ) );
 }
 
-
-PSMRTS_BOOL psmrts_ray_has_hit( const PSMRTS_Ray *ray ) {
-  return ( ray->trace().hasHit() ?  PSMRTS_TRUE : PSMRTS_FALSE );
-}
-
-PSMRTS_Vector3d psmrts_ray_observer( const PSMRTS_Ray *ray ) {
+PSMRTS_Vector3d psmrts_ray_observer( const PSMRTS_RayTrace *ray ) {
   return ( eigen_to_vector( ray->trace().observer() ) );
 }
 
-PSMRTS_Vector3d psmrts_ray_lookdir( const PSMRTS_Ray *ray ) {
+PSMRTS_Vector3d psmrts_ray_lookdir( const PSMRTS_RayTrace *ray ) {
   return ( eigen_to_vector( ray->trace().lookdir() ) );
 }
 
-PSMRTS_Vector3d psmrts_ray_xyz( const PSMRTS_Ray *ray ) {
+PSMRTS_BOOL psmrts_ray_has_hit( const PSMRTS_RayTrace *ray ) {
+    return ( ray->trace().hasHit() ?  PSMRTS_TRUE : PSMRTS_FALSE );
+}
+
+PSMRTS_Vector3d psmrts_ray_xyz( const PSMRTS_RayTrace *ray ) {
   return ( eigen_to_vector( ray->trace().xyz() ) );
 }
 
-PSMRTS_Vector3d psmrts_ray_normal( const PSMRTS_Ray *ray ) {
+PSMRTS_Vector3d psmrts_ray_normal( const PSMRTS_RayTrace *ray ) {
   return ( eigen_to_vector( ray->trace().normal() ) );
 }
 
+double psmrts_ray_intercept_radius( const PSMRTS_RayTrace *ray) {
+    return ( ray->trace().radius() );
+}
+
+double psmrts_ray_intercept_slant_distance( const PSMRTS_RayTrace *ray) {
+    return ( ray->trace().slant_distance() );
+}
+
+// PSMRTS_ShapeTracer *psmrts_load_shape( const char *shape, const char *tracer );
+
+// void psmrts_lonlat_to_xyz( const double longitude_d, const double latitude_d, const double radius_km, double xyz[3] ) {
+
+// }
+
+// void psmrts_vector_scale( const double v[3], const double scale, double vout[3] );
+// PSMRTS_RayTrace *PSMRTS_RayTrace_trace( PSMRTS_ShapeTracer *tracer, const double scpos[3], const double lookdir[3] );
 
 PSMRTS_BOOL psmrts_tracer_valid( const PSMRTS_ShapeTracer *tracer ) {
   return ( ( 0 != tracer ) ?  PSMRTS_TRUE : PSMRTS_FALSE );
 }
 
 
-void psmrts_free_ray( PSMRTS_Ray *trace ) {
+void psmrts_free_ray( PSMRTS_RayTrace *trace ) {
   delete trace;
 }
 

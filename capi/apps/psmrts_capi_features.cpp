@@ -4,7 +4,7 @@
 int main( int argc, char *argv[] ) {
 
   PSMRTS_ShapeTracer   *ellipsoid = 0;
-  PSMRTS_Ray           *ray= 0, *sunray = 0;
+  PSMRTS_RayTrace      *ray= 0, *sunray = 0;
   PSMRTS_Vector3d      observer, lookdir, sunpos, sundir, position_v, look_v;
   PSMRTS_Vector3d      emission, incidence, phase, normal, sepang, xyz, surfpt, radlonlat;
 
@@ -41,16 +41,22 @@ int main( int argc, char *argv[] ) {
   // if ( psmrts_ray_has_hit( ray ) ) {
       printf("\n*** PSMRTS-C - Trace from ellipsoid succeeded!\n");
 
-    /* Retrieve/calculate data from trace */
-    obs_t     = psmrts_ray_observer( ray );
-    lkdir_t   = psmrts_ray_lookdir( ray );
-    printf("\nObserver: %f %f %f\n", obs_t.x, obs_t.y, obs_t.z );
-    printf("Lookdir:  %f %f %f\n", lkdir_t.x, lkdir_t.y, lkdir_t.z );
+  /* Retrieve/calculate data from trace */
+  obs_t     = psmrts_ray_observer( ray );
+  printf("\nObserver: %f %f %f\n", obs_t.x, obs_t.y, obs_t.z );
 
+  lkdir_t   = psmrts_ray_lookdir( ray );
+  printf("Lookdir:  %f %f %f\n", lkdir_t.x, lkdir_t.y, lkdir_t.z );
 
-    /* Use sunpos to get observational geometry */
-    sunpos = psmrts_vector3d( 300, 1000, 2000 );
-    sundir = psmrts_subtract( psmrts_ray_observer( ray ), sunpos );
+  double radius = psmrts_ray_intercept_radius(ray);
+  printf("intercept radius:  %f\n", radius );
+
+  double slant_distance = psmrts_ray_intercept_slant_distance(ray);
+  printf("intercept slant distance:  %f\n", slant_distance );
+
+  /* Use sunpos to get observational geometry */
+  sunpos = psmrts_vector3d( 300, 1000, 2000 );
+  sundir = psmrts_subtract( psmrts_ray_observer( ray ), sunpos );
 
 #if 0    
     /* Trace from sun position to surface intercept point */
