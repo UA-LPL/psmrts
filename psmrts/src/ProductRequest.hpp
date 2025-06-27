@@ -27,10 +27,12 @@ namespace psmrts {
 
       ProductRequest( ) : m_request_j(), m_parameters{} { }
 
+      /** 
       ProductRequest( const ordered_json &request ) {
         m_request_j = request;
         (void) parse_parameters( request, m_parameters );
       }
+      */
 
       ProductRequest( const std::vector<ProductParameter> &parameters ) :
                       m_request_j(), m_parameters{} { 
@@ -45,6 +47,7 @@ namespace psmrts {
         return ( m_parameters.size() );
       }
 
+      /**
       inline void add_parameter( const ProductParameter &parm ) { 
 
       }
@@ -56,7 +59,7 @@ namespace psmrts {
       inline int parse_parameters( const ordered_json, ProductParameterList &plist ) {
 
       }
-
+      */
     protected:
       ordered_json         m_request_j;
       ProductParameterList m_parameters;
