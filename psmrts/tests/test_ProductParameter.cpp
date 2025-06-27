@@ -13,14 +13,14 @@ TEST_CASE( "ProductParameter Constructor / Base Function Tests", "[product][para
     CHECK( p_param.size()                 == 0 );
     CHECK( p_param.contains( "required" ) == false );
     CHECK( p_param.name()                 == "" );
-    CHECK( p_param.type()                 == "" );
-    CHECK( p_param.description()          == "" );
+    CHECK( p_param.type()                 == "string" );
+    CHECK( p_param.description()          == "parameter" );
     CHECK( p_param.status()               == "required" );
     CHECK( p_param.keywords()             == std::vector<std::string> {} );
     CHECK( p_param.aliases()              == std::vector<std::string> {} );
     CHECK( p_param.file_suffixes()        == std::vector<std::string> {} );
     CHECK( p_param.specs().size()         == 0 );
-    CHECK( p_param.is_required()          == true ); // may need this one explained
+    CHECK( p_param.is_required()          == true );
 
     char vals[] = R"({
         "name": "default",
@@ -29,12 +29,6 @@ TEST_CASE( "ProductParameter Constructor / Base Function Tests", "[product][para
 
     CHECK( p_param.difference( psmrts::json_utils::parse_json_string(vals) ) ==
      psmrts::json_utils::parse_json_string("[{\"op\":\"replace\",\"path\":\"\",\"value\":{\"name\":\"default\",\"type\":\"constructor\"}}]") );
-    // validate check to be added when completed
-
-    psmrts::ProductParameter p_valid;
-    //CHECK( p_param.validate( p_param ) == true );
-
-
 }
 
 TEST_CASE( "ProductParameter Values Test", "[product][parameter][values]") {
@@ -93,21 +87,22 @@ TEST_CASE( "ProductParameter Values Test", "[product][parameter][values]") {
     })";
     psmrts::ProductParameter p_param2( "name", "test", psmrts::json_utils::parse_json_string(vals2));
 
-    CHECK( p_param2.size()                           == 8 );
-    CHECK( p_param2.contains("description")          == true ); // Sets type, status, description to default if not included
+    CHECK( p_param2.size()                           == 7 );
     CHECK( p_param2.contains("unrelated_key")        == false );
+    CHECK( p_param2.contains("description")          == false );
+    CHECK( p_param2.description()                    == "parameter");
     CHECK( p_param2.value("status", std::string("")) == "optional" );
 
     CHECK_NOTHROW( p_param2.add_key("default", "string")); 
-    CHECK( p_param2.size()                            == 8 );
+    CHECK( p_param2.size()                            == 7 );
     CHECK( p_param2.value("default", std::string("")) == "string" ); 
     CHECK( p_param2.value("bad_key", std::string("")) == "error" ); 
 
     CHECK( p_param2.name()          == "test" );
     CHECK( p_param2.type()          == "test_type" );
-    CHECK( p_param2.description()   == "parameter" ); // default value
+    CHECK( p_param2.description()   == "parameter" );
     CHECK( p_param2.status()        == "optional" );
-    CHECK( p_param2.keywords()      == std::vector<std::string>{"aliases", "bad_key", "default", "file_suffixes", "name", "status", "type", "description"} );
+    CHECK( p_param2.keywords()      == std::vector<std::string>{"aliases", "bad_key", "default", "file_suffixes", "name", "status", "type"} );
     CHECK( p_param2.aliases()       == std::vector<std::string>{"test_name", "test_data"} );
     CHECK( p_param2.file_suffixes() == std::vector<std::string> {"txt", "TXT"} );
     CHECK( p_param2.is_required()   == false );
@@ -288,14 +283,13 @@ TEST_CASE( "ProductParameter From PVL Test", "[product][parameter][pvl]") {
     // Parameters require a name..
     REQUIRE_THROWS( psmrts::ProductParameter::from_pvl( empty ) );
     
-
     std::string test = "name=pvl;type=string;status=required;";
 
     REQUIRE_NOTHROW( psmrts::ProductParameter::from_pvl( test ) );
     psmrts::ProductParameter param = psmrts::ProductParameter::from_pvl( test );
 
-    CHECK( param.name() == "pvl" );
-    CHECK( param.type() == "string" );
+    CHECK( param.name()   == "pvl" );
+    CHECK( param.type()   == "string" );
     CHECK( param.status() == "required" );
 
     const char *c_test = "name=pvl;type=string;status=optional";
@@ -303,7 +297,22 @@ TEST_CASE( "ProductParameter From PVL Test", "[product][parameter][pvl]") {
     REQUIRE_NOTHROW( psmrts::ProductParameter::from_pvl( c_test ) );
     psmrts::ProductParameter c_param = psmrts::ProductParameter::from_pvl( c_test );
 
-    CHECK( c_param.name() == "pvl" );
-    CHECK( c_param.type() == "string" );
+    CHECK( c_param.name()   == "pvl" );
+    CHECK( c_param.type()   == "string" );
     CHECK( c_param.status() == "optional" );
+
+    std::string newline = "name=pvl\ntype=string\nstatus=optional\n";
+    psmrts::ProductParameter n_param = psmrts::ProductParameter::from_pvl( newline );
+
+    CHECK( n_param.name()   == "pvl" );
+    CHECK( n_param.type()   == "string" );
+    CHECK( n_param.status() == "optional" );
+
+    std::string mix = "name=both\ntype=string;status=required\n";
+    psmrts::ProductParameter m_param = psmrts::ProductParameter::from_pvl( mix );
+
+    CHECK( m_param.name()   == "both" );
+    CHECK( m_param.type()   == "string");
+    CHECK( m_param.status() == "required");
+
 }

@@ -20,6 +20,7 @@ namespace psmrts {
    * This class maintains a JSON structure of a PSMRTS product parameter.
    * 
    * @author Kris J. Becker, University of Arizona
+   *         Kyle A. Becker, University of Arizona
    * @history 2025-05-29 Kris J. Becker - Original Version
    */
   class ProductParameter {
@@ -31,34 +32,35 @@ namespace psmrts {
                         const ordered_json &options = json_utils::json_null() ) {
         m_spec_j = options;
         m_spec_j["name"] = name;
-        validate_defaults();
       }
 
       ProductParameter( const std::string &key, const std::string &value,
                         const ordered_json &options = json_utils::json_null() ) { 
         m_spec_j = options;
+        m_spec_j["name"] = key;
         m_spec_j[key] = value;
-        validate_defaults();
       }
 
       ProductParameter( const std::string &key, const double &value,
                         const ordered_json &options = json_utils::json_null() ) { 
         m_spec_j = options;
+        m_spec_j["name"] = key;
         m_spec_j[key] = value;
-        validate_defaults();
       }      
 
       ProductParameter( const std::string &key, const int &value,
                         const ordered_json &options = json_utils::json_null() ) { 
         m_spec_j = options;
+        m_spec_j["name"] = key;
         m_spec_j[key] = value;
-        validate_defaults();
       }
 
       /** Create parameter from contents of a JSON object */
       ProductParameter( const ordered_json &specs ) {
         m_spec_j = specs;
-        validate_defaults();
+        if (!m_spec_j.contains( "name" ) ) {
+          throw std::invalid_argument("Error: Parameter requires a 'name' key with specifying value.");
+        }
       }
 
       virtual ~ProductParameter() = default;
@@ -75,7 +77,7 @@ namespace psmrts {
        * 
        * This function expects PVL string key/values to be separated by '=', where the 
        * first part understood to be the key, and second to be the associated value.
-       * Each key/value must end, and be separated by, a ';'. 
+       * Each key/value must end, and be separated by, a ';' or a '\n'. 
        * - Keys are automatically converted to lowercase.
        * 
        * @param s                   String in pvl format outlined above
@@ -89,25 +91,36 @@ namespace psmrts {
         while (start < s.length()) {
           size_t equals = s.find('=', start);
           size_t semicolon = s.find(';', equals);
+          size_t newline = s.find('\n', equals);
+
           if (equals == std::string::npos) {
             break;
           }
 
-          std::string key = s.substr(start, equals - start);
+          size_t delimiter = std::min(semicolon, newline);
           if (semicolon == std::string::npos) {
+            delimiter = newline;
+          }
+
+          if (newline == std::string::npos) {
+            delimiter = semicolon;
+          }
+
+          std::string key = s.substr(start, equals - start);
+          if (delimiter == std::string::npos) {
             length = std::string::npos;
           }
           else {
-            length = semicolon - equals - 1; 
+            length = delimiter - equals - 1; 
           }
           std::string value = s.substr(equals + 1, length);
 
           s_specs[psmrts::psmrts_tolower(key)] = value;
 
-          if (semicolon == std::string::npos) {
+          if (delimiter == std::string::npos) {
             start = s.length();
           } else {
-            start = semicolon + 1;
+            start = delimiter + 1;
           }
         }
 
@@ -151,12 +164,12 @@ namespace psmrts {
       }
 
       inline std::string type() const {
-        std::string p_type("");
+        std::string p_type("string");
         return ( this->value( "type", p_type ) );
       }      
 
       inline std::string description() const {
-        std::string p_descr("");
+        std::string p_descr("parameter");
         return ( this->value( "description", p_descr ) );
       } 
       
@@ -205,6 +218,11 @@ namespace psmrts {
         return ( ordered_json::diff( this->specs(), other ) );
       }     
 
+      // operator == function, call difference and if .empty(), then successful
+      inline bool operator==( const ProductParameter &other ) const {
+        return ( difference( other.specs() ).empty() );
+      }
+
       /**
        * @brief comparatively validates other ProductParameters
        * 
@@ -224,9 +242,6 @@ namespace psmrts {
        * @return false     ProductParameter is not valid 
        */
       inline bool validate( const ProductParameter &other, const bool throwException = false ) const {
-        // This should check/compare each expected value for consistency...
-        // Note: Should they strictly have the same keys, or just comparing the 
-        // keys in the original?
         //  Check name, if failed - check aliases.
         if (this->name() != other.name() ) {
           if ( !validate_alias( other ) )  {
@@ -234,23 +249,28 @@ namespace psmrts {
           }
         }
 
-        if (this->type() != other.type()) {
-          return false;
+        // If type exists..
+        if ( other.contains( "type" ) ) {
+          if (this->type() != other.type()) {
+            return false;
+          }
         }
        
-        if (this->status() != other.status()) {
-          return false;
+        // If status exists..
+        if ( other.contains( "status" ) ) {
+          if (this->status() != other.status()) {
+            return false;
+          }
         }
 
-        if (other.type() == "file") {
+        if ( this->type() == "file" ) {
           return validate_file(other);
         }
         
-        if (other.type() == "string") {
+        if (this->type() == "string") {
           return validate_string(other); //case sensitive? if (case_insense) - convert
         }
 
-        // Return match status...
         return true;
       }
 
@@ -273,7 +293,6 @@ namespace psmrts {
         }
         return false;
       }
-
       
       inline bool validate_alias( const ProductParameter &other ) const {
         std::vector<std::string> alias_list{};
@@ -301,25 +320,7 @@ namespace psmrts {
         }
         return false;
       }
-
-      inline void validate_defaults() {
-        if ( !m_spec_j.contains("name") ) {
-          throw std::invalid_argument("Error: Parameter requires a 'name' key with specifying value.");
-        }
-        if ( !m_spec_j.contains("type") ) {
-          m_spec_j["type"] = "string";
-        }
-        if ( !m_spec_j.contains("status") ) {
-          m_spec_j["status"] = "required";
-        }
-        if (!m_spec_j.contains("description")) {
-          m_spec_j["description"] = "parameter";
-        }
-      }
-
   };
-
-
 } // namespace psmrts
 
 #endif
