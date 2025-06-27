@@ -285,15 +285,15 @@ namespace psmrts {
                 case miniply::PLYPropertyType::Char:
                     return sizeof(char);
                 case miniply::PLYPropertyType::UChar:
-                    return sizeof(u_char);
+                    return sizeof(unsigned char);
                 case miniply::PLYPropertyType::Short:
                     return sizeof(short);
                 case miniply::PLYPropertyType::UShort:
-                    return sizeof(u_short);
+                    return sizeof(unsigned short);
                 case miniply::PLYPropertyType::Int:
                     return sizeof(int);
                 case miniply::PLYPropertyType::UInt:
-                    return sizeof(u_int);
+                    return sizeof(unsigned int);
                 case miniply::PLYPropertyType::Float:
                     return sizeof(float);
                 case miniply::PLYPropertyType::Double:
