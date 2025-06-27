@@ -51,6 +51,11 @@ typedef union {
     double b;
     double c;
   };
+  struct {
+    double longitude;
+    double latitude;
+    double radius;
+  };  
   double data[3];
 } PSMRTS_Vector3d;
 
@@ -68,8 +73,13 @@ extern const char PSMRTS_DLL *psmrts_version();
 extern const char PSMRTS_DLL *psmrts_info();
 
 extern PSMRTS_Vector3d psmrts_vector3d( const double x, const double y, const double z );
+extern PSMRTS_Vector3d psmrts_lonlatrad_d( const double longitude_d, const double latitude_d, const double radius_km );
+extern PSMRTS_Vector3d psmrts_lonlatrad_r( const double longitude_r, const double latitude_r, const double radius_km );
 extern PSMRTS_Vector3d psmrts_negate( const PSMRTS_Vector3d &v );
 extern PSMRTS_Vector3d psmrts_subtract( const PSMRTS_Vector3d &v1, const PSMRTS_Vector3d &v2 );
+extern PSMRTS_Vector3d psmrts_add( const PSMRTS_Vector3d &v1, const PSMRTS_Vector3d &v2 );
+extern PSMRTS_Vector3d psmrts_scale( const PSMRTS_Vector3d &v1, const double scale );
+extern double          psmrts_length( const PSMRTS_Vector3d &v1 );
 
 /*============ PSMRTS ray functions ============*/
 extern PSMRTS_RayTrace *psmrts_create_ray( const PSMRTS_Vector3d &observer, const PSMRTS_Vector3d &lookdir );
@@ -81,17 +91,20 @@ extern PSMRTS_RayTrace *psmrts_ray_trace_v( const PSMRTS_Vector3d &observer,
 
 extern PSMRTS_Vector3d psmrts_ray_observer( const PSMRTS_RayTrace *ray );
 extern PSMRTS_Vector3d psmrts_ray_lookdir( const PSMRTS_RayTrace *ray );
-extern PSMRTS_BOOL psmrts_ray_has_hit( const PSMRTS_RayTrace *ray );
+extern PSMRTS_BOOL     psmrts_ray_has_hit( const PSMRTS_RayTrace *ray );
 extern PSMRTS_Vector3d psmrts_ray_xyz( const PSMRTS_RayTrace *ray );
 extern PSMRTS_Vector3d psmrts_ray_normal( const PSMRTS_RayTrace *ray );
-extern double psmrts_ray_intercept_radius( const PSMRTS_RayTrace *ray);
-extern double psmrts_ray_intercept_slant_distance( const PSMRTS_RayTrace *ray);
+extern double psmrts_ray_intercept_radius( const PSMRTS_RayTrace *ray );
+extern double psmrts_ray_intercept_slant_distance( const PSMRTS_RayTrace *ray );
 
 /*============ PSMRTS tracing functions ============*/
 
 // extern PSMRTS_ShapeTracer *psmrts_load_shape( const char *shape, const char *tracer );
-extern void psmrts_lonlat_to_xyz( const double longitude_d, const double latitude_d, const double radius_km, double xyz[3] );
-// extern void psmrts_vector_scale( const double v[3], const double scale, double vout[3] );
+extern PSMRTS_Vector3d psmrts_lonlatrad_to_xyz( const PSMRTS_Vector3d &lonlatrad );
+extern PSMRTS_Vector3d psmrts_xyz_to_lonlatrad_r( const PSMRTS_Vector3d &xyz );
+extern PSMRTS_Vector3d psmrts_radians_to_degrees( const PSMRTS_Vector3d &lonlatrad_r );
+extern PSMRTS_Vector3d psmrts_degrees_to_radians( const PSMRTS_Vector3d &lonlatrad_d );
+
 // extern PSMRTS_Ray *psmrts_ray_trace( PSMRTS_ShapeTracer *tracer, const double scpos[3], const double lookdir[3] );
 
 extern PSMRTS_BOOL psmrts_tracer_valid( const PSMRTS_ShapeTracer *trace );
