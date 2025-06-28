@@ -36,7 +36,7 @@ namespace naif {
       }
       NaifEllipsoidShape(const double &a, const double &c,
                          const std::string &name = "Ellipsoid" ): m_a_radius( a ), 
-                                                             m_b_radius( a ), 
+                                                             m_b_radius( c ), 
                                                              m_c_radius( c ),
                                                              m_body( name ) { 
         validate();
