@@ -125,6 +125,42 @@ namespace psmrts {
 
 #endif
 
+  /** Versatile noop process catchall template for unimplemented requests */
+  class NoProcessRequestHandler {
+    public:
+      NoProcessRequestHandler() : m_name("Product" ) { }
+      NoProcessRequestHandler(const std::string &name ) : m_name ( name ) { }
+      virtual ~NoProcessRequestHandler() = default;
+      
+      inline const std::string name() const {
+        return ( m_name );
+      }
+
+      template <class PRQ>
+        bool process( PRQ &request ) const {
+          request.reset();
+          request.process_running();
+          request.add_error( std::runtime_error( this->name() + "::process(" + request.name() + ") is not implemented/available!" ) );
+          request.process_complete( false );
+          return ( false );
+        }
+
+    private:
+      std::string m_name;
+  };
+
+// #define PSMRTS_DISABLE_PROCESS_CATCHALL 1
+#if !defined( PSMRTS_DISABLE_PROCESS_CATCHALL )
+#define PSMRTS_PROCESS_CATCHALL( producer_name ) \
+      /** Catch all unimplemnted producer_name::process( PRQ ) methods - e.g., PRQFacet not relevant to Ellipsoid format */ \
+      template <typename PRQ>  \
+       bool process( PRQ &prq_t ) const { \
+         return ( NoProcessRequestHandler( producer_name ).process( prq_t ) ); \
+      } 
+#else 
+#define PSMRTS_PROCESS_CATCHALL( producer_name ) 
+#endif
+
   /**
    * @brief Base class of all PSMRTS requests
    * 
@@ -151,6 +187,7 @@ namespace psmrts {
       }
 
       inline void process_running() {
+        m_tracker.hitme();
         m_times_run++;
         return;
       }
@@ -182,15 +219,27 @@ namespace psmrts {
         return ( m_errors );
       }
 
-      inline void throw_errors() const {
+      inline std::string errors_to_string() const {
+        std::string mess("");
         if ( this->error_count() > 0 ) {
-          std::string mess = "*** " + this->name() + " the following errors occured:\n";
+          // mess = "*** " + this->name() + " has encountered errors!\n";
           for ( const auto &e : this->errors() ) {
             mess += std::string( e.what() ) + "\n"; 
           }
-          throw std::runtime_error( mess );
+        }
+        return ( mess );
+      }
+
+      inline void throw_errors() const {
+        if ( this->error_count() > 0 ) {
+          throw std::runtime_error( this->errors_to_string() );
         }
         return;
+      }
+
+      /** Return a reference to the request tracker */
+      inline const PsmrtsThreadSafeCounter &tracker() const {
+        return ( m_tracker );
       }
 
       inline void clear_errors() {
@@ -198,24 +247,26 @@ namespace psmrts {
         return;
       }
 
-    protected:
-      std::string      m_name;
-      bool             m_was_invoked;
-      size_t           m_times_run;
-      std::vector<std::runtime_error> m_errors;
-
-
       inline void reset() {
+        m_tracker.reset_timer();
         m_was_invoked = false;
         m_times_run = 0;
         m_errors.clear();
         return;
       }
 
+    protected:
+      PsmrtsThreadSafeCounter m_tracker;
+      std::string             m_name;
+      bool                    m_was_invoked;
+      size_t                  m_times_run;
+      std::vector<std::runtime_error> m_errors;
+
+
     private:
       inline void init( const std::string &name = "PsmrtsRequest" ) {
-        this->reset();
         m_name = name;
+        this->reset( );
         return;
       }
   };

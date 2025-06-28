@@ -102,6 +102,12 @@ namespace psmrts {
     return ( std::chrono::duration_cast<std::chrono::microseconds>( end_time - start_time ).count() );
   } 
 
+    /** Returns elapsed time in nanoseconds */
+  inline double elapsed_clock_time_nanoseconds( const SYSTEM_CLOCK_TIME &start_time,
+                                                 const SYSTEM_CLOCK_TIME &end_time ) {
+    return ( std::chrono::duration_cast<std::chrono::nanoseconds>( end_time - start_time ).count() );
+  } 
+
   /**
    * @brief Standard, typesafe method to cast shared pointer to another type
    * 
@@ -427,9 +433,20 @@ namespace psmrts {
           return ( m_start_time );
         }
 
+        /** Return elapsed time in seconds */
         inline double runtime_s() const {
           return ( psmrts::elapsed_clock_time_s( m_start_time, psmrts::system_clock_time() ) );
         }
+
+        /** Return elapsed time in milliseconds */
+        inline double runtime_ms() const {
+          return ( psmrts::elapsed_clock_time_ms( m_start_time, psmrts::system_clock_time() ) );
+        }
+
+        /** Return elapsed time in nanoseconds */
+        inline double runtime_ns() const {
+          return ( psmrts::elapsed_clock_time_nanoseconds( m_start_time, psmrts::system_clock_time() ) );
+        }        
 
         /**
          * @brief Clone a new counter from this instance
@@ -448,6 +465,11 @@ namespace psmrts {
           counter_t.m_born_on_date          = m_born_on_date;
           counter_t.m_start_time            = m_start_time;
           return ( counter_t );
+        }
+
+        inline void reset_timer() {
+          m_start_time    = psmrts::system_clock_time();
+          m_born_on_date  = psmrts::current_time();          
         }
 
         /** Return a JSON object with a time snapshot */
@@ -482,9 +504,8 @@ namespace psmrts {
         mutable SharedCounter     m_counter;
 
         void init( const size_t counted = 0 ) {
-          m_start_time   = psmrts::system_clock_time();
-          m_born_on_date = psmrts::current_time();
           m_counter.reset( new ThreadSafeCounter( counted ) );
+          reset_timer();
         }
     };
 
