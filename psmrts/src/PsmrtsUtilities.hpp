@@ -49,7 +49,8 @@ namespace psmrts {
   }
 
   ////--- Timimg functions
-  typedef std::chrono::time_point<std::chrono::steady_clock> SYSTEM_CLOCK_TIME;
+  typedef std::chrono::high_resolution_clock                PSMRTS_SYSTEM_CLOCK_TYPE;
+  typedef std::chrono::time_point<PSMRTS_SYSTEM_CLOCK_TYPE> PSMRTS_SYSTEM_CLOCK_TIME;
   
   /** Returns current calendar time */
   inline std::time_t current_time() {
@@ -74,37 +75,37 @@ namespace psmrts {
   }
 
   /** Returns current system clock time */
-  inline SYSTEM_CLOCK_TIME system_clock_time() {
-    return ( SYSTEM_CLOCK_TIME( std::chrono::steady_clock::now() ) );
+  inline PSMRTS_SYSTEM_CLOCK_TIME system_clock_time() {
+    return ( PSMRTS_SYSTEM_CLOCK_TIME(  PSMRTS_SYSTEM_CLOCK_TYPE::now() ) );
   }
 
   /** Returns elapsed time in seconds */
-  inline double elapsed_clock_time_hours( const SYSTEM_CLOCK_TIME &start_time,
-                                          const SYSTEM_CLOCK_TIME &end_time ) {
+  inline double elapsed_clock_time_hours( const PSMRTS_SYSTEM_CLOCK_TIME &start_time,
+                                          const PSMRTS_SYSTEM_CLOCK_TIME &end_time ) {
     return ( std::chrono::duration_cast<std::chrono::hours>( end_time - start_time ).count() );
   }
 
   /** Returns elapsed time in seconds */
-  inline double elapsed_clock_time_s( const SYSTEM_CLOCK_TIME &start_time,
-                                      const SYSTEM_CLOCK_TIME &end_time ) {
+  inline double elapsed_clock_time_s( const PSMRTS_SYSTEM_CLOCK_TIME &start_time,
+                                      const PSMRTS_SYSTEM_CLOCK_TIME &end_time ) {
     return ( std::chrono::duration_cast<std::chrono::seconds>( end_time - start_time ).count() );
   }
 
   /** Returns elapsed time in milliseconds */
-  inline double elapsed_clock_time_ms( const SYSTEM_CLOCK_TIME &start_time,
-                                       const SYSTEM_CLOCK_TIME &end_time ) {
+  inline double elapsed_clock_time_ms( const PSMRTS_SYSTEM_CLOCK_TIME &start_time,
+                                       const PSMRTS_SYSTEM_CLOCK_TIME &end_time ) {
     return ( std::chrono::duration_cast<std::chrono::milliseconds>( end_time - start_time ).count() );
   }  
 
   /** Returns elapsed time in microseconds */
-  inline double elapsed_clock_time_microseconds( const SYSTEM_CLOCK_TIME &start_time,
-                                                 const SYSTEM_CLOCK_TIME &end_time ) {
+  inline double elapsed_clock_time_microseconds( const PSMRTS_SYSTEM_CLOCK_TIME &start_time,
+                                                 const PSMRTS_SYSTEM_CLOCK_TIME &end_time ) {
     return ( std::chrono::duration_cast<std::chrono::microseconds>( end_time - start_time ).count() );
   } 
 
     /** Returns elapsed time in nanoseconds */
-  inline double elapsed_clock_time_nanoseconds( const SYSTEM_CLOCK_TIME &start_time,
-                                                 const SYSTEM_CLOCK_TIME &end_time ) {
+  inline double elapsed_clock_time_nanoseconds( const PSMRTS_SYSTEM_CLOCK_TIME &start_time,
+                                                 const PSMRTS_SYSTEM_CLOCK_TIME &end_time ) {
     return ( std::chrono::duration_cast<std::chrono::nanoseconds>( end_time - start_time ).count() );
   } 
 
@@ -429,7 +430,7 @@ namespace psmrts {
           return ( m_born_on_date );
         }
 
-        inline SYSTEM_CLOCK_TIME start_time() const {
+        inline PSMRTS_SYSTEM_CLOCK_TIME start_time() const {
           return ( m_start_time );
         }
 
@@ -500,7 +501,7 @@ namespace psmrts {
         
       private:
         std::time_t               m_born_on_date;
-        psmrts::SYSTEM_CLOCK_TIME m_start_time;
+        psmrts::PSMRTS_SYSTEM_CLOCK_TIME m_start_time;
         mutable SharedCounter     m_counter;
 
         void init( const size_t counted = 0 ) {

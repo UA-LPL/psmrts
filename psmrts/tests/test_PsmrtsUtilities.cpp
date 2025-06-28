@@ -25,11 +25,11 @@ TEST_CASE( "PSMRTS Clock Time Tests", "[utilities][time]" ) {
     std::time_t sec_timer = psmrts::current_time();
     CHECK( ( sec_timer - first_timer ) == 1 );
 
-    psmrts::SYSTEM_CLOCK_TIME currently = psmrts::system_clock_time();
-    psmrts::SYSTEM_CLOCK_TIME plus_one_s = currently + 1s;
+    psmrts::PSMRTS_SYSTEM_CLOCK_TIME currently = psmrts::system_clock_time();
+    psmrts::PSMRTS_SYSTEM_CLOCK_TIME plus_one_s = currently + 1s;
     CHECK( psmrts::elapsed_clock_time_s( currently, plus_one_s ) == 1.0 );
     CHECK( psmrts::elapsed_clock_time_ms( currently, plus_one_s ) == 1000.0 );
-    CHECK( counter_t.runtime_s() != 0 );
+    CHECK( counter_t.runtime_s() != 0.0 );
     
     // Seems to stop test in their tracks: (because mutex locker?)
     psmrts::PsmrtsThreadSafeCounter counter_two = counter_t.clone();
