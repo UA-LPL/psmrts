@@ -314,11 +314,11 @@ namespace psmrts {
             ordered_json options = params.specs().parameters();
             try {
                 if (options.contains( "ply_file" ) ) {
-                    return (PsmrtsPLYFormat( psmrts_formats_path( options.at("ply_file") ) ).get_mesh() );
+                    return (PsmrtsPLYFormat( options.at("ply_file")).get_mesh() );
                 }
                 else if ( params.name() == "ply" ) {
                     std::string plyfile = params.specs().get_string_parameter( "file" );
-                    return (PsmrtsPLYFormat( psmrts_formats_path( plyfile )).get_mesh());
+                    return (PsmrtsPLYFormat( plyfile ).get_mesh());
                 }
             }
             catch ( const std::runtime_error &re) {
