@@ -185,6 +185,9 @@ namespace psmrts  {
         return ( m_model.ray_trace( observer, lookdir, ray ) );
       }
   
+      /** Report all remaining features not available - e.g., PRQFacet not relevant to Ellipsoid format */
+      PSMRTS_PROCESS_CATCHALL( "BulletShapeTracer" )
+
 
     protected:
       bullet::BulletTracerModel  m_model;

@@ -68,12 +68,7 @@ namespace psmrts  {
         return ( n_good > 0 );
       }
 
-#if 1
-      /** Report no this feature is not available - not relevant to Ellipsoid format */
-      inline bool process( PRQFacet &facet ) const {
-         return ( m_model.get_facet( facet.trace(), facet.facet() ) );
-      }
-#endif
+
 
       /**
        * @brief Ellipsoid Photometric Trace Processor
@@ -172,6 +167,9 @@ namespace psmrts  {
         return ( m_model.ray_trace( observer, lookdir, ray ) );
       }
   
+      /** Report all remaining features not available - e.g., PRQFacet not relevant to Ellipsoid format */
+      PSMRTS_PROCESS_CATCHALL( "EllipsoidShapeTracer" )
+
     protected:
       EllipsoidTracerModel m_model;
   };
