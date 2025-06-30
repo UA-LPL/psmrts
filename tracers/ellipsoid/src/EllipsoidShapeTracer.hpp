@@ -160,7 +160,7 @@ namespace psmrts  {
        * @return true    If trace intercepts shape
        * @return false   If trace fails to intercept
        */
-      virtual bool ray_trace( const Eigen::Vector3d &observer,
+      inline bool ray_trace( const Eigen::Vector3d &observer,
                               const Eigen::Vector3d &lookdir,
                               PsmrtsRayTrace &ray ) const {
         // this->local_tracker()++;
