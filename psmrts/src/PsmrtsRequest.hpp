@@ -126,11 +126,11 @@ namespace psmrts {
 #endif
 
   /** Versatile noop process catchall template for unimplemented requests */
-  class NoProcessRequestHandler {
+  class MissingProcessRequestHandler {
     public:
-      NoProcessRequestHandler() : m_name("Product" ) { }
-      NoProcessRequestHandler(const std::string &name ) : m_name ( name ) { }
-      virtual ~NoProcessRequestHandler() = default;
+      MissingProcessRequestHandler() : m_name("Product" ) { }
+      MissingProcessRequestHandler(const std::string &name ) : m_name ( name ) { }
+      virtual ~MissingProcessRequestHandler() = default;
       
       inline const std::string name() const {
         return ( m_name );
@@ -155,7 +155,7 @@ namespace psmrts {
       /** Catch all unimplemnted producer_name::process( PRQ ) methods - e.g., PRQFacet not relevant to Ellipsoid format */ \
       template <typename PRQ>  \
        bool process( PRQ &prq_t ) const { \
-         return ( NoProcessRequestHandler( producer_name ).process( prq_t ) ); \
+         return ( MissingProcessRequestHandler( producer_name ).process( prq_t ) ); \
       } 
 #else 
 #define PSMRTS_PROCESS_CATCHALL( producer_name ) 

@@ -20,7 +20,7 @@
 
 namespace psmrts {
 
-  class PsmrtsShapeTracer : public ProductProcessDispatch< NoProcessRequestHandler, EllipsoidShapeTracer, BulletShapeTracer, NaifDskShapeTracer> {
+  class PsmrtsShapeTracer : public ProductProcessDispatch< MissingProcessRequestHandler, EllipsoidShapeTracer, BulletShapeTracer, NaifDskShapeTracer> {
     public:
       using PsmrtsTracer = ProductProcessDispatch::ProductType;
 
@@ -71,7 +71,7 @@ namespace psmrts {
         }
 
         // Likely won't reach here...
-        return ( PsmrtsShapeTracer( NoProcessRequestHandler( "PsmrtsShapeTracer" ) ) );
+        return ( PsmrtsShapeTracer( MissingProcessRequestHandler( "PsmrtsShapeTracer" ) ) );
       }
 
       inline static PsmrtsShapeTracer naifdsk( const std::string &dskfile ) {
