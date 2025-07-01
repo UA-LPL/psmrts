@@ -247,8 +247,8 @@ So how does this look in a `PSMRTS` C application? The following is a simple C m
 int main( int argc, char *argv[] ) {
 
   PSMRTS_Factory       *p_factory;
-  PSMRTS_Tracer        *ellipsoid;
-  PSMRTS_Ray           *ray, *sunray;
+  PSMRTS_ShapeTracer   *ellipsoid;
+  PSMRTS_RayTrace      *ray, *sunray;
   PSMRTS_Vector3d      observer, lookdir, sunpos, sundir, position_v, look_v;
   PSMRTS_Vector3d      emission, incidence, phase, normal, sepang, xyz, surfpt, radlonlat;
 
@@ -322,7 +322,7 @@ Note that this style of a C API tends to play nicely with C++, particularly memo
 ```
 std::unique_ptr<PSMRTS_Factory> factory( psmrts_get_factory(), psmrts_shutdown_factory );
 std::shared_ptr<PSMRTS_Tracer>  ellipsoid( psmrts_create_tracer_from_string( p_factory, ellipsoid_s ), psmrts_free_tracer );
-std::shared_ptr<PSMRTS_Ray>     ray( psmrts_ray_trace( ellisoid, observer, lookdir ), psmrts_free_ray );
+std::shared_ptr<PSMRTS_RayTrace>     ray( psmrts_ray_trace( ellisoid, observer, lookdir ), psmrts_free_ray );
 ```
 This form works really well to ensure your applications are neatly memory manageable.
 
@@ -340,6 +340,11 @@ typedef union {
     double b;
     double c;
   };
+  struct {
+    double longitude;
+    double latitude;
+    double radius;
+  };   
   double data[3];
 } PSMRTS_Vector3d;
 ```
@@ -348,16 +353,139 @@ You can see an similar approach as this [PROJ_COORD](https://proj.org/en/stable/
 REQUIRE( sizeof(PSMRTS_Vector3d) == (3 * sizeof(double)) );
 ```
 
-#### PSMRTS_Ray C Structure
-The `PSMRTS_Ray` type consists of observer position and look direction vectors. Both vectors are provided in units of kilometers (km) although the direction vectors are typically unitless and can be normalized. `PSMRTS_Ray` is an opaque pointer to a ray tracer object. In this context, they are actually _PSMRTS request functor_ (PRQ) objects. Specifically, the `PSMRTS_Ray` C API type is actually mapped to the `PRQRayTrace` functor object. These PRQ functor objects are well suited for this feature as they all contain inherent error checking/catching, with full accounting of its execution processing. All PRQ functors are contained in the header file `PsmrtsRequest.hpp`.
+#### PSMRTS_RayTrace C Structure
+The `PSMRTS_RayTrace` type consists of observer position and look direction vectors. Both vectors are provided in units of kilometers (km) although the direction vectors are typically unitless and can be normalized. `PSMRTS_RayTrace` is an opaque pointer to a ray tracer object. In this context, they are actually _PSMRTS request functor_ (PRQ) objects. Specifically, the `PSMRTS_RayTrace` C API type is actually mapped to the `PRQRayTrace` functor object. These PRQ functor objects are well suited for this feature as they all contain inherent error checking/catching, with full accounting of its execution processing. All PRQ functors are contained in the header file `PsmrtsRequest.hpp`.
 
 To implement the opaque pointer method using this technique, declarations occur in both the psmrts_c.h and psmrts_c.cpp files. Keep in mind that content of `psmrts_c.h` must typically contain only code that can be compiled by both the C and C++ compilers. `psmrts_c.cpp` contain C++ elements that define the C++ interface.
 
 #### psmrts_c.cpp
 ```
-using PSMRTS_Ray = psmrts::PRQRayTrace;
+using PSMRTS_RayTrace = psmrts::PRQRayTrace;
 ```
 
 
 #### psmrts_c.h
+```
+#pragma once 
+#ifndef psmrts_c_h
+#define psmrts_c_h
 
+
+#ifndef __cplusplus
+# include <stddef.h> /* for size_t definition */
+#else
+#include <cstddef>
+using std::size_t;
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#if defined(WIN32) || defined(_MSC_VER) || defined(__CYGWIN__)
+#define PSMRTS_EXPORT
+#define PSMRTS_DLL   __declspec(dllexport)
+#else
+#define PSMRTS_DLL
+#endif
+
+/*---> Have CMAKE generate PSMRTS CAPI versioning here! */
+
+/*============ Type definitions ============*/
+enum PSMRTSTypes {
+  PSMRTS_RAYTRACE,
+  PSMRTS_SHAPE,
+  PSMRTS_TRACER,
+  PSMRTS_SHAPE_TRACER,
+  PSMRTS_PRIORITY_TRACER
+};
+
+/* Conditional types */
+typedef int    PSMRTS_BOOL;
+#define PSMRTS_TRUE       1
+#define PSMRTS_FALSE      0
+
+// Define 3-vector C structure 
+typedef union {
+  struct {
+    double x;
+    double y;
+    double z;
+  };
+  struct {
+    double a;
+    double b;
+    double c;
+  };
+  struct {
+    double longitude;
+    double latitude;
+    double radius;
+  };  
+  double data[3];
+} PSMRTS_Vector3d;
+
+/*============ PSMRTS C API type definitions ============*/
+#if !defined( PSMRTS_POINTERS )
+typedef struct psmrts_raytrace        PSMRTS_RayTrace;
+typedef struct psmrts_shape           PSMRTS_Shape;
+typedef struct psmrts_tracer          PSMRTS_Tracer;
+typedef struct psmrts_shape_tracer    PSMRTS_ShapeTracer;
+typedef struct psmrts_priority_tracer PSMRTS_PriorityTracer;
+#endif
+
+/*============ PSMRTS information functions ============*/
+extern const char PSMRTS_DLL *psmrts_version();
+extern const char PSMRTS_DLL *psmrts_info();
+
+extern PSMRTS_Vector3d psmrts_vector3d( const double x, const double y, const double z );
+extern PSMRTS_Vector3d psmrts_lonlatrad_d( const double longitude_d, const double latitude_d, const double radius_km );
+extern PSMRTS_Vector3d psmrts_lonlatrad_r( const double longitude_r, const double latitude_r, const double radius_km );
+extern PSMRTS_Vector3d psmrts_negate( const PSMRTS_Vector3d &v );
+extern PSMRTS_Vector3d psmrts_subtract( const PSMRTS_Vector3d &v1, const PSMRTS_Vector3d &v2 );
+extern PSMRTS_Vector3d psmrts_add( const PSMRTS_Vector3d &v1, const PSMRTS_Vector3d &v2 );
+extern PSMRTS_Vector3d psmrts_scale( const PSMRTS_Vector3d &v1, const double scale );
+extern double          psmrts_length( const PSMRTS_Vector3d &v1 );
+
+/*============ PSMRTS ray functions ============*/
+extern PSMRTS_RayTrace *psmrts_create_ray( const PSMRTS_Vector3d &observer, const PSMRTS_Vector3d &lookdir );
+extern PSMRTS_RayTrace *psmrts_ray_trace( PSMRTS_RayTrace *ray, const PSMRTS_ShapeTracer *tracer );
+extern PSMRTS_RayTrace *psmrts_ray_trace_v( const PSMRTS_Vector3d &observer,
+                                            const PSMRTS_Vector3d &lookdir,
+                                            const PSMRTS_ShapeTracer *tracer );
+
+
+extern PSMRTS_Vector3d psmrts_ray_observer( const PSMRTS_RayTrace *ray );
+extern PSMRTS_Vector3d psmrts_ray_lookdir( const PSMRTS_RayTrace *ray );
+extern PSMRTS_BOOL     psmrts_ray_has_hit( const PSMRTS_RayTrace *ray );
+extern PSMRTS_Vector3d psmrts_ray_xyz( const PSMRTS_RayTrace *ray );
+extern PSMRTS_Vector3d psmrts_ray_normal( const PSMRTS_RayTrace *ray );
+extern double psmrts_ray_intercept_radius( const PSMRTS_RayTrace *ray );
+extern double psmrts_ray_intercept_slant_distance( const PSMRTS_RayTrace *ray );
+
+/*============ PSMRTS tracing functions ============*/
+
+// extern PSMRTS_ShapeTracer *psmrts_load_shape( const char *shape, const char *tracer );
+extern PSMRTS_Vector3d psmrts_lonlatrad_to_xyz( const PSMRTS_Vector3d &lonlatrad );
+extern PSMRTS_Vector3d psmrts_xyz_to_lonlatrad_r( const PSMRTS_Vector3d &xyz );
+extern PSMRTS_Vector3d psmrts_radians_to_degrees( const PSMRTS_Vector3d &lonlatrad_r );
+extern PSMRTS_Vector3d psmrts_degrees_to_radians( const PSMRTS_Vector3d &lonlatrad_d );
+
+// extern PSMRTS_Ray *psmrts_ray_trace( PSMRTS_ShapeTracer *tracer, const double scpos[3], const double lookdir[3] );
+
+extern PSMRTS_BOOL psmrts_tracer_valid( const PSMRTS_ShapeTracer *trace );
+
+/*============ PSMRTS memory functions ============*/
+
+extern void psmrts_free_ray( PSMRTS_RayTrace *trace );
+extern void psmrts_free_shape( PSMRTS_Shape *shape );
+extern void psmrts_free_tracer( PSMRTS_Tracer *tracer );
+extern void psmrts_free_shapetracer( PSMRTS_ShapeTracer *stracer );
+extern void psmrts_free( PSMRTS_PriorityTracer *ptracer );
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // psmrts_c_h
+```
