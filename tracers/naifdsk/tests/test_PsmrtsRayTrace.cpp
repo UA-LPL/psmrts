@@ -26,9 +26,9 @@ TEST_CASE( "Ray Trace Default Test - Basic Spheroid Ellipse", "[ray][trace][elli
     CHECK_THAT ( ray.normal()[1], Catch::Matchers::WithinAbs( norm[1], tolerance ) );
     CHECK_THAT ( ray.normal()[2], Catch::Matchers::WithinAbs( norm[2], tolerance ) );
 
-    CHECK_THAT ( ray.surfpt()[0], Catch::Matchers::WithinAbs( lkdr[0], tolerance ) );
-    CHECK_THAT ( ray.surfpt()[1], Catch::Matchers::WithinAbs( lkdr[1], tolerance ) );
-    CHECK_THAT ( ray.surfpt()[2], Catch::Matchers::WithinAbs( lkdr[2], tolerance ) );
+    CHECK_THAT ( ray.raypt()[0], Catch::Matchers::WithinAbs( lkdr[0], tolerance ) );
+    CHECK_THAT ( ray.raypt()[1], Catch::Matchers::WithinAbs( lkdr[1], tolerance ) );
+    CHECK_THAT ( ray.raypt()[2], Catch::Matchers::WithinAbs( lkdr[2], tolerance ) );
 
     CHECK_THAT ( ray.xyz()[0], Catch::Matchers::WithinAbs( surf[0], tolerance ) );
     CHECK_THAT ( ray.xyz()[1], Catch::Matchers::WithinAbs( surf[1], tolerance ) );
@@ -38,7 +38,7 @@ TEST_CASE( "Ray Trace Default Test - Basic Spheroid Ellipse", "[ray][trace][elli
     CHECK ( ray.radius() == surf.norm() );
 
     CHECK_THAT ( ray.slant_distance(), Catch::Matchers::WithinAbs( lkdr.norm(), tolerance ) );
-    CHECK ( ray.slant_distance() == ray.surfpt().norm() );
+    CHECK ( ray.slant_distance() == ray.raypt().norm() );
 
     Eigen::Vector3d surf2 = {0.0, 0.5, 0.1};
     Eigen::Vector3d lkdr2 = -obs + surf2;
@@ -89,9 +89,9 @@ TEST_CASE("Ray Trace - Basic DSK Equivalent.", "[ray][trace][dsk]") {
     CHECK_THAT ( dsk_ray.normal()[1], Catch::Matchers::WithinAbs( 0.5257310809, tolerance ) );
     CHECK_THAT ( dsk_ray.normal()[2], Catch::Matchers::WithinAbs( 0.8506508276, tolerance ) );
 
-    CHECK_THAT ( dsk_ray.surfpt()[0], Catch::Matchers::WithinAbs( 0.0, tolerance ) );
-    CHECK_THAT ( dsk_ray.surfpt()[1], Catch::Matchers::WithinAbs( -1.8381441539, tolerance ) );
-    CHECK_THAT ( dsk_ray.surfpt()[2], Catch::Matchers::WithinAbs( -1.8381441539, tolerance ) );
+    CHECK_THAT ( dsk_ray.raypt()[0], Catch::Matchers::WithinAbs( 0.0, tolerance ) );
+    CHECK_THAT ( dsk_ray.raypt()[1], Catch::Matchers::WithinAbs( -1.8381441539, tolerance ) );
+    CHECK_THAT ( dsk_ray.raypt()[2], Catch::Matchers::WithinAbs( -1.8381441539, tolerance ) );
 
     CHECK_THAT ( dsk_ray.xyz()[0], Catch::Matchers::WithinAbs( 0.0, tolerance ) );
     CHECK_THAT ( dsk_ray.xyz()[1], Catch::Matchers::WithinAbs( 0.1634276563, tolerance ) );
@@ -101,7 +101,7 @@ TEST_CASE("Ray Trace - Basic DSK Equivalent.", "[ray][trace][dsk]") {
     CHECK_THAT ( dsk_ray.radius(), Catch::Matchers::WithinAbs( 0.231121608, tolerance) ); // DSK Radii known to have inherent bug complications
 
     CHECK_THAT ( dsk_ray.slant_distance(), Catch::Matchers::WithinAbs( 2.599528392, tolerance ) );
-    CHECK ( dsk_ray.slant_distance() == dsk_ray.surfpt().norm() );
+    CHECK ( dsk_ray.slant_distance() == dsk_ray.raypt().norm() );
 
 
     Eigen::Vector3d obs2;
