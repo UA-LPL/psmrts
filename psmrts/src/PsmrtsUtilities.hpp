@@ -18,6 +18,7 @@
 #include <cmath>
 #include <limits>
 #include <mutex>
+#include <stdexcept>
 
 #include <Eigen/Geometry>
 
@@ -48,7 +49,8 @@ namespace psmrts {
   }
 
   ////--- Timimg functions
-  typedef std::chrono::time_point<std::chrono::steady_clock> SYSTEM_CLOCK_TIME;
+  typedef std::chrono::high_resolution_clock                PSMRTS_SYSTEM_CLOCK_TYPE;
+  typedef std::chrono::time_point<PSMRTS_SYSTEM_CLOCK_TYPE> PSMRTS_SYSTEM_CLOCK_TIME;
   
   /** Returns current calendar time */
   inline std::time_t current_time() {
@@ -73,26 +75,38 @@ namespace psmrts {
   }
 
   /** Returns current system clock time */
-  inline SYSTEM_CLOCK_TIME system_clock_time() {
-    return ( SYSTEM_CLOCK_TIME( std::chrono::steady_clock::now() ) );
+  inline PSMRTS_SYSTEM_CLOCK_TIME system_clock_time() {
+    return ( PSMRTS_SYSTEM_CLOCK_TIME(  PSMRTS_SYSTEM_CLOCK_TYPE::now() ) );
   }
 
   /** Returns elapsed time in seconds */
-  inline double elapsed_clock_time_s( const SYSTEM_CLOCK_TIME &start_time,
-                                      const SYSTEM_CLOCK_TIME &end_time ) {
-    return ( std::chrono::duration_cast<std::chrono::seconds>( end_time - start_time ).count() );
+  inline double elapsed_clock_time_hours( const PSMRTS_SYSTEM_CLOCK_TIME &start_time,
+                                          const PSMRTS_SYSTEM_CLOCK_TIME &end_time ) {
+    return ( std::chrono::duration_cast<std::chrono::minutes>( end_time - start_time ).count() / 60.0 );
+  }
+
+  /** Returns elapsed time in seconds */
+  inline double elapsed_clock_time_s( const PSMRTS_SYSTEM_CLOCK_TIME &start_time,
+                                      const PSMRTS_SYSTEM_CLOCK_TIME &end_time ) {
+    return ( std::chrono::duration_cast<std::chrono::milliseconds>( end_time - start_time ).count() / 1000.0 );
   }
 
   /** Returns elapsed time in milliseconds */
-  inline double elapsed_clock_time_ms( const SYSTEM_CLOCK_TIME &start_time,
-                                       const SYSTEM_CLOCK_TIME &end_time ) {
-    return ( std::chrono::duration_cast<std::chrono::milliseconds>( end_time - start_time ).count() );
+  inline double elapsed_clock_time_ms( const PSMRTS_SYSTEM_CLOCK_TIME &start_time,
+                                       const PSMRTS_SYSTEM_CLOCK_TIME &end_time ) {
+    return ( std::chrono::duration_cast<std::chrono::microseconds>( end_time - start_time ).count() / 1000.0 );
   }  
 
   /** Returns elapsed time in microseconds */
-  inline double elapsed_clock_time_microseconds( const SYSTEM_CLOCK_TIME &start_time,
-                                                 const SYSTEM_CLOCK_TIME &end_time ) {
-    return ( std::chrono::duration_cast<std::chrono::microseconds>( end_time - start_time ).count() );
+  inline double elapsed_clock_time_microseconds( const PSMRTS_SYSTEM_CLOCK_TIME &start_time,
+                                                 const PSMRTS_SYSTEM_CLOCK_TIME &end_time ) {
+    return ( std::chrono::duration_cast<std::chrono::nanoseconds>( end_time - start_time ).count() / 1000.0 );
+  } 
+
+    /** Returns elapsed time in nanoseconds */
+  inline double elapsed_clock_time_nanoseconds( const PSMRTS_SYSTEM_CLOCK_TIME &start_time,
+                                                 const PSMRTS_SYSTEM_CLOCK_TIME &end_time ) {
+    return ( std::chrono::duration_cast<std::chrono::nanoseconds>( end_time - start_time ).count() );
   } 
 
   /**
@@ -215,6 +229,28 @@ namespace psmrts {
     return ( s_t );
   }
 
+    /** Remove leading white space */
+    inline std::string psmrts_ltrim( const std::string &s ) {
+      std::string strim = s;
+      auto bad_c =  std::find_if( strim.begin(), strim.end(), []( const char ch ) -> bool { return !std::isspace<char>(ch , std::locale::classic() ) ; } );
+      strim.erase( strim.begin(), bad_c );
+      return ( strim );
+    }
+  
+    /** Remove trailing white space */
+    inline std::string psmrts_rtrim( const std::string &s ) {
+      std::string strim = s;
+      auto bad_c =  std::find_if( strim.rbegin(), strim.rend(), []( const char ch ) -> bool { return !std::isspace<char>(ch , std::locale::classic() ) ; } );
+      strim.erase( bad_c.base(), strim.end() );
+      return ( strim );
+    }
+  
+  /** Remove leading and trailing white space */
+    inline std::string psmrts_trim( const std::string &s ) {
+      return ( psmrts_ltrim( psmrts_rtrim( s ) ) );
+    }
+
+    
   /**
    * @brief Constructs a path that is OS sensitive
    * 
@@ -394,13 +430,24 @@ namespace psmrts {
           return ( m_born_on_date );
         }
 
-        inline SYSTEM_CLOCK_TIME start_time() const {
+        inline PSMRTS_SYSTEM_CLOCK_TIME start_time() const {
           return ( m_start_time );
         }
 
+        /** Return elapsed time in seconds */
         inline double runtime_s() const {
           return ( psmrts::elapsed_clock_time_s( m_start_time, psmrts::system_clock_time() ) );
         }
+
+        /** Return elapsed time in milliseconds */
+        inline double runtime_ms() const {
+          return ( psmrts::elapsed_clock_time_ms( m_start_time, psmrts::system_clock_time() ) );
+        }
+
+        /** Return elapsed time in nanoseconds */
+        inline double runtime_ns() const {
+          return ( psmrts::elapsed_clock_time_nanoseconds( m_start_time, psmrts::system_clock_time() ) );
+        }        
 
         /**
          * @brief Clone a new counter from this instance
@@ -419,6 +466,11 @@ namespace psmrts {
           counter_t.m_born_on_date          = m_born_on_date;
           counter_t.m_start_time            = m_start_time;
           return ( counter_t );
+        }
+
+        inline void reset_timer() {
+          m_born_on_date  = psmrts::current_time();          
+          m_start_time    = psmrts::system_clock_time();
         }
 
         /** Return a JSON object with a time snapshot */
@@ -449,13 +501,12 @@ namespace psmrts {
         
       private:
         std::time_t               m_born_on_date;
-        psmrts::SYSTEM_CLOCK_TIME m_start_time;
+        psmrts::PSMRTS_SYSTEM_CLOCK_TIME m_start_time;
         mutable SharedCounter     m_counter;
 
         void init( const size_t counted = 0 ) {
-          m_start_time   = psmrts::system_clock_time();
-          m_born_on_date = psmrts::current_time();
           m_counter.reset( new ThreadSafeCounter( counted ) );
+          reset_timer();
         }
     };
 

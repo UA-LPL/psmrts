@@ -1,5 +1,6 @@
 #pragma once
 
+#include <deque>
 #include <string>
 #include <memory>
 #include <type_traits>
@@ -125,6 +126,43 @@ namespace psmrts {
 
 #endif
 
+  /** Versatile noop process catchall template for unimplemented requests */
+  class MissingProcessRequestHandler {
+    public:
+      MissingProcessRequestHandler() : m_name("Product" ) { }
+      MissingProcessRequestHandler(const std::string &name ) : m_name ( name ) { }
+      virtual ~MissingProcessRequestHandler() = default;
+      
+      inline const std::string name() const {
+        return ( m_name );
+      }
+
+      template <class PRQ>
+        bool process( PRQ &request ) const {
+          request.reset();
+          request.process_running();
+          request.add_error( std::runtime_error( this->name() + "::process(" + request.name() + ") is not implemented/available!" ) );
+          request.set_process_presence( false );
+          request.process_complete( false );
+          return ( false );
+        }
+
+    private:
+      std::string m_name;
+  };
+
+// #define PSMRTS_DISABLE_PROCESS_CATCHALL 1
+#if !defined( PSMRTS_DISABLE_PROCESS_CATCHALL )
+#define PSMRTS_PROCESS_CATCHALL( producer_name ) \
+      /** Catch all unimplemnted producer_name::process( PRQ ) methods - e.g., PRQFacet not relevant to Ellipsoid format */ \
+      template <typename PRQ>  \
+       bool process( PRQ &prq_t ) const { \
+         return ( MissingProcessRequestHandler( producer_name ).process( prq_t ) ); \
+      } 
+#else 
+#define PSMRTS_PROCESS_CATCHALL( producer_name ) 
+#endif
+
   /**
    * @brief Base class of all PSMRTS requests
    * 
@@ -151,16 +189,24 @@ namespace psmrts {
       }
 
       inline void process_running() {
+        m_tracker.hitme();
         m_times_run++;
+        set_process_presence( true   );
         return;
       }
 
       inline void process_complete( const bool status = true ) {
-        m_was_invoked = status;
+        m_runtime_ms = m_tracker.runtime_ms();
+        m_success_status = status;
         return;
       }
 
       inline void add_error( const std::runtime_error &e ) {
+      // Monitor the cache size of the error queue
+        if ( m_errors.size() >= MaxQueuedErrors ) {
+          (void) m_errors.pop_front();
+        }
+
         m_errors.push_back( e );
         return;
       }
@@ -169,28 +215,50 @@ namespace psmrts {
         return ( m_times_run );
       }
 
+      /** Returns runtime for the last process */
+      inline double runtime_ms() const {
+        return ( m_runtime_ms );
+      }
+
+      /** Return the status of the last run */
+      inline bool process_status( ) const {
+        return ( m_success_status );
+      }
+
       /** Was the process method invoked on the previous run */
       inline bool was_invoked( ) const {
-        return ( m_was_invoked );
+        return ( m_is_present );
       }
 
       inline size_t error_count() const {
         return ( m_errors.size() );
       }
 
-      inline const std::vector<std::runtime_error> &errors() const {
+      inline const std::deque<std::runtime_error> &errors() const {
         return ( m_errors );
+      }
+
+      inline std::string errors_to_string() const {
+        std::string mess("");
+        if ( this->error_count() > 0 ) {
+          // mess = "*** " + this->name() + " has encountered errors!\n";
+          for ( const auto &e : this->errors() ) {
+            mess += std::string( e.what() ) + "\n"; 
+          }
+        }
+        return ( mess );
       }
 
       inline void throw_errors() const {
         if ( this->error_count() > 0 ) {
-          std::string mess = "*** " + this->name() + " the following errors occured:\n";
-          for ( const auto &e : this->errors() ) {
-            mess += std::string( e.what() ) + "\n"; 
-          }
-          throw std::runtime_error( mess );
+          throw std::runtime_error( this->errors_to_string() );
         }
         return;
+      }
+
+      /** Return a reference to the request tracker */
+      inline const PsmrtsThreadSafeCounter &tracker() const {
+        return ( m_tracker );
       }
 
       inline void clear_errors() {
@@ -198,24 +266,41 @@ namespace psmrts {
         return;
       }
 
-    protected:
-      std::string      m_name;
-      bool             m_was_invoked;
-      size_t           m_times_run;
-      std::vector<std::runtime_error> m_errors;
-
-
-      inline void reset() {
-        m_was_invoked = false;
-        m_times_run = 0;
-        m_errors.clear();
+      inline void set_process_presence( const bool present = true   ) {
+        m_is_present = present;
         return;
       }
 
+      inline void reset() {
+        m_success_status = false;
+        m_is_present     = false;
+        m_times_run      = 0;
+        m_errors.clear();
+        m_tracker.reset_timer();
+        m_runtime_ms = 0.0;
+        return;
+      }
+
+      inline size_t max_error_cache_size() const {
+        return ( MaxQueuedErrors );
+      }
+
+    protected:
+      inline static const size_t MaxQueuedErrors = 20;  // Limit cached error size
+
+      PsmrtsThreadSafeCounter m_tracker;
+      double                  m_runtime_ms;
+      std::string             m_name;
+      bool                    m_success_status;
+      bool                    m_is_present;
+      size_t                  m_times_run;
+      std::deque<std::runtime_error> m_errors;
+
+
     private:
       inline void init( const std::string &name = "PsmrtsRequest" ) {
-        this->reset();
         m_name = name;
+        this->reset( );
         return;
       }
   };

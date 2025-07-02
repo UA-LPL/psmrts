@@ -11,8 +11,10 @@
 #include <PsmrtsUtilities.hpp>
 #include <PsmrtsBufferData.hpp>
 #include <PsmrtsBuffer.hpp>
+#include <PsmrtsParameters.hpp>
 #include <PsmrtsVector3.hpp>
 #include <PsmrtsMeshData.hpp>
+#include <ProductSpecification.hpp>
 
 // See PsmrtsOBJImplementation.hpp for defining the tinyobj implemantion in your main
 #include "tiny_obj_loader.h"
@@ -47,6 +49,9 @@ namespace psmrts {
         m_obj_source = objfile;
         m_obj_config = this->obj_config( mtlpath );
         m_obj_reader.reset( this->load_obj_file( objfile, m_obj_config ) );
+        make_config(objfile, m_obj_reader.get());
+        // Call a make_config( m_obj_reader.get() );
+        // m_config_j = make_config( objfile, m_obj_reader.get() );
 
         const bool ThrowOnError = true;
         check_obj_errors( "*** PsmrtsOBJFormat(objfile)", ThrowOnError );
@@ -59,7 +64,10 @@ namespace psmrts {
         m_obj_source = source;
         m_obj_config = tinyobj::ObjReaderConfig();
         m_obj_reader.reset( obj_reader );
-
+        make_config(source, m_obj_reader.get());
+        // Call a make_config( m_obj_reader.get() );
+        // m_config_j = make_config( objfile, m_obj_reader.get() );
+                
         const bool ThrowOnError = true;
         check_obj_errors( "*** PsmrtsOBJFormat(ObjReader)", ThrowOnError );
       }      
@@ -388,6 +396,115 @@ namespace psmrts {
       }
 
 
+      /**
+       * @brief Returns an ordered JSON containing relative product options
+       * and possible values 
+       * 
+       * @return ProductSpecification of product options
+       */
+
+      static inline ProductSpecification product_specifications() {
+        char text[] = R"(
+        {
+          "obj_file": "<filename>",
+          "obj_data_type":  "<double, float>" ,
+          "obj_mtl_search_path": "<dir>",
+          "required" : [ "obj_file" ],
+          "optional": [ "obj_data_type", "obj_mlt_search_path" ]          
+        }
+        )";
+        return ( ProductSpecification( "obj", "mesh", json_utils::parse_json_string( text )));
+      }
+
+      /**
+       * @brief returns a PsmrtsOBJFormat mesh with the provided product option
+       * parameters
+       * 
+       * Throws an error if wrong OBJ product specification configuration or
+       * data.
+       * 
+       * @param  params
+       * @return Format-relevant Mesh
+       */
+      static inline PsmrtsMeshData create( const ProductSpecification &params ) {
+        const PsmrtsParameters &options = params.specs();
+        try {
+            if ( options.contains( "obj_file" ) ) {
+              return (PsmrtsOBJFormat( options.get_string_parameter("obj_file") ).get_mesh() );
+            }
+            else if ( params.name() == "obj" ) {
+              std::string objfile = params.specs().get_string_parameter( "file" );
+              return ( PsmrtsOBJFormat( objfile, options.get_string_parameter("obj_mtl_search_path") ).get_mesh() );
+            }
+        }
+        catch ( const std::runtime_error &re ) {
+          std::string msg = std::string( "PsmrtsOBJFormat::create() failed - ").append( re.what() );
+        }
+        
+        // Could return invalid mesh here, or throw exception - defaulting to throw for now
+        std::string msg = std::string( "PsmrtsOBJFormat::create() invalid product request configuration" );
+        throw std::runtime_error( msg );      
+      }
+      
+    /**
+     * @brief sets the objects internal product options based on Objreader results
+     * and provided obj file string representation
+     * 
+     * @param  objfile path/file name of associated objfile
+     * @param  reader  reader of above file
+     * @return * void 
+     */
+    inline void make_config(std::string objfile, tinyobj::ObjReader *reader) {
+      ordered_json options;
+      options["obj_file"] = objfile;
+      if (sizeof(tinyobj_real_type) == sizeof(float)) {
+        options["obj_data_type"] = "float";
+      } else {
+        options["obj_data_type"] = "double";
+      }
+      options["obj_mtl_search_path"] = m_obj_config.mtl_search_path;
+      options["required"] = { "obj_file" };
+      options["optional"] = { "obj_data_type", "obj_mtl_search_path" };
+      m_config_j = ProductSpecification("obj", "mesh", options);
+    }
+
+    /**
+     * @brief returns true if the input ProductSpecification contains the same
+     * values as the object
+     * 
+     * @param params OBJ ProductSpecification config
+     * @return true  if params has same values as object
+     * @return false if params is empty or has different values
+     */
+    inline bool compare(const ProductSpecification &params) {
+      if (params.name() != m_config_j.name() || params.type() != m_config_j.type()) {
+        return false;
+      }
+
+      ordered_json options = m_config_j.specs().parameters();
+      ordered_json p_options = params.specs().parameters();
+      for (auto aspect : options.items()) {
+        if (!p_options.contains(aspect.key())) {
+          return false;
+        }
+        if(p_options.at(aspect.key()) != aspect.value()) {
+          return false;
+        }
+      }
+      return true;
+    }
+    
+    /**
+     * @brief Get the Product Config of an OBJ object
+     * 
+     * (Temporary getter for object-specific production config speccs)
+     * 
+     * @return OBJ Object-specific ProductSpecification
+     */
+    inline ProductSpecification getProductConfig() {
+      return m_config_j;
+    }
+
     protected:
 
       inline size_t count_facets( ) const {
@@ -415,6 +532,7 @@ namespace psmrts {
       std::string                          m_obj_source;
       tinyobj::ObjReaderConfig             m_obj_config;
       std::shared_ptr<tinyobj::ObjReader>  m_obj_reader;
+      ProductSpecification                 m_config_j;
       PsmrtsThreadSafeCounter              m_tracker;     // Tracks times and copy counts
 
   };

@@ -18,6 +18,8 @@
 #include <PsmrtsBuffer.hpp>
 #include <PsmrtsVector3.hpp>
 #include <PsmrtsMeshData.hpp>
+#include <PsmrtsParameters.hpp>
+#include <ProductSpecification.hpp>
 
 #include <miniply.h>
 
@@ -192,49 +194,50 @@ namespace psmrts {
         }
 
         /**
-         * @brief Conversion of ply file header data to json 
+         * @brief Returns an ordered JSON containing relative product options
+         * and possible values 
          * 
-         * Used in load_ply_file() to create a json version of the header data,
-         * providing information on elements, their properties, types, and sizes.
+         * @return ordered_json of product options
+         */
+        static inline ProductSpecification product_options() {
+            char text[] = R"(
+            {
+              "ply_file": "<filename>",
+              "ply_file_type": ["binary", "ascii"],
+              "ply_data_type": ["char", "uchar", "short", "ushort", "int", "uint", "float", "double"],
+              "required": ["ply_file"],
+              "optional": ["ply_file_type", "ply_data_type"]
+            }
+            )";
+            return (ProductSpecification("ply", "mesh", json_utils::parse_json_string( text )));
+        }
+
+        /**
+         * @brief Conversion of ply file header data to json
+         * 
+         * Used in load_ply_file() to create a json version of the product related
+         * data options
          * 
          * @param reader miniply file reader 
          */
         inline void parse_config( miniply::PLYReader& reader )  {
-
-            nlohmann::ordered_json j_result = nlohmann::ordered_json::object(); 
-
-            j_result["header"]["file"] = m_ply_source;
-            j_result["header"]["type"] = m_file_type;
-            j_result["header"]["nElements"] = reader.num_elements();
-
-            nlohmann::ordered_json j_elements = nlohmann::ordered_json::array();
-
+            ordered_json options;
+            options["ply_file"] = m_ply_source;
+            options["ply_file_type"] = m_file_type;
+            
+            int largest_type = 0;
+            std::string largest_text = "";
             for (uint32_t i=0; i < reader.num_elements(); i++) {
                 const miniply::PLYElement* elem = reader.get_element(i);
-
-                nlohmann::ordered_json j_element;
-                j_element["element"]["name"] = elem->name;
-                j_element["element"]["size"] = elem->count;
-
-                nlohmann::ordered_json j_properties_list = nlohmann::ordered_json::array();
                 for(const miniply::PLYProperty& prop : elem->properties) {
-                    nlohmann::ordered_json j_property;
-                    j_property["property"]["name"] = prop.name;
-                    j_property["property"]["type"] = property_type_string(prop.type);
-
-                    if (prop.countType != miniply::PLYPropertyType::None) {
-                        j_property["property"]["count"] = property_type_string(prop.countType);
+                    if (property_type_size( prop.type ) > largest_type) {
+                        largest_type = property_type_size( prop.type );
+                        largest_text = property_type_string( prop.type );
                     }
-
-                    j_properties_list.push_back(j_property);
                 }
-
-                j_element["properties"] = j_properties_list;
-                j_elements.push_back(j_element);
             }
-            j_result["elements"] = j_elements;
-          
-            m_config = j_result;
+            options["ply_data_type"] = largest_text;
+            m_config = ProductSpecification("ply", "mesh", options);
             return;
         }
 
@@ -243,6 +246,7 @@ namespace psmrts {
          * 
          * This method is used to convert the appropriate ply type to a string version
          * when building the json header output for the reader in parse_config().
+         * 
          * 
          * @param prop ply property type, as defined by miniply
          * @return std::string 
@@ -270,10 +274,99 @@ namespace psmrts {
             }
         }
 
-        /** Returns the header json information */
-        inline  const json &config() const {
+        /**
+         * @brief size determinant helper function for PLY types
+         * 
+         * @param  prop PLY property
+         * @return int based size of PLY data type for property type
+         */
+        inline int property_type_size( const miniply::PLYPropertyType prop) const {
+            switch(prop) {
+                case miniply::PLYPropertyType::Char:
+                    return sizeof(char);
+                case miniply::PLYPropertyType::UChar:
+                    return sizeof(unsigned char);
+                case miniply::PLYPropertyType::Short:
+                    return sizeof(short);
+                case miniply::PLYPropertyType::UShort:
+                    return sizeof(unsigned short);
+                case miniply::PLYPropertyType::Int:
+                    return sizeof(int);
+                case miniply::PLYPropertyType::UInt:
+                    return sizeof(unsigned int);
+                case miniply::PLYPropertyType::Float:
+                    return sizeof(float);
+                case miniply::PLYPropertyType::Double:
+                    return sizeof(double);
+                default:
+                    return 0;
+            }
+        }
+        
+        /**
+         * @brief returns a PsmrtsPLYFormat object with the provided product option
+         * parameters
+         * 
+         * @param  params 
+         * @return PsmrtsPLYFormat 
+         */
+        static inline PsmrtsMeshData create( const ProductSpecification &params ) {
+            ordered_json options = params.specs().parameters();
+            try {
+                if (options.contains( "ply_file" ) ) {
+                    return (PsmrtsPLYFormat( options.at("ply_file")).get_mesh() );
+                }
+                else if ( params.name() == "ply" ) {
+                    std::string plyfile = params.specs().get_string_parameter( "file" );
+                    return (PsmrtsPLYFormat( plyfile ).get_mesh());
+                }
+            }
+            catch ( const std::runtime_error &re) {
+                std::string msg = std::string( "PsmrtsPLYFormat::create() failed - ").append( re.what() );
+            }
+
+            // Could return invalid model
+            // ... return ( PsmrtsPLYFormat( ) );
+            // or throw exception
+            std::string msg = std::string( "PsmrtsPLYFormat::create() invalid product request configuration" );
+            throw std::runtime_error( msg );
+        }
+
+        /**
+         * @brief returns true if the input product json contains the same
+         * values as the object
+         * 
+         * @param params ProductSpecification PLY config
+         * @return true  if params has same values as object
+         * @return false if params is empty or has different values
+         */
+        inline bool compare(const ProductSpecification &params) {
+            if (params.name() != m_config.name() || params.type() != m_config.type()) {
+                return false;
+              }
+        
+              ordered_json options = m_config.specs().parameters();
+              ordered_json p_options = params.specs().parameters();
+              for (auto aspect : options.items()) {
+                if (!p_options.contains(aspect.key())) {
+                  return false;
+                }
+                if(p_options.at(aspect.key()) != aspect.value()) {
+                  return false;
+                }
+              }
+              return true;
+        }
+
+        /** Returns the header json information
+        inline const json &config() const {
+            return m_config;
+        }*/
+        
+        inline const ProductSpecification &config() const {
             return m_config;
         }
+
 
         /** Returns the mesh as read from the file unless true is provided which returns doubles */
         inline PsmrtsMeshData get_mesh( const bool make_it_a_double = false ) const  {
@@ -286,7 +379,6 @@ namespace psmrts {
             return ( m_mesh );
 
         }
-
 
         /** Get a double precision vector array  */
         inline PsmrtsVector3d get_double_vectors() const {
@@ -339,7 +431,7 @@ namespace psmrts {
             std::string                m_file_type;
             PsmrtsMeshData             m_mesh;
             PsmrtsThreadSafeCounter    m_tracker;
-            nlohmann::json             m_config;
+            ProductSpecification       m_config;
 
     };
 } // namespace psmrts

@@ -170,6 +170,11 @@ namespace psmrts {
         return ( m_json.contains( psmrts_tolower( key ) ) );
       }
 
+      /** Return reference to parameters */
+      inline const ordered_json &parameters( ) const {
+        return ( m_json );
+      }
+
       /** Returns string version of key if it exists in Parameters */
       inline std::string get_string_parameter( const std::string &key, 
                                                const std::string &value_d = "" ) const {
