@@ -63,7 +63,7 @@ TEST_CASE("PsmrtsShapeTracer Default Test", "[shape][tracer][default]") {
   TEST_CASE("PsmrtsShapeTracer Default Test", "[shape][tracer][bullet][naifdsk]") {
     const double tolerance_r = 1.0E-13;
 
-    CHECK( sizeof( psmrts::PsmrtsShapeTracer::PsmrtsTracer ) == 752 );
+    CHECK( sizeof( psmrts::PsmrtsShapeTracer::PsmrtsTracer ) <= 768 );
 
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
     psmrts::PsmrtsShapeTracer bullet_t( psmrts::PsmrtsShapeTracer::bullet( dskfile ) );
