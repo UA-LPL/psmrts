@@ -1,5 +1,6 @@
 #pragma once
 
+#include <deque>
 #include <string>
 #include <memory>
 #include <type_traits>
@@ -201,6 +202,11 @@ namespace psmrts {
       }
 
       inline void add_error( const std::runtime_error &e ) {
+      // Monitor the cache size of the error queue
+        if ( m_errors.size() >= MaxQueuedErrors ) {
+          (void) m_errors.pop_front();
+        }
+
         m_errors.push_back( e );
         return;
       }
@@ -228,7 +234,7 @@ namespace psmrts {
         return ( m_errors.size() );
       }
 
-      inline const std::vector<std::runtime_error> &errors() const {
+      inline const std::deque<std::runtime_error> &errors() const {
         return ( m_errors );
       }
 
@@ -275,14 +281,20 @@ namespace psmrts {
         return;
       }
 
+      inline size_t max_error_cache_size() const {
+        return ( MaxQueuedErrors );
+      }
+
     protected:
+      inline static const size_t MaxQueuedErrors = 20;  // Limit cached error size
+
       PsmrtsThreadSafeCounter m_tracker;
       double                  m_runtime_ms;
       std::string             m_name;
       bool                    m_success_status;
       bool                    m_is_present;
       size_t                  m_times_run;
-      std::vector<std::runtime_error> m_errors;
+      std::deque<std::runtime_error> m_errors;
 
 
     private:

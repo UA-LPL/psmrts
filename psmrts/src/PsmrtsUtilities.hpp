@@ -82,25 +82,25 @@ namespace psmrts {
   /** Returns elapsed time in seconds */
   inline double elapsed_clock_time_hours( const PSMRTS_SYSTEM_CLOCK_TIME &start_time,
                                           const PSMRTS_SYSTEM_CLOCK_TIME &end_time ) {
-    return ( std::chrono::duration_cast<std::chrono::hours>( end_time - start_time ).count() );
+    return ( std::chrono::duration_cast<std::chrono::minutes>( end_time - start_time ).count() / 60.0 );
   }
 
   /** Returns elapsed time in seconds */
   inline double elapsed_clock_time_s( const PSMRTS_SYSTEM_CLOCK_TIME &start_time,
                                       const PSMRTS_SYSTEM_CLOCK_TIME &end_time ) {
-    return ( std::chrono::duration_cast<std::chrono::seconds>( end_time - start_time ).count() );
+    return ( std::chrono::duration_cast<std::chrono::milliseconds>( end_time - start_time ).count() / 1000.0 );
   }
 
   /** Returns elapsed time in milliseconds */
   inline double elapsed_clock_time_ms( const PSMRTS_SYSTEM_CLOCK_TIME &start_time,
                                        const PSMRTS_SYSTEM_CLOCK_TIME &end_time ) {
-    return ( std::chrono::duration_cast<std::chrono::milliseconds>( end_time - start_time ).count() );
+    return ( std::chrono::duration_cast<std::chrono::microseconds>( end_time - start_time ).count() / 1000.0 );
   }  
 
   /** Returns elapsed time in microseconds */
   inline double elapsed_clock_time_microseconds( const PSMRTS_SYSTEM_CLOCK_TIME &start_time,
                                                  const PSMRTS_SYSTEM_CLOCK_TIME &end_time ) {
-    return ( std::chrono::duration_cast<std::chrono::microseconds>( end_time - start_time ).count() );
+    return ( std::chrono::duration_cast<std::chrono::nanoseconds>( end_time - start_time ).count() / 1000.0 );
   } 
 
     /** Returns elapsed time in nanoseconds */
@@ -469,8 +469,8 @@ namespace psmrts {
         }
 
         inline void reset_timer() {
-          m_start_time    = psmrts::system_clock_time();
           m_born_on_date  = psmrts::current_time();          
+          m_start_time    = psmrts::system_clock_time();
         }
 
         /** Return a JSON object with a time snapshot */

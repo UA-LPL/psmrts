@@ -58,8 +58,8 @@ TEST_CASE("PsmrtsBufferData Value Array Test", "[buffer][value][array]") {
     CHECK( pb_copy.track_count()  == 0 ); 
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
-    CHECK( pb_data.elapsed_life_time_s() == 1 );
-    CHECK( pb_performance.runtime_s()    == 1 );
+    CHECK( pb_data.elapsed_life_time_s() >= 1.0 );
+    CHECK( pb_performance.runtime_s()    >= 1.0 );
     psmrts::PsmrtsThreadSafeCounter snapshot = pb_data.performance_snapshot();
-    CHECK( snapshot.runtime_s() >= 1.0 );
+    CHECK( snapshot.runtime_s()          >= 1.0 );
 }
