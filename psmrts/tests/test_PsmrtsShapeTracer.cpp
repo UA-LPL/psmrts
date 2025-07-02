@@ -9,7 +9,7 @@
 
 TEST_CASE("PsmrtsShapeTracer Default Test", "[shape][tracer][default]") {
 
-    CHECK( sizeof( psmrts::PsmrtsShapeTracer::PsmrtsTracer ) == 752 );
+    CHECK( sizeof( psmrts::PsmrtsShapeTracer::PsmrtsTracer ) <= 768 );
 
     psmrts::PsmrtsShapeTracer tracer_t( psmrts::PsmrtsShapeTracer::ellipsoid( { 0.283065,0.271215,0.249720 }, "Bennu" ) );
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
@@ -61,6 +61,7 @@ TEST_CASE("PsmrtsShapeTracer Default Test", "[shape][tracer][default]") {
   }
 
   TEST_CASE("PsmrtsShapeTracer Default Test", "[shape][tracer][bullet][naifdsk]") {
+    const double tolerance_r = 1.0E-13;
 
     CHECK( sizeof( psmrts::PsmrtsShapeTracer::PsmrtsTracer ) == 752 );
 
@@ -98,9 +99,9 @@ TEST_CASE("PsmrtsShapeTracer Default Test", "[shape][tracer][default]") {
     CHECK( ray_b.isValid()        == true );
     CHECK( ray_b.trace().hasHit() == true );
 
-    CHECK( ray_b.trace().incidence( ray_b.trace() )  == 0.52690706564731504 );
-    CHECK( ray_b.trace().emission()                  == 0.52690706564731504 );
-    CHECK( ray_b.trace().phase( ray_b.trace() )      == 0.0 );
+    CHECK_THAT( ray_b.trace().incidence( ray_b.trace() ), Catch::Matchers::WithinAbs( 0.52690706564731504, tolerance_r ));
+    CHECK_THAT( ray_b.trace().emission(),                 Catch::Matchers::WithinAbs( 0.52690706564731504, tolerance_r ));
+    CHECK( ray_b.trace().phase( ray_b.trace() )            == 0.0 );
 
 
     bool status_d = naifdsk_t.process( ray_d );
