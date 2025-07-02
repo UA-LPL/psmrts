@@ -67,7 +67,7 @@ namespace psmrts {
                 request.reset();  // Resets the timer to this moment
                 request.process_running();   // Hits the counter, logs entry        
                 status = product.process( request ); // Execute
-                request.process_complete( true );  // No thrown errors
+                request.process_complete( status );  // No thrown errors
               }
               catch ( const std::runtime_error &e ) {
                 request.add_error( e ); // Report errors 

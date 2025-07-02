@@ -22,10 +22,11 @@ TEST_CASE("PsmrtsShapeTracer Default Test", "[shape][tracer][default]") {
 
     Eigen::Vector3d lookdir = -obs;
     psmrts::PRQRayTrace ray_t( obs, lookdir );
-    CHECK( ray_t.name()        == "PRQRayTrace" );
-    CHECK( ray_t.run_count()   == 0 );
-    CHECK( ray_t.was_invoked() == false );
-    CHECK( ray_t.error_count() == 0 );
+    CHECK( ray_t.name()           == "PRQRayTrace" );
+    CHECK( ray_t.run_count()      == 0 );
+    CHECK( ray_t.was_invoked()    == false );
+    CHECK( ray_t.process_status() == false );
+    CHECK( ray_t.error_count()    == 0 );
 
     // CHECK( ray_t.tracker().runtime_s()  == 0.0 );
     // CHECK( ray_t.tracker().runtime_ms()  == 0.0 );
@@ -35,9 +36,10 @@ TEST_CASE("PsmrtsShapeTracer Default Test", "[shape][tracer][default]") {
     bool status = tracer_t.process( ray_t );
     // CHECK( ray_t.tracker().runtime_ns()  == 0.1 );
 
-    CHECK( ray_t.run_count()   == 1 );
-    CHECK( ray_t.was_invoked() == true );
-    CHECK( ray_t.error_count() == 0 );
+    CHECK( ray_t.run_count()      == 1 );
+    CHECK( ray_t.was_invoked()    == true );
+    CHECK( ray_t.process_status() == true );
+    CHECK( ray_t.error_count()    == 0 );
 
     CHECK( status                 == true );
     CHECK( ray_t.isValid()        == true );
@@ -49,7 +51,9 @@ TEST_CASE("PsmrtsShapeTracer Default Test", "[shape][tracer][default]") {
 
     psmrts::PRQFacet facet_t;
     status = tracer_t.process( facet_t );
+    CHECK( facet_t.was_invoked()      == false );
     CHECK( status                     == false );
+    CHECK( facet_t.process_status()   == false );    
     CHECK( facet_t.error_count()      == 1 );
     CHECK( facet_t.errors_to_string() == facet_t.errors_to_string() );
     CHECK_THROWS( facet_t.throw_errors() );
@@ -72,10 +76,11 @@ TEST_CASE("PsmrtsShapeTracer Default Test", "[shape][tracer][default]") {
 
     Eigen::Vector3d lookdir = -obs;
     psmrts::PRQRayTrace ray_b( obs, lookdir );
-    CHECK( ray_b.name()        == "PRQRayTrace" );
-    CHECK( ray_b.run_count()   == 0 );
-    CHECK( ray_b.was_invoked() == false );
-    CHECK( ray_b.error_count() == 0 );
+    CHECK( ray_b.name()           == "PRQRayTrace" );
+    CHECK( ray_b.run_count()      == 0 );
+    CHECK( ray_b.process_status() == false );
+    CHECK( ray_b.was_invoked()    == false );
+    CHECK( ray_b.error_count()    == 0 );
 
     // Copy for bullet and naifdsk
     psmrts::PRQRayTrace ray_d = ray_b;
@@ -84,9 +89,10 @@ TEST_CASE("PsmrtsShapeTracer Default Test", "[shape][tracer][default]") {
     bool status_b = bullet_t.process( ray_b );
     // CHECK( ray_b.tracker().runtime_ns()  == 0.1 );
 
-    CHECK( ray_b.run_count()   == 1 );
-    CHECK( ray_b.was_invoked() == true );
-    CHECK( ray_b.error_count() == 0 );
+    CHECK( ray_b.run_count()      == 1 );
+    CHECK( ray_b.process_status() == true );
+    CHECK( ray_b.was_invoked()    == true );
+    CHECK( ray_b.error_count()    == 0 );
 
     CHECK( status_b                 == true );
     CHECK( ray_b.isValid()        == true );
@@ -110,12 +116,16 @@ TEST_CASE("PsmrtsShapeTracer Default Test", "[shape][tracer][default]") {
     psmrts::PRQFacet facet_b ( ray_b.trace() );
     status_b = bullet_t.process( facet_b );
     CHECK( status_b                   == true );
+    CHECK( facet_b.was_invoked()      == true );
+    CHECK( facet_b.process_status()   == true );
     CHECK( facet_b.error_count()      == 0);
     CHECK_NOTHROW( facet_b.throw_errors() );
 
     psmrts::PRQFacet facet_d ( ray_d.trace() );
     status_d = naifdsk_t.process( facet_d );
     CHECK( status_d                   == true );
+    CHECK( facet_d.was_invoked()      == true );
+    CHECK( facet_d.process_status()   == true );
     CHECK( facet_d.error_count()      == 0);
     CHECK_NOTHROW( facet_d.throw_errors() );
 

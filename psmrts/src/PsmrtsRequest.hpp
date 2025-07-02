@@ -141,6 +141,7 @@ namespace psmrts {
           request.reset();
           request.process_running();
           request.add_error( std::runtime_error( this->name() + "::process(" + request.name() + ") is not implemented/available!" ) );
+          request.set_process_presence( false );
           request.process_complete( false );
           return ( false );
         }
@@ -189,11 +190,13 @@ namespace psmrts {
       inline void process_running() {
         m_tracker.hitme();
         m_times_run++;
+        set_process_presence( true   );
         return;
       }
 
       inline void process_complete( const bool status = true ) {
-        m_was_invoked = status;
+        m_runtime_ms = m_tracker.runtime_ms();
+        m_success_status = status;
         return;
       }
 
@@ -206,9 +209,19 @@ namespace psmrts {
         return ( m_times_run );
       }
 
+      /** Returns runtime for the last process */
+      inline double runtime_ms() const {
+        return ( m_runtime_ms );
+      }
+
+      /** Return the status of the last run */
+      inline bool process_status( ) const {
+        return ( m_success_status );
+      }
+
       /** Was the process method invoked on the previous run */
       inline bool was_invoked( ) const {
-        return ( m_was_invoked );
+        return ( m_is_present );
       }
 
       inline size_t error_count() const {
@@ -247,18 +260,27 @@ namespace psmrts {
         return;
       }
 
+      inline void set_process_presence( const bool present = true   ) {
+        m_is_present = present;
+        return;
+      }
+
       inline void reset() {
-        m_tracker.reset_timer();
-        m_was_invoked = false;
-        m_times_run = 0;
+        m_success_status = false;
+        m_is_present     = false;
+        m_times_run      = 0;
         m_errors.clear();
+        m_tracker.reset_timer();
+        m_runtime_ms = 0.0;
         return;
       }
 
     protected:
       PsmrtsThreadSafeCounter m_tracker;
+      double                  m_runtime_ms;
       std::string             m_name;
-      bool                    m_was_invoked;
+      bool                    m_success_status;
+      bool                    m_is_present;
       size_t                  m_times_run;
       std::vector<std::runtime_error> m_errors;
 

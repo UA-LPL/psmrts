@@ -6,22 +6,26 @@
 TEST_CASE( "PsmrtsRequest Default Test", "[request][default]" ) {
     
     psmrts::PsmrtsRequest request_t;
-    CHECK( request_t.name()        == "PsmrtsRequest" );
-    CHECK( request_t.run_count()   == 0 );
-    CHECK( request_t.was_invoked() == false );
-    CHECK( request_t.error_count()  == 0 );
+    CHECK( request_t.name()           == "PsmrtsRequest" );
+    CHECK( request_t.run_count()      == 0 );
+    CHECK( request_t.process_status() == false );
+    CHECK( request_t.was_invoked()    == false );
+    CHECK( request_t.error_count()    == 0 );
 
     request_t.process_running();
-    CHECK( request_t.run_count()   == 1 );
-    CHECK( request_t.was_invoked() == false );
+    CHECK( request_t.run_count()      == 1 );
+    CHECK( request_t.process_status() == false );
+    CHECK( request_t.was_invoked()    == true );
 
     request_t.process_running();
-    CHECK( request_t.run_count()   == 2 );
-    CHECK( request_t.was_invoked() == false );
+    CHECK( request_t.run_count()      == 2 );
+    CHECK( request_t.process_status() == false );
+    CHECK( request_t.was_invoked()    == true );
 
     request_t.process_complete();
-    CHECK( request_t.run_count()   == 2);
-    CHECK( request_t.was_invoked() == true );
+    CHECK( request_t.run_count()      == 2);
+    CHECK( request_t.process_status() == true );
+    CHECK( request_t.was_invoked()    == true );
 
     request_t.add_error( std::runtime_error( "this is a error!") );
     CHECK( request_t.error_count()  == 1 );
