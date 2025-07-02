@@ -46,11 +46,16 @@ release.
 - ProductSpecification.hpp - Development of product specs system for describing products by parameterization and tracking configurations.
 - PsrmtsProduct.hpp - Variant container template class to manage all PRG functor for related products using a common API.
 - PsrmtsShapeTracer.hpp - Develop class to maintain all PSMRTS shape tracers using variant features; add in (likely temporary) methods to construct shape tracers.
-- PsrmtsUtilities.hpp - Updated to use high resolution system clock rather than a steady clock; added character string trimming methods.
+- PsrmtsUtilities.hpp - Updated to use high resolution system clock rather than a steady clock; added character string trimming methods; improved how elapsed times are computed.
 - BulletShapeTracer.hpp - Added PSMRTS_PROCESS_CATCHALL() marcro to round out process( PRQ ) processes; change virtual declvals to inline (not needed).
 - NaifDskShapeTracer.hpp - Added PSMRTS_PROCESS_CATCHALL() marcro to round out process( PRQ ) processes; change virtual declvals to inline (not needed).
 - EllipsoidShapeTracer.hpp - Added PSMRTS_PROCESS_CATCHALL() marcro to round out process( PRQ ) processes; change virtual declvals to inline (not needed); removed process( PRQFacet ) use as its obsolete.
 - NaifEllipsoidShape.hpp - Fix use of c radius for second radii in constructor of spheroids.
+- Renamed PsrmrtsRayTrace::surfpt() to PsmrtsRayTrace::raypt() since the definition of surfpt in NAIF conflicts with this name. raypt() returns the vector from  the observer to the surface point intercept, along the lookdir vector. The length of this vector is the sland distance (km).
+- This affected mostly tests including test_PsmrtsRayTrace.cpp, tst_EllipsoidShapeTracer.cpp, test_DskKernelModel.cpp, and test_NaifDskShapeTracer.cpp.
+- PsmrtsRequest.hpp - Add distinct tracking of process method invocation status; retain process return status independent of invocation status; clean up process runtime tracking; Set a limit on the maximum number of errors that wil be cached. It implements a FIFO cache with a maximum of 20 errors. After that, the first error in the cache is poped off the queue and the new one is appended.
+- PsrmrtsProductDispatch.hpp - Track proper completion status.
+- test_PsrmtsRequest.cpp, test_PsmrtsShapeTracer.cpp - updates process tracking and timing.
 - vcpkg.json - Removed embree3 as it was causing build errors. 
 - Add new and update existing tests to CMake system.
 - test_PsmrtsOBJFormat.cpp - Update tests for config and parameters.
@@ -58,7 +63,7 @@ release.
 - test_ProductParameter.cpp - Add tests for ProductParameter class.
 - test_ProductSpecification.cpp - Add tests for ProductSpecification class.
 - test_PsmrtsProduct.cpp - Add tests for PsmrtsProduct class.
-- test_PsmrtsShapeTracer.cpp - Add tests for PsmrtsShapeTracer class.
+- test_PsmrtsShapeTracer.cpp - Add tests for PsmrtsShapeTracer class; fix failing tests n Windows and Linux.
 - test_PsmrtsUtilities.cpp - Update for timing type changes.
 - CMakeLists.txt - Update release version.
 - CHANGELOG.md - Update for this PR.
