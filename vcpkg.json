@@ -7,7 +7,6 @@
     "args",
     "eigen3",
     "cspice",
-    "embree3",
     "catch2",
     "spdlog",
     "miniply",

@@ -256,13 +256,13 @@ TEST_CASE ("DSK Model Test - Ray Tracing / facet Routines", "[dsk][raytrace][fac
     CHECK ( dsk.ray_trace(obs, lkdr, ray) == true );
 
     Eigen::Vector3d lkdr_norm = lkdr.normalized();
-    Eigen::Vector3d sfpt_norm = ray.surfpt().normalized();
+    Eigen::Vector3d sfpt_norm = ray.raypt().normalized();
 
     CHECK_THAT( lkdr_norm[0], Catch::Matchers::WithinAbs(sfpt_norm[0], tolerance_r ));
     CHECK_THAT( lkdr_norm[1], Catch::Matchers::WithinAbs(sfpt_norm[1], tolerance_r ));
     CHECK_THAT( lkdr_norm[2], Catch::Matchers::WithinAbs(sfpt_norm[2], tolerance_r ));
 
-    double sep_ang = vsep_c(lkdr.data(), ray.surfpt().data());
+    double sep_ang = vsep_c(lkdr.data(), ray.raypt().data());
     CHECK_THAT( sep_ang, Catch::Matchers::WithinAbs(0.0, tolerance_r ));
 
     

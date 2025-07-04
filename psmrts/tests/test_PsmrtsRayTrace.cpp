@@ -19,7 +19,7 @@ TEST_CASE( "PsmrtsRayTrace Default Test", "[ray][trace][default]") {
     CHECK( ray_basic.observer()       == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
     CHECK( ray_basic.lookdir()        == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
     CHECK( ray_basic.normal()         == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
-    CHECK( ray_basic.surfpt()         == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
+    CHECK( ray_basic.raypt()         == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
     CHECK( ray_basic.xyz()            == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
     CHECK( ray_basic.radius()         == 0.0 );
     CHECK( ray_basic.slant_distance() == 0.0 );
@@ -113,7 +113,7 @@ TEST_CASE( "PsmrtsRayTrace Baseline Values Test - Ellipsoid", "[ray][trace][valu
     CHECK( ellipse_ray.hasHit()   == true ); // If valid, other functions should be as well.
     CHECK( ellipse_ray.observer() == -obs );
     CHECK( ellipse_ray.lookdir()  == lkdr );
-    CHECK( ellipse_ray.surfpt()   == ellipse_ray.xyz() + obs ); // minus -obs?
+    CHECK( ellipse_ray.raypt()   == ellipse_ray.xyz() + obs ); // minus -obs?
     CHECK_THAT( ellipse_ray.normal()[0], Catch::Matchers::WithinAbs( -0.5, tolerance ));
     CHECK_THAT( ellipse_ray.normal()[1], Catch::Matchers::WithinAbs( -0.5, tolerance )); 
     CHECK_THAT( ellipse_ray.normal()[2], Catch::Matchers::WithinAbs( -0.707107, tolerance )); 
@@ -134,7 +134,7 @@ TEST_CASE( "PsmrtsRayTrace Baseline Values Test - Ellipsoid", "[ray][trace][valu
     CHECK( second_ray.hasHit()   == true ); 
     CHECK( second_ray.observer() == -obs );
     CHECK( second_ray.lookdir()  == lkdr ); // NAN (I/O)
-    CHECK( second_ray.surfpt()   == ellipse_ray.xyz() + obs ); // minus -obs?
+    CHECK( second_ray.raypt()   == ellipse_ray.xyz() + obs ); // minus -obs?
     CHECK_THAT( second_ray.normal()[0], Catch::Matchers::WithinAbs( -0.5, tolerance ));
     CHECK_THAT( second_ray.normal()[1], Catch::Matchers::WithinAbs( -0.5, tolerance )); 
     CHECK_THAT( second_ray.normal()[2], Catch::Matchers::WithinAbs( -0.707107, tolerance )); 
@@ -174,7 +174,7 @@ TEST_CASE( "PsmrtsRayTrace Baseline Values Test - Ellipsoid", "[ray][trace][valu
     CHECK_THAT( reset_ray.xyz()[0], Catch::Matchers::WithinAbs( -0.508726, tolerance ));
     CHECK_THAT( reset_ray.xyz()[1], Catch::Matchers::WithinAbs( -0.499924, tolerance ));
     CHECK_THAT( reset_ray.xyz()[2], Catch::Matchers::WithinAbs( -0.700909, tolerance ));
-    CHECK( reset_ray.surfpt()         == reset_ray.xyz() + obs_reset );
+    CHECK( reset_ray.raypt()          == reset_ray.xyz() + obs_reset );
     CHECK( reset_ray.radius()         == 1.0 ); 
     CHECK( reset_ray.slant_distance() == 1.0 ); 
     CHECK( reset_ray.emission()       == 0.0 ); 
@@ -189,7 +189,7 @@ TEST_CASE( "PsmrtsRayTrace Baseline Values Test - Ellipsoid", "[ray][trace][valu
     CHECK( ellipse_ray.observer() == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
     CHECK( ellipse_ray.lookdir()  == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
     CHECK( ellipse_ray.normal()   == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
-    CHECK( ellipse_ray.surfpt()   == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
+    CHECK( ellipse_ray.raypt()    == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
     CHECK( ellipse_ray.xyz()      == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
     CHECK( ellipse_ray.radius()   == 0.0 );
     CHECK( ellipse_ray.slant_distance() == 0.0 );

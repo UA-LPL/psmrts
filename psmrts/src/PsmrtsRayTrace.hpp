@@ -134,7 +134,7 @@ namespace psmrts {
       }
 
       /** Returns vector along look direction to surface */
-      inline const Eigen::Vector3d surfpt( ) const {
+      inline const Eigen::Vector3d raypt( ) const {
         return ( xyz() - observer() );
       }
 
@@ -150,7 +150,7 @@ namespace psmrts {
 
       /** Slant distance is distance from observer to surface intercept point */
       inline double slant_distance() const {
-        return ( surfpt().norm() );
+        return ( raypt().norm() );
       }
 
       /** Compute the distance between to surface ray trace intercepts */

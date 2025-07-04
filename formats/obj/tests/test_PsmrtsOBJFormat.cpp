@@ -1,6 +1,7 @@
 #include <psmrts_catch2_environment.hpp>
 
 #include <PsmrtsOBJFormat.hpp>
+#include <ProductSpecification.hpp>
 
 #include <DskKernelModel.hpp>
 
@@ -31,6 +32,34 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Basic Load/Init Tests", "[format][obj][shap
     CHECK( t_loader.nMaterials()        == 0 );
     CHECK( t_loader.shape() != nullptr );
     CHECK( t_loader.config().mtl_search_path == "" );
+
+    ordered_json options;
+    options["obj_file"] = objfile;
+    options["obj_data_type"] = "double";
+    options["obj_mtl_search_path"] = "";
+    options["required"] = {"obj_file"};
+    options["optional"] = {"obj_data_type", "obj_mtl_search_path"};
+    psmrts::ProductSpecification test("obj", "mesh", options);
+    CHECK( t_loader.compare( test ) == true);
+    
+    ordered_json options2;
+    options["obj_file"] = objfile;
+    options["obj_data_type"] = "float";
+    options["obj_mtl_search_path"] = "";
+    options["required"] = {"obj_file"};
+    options["optional"] = {"obj_data_type", "obj_mtl_search_path"};
+    psmrts::ProductSpecification test2("obj", "mesh", options2);
+
+    CHECK( t_loader.compare( test2 ) == false );
+
+    ordered_json options3;
+    options3["obj_file"] = objfile;
+    options3["obj_data_type"] = "double";
+    options3["required"] = {"obj_file"};
+    options3["optional"] = {"obj_data_type", "obj_mtl_search_path"};
+    psmrts::ProductSpecification test3("obj", "mesh", options2);
+ 
+    CHECK( t_loader.compare( test3 ) == false );
 }
 
 TEST_CASE ( "OBJ FORMAT Asset Test - Load Fail Tests", "[format][obj][shape][failures]" ) {

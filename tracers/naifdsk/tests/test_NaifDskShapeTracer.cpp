@@ -254,7 +254,7 @@ TEST_CASE( "NAIF Dsk Shape Tracer Photometric Values Test", "[naifdsk][shapetrac
     CHECK_THAT( ps_xyz[2], Catch::Matchers::WithinAbs( pr_xyz[2], tolerance ) );
 
     // Create a duplicate of observer but with the computed lookdir result
-    psmrts::PRQRayTrace prq_obs(observer, prq_ray.trace().surfpt() ); 
+    psmrts::PRQRayTrace prq_obs(observer, prq_ray.trace().raypt() ); 
     CHECK( d_tracer.process( prq_obs ) == true );
 
     // Rigorous check of surface points
@@ -264,12 +264,12 @@ TEST_CASE( "NAIF Dsk Shape Tracer Photometric Values Test", "[naifdsk][shapetrac
     CHECK_THAT( po_xyz[1], Catch::Matchers::WithinAbs( pr_xyz[1], tolerance ) );
     CHECK_THAT( po_xyz[2], Catch::Matchers::WithinAbs( pr_xyz[2], tolerance ) );
 
-    Eigen::Vector3d po_surfpt = prq_obs.trace().surfpt();
-    Eigen::Vector3d pr_surfpt = prq_ray.trace().surfpt();
+    Eigen::Vector3d po_raypt = prq_obs.trace().raypt();
+    Eigen::Vector3d pr_raypt = prq_ray.trace().raypt();
 
-    CHECK_THAT( po_surfpt[0], Catch::Matchers::WithinAbs( pr_surfpt[0], tolerance ));
-    CHECK_THAT( po_surfpt[1], Catch::Matchers::WithinAbs( pr_surfpt[1], tolerance ));
-    CHECK_THAT( po_surfpt[2], Catch::Matchers::WithinAbs( pr_surfpt[2], tolerance ));
+    CHECK_THAT( po_raypt[0], Catch::Matchers::WithinAbs( pr_raypt[0], tolerance ));
+    CHECK_THAT( po_raypt[1], Catch::Matchers::WithinAbs( pr_raypt[1], tolerance ));
+    CHECK_THAT( po_raypt[2], Catch::Matchers::WithinAbs( pr_raypt[2], tolerance ));
 
     // Set up a sun position
     Eigen::Vector3d sun_pos;
