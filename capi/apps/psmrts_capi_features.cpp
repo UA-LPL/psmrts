@@ -14,10 +14,146 @@
 
 int main( int argc, char *argv[] ) {
 
-    // emulating catch2 "Bullet Shape Tracer Ray Trace Array Test"
-  std::string objfile =
-        "/Users/kledmundson/ISISDev/UA-LPL/June232025/psmrts/formats/obj/data/bennu_20facets.obj";
+  // retrieve obj file name from argv[1]
+  std::string objfile = argv[1];
 
+  // This spec saves significant memory... and confirms Bullet preserves data
+  // Create PsmrtsBulletWorldModel from input obj file
+  psmrts::bullet::PsmrtsBulletWorldModel *bt_world = 0;
+  try {
+      bt_world =
+          new psmrts::bullet::PsmrtsBulletWorldModel(psmrts::bullet::PsmrtsBulletMeshMap( psmrts::PsmrtsOBJFormat( objfile ) ),
+                                                     objfile );
+  }
+  catch (const std::runtime_error& e) {
+      std::cerr << "Runtime error: " << e.what() << std::endl;
+  }
+  catch (...) {
+      std::cerr << "Unknown exception." << std::endl;
+  }
+
+  // create Bullet shape tracer from file string & product features request
+  // (PRQ) objects
+  psmrts::BulletShapeTracer bulletShapeTracer( *bt_world );
+  const double max_radius = bt_world->mesh().maximum_radius();
+  printf("max radius = %f\n", max_radius);
+  psmrts::PRQFeatures features;
+
+  // OK: max radius should be 0.283065
+
+  // validate PRQ
+  if (bulletShapeTracer.process(features) != true ) {
+      printf("uh oh!\n");
+  }
+
+  // validate Base features PRQ functionality before we've done anything
+  printf( "PRQ Features Basic functionality\n");
+  printf( "        name: %s\n", features.name().c_str() );
+  printf( "     invoked: %d\n", features.was_invoked() );
+  printf( "   run count: %zu\n", features.run_count() );
+  printf( " error count: %zu\n", features.error_count() );
+  printf( "  error size: %zu\n", features.errors().size() );
+
+  printf( "\nTest: observer@45,45; surface target@45,50\n");
+
+  // Compute the position of an observer at ( 45,45 ) degrees
+  Eigen::Vector3d obs;
+  double r = 1.0;
+  double obs_lon = 45.0 * rpd_c();
+  double obs_lat = 45.0 * rpd_c();
+  latrec_c ( r, obs_lon, obs_lat, obs.data() );
+  obs = obs * 10.0;
+
+  // OK: obs should be 5.0, 5.0, 7.071068
+
+  // Compute surface point at ( 45, 50 ). This is our surface target
+  Eigen::Vector3d surf;
+  double surf_lon = 45.0 * rpd_c();
+  double surf_lat = 50.0 * rpd_c();
+  latrec_c ( r, surf_lon, surf_lat, surf.data() );
+
+  // OK: surf should be 0.454519, 0.454519, 0.766044
+
+  // Find the real surface point using bullet
+  Eigen::Vector3d surf_obs = surf * (max_radius + 1.5);
+  psmrts::PRQRayTrace prq_ray(surf_obs, -surf_obs );
+
+  // validate bullet shape tracer with PRQRayTrace
+  if ( bulletShapeTracer.process( prq_ray ) == false ) {
+      printf("uh oh! bulletShapeTracer with prq_ray process is false\n");
+  }
+
+  // Compute expected/precise look vector from
+  // observer to surface intercept point
+  Eigen::Vector3d lookdir = prq_ray.trace().xyz() - obs;
+  printf("Observer-Surface Intercept Look Vector\n");
+  printf("X = %f\nY = %f\nZ = %f\n\n", lookdir[0], lookdir[1], lookdir[2]);
+
+  // OK: lookdir should be -4.885201,-4.885201,-6.877586
+
+  // Trace it from observer to surface point to confirm
+  psmrts::PRQRayTrace prq_spt(obs, lookdir );
+  bulletShapeTracer.process( prq_spt );
+
+  Eigen::Vector3d normal = prq_spt.trace().normal();
+  Eigen::Vector3d xyz = prq_spt.trace().xyz();
+
+  printf("Normal at Observer-Surface Intercept\n");
+  printf("X = %f\nY = %f\nZ = %f\n\n", normal[0], normal[1], normal[2]);
+
+  // OK: normal should be 2.59931e-08, 0.525731, 0.850651
+
+  printf("XYZ at Observer-Surface Intercept\n");
+  printf("X = %f\nY = %f\nZ = %f\n\n", xyz[0], xyz[1], xyz[2]);
+
+  // OK: xyz should be 0.114799, 0.114799, 0.193482
+
+  // Validate points
+  printf( "  prq_ray valid: %d\n", prq_ray.isValid() );
+  printf( "  prq_spt valid: %d\n", prq_spt.isValid() );
+  printf( "prq_spt has hit: %d\n", prq_spt.trace().hasHit() );
+
+  // Compute radius/lon/lat from intercept surface point (body-fixed)
+  double bt_lat, bt_lon, bt_radius;
+  reclat_c( xyz.data(), &bt_radius, &bt_lon, &bt_lat);
+
+  // OK: lat= 0.872665; lon= 0.785398; radius= 0.252572
+
+  psmrts::PRQFacet prq_facet( prq_ray.trace() );
+  // CHECK( prq_facet.isValid() == true );
+  bulletShapeTracer.process( prq_facet );
+  // CHECK( prq_facet.facet().isValid() == true );
+  // CHECK( prq_facet.prq_trace().emission() == prq_ray.emission() );
+
+  Eigen::Vector3d facet_xyz( prq_facet.trace().xyz() );
+  // CHECK_THAT( facet_xyz[0], Catch::Matchers::WithinAbs( xyz[0], tolerance_km));
+  // CHECK_THAT( facet_xyz[1], Catch::Matchers::WithinAbs( xyz[1], tolerance_km));
+  // CHECK_THAT( facet_xyz[2], Catch::Matchers::WithinAbs( xyz[2], tolerance_km));
+
+  // // get plate id, segment id (may always be 0 in bullet)
+  // CHECK( prq_facet.trace().segment_number() == 0 );
+  // CHECK( prq_facet.trace().plateid()        == 30 );
+  // CHECK( prq_facet.facet().m_indexes[0]     == 11 );
+  // CHECK( prq_facet.facet().m_indexes[1]     == 14 );
+  // CHECK( prq_facet.facet().m_indexes[2]     == 5 );
+
+  // CHECK_THAT( prq_facet.facet().m_normal[0], Catch::Matchers::WithinAbs( 0.00000002599305449, tolerance_km));
+  // CHECK_THAT( prq_facet.facet().m_normal[1], Catch::Matchers::WithinAbs( 0.52573108811158831, tolerance_km));
+  // CHECK_THAT( prq_facet.facet().m_normal[2], Catch::Matchers::WithinAbs( 0.85065082318951801, tolerance_km));
+
+  // CHECK_THAT( prq_facet.facet().m_vector1[0], Catch::Matchers::WithinAbs( 0.10100385653540001, tolerance_km ) );
+  // CHECK_THAT( prq_facet.facet().m_vector1[1], Catch::Matchers::WithinAbs( 0.0, tolerance_km ) );
+  // CHECK_THAT( prq_facet.facet().m_vector1[2], Catch::Matchers::WithinAbs( 0.26443149432320001, tolerance_km ) );
+
+  // CHECK_THAT( prq_facet.facet().m_vector2[0], Catch::Matchers::WithinAbs( 0.1634276539482 , tolerance_km ) );
+  // CHECK_THAT( prq_facet.facet().m_vector2[1], Catch::Matchers::WithinAbs( 0.1634276539482, tolerance_km ) );
+  // CHECK_THAT( prq_facet.facet().m_vector2[2], Catch::Matchers::WithinAbs( 0.1634276539482, tolerance_km ) );
+
+  // CHECK_THAT( prq_facet.facet().m_vector3[0], Catch::Matchers::WithinAbs( 0.0, tolerance_km ) );
+  // CHECK_THAT( prq_facet.facet().m_vector3[1], Catch::Matchers::WithinAbs( 0.26443149432320001, tolerance_km ) );
+  // CHECK_THAT( prq_facet.facet().m_vector3[2], Catch::Matchers::WithinAbs( 0.10100385653540001, tolerance_km ) );
+
+  /*
   // psmrts::bullet::PsmrtsBulletWorldModel bt_world( psmrts::bullet::PsmrtsBulletMeshMap ( psmrts::PsmrtsOBJFormat( objfile ) ), objfile );
   // psmrts::BulletShapeTracer b_tracer( bt_world );
 
@@ -57,11 +193,13 @@ int main( int argc, char *argv[] ) {
   // put in routine that returns
   // psmrts_create_ellipsoid(double, double, double, char* ); pass in 0 for pointer
   // bullet, etc.
-  psmrts::PsmrtsShapeTracer bullet_t(psmrts::PsmrtsShapeTracer::bullet(objfile) );
+//  psmrts::PsmrtsShapeTracer bullet_t(psmrts::PsmrtsShapeTracer::bullet(objfile) );
 // create with string
 
   // Trace a ray
-  observer  = psmrts_vector3d( 0.3, 0.0, 0.0 );
+  // create observer at lat, lon of 45, 45 degrees
+  observer  = psmrts_vector3d( 1.0, 1.0, 1.0 );
+
   observer2 = psmrts_vector3d( 1000.0, 1000.4, 1000.0 );
   lookdir   = psmrts_negate( observer );
   lookdir2  = psmrts_negate( observer2 );
@@ -183,6 +321,10 @@ int main( int argc, char *argv[] ) {
   psmrts_free_ray( ray );
   psmrts_free_ray( sunray );
   // psmrts_free_tracer( ellipsoid );
+*/
+  if (bt_world != NULL) {
+      delete bt_world;
+  }
 
   return ( 0 );
 }
