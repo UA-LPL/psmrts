@@ -42,6 +42,7 @@ The example shown here is the specification for the `tinyobjloader` OBJ reader. 
         char text[] = R"(
         {
           "name": "obj",
+          "product": "shape",
           "type": "mesh"
           "description": "Reads Wavefront OBJ mesh files and creates a PMRTS mesh object",
           "driver": {
