@@ -35,7 +35,7 @@ Each `PSMRTS` product, such as a `mesh`, `tracer`, must have a description that 
 #### ProductSpecification class 
 The `ProductSpecification` class defines the format for product specification. This class will maintain a product name and type along with parameterization specifications and driver information. Each product driver must provide the details shown below and subsequently discussed in the following example. This static method is required in each `PSMRTS` product implementation.
 
-The example shown here is the specification for the `tinyobjloader` OBJ reader. It also reads materials. Additional functionality can be added to support reading/retaining the materials structure and provide an object functor interface to get access to the materials data read by `tinyobjloader`.
+The example shown here is the specification for the `tinyobjloader` OBJ reader. It also reads materials. Additional functionality can be added to support reading/retaining the materials structure and provide an object functor interface to get access to the materials data read by `tinyobjloader`. We are currently recommending this specification belongs in the product process class, such as ObjShape.hpp.
 
 ```
       static inline ProductSpecification product_specifications() {
