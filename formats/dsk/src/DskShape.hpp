@@ -20,7 +20,7 @@ namespace psmrts {
         return ( true );
      }
 
-     
+
      static inline ProductSpecification product_specifications() {
         char text[] = R"(
         {
@@ -67,7 +67,7 @@ namespace psmrts {
                 }
             ]
         })";
-        return ( ProductSpecification( "dsk", "mesh", json_utils::parse_json_string( text ) ) );
+        return ( ProductSpecification( "dsk", "mesh", "shape", json_utils::parse_json_string( text ) ) );
      }
 
      protected:

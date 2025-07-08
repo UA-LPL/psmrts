@@ -78,7 +78,7 @@ namespace psmrts {
                     }
                 ]
             })";
-            return ( ProductSpecification( "ply", "mesh", json_utils::parse_json_string(text)));
+            return ( ProductSpecification( "ply", "mesh", "shape", json_utils::parse_json_string(text)));
          }
 
          PSMRTS_PROCESS_CATCHALL( "PlyShape" )
@@ -86,7 +86,7 @@ namespace psmrts {
         protected:
          psmrts::PsmrtsPLYFormat m_model;
     };
-    
+
 } // namespace psmrts
 
 #endif
