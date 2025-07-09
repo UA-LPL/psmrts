@@ -113,6 +113,38 @@ namespace psmrts {
         return ( ProductParameter( "nodriver" ) );
       }
       
+      inline std::vector<std::string> required() const {
+        std::vector<std::string> result;
+        ProductParameterList param_specs = this->parameters();
+        if (param_specs.size() > 0 ) {
+          for ( const auto &param : param_specs ) {
+            if ( param.is_required() ) {
+                auto req = param.name();
+                if (std::find(result.begin(), result.end(), req) == result.end()) {
+                  result.push_back(req);
+                }
+            }
+          }
+        }
+        return result;
+      }
+      
+      inline std::vector<std::string> optional() const {
+        std::vector<std::string> result;
+        ProductParameterList param_specs = this->parameters();
+        if (param_specs.size() > 0 ) {
+          for ( const auto &param : param_specs ) {
+            if ( !param.is_required() ) {
+                auto opt = param.name();
+                if (std::find(result.begin(), result.end(), opt) == result.end()) {
+                  result.push_back(opt);
+                }
+            }
+          }
+        }
+        return result;
+      }
+
       /** Checks if a user/dev request can be satisfies by this product spec 
       inline bool satisfies( const ProductRequest &request ) const {
 
