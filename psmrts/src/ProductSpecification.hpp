@@ -115,26 +115,13 @@ namespace psmrts {
       
       inline std::vector<std::string> required() const {
         std::vector<std::string> result;
-        if (this->specs().contains("required")) {
-          std::vector<std::string> req_spec = this->specs().value("required", std::vector<std::string>({""}));
-          if (req_spec.size() > 0 ) {
-            for ( auto spec : req_spec ) {
-              if (std::find(result.begin(), result.end(), spec) == result.end()) {
-                result.push_back(spec);
-              }
-            }
-          }
-        }
         ProductParameterList param_specs = this->parameters();
         if (param_specs.size() > 0 ) {
-          for (const auto param : param_specs) {
-            if (param.contains("required")) {
-                auto req_list = param.value("required", std::vector<std::string>({""}));
-
-                for (const auto &req : req_list) {
-                  if (std::find(result.begin(), result.end(), req) == result.end()) {
-                    result.push_back(req);
-                  }
+          for ( const auto &param : param_specs ) {
+            if ( param.is_required() ) {
+                auto req = param.name();
+                if (std::find(result.begin(), result.end(), req) == result.end()) {
+                  result.push_back(req);
                 }
             }
           }
@@ -144,26 +131,13 @@ namespace psmrts {
       
       inline std::vector<std::string> optional() const {
         std::vector<std::string> result;
-        if (this->specs().contains("optional")) {
-          std::vector<std::string> opt_spec = this->specs().value("optional", std::vector<std::string>({""}));
-          if (opt_spec.size() > 0 ) {
-            for ( auto spec : opt_spec ) {
-              if (std::find(result.begin(), result.end(), spec) == result.end()) {
-                result.push_back(spec);
-              }
-            }
-          }
-        }
         ProductParameterList param_specs = this->parameters();
         if (param_specs.size() > 0 ) {
-          for (const auto param : param_specs) {
-            if (param.contains("optional")) {
-                auto opt_list = param.value("optional", std::vector<std::string>({""}));
-
-                for (const auto &opt : opt_list) {
-                  if (std::find(result.begin(), result.end(), opt) == result.end()) {
-                    result.push_back(opt);
-                  }
+          for ( const auto &param : param_specs ) {
+            if ( !param.is_required() ) {
+                auto opt = param.name();
+                if (std::find(result.begin(), result.end(), opt) == result.end()) {
+                  result.push_back(opt);
                 }
             }
           }

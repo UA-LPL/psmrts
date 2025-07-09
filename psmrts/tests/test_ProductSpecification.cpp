@@ -58,8 +58,18 @@ TEST_CASE( "ProductSpecification Values Test", "[product][specification][values]
         "filename": "test.cpp",
         "data_type": "char",
         "extra": "not_needed",
-        "required": ["filename", "data_type"],
-        "optional": ["extra"]
+        "status": "required",
+        "optional": ["extra"],
+        "parameters": [
+            {
+              "name": "obj_file",
+              "type": "file",
+              "description": "Name of OBJ file to read",
+              "status": "required",
+              "aliases": ["file", "obj_mesh", "mesh_file"],
+              "file_suffixes": [ "obj", "OBJ" ]
+            } 
+        ]
     }
     )";
     options = psmrts::json_utils::parse_json_string(reqText);
@@ -69,23 +79,23 @@ TEST_CASE( "ProductSpecification Values Test", "[product][specification][values]
 
     CHECK( product2.name()                 == "C"  );
     CHECK( product2.type()                 == "D"  );
-    CHECK( prod2specs.size()               == 7    );
-    CHECK( prod2specs.contains("required") == true );
+    CHECK( prod2specs.size()               == 8    );
+    CHECK( prod2specs.contains("status")   == true );
 
     std::vector<std::string> req = product2.required();
     std::vector<std::string> opt = product2.optional();
-    CHECK( req.size() == 2           );
-    CHECK( opt.size() == 1           );
-    CHECK( req[0]     == "filename"  );
-    CHECK( req[1]     == "data_type" );
-    CHECK( opt[0]     == "extra"     );
+    CHECK( req.size() == 1           );
+    CHECK( opt.size() == 0           );
+    CHECK( req[0]     == "obj_file"  );
+   
 
     ordered_json options2;
     char reqCheck[] = R"({
         "filename": "test.cpp",
         "extra": "not_needed",
-        "required": ["filename", "data_type"],
-        "optional": ["extra"]
+        "status": "required",
+        "optional": ["extra"],
+
     }
     )";
 
