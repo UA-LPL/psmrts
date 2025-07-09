@@ -8,7 +8,7 @@
   - Add PRQSpecifications class that collects any number of product specifications.
 - [ ] Create PSMRTS Python API. Use [swig](https://www.swig.org) initially. Make this a new repo.
 - [ ] Add functions methods that convert between lon/lat/radius and x/y/z.
-- [ ] Change all C++ reference args to pointers - required by C.
+- [X] Change all C++ reference args to pointers - required by C.
 - [ ] Major cleanup of CMake, code set. For example, completely eliminate BulltTracerModel.hpp - its not needed.
   - [ ] Consider renaming files to remove/limit `Psmrts` redundancy.
 - [ ] Rename `formats` directory to `shapes`. Requires a bunch of code changes due to path change.
