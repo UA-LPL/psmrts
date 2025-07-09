@@ -435,7 +435,7 @@ namespace psmrts {
             if ( params.has_parameter( "obj_mtl_search_path" ) ) {
               mtlopt = params.get_parameter("obj_mtl_search_path").value( "obj_mtl_search_path", mtlopt );
             }
-            return ( PsmrtsOBJFormat( objfile.value<std::string>( "obj_file", mtlopt ) ).get_mesh() );  
+            return ( PsmrtsOBJFormat( objfile.value<std::string>( "obj_file" ), mtlopt ).get_mesh() );  
           }
         }
         catch ( const std::runtime_error &re ) {
