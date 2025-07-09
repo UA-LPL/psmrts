@@ -193,6 +193,85 @@ namespace psmrts {
     return ( lon_adj );
   }
   
+  /**
+   * @brief latlonrad_to_xyz_d - Convert latitudinal coordinates (longitude,
+   *                             latitude, radius) to rectangular (xyz).
+   *
+   * Given a Eigen::Vector3d containing longitude, latitude, and radius
+   * coordinates, this function converts it to rectangular coordinates.
+   *
+   * Input angular coordinates are assumed to be in degrees. Longitude is
+   * converted to the 360 longitude domain if necessary.
+   *
+   * @param Eigen::Vector3d containing longitude, latitude, radius coordinates.
+   * @return Eigen::Vector3d Vector converted to xyz coordinates.
+   */
+  inline Eigen::Vector3d latlonrad_to_xyz_d( const Eigen::Vector3d &llr_deg ) {
+
+      double lon_r  = degrees_to_radians( to360LongitudeDomain_d( llr_deg[0] ) );
+      double lat_r  = degrees_to_radians( llr_deg[1] ) ;
+      double radius = llr_deg[2];
+
+      double x = radius * std::cos( lon_r ) * std::cos( lat_r );
+      double y = radius * std::sin( lon_r ) * std::cos( lat_r );
+      double z = radius * std::sin( lat_r  );
+
+      return ( Eigen::Vector3d( { x, y, z } ) );
+
+      // still need to add toLatitudeDomain
+      // Kris below
+      // double lon_r = deg2rad( to360Domain( llr_d[0] ) );
+      //*** double lat_r = deg2rad( toLatitudeDomain( llr_d[1] ) );
+      // double rad_m = llr_d[2];
+  }
+
+  /**
+   * @brief xyz_to_latlonrad_d - Convert rectangular coordinates (x,y,z) to
+   *                             latitudinal coordinates (longitude, latitude,
+   *                             radius). Angular coordinates are in degrees.
+   *
+   * Given a Eigen::Vector3d containing xyz coordinates, this function converts
+   * it to longitude, latitude, radius coordinates. Resulting angular
+   * coordinates are in degrees.
+   *
+   * @param Eigen::Vector3d containing xyz coordinates.
+   * @param bool Flag to convert resulting longitude coordinate to 360 longitude
+   *             domain if necessary. Defaults to true.
+   * @return Eigen::Vector3d Vector converted to longitude, latitude, and radius
+   *                         coordinates.
+   */
+  /*  input x,y,z are km, output lat, lon in radians, radius in km */
+  inline Eigen::Vector3d xyz_to_latlonrad_d( const Eigen::Vector3d &xyz,
+                                             const bool to360 = true ) {
+
+      Eigen::Vector3d llr;
+
+      double vector_max = std::max( { std::abs(xyz[0]),
+                                      std::abs(xyz[1]),
+                                      std::abs(xyz[2]) } );
+
+      double x = xyz[0] / vector_max;
+      double y = xyz[1] / vector_max;
+      double z = xyz[2] / vector_max;
+
+      llr[2] = vector_max * sqrt( x*x + y*y + z*z ); // radius
+      llr[1] = radians_to_degrees( atan2(z, sqrt( x*x + y*y ) ) );         // latitude
+
+      if (x == 0.0 && y == 0.0 ) {                   // longitude
+        llr[0] = 0.0;
+      }
+      else {
+        llr[0] = radians_to_degrees( atan2(y, x) );
+      }
+
+      // Adjust longitude for -180, 180 domain if requested
+      if ( to360 && ( llr[0] < 0.0 ) ) {
+        llr[0] += 360.0;
+      }
+
+      return ( llr );
+  }
+
   /** Returns true if the data of two Eigen::Vector3d have same relative values, with adjustable tolerance */
   inline bool isEqual( const Eigen::Vector3d &v1, 
                        const Eigen::Vector3d &v2,

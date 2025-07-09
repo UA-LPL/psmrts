@@ -589,7 +589,37 @@ double psmrts_photo_emission(const PSMRTS_PhotometricRayTrace *photometricTrace 
  */
 double psmrts_photo_phase( const PSMRTS_PhotometricRayTrace *photoTrace1,
                            const PSMRTS_PhotometricRayTrace *photoTrace2 ) {
-    return (photoTrace1->observer_trace().phase(photoTrace2->observer_trace()) );
+    return ( photoTrace1->observer_trace().phase(photoTrace2->observer_trace()) );
+}
+
+/**
+ * @brief psmrts_lonlatrad_to_xyz - Converts vector in longitude, latitude,
+ *        radius coordinates to xyz.
+ *
+ * Given an PSMRTS_Vector3d in longitude, latitude, radius coordinates, this
+ * function converts it to xyz coordinates. Input angular coordinates are
+ * assumed to be in degrees.
+ *
+ * @param v Pointer to PSMRTS_Vector3d in lon, lat, radius coordinates.
+ * @return PSMRTS_Vector3d Vector converted to xyz coordinates.
+ */
+PSMRTS_Vector3d psmrts_lonlatrad_to_xyz( const PSMRTS_Vector3d *v ) {
+  return ( eigen_to_vector(psmrts::latlonrad_to_xyz_d(vector_to_eigen(*v))) );
+}
+
+/**
+ * @brief psmrts_xyz_to_lonlatrad - Converts vector in xyz coordinates to
+ *        longitude, latitude, radius coordinates.
+ *
+ * Given an PSMRTS_Vector3d in xyz coordinates, this function converts it to
+ * longitude, latitude, radius coordinates. Output angular coordinates are in
+ * degrees.
+ *
+ * @param v Pointer to PSMRTS_Vector3d in xyz coordinates.
+ * @return PSMRTS_Vector3d Vector converted to lon, lat, radius coordinates.
+ */
+PSMRTS_Vector3d psmrts_xyz_to_lonlatrad( const PSMRTS_Vector3d *v ) {
+    return ( eigen_to_vector(psmrts::xyz_to_latlonrad_d(vector_to_eigen(*v))) );
 }
 
 // TBD

@@ -146,9 +146,9 @@ extern double psmrts_photo_phase( const PSMRTS_PhotometricRayTrace *photoTrace1,
 /*============ PSMRTS tracing functions ============*/
 
 // extern PSMRTS_ShapeTracer *psmrts_load_shape( const char *shape, const char *tracer );
-// NOTE: DO WE STILL NEED IMPLEMENTATIONS FOR THESE???
 extern PSMRTS_Vector3d psmrts_lonlatrad_to_xyz( const PSMRTS_Vector3d *lonlatrad );
-extern PSMRTS_Vector3d psmrts_xyz_to_lonlatrad_r( const PSMRTS_Vector3d *xyz );
+extern PSMRTS_Vector3d psmrts_xyz_to_lonlatrad( const PSMRTS_Vector3d *xyz );
+
 extern PSMRTS_Vector3d psmrts_radians_to_degrees( const PSMRTS_Vector3d *lonlatrad_r );
 extern PSMRTS_Vector3d psmrts_degrees_to_radians( const PSMRTS_Vector3d *lonlatrad_d );
 

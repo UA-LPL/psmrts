@@ -7,75 +7,120 @@
 //#include <BulletTracerModel.hpp>
 //#include <BulletShapeTracer.hpp>
 //#include <PsmrtsOBJFormat.hpp>
-//#include <PsmrtsUtilities.hpp>
+#include <PsmrtsUtilities.hpp>
 #include <PsmrtsShapeTracer.hpp>
 
 #include <psmrts_c.h>
 
+/**
+ * @brief Main function of the psmrts_capi_features application.
+ *
+ * This application serves as a demonstration of the Bullet shape tracing sytem
+ * in the PSMRTS library.
+ *
+ * @param argc Number of command line arguments.
+ * @param argv Array of strings representing command line arguments.
+ * @return Integer indicating exit status of the application. Returns 0 upon
+ *         successful execution, non-zero otherwise.
+ */
 int main( int argc, char *argv[] ) {
+
+  // Confirm number of arguments. We expect one argument (the obj filename)
+  // after the executable name in argv
+  if (argc < 2) {
+    const char *exename = strrchr(argv[0], '/');
+    if ( exename ) {
+      ++exename;
+    }
+    else {
+      exename = argv[0];
+    }
+
+    std::cerr << "Usage: " << exename << std::endl
+              << "       obj filename is missing"
+              << std::endl;
+
+    return ( 1 ); // error
+  }
 
   // retrieve obj file name from argv[1]
   std::string objfile = argv[1];
 
-  // This spec saves significant memory... and confirms Bullet preserves data
-  // Create PsmrtsBulletWorldModel from input obj file
-  psmrts::bullet::PsmrtsBulletWorldModel *bt_world = 0;
+  // Create PsmrtsShapeTracer with input obj file.
+  // The try/catch block verifies existence of the input obj file.
+  // CHANGE TO C API ONLY!!!!!
+  // !!!!!! e.g. psmrts_create_shape
+  psmrts::PsmrtsShapeTracer bulletShapeTracer;
   try {
-      bt_world =
-          new psmrts::bullet::PsmrtsBulletWorldModel(psmrts::bullet::PsmrtsBulletMeshMap( psmrts::PsmrtsOBJFormat( objfile ) ),
-                                                     objfile );
+    bulletShapeTracer = psmrts::PsmrtsShapeTracer::bullet(objfile);
   }
   catch (const std::runtime_error& e) {
-      std::cerr << "Runtime error: " << e.what() << std::endl;
+    std::cerr << "Runtime error: " << e.what() << std::endl;
   }
   catch (...) {
-      std::cerr << "Unknown exception." << std::endl;
+    std::cerr << "Unknown exception." << std::endl;
   }
 
-  // create Bullet shape tracer from file string & product features request
-  // (PRQ) objects
-  psmrts::BulletShapeTracer bulletShapeTracer( *bt_world );
-  const double max_radius = bt_world->mesh().maximum_radius();
-  printf("max radius = %f\n", max_radius);
+  // report mesh statistics for input obj file
+  // TBD: WHAT ELSE?
+  printf("Input obj Mesh Statistics\n");
+
+  // can't get max radius yet
+  // const double max_radius = bt_tracer.maximum_radius();
+  // printf("  max radius: %lf\n", max_radius); //should be 0.283065
+
+  // Create PRQFeatures object. This is a configurable PSMRTS "Product Request"
+  // object defining SOMETHING?
+  // TBD: WHAT ELSE HERE?
   psmrts::PRQFeatures features;
 
-  // OK: max radius should be 0.283065
-
-  // validate PRQ
-  if (bulletShapeTracer.process(features) != true ) {
-      printf("uh oh!\n");
-  }
-
-  // validate Base features PRQ functionality before we've done anything
-  printf( "PRQ Features Basic functionality\n");
+  // Report PRQFeatures information before any processing
+  // TBD: WHAT ELSE?
+  printf( "\nPRQFeatures Basic information Before Processing\n");
   printf( "        name: %s\n", features.name().c_str() );
   printf( "     invoked: %d\n", features.was_invoked() );
   printf( "   run count: %zu\n", features.run_count() );
   printf( " error count: %zu\n", features.error_count() );
   printf( "  error size: %zu\n", features.errors().size() );
 
+  // This version of the BulletShapeTracer::process method takes a PRQFeatures
+  // object and stores into it all relevant Bullet info using JSON. Returns
+  // "true" if features have been successfully added to the BulletShapeTracer.
+  // TBD: DOESN'T LOOK LIKE THIS METHOD EVER RETURNS FALSE.
+  //      SHOULD THIS BE IN A TRY/CATCH?
+  if (bulletShapeTracer.process(features) != true ) {
+    printf("uh oh!\n");
+  }
+  else {
+    printf("Shape features: %s/n", features.to_string().c_str()); // converts json to string
+  }
+
+  // Ok, now lets try to process something real
+
   printf( "\nTest: observer@45,45; surface target@45,50\n");
 
-  // Compute the position of an observer at ( 45,45 ) degrees
-  Eigen::Vector3d obs;
-  double r = 1.0;
-  double obs_lon = 45.0 * rpd_c();
-  double obs_lat = 45.0 * rpd_c();
-  latrec_c ( r, obs_lon, obs_lat, obs.data() );
-  obs = obs * 10.0;
+  // Create observer position in an PSMRTS_Vector3d at 45 deg lon, 45 deg lat
+  PSMRTS_Vector3d observer;
+  observer.longitude = psmrts::degrees_to_radians(45.0);
+  observer.latitude = observer.longitude;
+  observer.radius = 1.0; // observer should be 5.0, 5.0, 7.071068
 
-  // OK: obs should be 5.0, 5.0, 7.071068
+  // convert to rectangular
+  observer = psmrts_lonlatrad_to_xyz( &observer );
 
-  // Compute surface point at ( 45, 50 ). This is our surface target
-  Eigen::Vector3d surf;
-  double surf_lon = 45.0 * rpd_c();
-  double surf_lat = 50.0 * rpd_c();
-  latrec_c ( r, surf_lon, surf_lat, surf.data() );
+  printf("observer: %lf %lf %lf\n", observer.longitude,
+                                    observer.latitude,
+                                    observer.radius);
 
-  // OK: surf should be 0.454519, 0.454519, 0.766044
-
-  // Find the real surface point using bullet
-  Eigen::Vector3d surf_obs = surf * (max_radius + 1.5);
+  // Create surface target in an PSMRTS_Vector3d at 45 deg lon and 50
+  // deg latitude.
+  PSMRTS_Vector3d surf;
+  surf.longitude = psmrts::degrees_to_radians(45.0);
+  surf.latitude = psmrts::degrees_to_radians(50.0);
+  surf.radius = 1.0;
+/*
+  // Now let's figure out where Find the real surface point using bullet
+  Eigen::Vector3d surf_obs = surf * 1.5; // how to handle this?
   psmrts::PRQRayTrace prq_ray(surf_obs, -surf_obs );
 
   // validate bullet shape tracer with PRQRayTrace
@@ -85,28 +130,22 @@ int main( int argc, char *argv[] ) {
 
   // Compute expected/precise look vector from
   // observer to surface intercept point
-  Eigen::Vector3d lookdir = prq_ray.trace().xyz() - obs;
-  printf("Observer-Surface Intercept Look Vector\n");
-  printf("X = %f\nY = %f\nZ = %f\n\n", lookdir[0], lookdir[1], lookdir[2]);
-
-  // OK: lookdir should be -4.885201,-4.885201,-6.877586
+  Eigen::Vector3d lookdir = prq_ray.trace().xyz() - observer;
+  printf("Observer-Surface Intercept Look Vector: %lf, %lf, %lf\n",
+         lookdir[0], lookdir[1], lookdir[2] ); //should be -4.885201,-4.885201,-6.877586
 
   // Trace it from observer to surface point to confirm
-  psmrts::PRQRayTrace prq_spt(obs, lookdir );
+  psmrts::PRQRayTrace prq_spt(observer, lookdir );
   bulletShapeTracer.process( prq_spt );
 
   Eigen::Vector3d normal = prq_spt.trace().normal();
   Eigen::Vector3d xyz = prq_spt.trace().xyz();
 
-  printf("Normal at Observer-Surface Intercept\n");
-  printf("X = %f\nY = %f\nZ = %f\n\n", normal[0], normal[1], normal[2]);
+  printf("  Normal at Observer-Surface Intercept: %lf, %lf, %lf\n",
+         normal[0], normal[1], normal[2]); //should be 2.59931e-08, 0.525731, 0.850651
 
-  // OK: normal should be 2.59931e-08, 0.525731, 0.850651
-
-  printf("XYZ at Observer-Surface Intercept\n");
-  printf("X = %f\nY = %f\nZ = %f\n\n", xyz[0], xyz[1], xyz[2]);
-
-  // OK: xyz should be 0.114799, 0.114799, 0.193482
+  printf("     XYZ at Observer-Surface Intercept: %lf, %lf, %lf\n\n",
+         xyz[0], xyz[1], xyz[2]); //should be 0.114799, 0.114799, 0.193482
 
   // Validate points
   printf( "  prq_ray valid: %d\n", prq_ray.isValid() );
@@ -153,7 +192,7 @@ int main( int argc, char *argv[] ) {
   // CHECK_THAT( prq_facet.facet().m_vector3[1], Catch::Matchers::WithinAbs( 0.26443149432320001, tolerance_km ) );
   // CHECK_THAT( prq_facet.facet().m_vector3[2], Catch::Matchers::WithinAbs( 0.10100385653540001, tolerance_km ) );
 
-  /*
+  //asterisk
   // psmrts::bullet::PsmrtsBulletWorldModel bt_world( psmrts::bullet::PsmrtsBulletMeshMap ( psmrts::PsmrtsOBJFormat( objfile ) ), objfile );
   // psmrts::BulletShapeTracer b_tracer( bt_world );
 
@@ -322,9 +361,6 @@ int main( int argc, char *argv[] ) {
   psmrts_free_ray( sunray );
   // psmrts_free_tracer( ellipsoid );
 */
-  if (bt_world != NULL) {
-      delete bt_world;
-  }
 
   return ( 0 );
 }
