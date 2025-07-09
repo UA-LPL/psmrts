@@ -223,8 +223,10 @@ namespace psmrts {
 
         // Now update with the options. Note that any existing keywords will
         // be preserved in the merge.
-        const bool MergeObjectsTrue = true;
-        m_specs.update( options, MergeObjectsTrue );
+        if ( !options.is_null() ) {
+          const bool MergeObjectsTrue = true;
+          m_specs.update( options, MergeObjectsTrue );
+        }
 
         // Create the parameters list
         m_parameters = this->get_parameter_set( );
