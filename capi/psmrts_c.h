@@ -87,22 +87,22 @@ extern PSMRTS_Vector3d psmrts_lonlatrad_d( const double longitude_d,
 extern PSMRTS_Vector3d psmrts_lonlatrad_r( const double longitude_r,
                                            const double latitude_r,
                                            const double radius_km );
-extern PSMRTS_Vector3d psmrts_negate( const PSMRTS_Vector3d &v );
-extern PSMRTS_Vector3d psmrts_subtract( const PSMRTS_Vector3d &v1,
-                                        const PSMRTS_Vector3d &v2 );
-extern PSMRTS_Vector3d psmrts_add( const PSMRTS_Vector3d &v1,
-                                   const PSMRTS_Vector3d &v2 );
-extern PSMRTS_Vector3d psmrts_scale( const PSMRTS_Vector3d &v1,
+extern PSMRTS_Vector3d psmrts_negate( const PSMRTS_Vector3d *v );
+extern PSMRTS_Vector3d psmrts_subtract( const PSMRTS_Vector3d *v1,
+                                        const PSMRTS_Vector3d *v2 );
+extern PSMRTS_Vector3d psmrts_add( const PSMRTS_Vector3d *v1,
+                                   const PSMRTS_Vector3d *v2 );
+extern PSMRTS_Vector3d psmrts_scale( const PSMRTS_Vector3d *v1,
                                      const double scale );
-extern double          psmrts_length( const PSMRTS_Vector3d &v1 );
+extern double          psmrts_length( const PSMRTS_Vector3d *v1 );
 
 /*============ PSMRTS ray functions ============*/
-extern PSMRTS_RayTrace *psmrts_create_ray( const PSMRTS_Vector3d &observer,
-                                           const PSMRTS_Vector3d &lookdir );
+extern PSMRTS_RayTrace *psmrts_create_ray( const PSMRTS_Vector3d *observer,
+                                           const PSMRTS_Vector3d *lookdir );
 extern PSMRTS_RayTrace *psmrts_ray_trace( PSMRTS_RayTrace *ray,
                                           const PSMRTS_ShapeTracer *tracer );
-extern PSMRTS_RayTrace *psmrts_ray_trace_v( const PSMRTS_Vector3d &observer,
-                                            const PSMRTS_Vector3d &lookdir,
+extern PSMRTS_RayTrace *psmrts_ray_trace_v( const PSMRTS_Vector3d *observer,
+                                            const PSMRTS_Vector3d *lookdir,
                                             const PSMRTS_ShapeTracer *tracer );
 extern PSMRTS_Vector3d psmrts_ray_observer( const PSMRTS_RayTrace *ray );
 extern PSMRTS_Vector3d psmrts_ray_lookdir( const PSMRTS_RayTrace *ray );
@@ -133,9 +133,9 @@ extern double psmrts_phase( const PSMRTS_RayTrace *ray1,
 // 3) return const pointer to a photometric ray trace given an index into
 //    it's parent photometric array (return NULL const pointer if index is invalid?)
 // 4) free methods (note we DON'T free const pointers)
-extern PSMRTS_PhotometricRayTrace *psmrts_create_photometric_ray( const PSMRTS_Vector3d &observer,
-                                                                  const PSMRTS_Vector3d &lookdir,
-                                                                  const PSMRTS_Vector3d &sunpos);
+extern PSMRTS_PhotometricRayTrace *psmrts_create_photometric_ray( const PSMRTS_Vector3d *observer,
+                                                                  const PSMRTS_Vector3d *lookdir,
+                                                                  const PSMRTS_Vector3d *sunpos);
 
 extern double psmrts_photo_incidence( const PSMRTS_PhotometricRayTrace *photoTrace );
 extern double psmrts_photo_emission( const PSMRTS_PhotometricRayTrace *photoTrace );
@@ -147,10 +147,10 @@ extern double psmrts_photo_phase( const PSMRTS_PhotometricRayTrace *photoTrace1,
 
 // extern PSMRTS_ShapeTracer *psmrts_load_shape( const char *shape, const char *tracer );
 // NOTE: DO WE STILL NEED IMPLEMENTATIONS FOR THESE???
-extern PSMRTS_Vector3d psmrts_lonlatrad_to_xyz( const PSMRTS_Vector3d &lonlatrad );
-extern PSMRTS_Vector3d psmrts_xyz_to_lonlatrad_r( const PSMRTS_Vector3d &xyz );
-extern PSMRTS_Vector3d psmrts_radians_to_degrees( const PSMRTS_Vector3d &lonlatrad_r );
-extern PSMRTS_Vector3d psmrts_degrees_to_radians( const PSMRTS_Vector3d &lonlatrad_d );
+extern PSMRTS_Vector3d psmrts_lonlatrad_to_xyz( const PSMRTS_Vector3d *lonlatrad );
+extern PSMRTS_Vector3d psmrts_xyz_to_lonlatrad_r( const PSMRTS_Vector3d *xyz );
+extern PSMRTS_Vector3d psmrts_radians_to_degrees( const PSMRTS_Vector3d *lonlatrad_r );
+extern PSMRTS_Vector3d psmrts_degrees_to_radians( const PSMRTS_Vector3d *lonlatrad_d );
 
 // extern PSMRTS_Ray *psmrts_ray_trace( PSMRTS_ShapeTracer *tracer, const double scpos[3], const double lookdir[3] );
 
