@@ -395,27 +395,6 @@ namespace psmrts {
         return ( m_tracker.clone() );
       }
 
-
-      /**
-       * @brief Returns an ordered JSON containing relative product options
-       * and possible values 
-       * 
-       * @return ProductSpecification of product options
-       */
-
-      static inline ProductSpecification product_specifications() {
-        char text[] = R"(
-        {
-          "obj_file": "<filename>",
-          "obj_data_type":  "<double, float>" ,
-          "obj_mtl_search_path": "<dir>",
-          "required" : [ "obj_file" ],
-          "optional": [ "obj_data_type", "obj_mlt_search_path" ]          
-        }
-        )";
-        return ( ProductSpecification( "obj", "mesh", json_utils::parse_json_string( text )));
-      }
-
       /**
        * @brief returns a PsmrtsOBJFormat mesh with the provided product option
        * parameters
