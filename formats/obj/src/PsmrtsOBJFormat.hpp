@@ -427,15 +427,16 @@ namespace psmrts {
        * @return Format-relevant Mesh
        */
       static inline PsmrtsMeshData create( const ProductSpecification &params ) {
-        const PsmrtsParameters &options = params.specs();
         try {
-            if ( options.contains( "obj_file" ) ) {
-              return (PsmrtsOBJFormat( options.get_string_parameter("obj_file") ).get_mesh() );
+
+          if ( params.has_parameter( "obj_file" ) ) {
+            ProductParameter objfile = params.get_parameter("obj_file");
+            std::string mtlopt("");
+            if ( params.has_parameter( "obj_mtl_search_path" ) ) {
+              mtlopt = params.get_parameter("obj_mtl_search_path").value( "obj_mtl_search_path", mtlopt );
             }
-            else if ( params.name() == "obj" ) {
-              std::string objfile = params.specs().get_string_parameter( "file" );
-              return ( PsmrtsOBJFormat( objfile, options.get_string_parameter("obj_mtl_search_path") ).get_mesh() );
-            }
+            return ( PsmrtsOBJFormat( objfile.value<std::string>( "obj_file", mtlopt ) ).get_mesh() );  
+          }
         }
         catch ( const std::runtime_error &re ) {
           std::string msg = std::string( "PsmrtsOBJFormat::create() failed - ").append( re.what() );
@@ -467,7 +468,7 @@ namespace psmrts {
       options["optional"] = { "obj_data_type", "obj_mtl_search_path" };
       m_config_j = ProductSpecification("obj", "mesh", options);
     }
-
+#if 0
     /**
      * @brief returns true if the input ProductSpecification contains the same
      * values as the object
@@ -493,7 +494,7 @@ namespace psmrts {
       }
       return true;
     }
-    
+#endif
     /**
      * @brief Get the Product Config of an OBJ object
      * 

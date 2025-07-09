@@ -5,10 +5,17 @@
 - [ ] Add product requests APIs (see docs/Development/product_specifications.md) to:
   - Formats/shapes: PLY, OBJ and DSK
   - Tracers: ellipsoid, bullet and naifdsk.
-  - Add PRQSpecifications class that collects any number of product specifications.
+- [ ] Changes to ProductParameter:
+  - [ ] Add "size_t inclusions_count() const", and "size_t exclusions_count() const".
+  - [ ] Do we need "compare( )", "product_options()?
+  - [ ] Revisit parse_config() to remove reading of entire file. Perhaps set this upon facet read.
+  - [ ] Add string read option, parse_from_string().
+- [ ] Fix PsmrtsOBJFormat::create with options parameter.  
+- [ ] Fix broken test during build.
+- [ ] Add PRQSpecifications class that collects any number of product specifications.
 - [ ] Create PSMRTS Python API. Use [swig](https://www.swig.org) initially. Make this a new repo.
 - [ ] Add functions methods that convert between lon/lat/radius and x/y/z.
-- [ ] Change all C++ reference args to pointers - required by C.
+- [X] Change all C++ reference args to pointers - required by C.
 - [ ] Major cleanup of CMake, code set. For example, completely eliminate BulltTracerModel.hpp - its not needed.
   - [ ] Consider renaming files to remove/limit `Psmrts` redundancy.
 - [ ] Rename `formats` directory to `shapes`. Requires a bunch of code changes due to path change.
