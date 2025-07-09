@@ -28,10 +28,26 @@ namespace psmrts {
       // Empty default, no name handling?
       ProductParameter( ) : m_spec_j() { }
       
+      explicit ProductParameter( const std::string &name  ) {
+        m_spec_j["name"] = name;
+      }
+
+      explicit ProductParameter( const char *name  ) {
+        m_spec_j["name"] = name;
+      }
+
       ProductParameter( const std::string &name, 
-                        const ordered_json &options = json_utils::json_null() ) {
+                        const ordered_json &options ) {
         m_spec_j = options;
         m_spec_j["name"] = name;
+      }
+
+      /** Create parameter from contents of a JSON object */
+      explicit ProductParameter( const ordered_json &specs ) {
+        m_spec_j = specs;
+        if (!m_spec_j.contains( "name" ) ) {
+          throw std::invalid_argument("Error: Parameter requires a 'name' key with specifying value.");
+        }
       }
 
       ProductParameter( const std::string &key, const std::string &value,
@@ -53,14 +69,6 @@ namespace psmrts {
         m_spec_j = options;
         m_spec_j["name"] = key;
         m_spec_j[key] = value;
-      }
-
-      /** Create parameter from contents of a JSON object */
-      ProductParameter( const ordered_json &specs ) {
-        m_spec_j = specs;
-        if (!m_spec_j.contains( "name" ) ) {
-          throw std::invalid_argument("Error: Parameter requires a 'name' key with specifying value.");
-        }
       }
 
       virtual ~ProductParameter() = default;
@@ -129,7 +137,7 @@ namespace psmrts {
       
 
       /** Returns number of objects/keys in the specs */
-      inline int size() const {
+      inline size_t size() const {
         return ( this->specs().size() );
       }
 
@@ -189,8 +197,18 @@ namespace psmrts {
       inline std::vector<std::string> aliases() const {
         std::vector<std::string> p_alias{};
         return ( this->value( "aliases", p_alias ) );
-      }   
+      }
+
+      inline std::vector<std::string> exclusions( ) const {
+        std::vector<std::string> conflicts_with{};
+        return ( this->value( "exclusions", conflicts_with ) );
+      }        
       
+      inline std::vector<std::string> inclusions( ) const {
+        std::vector<std::string> required_for{};
+        return ( this->value( "inclusions", required_for ) );
+      }     
+
       inline std::vector<std::string> file_suffixes() const {
         std::vector<std::string> p_suffixes{};
         return ( this->value( "file_suffixes", p_suffixes ) );
@@ -274,14 +292,17 @@ namespace psmrts {
         return true;
       }
 
+      inline const ordered_json &config() const {
+        return ( m_spec_j );
+      }
+
+
     protected:
       ordered_json  m_spec_j;
 
       inline bool validate_file( const ProductParameter &other ) const {
         if (other.contains(other.name())) { //name-value becomes key that contains file ref
-          std::vector<std::string> valid_wordlist{};
-          valid_wordlist = this->file_suffixes();
-
+          std::vector<std::string> valid_wordlist = this->file_suffixes();
           std::string fext = psmrts_file_extension( other.value(other.name(), std::string("")) );
 
           for (const auto &fvals : valid_wordlist) {
@@ -295,8 +316,7 @@ namespace psmrts {
       }
       
       inline bool validate_alias( const ProductParameter &other ) const {
-        std::vector<std::string> alias_list{};
-        alias_list = this->aliases();
+        std::vector<std::string> alias_list = this->aliases();
         for (const auto &val : alias_list) {
           if (other.name() == val) {
             return true;
@@ -307,9 +327,7 @@ namespace psmrts {
       
       inline bool validate_string( const ProductParameter &other ) const {
         if (other.contains(other.name())) {
-          std::vector<std::string> valid_wordlist{};
-          valid_wordlist = this->value(other.name(), valid_wordlist);
-
+          std::vector<std::string> valid_wordlist = this->value(other.name(), valid_wordlist);
           std::string target = psmrts_tolower(other.value(other.name(), std::string("")));
 
           for (const auto &vals : valid_wordlist) {

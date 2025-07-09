@@ -47,16 +47,9 @@ namespace psmrts {
                         "name": "ply_file",
                         "type": "file",
                         "description": "Name of PLY file to read",
-                        "status": "required",
+                        "status": "optional",
                         "aliases": ["file", "ply_mesh", "mesh_file"],
                         "file_suffixes": ["ply", "PLY"]
-                    },
-                    {
-                        "name": "ply_string",
-                        "type": "string",
-                        "description": "Format-compatible string containing contents of a PLY file",
-                        "status": "optional",
-                        "aliases": ["ply_mesh_string"]
                     },
                     {
                         "name": "ply_data_type",
@@ -66,15 +59,6 @@ namespace psmrts {
                         "aliases": ["mesh_data_type"],
                         "valid": ["double", "float"],
                         "default": "double"
-                    },
-                    {
-                        "name": "ply_storage_mode",
-                        "type": "string",
-                        "description": "Specifies whether the PLY data is in ASCII or binary format",
-                        "status": "optional",
-                        "aliases": ["storage_mode", "ply_format"],
-                        "valid": ["ascii", "binary_little_endian", "binary_big_endian"],
-                        "default": "ascii"
                     }
                 ]
             })";
