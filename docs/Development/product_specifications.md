@@ -162,12 +162,12 @@ char dsk_config[] = R"(
 } )";
 
 // Alternative C++ construction
-return ( ProductRequest( {  
-                            ProductParameter( "tracer", "naifdsk"), 
-                            ProductParameter( "dsk_file", "g_00880mm_alt_ptm_0000n00000_v020.bds"), 
-                            ProductParameter( "dsk_surface_id", 20001) 
-                         } 
-                       ) 
+return ( ProductConfiguration( {  
+                                  ProductParameter( "tracer", "naifdsk"), 
+                                  ProductParameter( "dsk_file", "g_00880mm_alt_ptm_0000n00000_v020.bds"), 
+                                  ProductParameter( "dsk_surface_id", 20001) 
+                               }
+                             ) 
   );
 ```
 
@@ -442,17 +442,17 @@ extern const char PSMRTS_DLL *psmrts_info();
 extern PSMRTS_Vector3d psmrts_vector3d( const double x, const double y, const double z );
 extern PSMRTS_Vector3d psmrts_lonlatrad_d( const double longitude_d, const double latitude_d, const double radius_km );
 extern PSMRTS_Vector3d psmrts_lonlatrad_r( const double longitude_r, const double latitude_r, const double radius_km );
-extern PSMRTS_Vector3d psmrts_negate( const PSMRTS_Vector3d &v );
-extern PSMRTS_Vector3d psmrts_subtract( const PSMRTS_Vector3d &v1, const PSMRTS_Vector3d &v2 );
-extern PSMRTS_Vector3d psmrts_add( const PSMRTS_Vector3d &v1, const PSMRTS_Vector3d &v2 );
-extern PSMRTS_Vector3d psmrts_scale( const PSMRTS_Vector3d &v1, const double scale );
-extern double          psmrts_length( const PSMRTS_Vector3d &v1 );
+extern PSMRTS_Vector3d psmrts_negate( const PSMRTS_Vector3d *v );
+extern PSMRTS_Vector3d psmrts_subtract( const PSMRTS_Vector3d *v1, const PSMRTS_Vector3d *v2 );
+extern PSMRTS_Vector3d psmrts_add( const PSMRTS_Vector3d *v1, const PSMRTS_Vector3d *v2 );
+extern PSMRTS_Vector3d psmrts_scale( const PSMRTS_Vector3d *v1, const double scale );
+extern double          psmrts_length( const PSMRTS_Vector3d *v1 );
 
 /*============ PSMRTS ray functions ============*/
-extern PSMRTS_RayTrace *psmrts_create_ray( const PSMRTS_Vector3d &observer, const PSMRTS_Vector3d &lookdir );
+extern PSMRTS_RayTrace *psmrts_create_ray( const PSMRTS_Vector3d *observer, const PSMRTS_Vector3d *lookdir );
 extern PSMRTS_RayTrace *psmrts_ray_trace( PSMRTS_RayTrace *ray, const PSMRTS_ShapeTracer *tracer );
-extern PSMRTS_RayTrace *psmrts_ray_trace_v( const PSMRTS_Vector3d &observer,
-                                            const PSMRTS_Vector3d &lookdir,
+extern PSMRTS_RayTrace *psmrts_ray_trace_v( const PSMRTS_Vector3d *observer,
+                                            const PSMRTS_Vector3d *lookdir,
                                             const PSMRTS_ShapeTracer *tracer );
 
 
@@ -467,10 +467,10 @@ extern double psmrts_ray_intercept_slant_distance( const PSMRTS_RayTrace *ray );
 /*============ PSMRTS tracing functions ============*/
 
 // extern PSMRTS_ShapeTracer *psmrts_load_shape( const char *shape, const char *tracer );
-extern PSMRTS_Vector3d psmrts_lonlatrad_to_xyz( const PSMRTS_Vector3d &lonlatrad );
-extern PSMRTS_Vector3d psmrts_xyz_to_lonlatrad_r( const PSMRTS_Vector3d &xyz );
-extern PSMRTS_Vector3d psmrts_radians_to_degrees( const PSMRTS_Vector3d &lonlatrad_r );
-extern PSMRTS_Vector3d psmrts_degrees_to_radians( const PSMRTS_Vector3d &lonlatrad_d );
+extern PSMRTS_Vector3d psmrts_lonlatrad_to_xyz( const PSMRTS_Vector3d *lonlatrad );
+extern PSMRTS_Vector3d psmrts_xyz_to_lonlatrad_r( const PSMRTS_Vector3d *xyz );
+extern PSMRTS_Vector3d psmrts_radians_to_degrees( const PSMRTS_Vector3d *lonlatrad_r );
+extern PSMRTS_Vector3d psmrts_degrees_to_radians( const PSMRTS_Vector3d *lonlatrad_d );
 
 // extern PSMRTS_Ray *psmrts_ray_trace( PSMRTS_ShapeTracer *tracer, const double scpos[3], const double lookdir[3] );
 
@@ -490,3 +490,57 @@ extern void psmrts_free( PSMRTS_PriorityTracer *ptracer );
 
 #endif // psmrts_c_h
 ```
+
+## Product Configuration Syntax: Rules and Examples
+The PSMRTS system contains C and C++ API componets that provide product parameterization techniques. They are designed with user specification considerations which mainly entails string syntax product configurations. The preferred format is JSON, but admittedly, it can be tedious with all the double quotes, curly braces and square brackets. So we have embrace support for parameter-value language (PVL) as an option to simplify the user configuration process while imposing some JSON syntax into the rules. Note that this format is supported for both the C and C++ developer where indicated - which is certainly testing processes!
+
+The JSON string format is highly preferred as the parsing rules are standardized across many third party tools. One thing we rely on that is not a JSON standard is retaining the order of JSON keywords, which are typically ordered alphabetically.  We use nlohmann::json in our implementation that provides an `ordered_json` type. This type retains the order of keywords as they are parsed in strings. We also generate full JSON strings to convey nearly all our data to users. The PVL format satisfies configuration requirements and simplifies syntax for many users.
+
+### PSMRTS Product Configuration JSON String Syntax
+JSON string representations of product specifications are the recommended method to configure PSRMTS products. We use the nhlohman::json::dump utilites to construct output strings that can be used to reconfigure a copy or find a cached version of an existing product. The following example shows the product specification for the PLY Shape format. Each PSRMTS product must create a product specification similar to this for parsing user input strings.
+
+Configurations are created using the following syntax. It constructs a product configuration request that creates a NAIF DSK shape tracer using a specific segment in a DSK BDS file.
+```
+ProductConfiguration(  { ProductParameter( "tracer", "naifdsk"), 
+                         ProductParameter( "dsk_file", "g_00880mm_alt_ptm_0000n00000_v020.bds"), 
+                         ProductParameter( "dsk_surface_id", 20001) } ) );
+```
+
+Priority tracers are simply a vector of ProductConfigurations specified in priority order.
+```
+using PriorityTracerConfig = std::deque<ProductConfiguration>;
+PriorityTracerConfig ptlist = { 
+                                ProductConfiguration( { 
+                                                        ProductParameter( "tracer", "bullet"), 
+                                                        ProductParameter("obj_file", "l_00050mm_alt_ptm_5595n04217_v020.obj") 
+                                                      } ),
+                                ProductConfiguration( { 
+                                                        ProductParameter( "tracer", "ellipsoid"), 
+                                                        ProductParameter( "radii", { 0.283065,0.271215,0.249720 } ) 
+                                                      } ) 
+                              };
+                              
+
+```                                                       
+### PSMRTS Product Configuration PVL String Syntax
+PVL `keyword=value` type data is provided as an alternative to JSON string PSMRTS product configurations. This format is easier to use and still provide the requirements to specify the full range of PSMRTS product configurations.
+
+Here are the general syntax rules for PVL product configuration strings:
+
+1. Each `keyword=value` is seperated by a semicolon or a line feed character.
+1. Double quotes are not required and syntax will be validated partially in the configuration parser/validation process, but is typically deferred to the target product parsing system.
+1. Use `[ ]` to specify all array values.
+1. Use `{ }` to group individual product keyword configurations.
+
+The following examples are the PVL syntax version for the NAIF DSK product specification as shown above. All examples results in the same shape tracer.
+
+```
+const char *naifdsk_0 = "tracer=bullet;dsk_file=g_00880mm_alt_ptm_0000n00000_v020.bds;dsk_surface_id=20001";
+const char *naifdsk_1 = "{tracer=bullet;dsk_file=g_00880mm_alt_ptm_0000n00000_v020.bds;dsk_surface_id=20001}";
+```
+
+To specify a priority tracer requires multiple shape tracer product configurations where the order they are specified is retained. The syntax for this is shown below allocates different shape tracers to achieve global coverage. This configuration prioritizes the local 5cm TAG site DTM on Bennu with a global 88cm shape model. The global may be needed to resolve common traces to determine poles and sub-spacecraft and sub-solar longitude/latitude locations that may not be available in a local DTM.
+```
+const char *bennu_tag_global = "[{tracer=bullet;obj_file=l_00050mm_alt_ptm_5595n04217_v020.obj}\n{tracer=naifdsk;dsk_file=g_00880mm_alt_ptm_0000n00000_v020.bds}]";
+```
+Clearly, order matters here. You can also seperate the arrays with commas as is allowed by JSON, otherwise use the semicolon or line feed characters to seperate all keyword/value pairs and priority shape tracers.
