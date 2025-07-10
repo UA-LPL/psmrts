@@ -11,10 +11,15 @@
   - [ ] Revisit parse_config() to remove reading of entire file. Perhaps set this upon facet read.
   - [ ] Add string read option, parse_from_string().
 - [ ] Fix PsmrtsOBJFormat::create with options parameter.  
-- [ ] Fix broken test during build.
+- [x] Fix broken test during build.
+- [ ] Add `explicit` to constructors with just a string and another with just an ordered json object. They conflict. There could be others. Best practice is use explicit when in doubt.
 - [ ] Add PRQSpecifications class that collects any number of product specifications.
+- [ ] Add PRQForInfo class that returns product specific data in JSON format.
+- [ ] Add support for  system-wide keyword cache to support `$tag` substitition (e.g., environment variables or ISIS `$mission` tags)
+  - [ ] Implement parsing and substitution for file path name (whilst tracking both original file name and expanded).
+- [ ] Finish PsmrtsPriorityTracer classes and infrastructure.
 - [ ] Create PSMRTS Python API. Use [swig](https://www.swig.org) initially. Make this a new repo.
-- [ ] Add functions methods that convert between lon/lat/radius and x/y/z.
+- [x] Add functions methods that convert between lon/lat/radius and x/y/z.
 - [X] Change all C++ reference args to pointers - required by C.
 - [ ] Major cleanup of CMake, code set. For example, completely eliminate BulltTracerModel.hpp - its not needed.
   - [ ] Consider renaming files to remove/limit `Psmrts` redundancy.
