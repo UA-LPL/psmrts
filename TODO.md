@@ -3,14 +3,15 @@
 
 ### Tasks
 - [ ] Add product requests APIs (see docs/Development/product_specifications.md) to:
-  - Formats/shapes: PLY, OBJ and DSK
-  - Tracers: ellipsoid, bullet and naifdsk.
+  - [x] Formats/shapes: PLY, OBJ and DSK
+  - [ ] Tracers: ellipsoid, bullet and naifdsk.
+- [ ] Add `PSMRTS` facet request C API functions.
 - [ ] Changes to ProductParameter:
   - [ ] Add "size_t inclusions_count() const", and "size_t exclusions_count() const".
   - [ ] Do we need "compare( )", "product_options()?
   - [ ] Revisit parse_config() to remove reading of entire file. Perhaps set this upon facet read.
   - [ ] Add string read option, parse_from_string().
-- [ ] Fix PsmrtsOBJFormat::create with options parameter.  
+- [x] Fix PsmrtsOBJFormat::create with options parameter.  
 - [x] Fix broken test during build.
 - [ ] Add `explicit` to constructors with just a string and another with just an ordered json object. They conflict. There could be others. Best practice is use explicit when in doubt.
 - [ ] Add PRQSpecifications class that collects any number of product specifications.
