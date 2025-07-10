@@ -390,7 +390,9 @@ extern "C" {
 #define PSMRTS_DLL
 #endif
 
+
 /*---> Have CMAKE generate PSMRTS CAPI versioning here! */
+
 
 /*============ Type definitions ============*/
 enum PSMRTSTypes {
@@ -433,42 +435,89 @@ typedef struct psmrts_shape           PSMRTS_Shape;
 typedef struct psmrts_tracer          PSMRTS_Tracer;
 typedef struct psmrts_shape_tracer    PSMRTS_ShapeTracer;
 typedef struct psmrts_priority_tracer PSMRTS_PriorityTracer;
+
+typedef struct psmrts_photometric_tracer PSMRTS_PhotometricRayTrace;
 #endif
+
+/* TBD: need to add methods to create tracers
+ * ellipsoid, sphere, spheroid, bullet, naifdsk
+ * provide strings and ones that take doubles and psmrts Vector_3D
+*/
 
 /*============ PSMRTS information functions ============*/
 extern const char PSMRTS_DLL *psmrts_version();
 extern const char PSMRTS_DLL *psmrts_info();
 
-extern PSMRTS_Vector3d psmrts_vector3d( const double x, const double y, const double z );
-extern PSMRTS_Vector3d psmrts_lonlatrad_d( const double longitude_d, const double latitude_d, const double radius_km );
-extern PSMRTS_Vector3d psmrts_lonlatrad_r( const double longitude_r, const double latitude_r, const double radius_km );
+extern PSMRTS_Vector3d psmrts_vector3d( const double x, const double y,
+                                        const double z );
+extern PSMRTS_Vector3d psmrts_lonlatrad_d( const double longitude_d,
+                                           const double latitude_d,
+                                           const double radius_km );
+extern PSMRTS_Vector3d psmrts_lonlatrad_r( const double longitude_r,
+                                           const double latitude_r,
+                                           const double radius_km );
 extern PSMRTS_Vector3d psmrts_negate( const PSMRTS_Vector3d *v );
-extern PSMRTS_Vector3d psmrts_subtract( const PSMRTS_Vector3d *v1, const PSMRTS_Vector3d *v2 );
-extern PSMRTS_Vector3d psmrts_add( const PSMRTS_Vector3d *v1, const PSMRTS_Vector3d *v2 );
-extern PSMRTS_Vector3d psmrts_scale( const PSMRTS_Vector3d *v1, const double scale );
+extern PSMRTS_Vector3d psmrts_subtract( const PSMRTS_Vector3d *v1,
+                                        const PSMRTS_Vector3d *v2 );
+extern PSMRTS_Vector3d psmrts_add( const PSMRTS_Vector3d *v1,
+                                   const PSMRTS_Vector3d *v2 );
+extern PSMRTS_Vector3d psmrts_scale( const PSMRTS_Vector3d *v1,
+                                     const double scale );
 extern double          psmrts_length( const PSMRTS_Vector3d *v1 );
 
 /*============ PSMRTS ray functions ============*/
-extern PSMRTS_RayTrace *psmrts_create_ray( const PSMRTS_Vector3d *observer, const PSMRTS_Vector3d *lookdir );
-extern PSMRTS_RayTrace *psmrts_ray_trace( PSMRTS_RayTrace *ray, const PSMRTS_ShapeTracer *tracer );
+extern PSMRTS_RayTrace *psmrts_create_ray( const PSMRTS_Vector3d *observer,
+                                           const PSMRTS_Vector3d *lookdir );
+extern PSMRTS_RayTrace *psmrts_ray_trace( PSMRTS_RayTrace *ray,
+                                          const PSMRTS_ShapeTracer *tracer );
 extern PSMRTS_RayTrace *psmrts_ray_trace_v( const PSMRTS_Vector3d *observer,
                                             const PSMRTS_Vector3d *lookdir,
                                             const PSMRTS_ShapeTracer *tracer );
-
-
 extern PSMRTS_Vector3d psmrts_ray_observer( const PSMRTS_RayTrace *ray );
 extern PSMRTS_Vector3d psmrts_ray_lookdir( const PSMRTS_RayTrace *ray );
 extern PSMRTS_BOOL     psmrts_ray_has_hit( const PSMRTS_RayTrace *ray );
 extern PSMRTS_Vector3d psmrts_ray_xyz( const PSMRTS_RayTrace *ray );
+extern PSMRTS_Vector3d psmrts_ray_raypt( const PSMRTS_RayTrace *ray );
 extern PSMRTS_Vector3d psmrts_ray_normal( const PSMRTS_RayTrace *ray );
 extern double psmrts_ray_intercept_radius( const PSMRTS_RayTrace *ray );
 extern double psmrts_ray_intercept_slant_distance( const PSMRTS_RayTrace *ray );
+extern double psrmrts_ray2ray_distance( const PSMRTS_RayTrace *ray1,
+                                        const PSMRTS_RayTrace *ray2 );
+extern double psmrts_separation_angle_radians( const PSMRTS_Vector3d *v1,
+const PSMRTS_Vector3d *v2 );
+extern bool psrmrts_isNear( const PSMRTS_RayTrace *ray1,
+                            const PSMRTS_RayTrace *ray2,
+                            const double tolerance_km = 1.0e-3 );
+extern double psmrts_incidence( const PSMRTS_RayTrace *ray1,
+                                const PSMRTS_RayTrace *ray2 );
+extern double psmrts_emission( const PSMRTS_RayTrace *ray );
+extern double psmrts_phase( const PSMRTS_RayTrace *ray1,
+                            const PSMRTS_RayTrace *ray2 );
+
+/*======== PSMRTS photometric tracing functions (from  PsmrtsRequest) ========*/
+// TBD: need to add functions to PRQPhotometricTraceArray:
+// 1) method to declare and populate a photometric trace array and a regular
+//    ray trace array (both have same behaviour, except for e, i, p angles)
+// 2) return count of number of photometric traces in array
+// 3) return const pointer to a photometric ray trace given an index into
+//    it's parent photometric array (return NULL const pointer if index is invalid?)
+// 4) free methods (note we DON'T free const pointers)
+extern PSMRTS_PhotometricRayTrace *psmrts_create_photometric_ray( const PSMRTS_Vector3d *observer,
+                                                                  const PSMRTS_Vector3d *lookdir,
+                                                                  const PSMRTS_Vector3d *sunpos);
+
+extern double psmrts_photo_incidence( const PSMRTS_PhotometricRayTrace *photoTrace );
+extern double psmrts_photo_emission( const PSMRTS_PhotometricRayTrace *photoTrace );
+extern double psmrts_photo_phase( const PSMRTS_PhotometricRayTrace *photoTrace1,
+                                  const PSMRTS_PhotometricRayTrace *photoTrace2 );
+
 
 /*============ PSMRTS tracing functions ============*/
 
 // extern PSMRTS_ShapeTracer *psmrts_load_shape( const char *shape, const char *tracer );
 extern PSMRTS_Vector3d psmrts_lonlatrad_to_xyz( const PSMRTS_Vector3d *lonlatrad );
-extern PSMRTS_Vector3d psmrts_xyz_to_lonlatrad_r( const PSMRTS_Vector3d *xyz );
+extern PSMRTS_Vector3d psmrts_xyz_to_lonlatrad( const PSMRTS_Vector3d *xyz );
+
 extern PSMRTS_Vector3d psmrts_radians_to_degrees( const PSMRTS_Vector3d *lonlatrad_r );
 extern PSMRTS_Vector3d psmrts_degrees_to_radians( const PSMRTS_Vector3d *lonlatrad_d );
 
@@ -483,6 +532,7 @@ extern void psmrts_free_shape( PSMRTS_Shape *shape );
 extern void psmrts_free_tracer( PSMRTS_Tracer *tracer );
 extern void psmrts_free_shapetracer( PSMRTS_ShapeTracer *stracer );
 extern void psmrts_free( PSMRTS_PriorityTracer *ptracer );
+extern void psmrts_free_photometric_ray( PSMRTS_PhotometricRayTrace *ptracer );
 
 #ifdef __cplusplus
 }
@@ -519,15 +569,13 @@ PriorityTracerConfig ptlist = {
                                                         ProductParameter( "radii", { 0.283065,0.271215,0.249720 } ) 
                                                       } ) 
                               };
-                              
-
 ```                                                       
 ### PSMRTS Product Configuration PVL String Syntax
 PVL `keyword=value` type data is provided as an alternative to JSON string PSMRTS product configurations. This format is easier to use and still provide the requirements to specify the full range of PSMRTS product configurations.
 
 Here are the general syntax rules for PVL product configuration strings:
 
-1. Each `keyword=value` is seperated by a semicolon or a line feed character.
+1. Each `keyword=value` is separated by a semicolon or a line feed character.
 1. Double quotes are not required and syntax will be validated partially in the configuration parser/validation process, but is typically deferred to the target product parsing system.
 1. Use `[ ]` to specify all array values.
 1. Use `{ }` to group individual product keyword configurations.
@@ -543,4 +591,4 @@ To specify a priority tracer requires multiple shape tracer product configuratio
 ```
 const char *bennu_tag_global = "[{tracer=bullet;obj_file=l_00050mm_alt_ptm_5595n04217_v020.obj}\n{tracer=naifdsk;dsk_file=g_00880mm_alt_ptm_0000n00000_v020.bds}]";
 ```
-Clearly, order matters here. You can also seperate the arrays with commas as is allowed by JSON, otherwise use the semicolon or line feed characters to seperate all keyword/value pairs and priority shape tracers.
+Clearly, order matters here. You can also separate the arrays with commas as is allowed by JSON, otherwise use the semicolon or line feed characters to separate all keyword/value pairs and priority shape tracers.
