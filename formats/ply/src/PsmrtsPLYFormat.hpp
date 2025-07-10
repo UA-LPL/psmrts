@@ -311,14 +311,11 @@ namespace psmrts {
          * @return PsmrtsPLYFormat 
          */
         static inline PsmrtsMeshData create( const ProductSpecification &params ) {
-            ordered_json options = params.specs().parameters();
+
             try {
-                if (options.contains( "ply_file" ) ) {
-                    return (PsmrtsPLYFormat( options.at("ply_file")).get_mesh() );
-                }
-                else if ( params.name() == "ply" ) {
-                    std::string plyfile = params.specs().get_string_parameter( "file" );
-                    return (PsmrtsPLYFormat( plyfile ).get_mesh());
+                if ( params.has_parameter( "ply_file" ) ) {
+                    ProductParameter plyfile = params.get_parameter("ply_file");
+                    return ( PsmrtsPLYFormat(  plyfile.value<std::string>( "ply_file" ) ).get_mesh() );
                 }
             }
             catch ( const std::runtime_error &re) {
@@ -332,6 +329,7 @@ namespace psmrts {
             throw std::runtime_error( msg );
         }
 
+#if 0
         /**
          * @brief returns true if the input product json contains the same
          * values as the object
@@ -357,6 +355,7 @@ namespace psmrts {
               }
               return true;
         }
+#endif
 
         /** Returns the header json information
         inline const json &config() const {
