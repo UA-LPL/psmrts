@@ -9,6 +9,7 @@ include_directories( ${PSMRTS_PROJECT_DIR}/psmrts/tests )
 
 # Build all-in-one renderer test application
 add_executable( obj_test_suite  obj_catch2_main.cpp
+                                test_ObjShape.cpp
                                 test_PsmrtsOBJFormat.cpp )
 
 
