@@ -211,53 +211,50 @@ namespace psmrts {
       }
       
       /** Initialize the product specfication with expected values */
-      inline void initialize( const std::string &name, const std::string &type,
+      inline void initialize( const std::string &name, 
+                              const std::string &type,
                               const std::string &product,
                               const ordered_json &options = json_utils::json_null() ) {
         
-        // Set up specs for the product
-                          
-        m_specs = ordered_json();
-        if ( name.length() > 0 ) {
-          m_specs["name"] = name;
-          m_name = name;
-        }
-        else {
-          m_name = "";
-        }
+        
+        auto get_json_value = [] ( ordered_json &json_t,
+                                   const std::string &key, 
+                                   const std::string &value_t = "" ) -> std::string {
+          
+          std::string o_value = value_t;
+          if ( o_value.size() == 0 ) {
+            if ( !json_t.is_null() ) {
+              // See if it exits and return it
+              if ( json_t.contains( key ) ) {
+                o_value = json_t[key];
+              }
+            }
+          }
+          else {
+            if ( !json_t.is_null() ) {
+              // See if it exists in the JSON object and return it
+              if ( !json_t.contains( key ) ) {
+                json_t[key] = o_value;
+              }
+            }
+          }
+          return ( o_value );
+        };
 
-        if ( type.length() > 0 ) {
-          m_specs["type"] = type;
-          m_type = type;
-        }
-        else {
-          m_type = "";
-        }
-
-        if ( product.length() > 0 ) {
-          m_specs["product"] = product;
-          m_product = product;
-        }
-        else {
-          m_product = "";
-        }
-
+        // Set up specs for the product          
+        m_specs = ( options.is_null() ) ? ordered_json::object() : options;
+        m_name = get_json_value( m_specs, "name", name );
+        m_type = get_json_value( m_specs, "type", type );
+        m_product = get_json_value( m_specs, "product", product );
 
         // Now ensure the required types are defined
         try {
-          m_name = m_specs["name"];
+          // m_name = m_specs["name"];
          //  m_type = m_specs["type"];
         }
         catch ( const json::exception &je ) {
           std::string mess = std::string("*** ProductSpecification name/type error - ").append( je.what() );
           throw std::runtime_error( mess );
-        }
-
-        // Now update with the options. Note that any existing keywords will
-        // be preserved in the merge.
-        if ( !options.is_null() ) {
-          const bool MergeObjectsTrue = true;
-          m_specs.update( options, MergeObjectsTrue );
         }
 
         // Create the parameters list
