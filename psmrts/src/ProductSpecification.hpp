@@ -107,10 +107,10 @@ namespace psmrts {
       }
      
       inline ProductParameter driver() const {
-        if ( this->has_parameter( "driver" ) ) {
-          return ( this->get_parameter( "driver" ) );
+        if ( this->specs().contains( "driver" ) ) {
+          return ( ProductParameter( this->specs().value<ordered_json>( "driver" ) ) );
         }
-        return ( ProductParameter( "nodriver" ) );
+        return ( ProductParameter( "driver" ) );
       }
       
       inline std::vector<std::string> required() const {
