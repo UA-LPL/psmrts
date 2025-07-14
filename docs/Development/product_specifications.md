@@ -35,6 +35,7 @@ Each `PSMRTS` product, such as a `mesh`, `tracer`, must have a description that 
 #### ProductSpecification class 
 The `ProductSpecification` class defines the format for product specification. This class will maintain a product name and type along with parameterization specifications and driver information. Each product driver must provide the details shown below and subsequently discussed in the following example. This static method is required in each `PSMRTS` product implementation.
 
+##### Shape Specification
 The example shown here is the specification for the `tinyobjloader` OBJ reader. It also reads materials. Additional functionality can be added to support reading/retaining the materials structure and provide an object functor interface to get access to the materials data read by `tinyobjloader`. We are currently recommending this specification belongs in the product process class, such as ObjShape.hpp.
 
 ```
@@ -92,6 +93,53 @@ The example shown here is the specification for the `tinyobjloader` OBJ reader. 
 
 Note this approach also provides some interesting possibilitites. Developers can add their own parameters that could be used to turn on debugging, logging and I/O options for analysis/debugging. We should anticipate a need for global `psmrts` parameter options (ex: `psmrts_maximum_threads=0`) that drivers could recognize and apply within their scope. Note that special types like `file` can include methods that check the _value_ of the type for a _file_suffixes_ to satisfy its required file extension. Note that most string values, excluding `file` and `directory`, are converted to lower case (such as JSON keyword names should all be lowercase - enforced in the `ProductParameter` class).
 
+##### Tracer Specification
+The Bullet system configuration provides users the abilility to use a bounding volume hierarchy, use compression and apply measures to ensure single thread safety when running a ray trace. Here is the prelimimary specfication for Bullet:
+```
+      static inline ProductSpecification product_specifications() {
+        char text[] = R"(
+        {
+          "name": "bullet",
+          "product": "shapetracer",
+          "type": "tracer"
+          "description": "The Bullet Physics ray tracing system specification",
+          "driver": {
+            "name": "bullet",
+            "type": "system",
+            "aliases": [ "shapetracer" ]
+          }
+          "parameters": [
+            {
+              "name": "bullet_optimizebvh",
+              "type": "bool",
+              "description": "Use optimized bounding volume hierachy (BVH) when created",
+              "status": "optional",
+              "default": "false",
+              "valid": ["true", "1", "yes", "false", "0", "no"]
+            },
+            {
+              "name": "bullet_compressed",
+              "type": "bool",
+              "description": "Compress Bullet data during construction",
+              "status": "optional",
+              "default": "false",
+              "valid": ["true", "1", "yes", "false", "0", "no"]
+            },            
+            {
+              "name": "bullet_thread_safety",
+              "type": "bool",
+              "description": "Utilize thread locking before Bullet ray traces are run",
+              "status": "optional",
+              "default": "false",
+              "valid": ["true", "1", "yes", "false", "0", "no"]
+            }
+          ]       
+        } )";
+
+        // This validates the JSON structure and provides product info to callers
+        return ( ProductSpecification( "obj", "mesh", json_utils::parse_json_string( text )));
+      }
+```
 
 #### ProductParameter class
 The `ProductParameter` class that maintains and provides operations on the JSON array of `"parameters"` structures. These object instances of the parsed JSON content of the `"parameters"` array will provide operations as needed such as validation of the required format and comparisons of other instances. It should also allow storage of a _value_ keyword that will be added to the ProductParameter object when specified from a user. 
