@@ -11,7 +11,7 @@ TEST_CASE( "OBJ SHAPE - Default Test", "[obj][shape][specification]") {
     CHECK( spec.name()              == "obj"   );
     CHECK( spec.product()           == "shape" ); 
     CHECK( spec.type()              == "mesh"  );
-    CHECK( spec.driver().name()     == "nodriver" ); //should be "obj"?
+    CHECK( spec.driver().name()     == "obj" ); 
     CHECK( spec.size()              == 4 );
     CHECK( spec.parameters().size() == 4 );
     CHECK( spec.required().size()   == 1 );

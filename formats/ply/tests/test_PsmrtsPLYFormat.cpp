@@ -344,3 +344,16 @@ TEST_CASE( "PLY FORMAT Asset Test - OBJ Data Value Test", "[format][ply][obj]" )
     // The PLY version is float and the OBJ is double
     CHECK_THAT( sum_double, Catch::Matchers::WithinAbs(0.0, tolerance_d ) );
 }
+
+/**
+TEST_CASE( "PLY FORMAT Parse Config Time Test", "[format][ply][config][time]") {
+    std::string smallfile = psmrts_formats_path( "ply/data/Bennu_Radar.ply" );
+    psmrts::PsmrtsPLYFormat ply1( smallfile );
+
+    std::string largefile = psmrts_formats_path( "ply/data/Big_Bennu.ply" );
+    psmrts::PsmrtsPLYFormat ply2( largefile );
+
+    CHECK( smallfile == largefile );
+}
+*/
+
