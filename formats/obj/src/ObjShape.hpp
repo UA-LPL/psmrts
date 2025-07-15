@@ -34,10 +34,11 @@ namespace psmrts  {
        *                  resulting facet data
        * @return true   If process results in valid facet intercept
        * @return false  If process fails to find facet/intercept
-       */
+       
       inline bool process( PRQFacet &facet ) const {
          return ( m_model.get_facet( facet.trace(), facet.facet() ) );
       }
+        */
 
 
       /**
@@ -50,24 +51,24 @@ namespace psmrts  {
        *                  in a JSON format
        * @return true    If features were added successfully
        * @return false   If any issues during processing
-       */
+       
       inline bool process( PRQFeatures &features ) const {
         features.add_feature( this->product_specifications().specs() );
         return ( true );
       }
-
+        */
       static inline ProductSpecification product_specifications() {
         char text[] = R"(
         {
           "name": "obj",
           "product": "shape",
-          "type": "mesh"
+          "type": "mesh",
           "description": "Reads Wavefront OBJ mesh files and creates a PMRTS mesh object",
           "driver": {
             "name": "obj",
             "type": "system",
             "aliases": [ "OBJ" ]
-          }
+          },
           "parameters": [
             {
               "name": "obj_file",
@@ -82,7 +83,7 @@ namespace psmrts  {
               "type": "string",
               "description": "Format-compatible string containing contents of an OBJ file",
               "status": "optional",
-              "aliases": ["obj_mesh_string"],
+              "aliases": ["obj_mesh_string"]
             },            
             {
               "name": "obj_data_type",
@@ -104,7 +105,7 @@ namespace psmrts  {
         } )";
 
         // This validates the JSON structure and provides product info to callers
-        return ( ProductSpecification( "obj", "mesh", json_utils::parse_json_string( text )));
+        return ( ProductSpecification( "obj", "mesh", "shape", json_utils::parse_json_string( text )));
       }      
 
       /** Report all remaining features not available */
