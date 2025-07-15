@@ -5,6 +5,7 @@
 
 #include <NaifDskTracerModel.hpp>
 #include <PsmrtsRequest.hpp>
+#include <ProductSpecification.hpp>
 
 namespace psmrts  {
   /**
@@ -186,6 +187,40 @@ namespace psmrts  {
       /** Report all remaining features not available - e.g., PRQFacet not relevant to Ellipsoid format */
       PSMRTS_PROCESS_CATCHALL( "NaifDskShapeTracer" )
 
+      static inline ProductSpecification product_specifications() {
+        char text[] = R"(
+        {
+          "name": "naifdsk",
+          "product": "shapetracer",
+          "type": "tracer",
+          "description": "NAIF DSK ray tracing system specifications",
+          "driver": {
+            "name": "naifdsk",
+            "type": "system",
+            "aliases": ["shapetracer"]
+          },
+          "parameters": [
+            {
+              "name": "naif_dsk_kernel_paths",
+              "type": "list[string]",
+              "description": "List of NAIF kernel file paths (DSK, SPK, PCK, etc.) to load",
+              "status": "optional",
+              "default": []
+            },
+            {
+              "name": "naif_dsk_segment_priority",
+              "type": "string",
+              "description": "How to resolve multiple DSK segments",
+              "status": "optional",
+              "default": "last",
+              "valid": ["first", "last"]
+            }
+          ]       
+        } )";
+
+        // This validates the JSON structure and provides product info to callers
+        return ( ProductSpecification( "naifdsk", "tracer", "shapetracer", json_utils::parse_json_string( text )));
+      }
 
     protected:
        NaifDskTracerModel  m_model;

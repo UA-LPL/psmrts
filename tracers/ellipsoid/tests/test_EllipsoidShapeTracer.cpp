@@ -446,3 +446,19 @@ TEST_CASE( "Ellipsoid Shape Tracer Photometric Array Test", "[ellipsoid][shapetr
     photo_array.add_trace( prq_photo2 );
     CHECK( e_tracer.process( photo_array ) == true );
 }
+
+TEST_CASE( "Ellipsoid Shape Tracer Product Specification Test", "[ellipsoid][shapetracer][product][specification]") {
+    psmrts::ProductSpecification spec = psmrts::EllipsoidShapeTracer::product_specifications();
+
+    CHECK( spec.name()              == "ellipsoid"   );
+    CHECK( spec.product()           == "shapetracer" ); 
+    CHECK( spec.type()              == "tracer"      );
+    CHECK( spec.driver().name()     == "ellipsoid"   ); 
+    CHECK( spec.size()              == 2             );
+    CHECK( spec.parameters().size() == 2             );
+    CHECK( spec.required().size()   == 1             );
+    CHECK( spec.optional().size()   == 1             );
+
+    CHECK( spec.has_parameter( "obj_mtl_search_path" ) == false );
+    CHECK( spec.has_parameter( "ellipsoid_radii" )  == true  );
+}
