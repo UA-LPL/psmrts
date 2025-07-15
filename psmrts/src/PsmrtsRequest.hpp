@@ -1,9 +1,9 @@
 #pragma once
 
+#include <vector>
 #include <deque>
 #include <string>
 #include <memory>
-#include <type_traits>
 #include <exception>
 
 #include <PsmrtsUtilities.hpp>
@@ -353,14 +353,17 @@ namespace psmrts {
 
 class PRQRayTraceArray : public PsmrtsRequest {
     public:
-      using PRQRayTraceList = std::vector<PRQRayTrace>;
+      using PRQRayTraceList = std::deque<PRQRayTrace>;
 
     /** default constructable */
       PRQRayTraceArray() : PsmrtsRequest( "PRQRayTraceArray" ),
                            m_traces( ) { }
       PRQRayTraceArray( const std::vector<PRQRayTrace> &traces ) : 
                         PsmrtsRequest( "PRQRayTraceArray" ),
-                        m_traces( traces ) { }                                 
+                        m_traces( traces.begin(), traces.end() ) { }
+      PRQRayTraceArray( const PRQRayTraceList &traces ) : 
+                        PsmrtsRequest( "PRQRayTraceArray" ),
+                        m_traces( traces ) { }                                                     
       virtual ~PRQRayTraceArray() { }
  
       using PsmrtsRequest::name;
@@ -490,11 +493,14 @@ class PRQRayTraceArray : public PsmrtsRequest {
 
 class PRQPhotometricTraceArray : public PsmrtsRequest {
     public:
-      using PRQPhotometricTraceList = std::vector<PRQPhotometricTrace>;
+      using PRQPhotometricTraceList = std::deque<PRQPhotometricTrace>;
 
     /** default constructable */
       PRQPhotometricTraceArray() : PsmrtsRequest( "PRQPhotometricTraceArray" ),
                            m_traces( ) { }
+      PRQPhotometricTraceArray( const std::vector<PRQPhotometricTrace> &traces ) : 
+                                PsmrtsRequest( "PRQPhotometricTraceArray" ),
+                                m_traces( traces.begin(), traces.end() ) { }                              
       PRQPhotometricTraceArray( const PRQPhotometricTraceList &traces ) : 
                         PsmrtsRequest( "PRQPhotometricTraceArray" ),
                         m_traces( traces ) { }                                 
