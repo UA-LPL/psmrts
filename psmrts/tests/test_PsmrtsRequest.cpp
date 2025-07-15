@@ -47,32 +47,3 @@ TEST_CASE( "PsmrtsRequest Default Test", "[request][default]" ) {
     }
     CHECK( request_t.error_count() == 20 );
 }
-
-
-int myfunc( double x ) { return 1; }
-int myfunc( int x ) { return 2; }
-int myfunc( ) { return 2; }
-
-
-TEST_CASE( "PsmrtsRequest Callable Test", "[request][callable][traits]" ) {
-    
-
-    struct MyProcess {
-
-        size_t size( double  x ) const { return 1; }
-        bool process( int v )  {
-            return ( true );
-        }
-#if 0
-        bool process( std::string v ) const {
-            return ( true );
-        }        
-#endif        
-    };
-
-    CHECK( psmrts::traits::has_process_method< MyProcess, int>  == false ); // Should be true?
-
-    // make
-    //CHECK( psmrts::traits::is_process_callable< MyProcess, int>  == true );
-
-}

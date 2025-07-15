@@ -12,121 +12,15 @@
 
 namespace psmrts { 
 
-  namespace traits { 
-
-      template <class, class = void> 
-        struct has_type_member : std::false_type {};
-
-      template <class T> 
-        struct has_type_member<T, std::void_t<typename T::type>> : std::true_type {};
-
-      template <class, class = void> 
-        struct has_valid_member : std::false_type {};
-
-      template <class T> 
-        struct has_valid_member<T, std::void_t<typename T::type>> : std::true_type {};
-
-      template < typename = bool, typename = void, typename... Args> 
-      struct is_process_callable : std::false_type { };
-
-      template < typename T, typename... Args>
-      struct is_process_callable< bool, T, std::void_t<decltype( std::declval<T>().process( std::declval<Args>()... ))>, Args...> : std::true_type {};
-
-      template < typename R, typename T, typename... Args>
-      inline constexpr bool has_process_method = is_process_callable<R, T, Args...>::value;
-
-      // Used to detects functions of the following form 
-      //   void Compute(int, int&) { std::cout << "Computing int\n"; }
-      //   void Compute(double, double&) { std::cout << "Computing double\n"; }
-      //
-      // See http://coliru.stacked-crooked.com/a/dff6ff04ab058c29
-
-      //template < typename T, typename = void>
-      // struct is_process_available : std::false_type {};
-      // template <typename C, typename T>
-      // struct is_process_available<C, std::void_t<decltype(std::declval<C>().process( std::declval<T&>() ) ) >> : std::true_type {};
-
-      // helper variable template
-      // template< typename C, typename T> 
-      // inline constexpr bool is_process_available_v = is_process_available<C,T>::value;
-
-  } // namespace traits
-
-
-
-
   /**
-   * @brief Producer request submit dispatch function
+   * @brief A specialized NOOP class process handler
    * 
-   * This template function will attempt to call a method in PRODUCER that has
-   * a pattern of PRODUCER::process( REQUEST &request ). This dispatch function
-   * will determine if the function can be called and invokes/runs it with the
-   * given REQUEST parameter, returning the value returned from the
-   * PRODUCER::process(). 
+   * This class is designed to be used as "no" product proxy. This is useful
+   * to use as a default varaint type for any product variant use as the
+   * first element listed in the variant declaration. 
    * 
-   * This function provides compile-time detection of any
-   * PRODUCER::process(REQUEST&) method and will run the method if it exists.
-   * This function can be used in virtually any class even if no valid process()
-   * method exists. It will compile and return status where the run count is
-   * incremented but REQUEST::was_invoked() will return false for every call.
-   * 
-   * This is designed to take avantage of the PsmrtsRequest base class features
-   * that provides a tracking mechnism. It counts the number of times the request
-   * has been invoked (which could serve as a unique ID), and if a process() 
-   * methods was actually invoked. The follwing methods are requred to exist
-   * in REQUEST, which is found in the PsmrtsRequest base class:
-   * 
-   * @code {.language-id}
-   *   REQUEST::process_running();
-   *   REQUEST::process_complete( bool );
-   *   REQUEST::add_error( std::runtime_error );
-   * @endcode
-   *  
-   * This function traps exceptions and adds them to the REQUEST object. Derived
-   * classes can call REQUEST::reset() to clear status.
-   * 
-   * @tparam PRODUCER Any class PRODUCER that may contain a process( REQUEST&) method
-   * @tparam REQUEST  The PMSRTS request to be processed by the PRODUCER 
-   * @param producer  PRODUCER object that will be called with the REQUEST object, request
-   * @param request   A functioniod-type state object that contains resources to receive
-   *                   and/or process PSMRST requests.
-   * @return true     If the function excuted successfuly
-   * @return false    If the function does not exist or the process() method returned
-   *                   a false condition
+   * @see PsmrtsTracer.hpp for an example of this technique.
    */
-  #if 1
-  template <typename PRODUCER, typename REQUEST>
-    bool submit_producer_request( PRODUCER &producer, REQUEST &request ) {
-      bool retval   = false;
-      try {
-
-        // See https://en.cppreference.com/w/cpp/types/is_invocable (c++17)
-        if constexpr ( psmrts::traits::has_process_method< PRODUCER, REQUEST > ) {
-          request.process_running();
-          request.process_complete( false );
-          retval = std::invoke<bool, std::declval( producer.process ), request >;
-          request.process_complete( true );
-          // request.process_finished();
-        }
-
-      }
-      catch ( const std::runtime_error &rte ) {
-        request.add_error( rte );
-      }
-      catch ( const std::exception &e ) {
-        request.add_error( std::runtime_error( e.what() ) );
-      }
-      catch ( ... ) {
-        std::string mess = "Undefined exception occured in " + request.name();
-        request.add_error( std::runtime_error( mess ) ); 
-      }
-      
-      return ( retval );
-    }
-
-#endif
-
-  /** Versatile noop process catchall template for unimplemented requests */
   class MissingProcessRequestHandler {
     public:
       MissingProcessRequestHandler() : m_name("Product" ) { }
@@ -151,11 +45,59 @@ namespace psmrts {
       std::string m_name;
   };
 
-// #define PSMRTS_DISABLE_PROCESS_CATCHALL 1
+  /**
+   * @brief MACRO to catch all unimplemented calls to process( PRQ )
+   * 
+   * This macro is designed to be added at the bottom of any class that may
+   * be subjected to PSMRTS process( PRQ ) calls. It "captures" all
+   * unimplemented process( PRQ ) calls in any class this is included
+   * in.
+   * 
+   * Notice it implements a NOOP strategy that will indicate the requested
+   * process does not exist in this class. In this case, the process
+   * method template in MissingProcessRequestHandler is called that will
+   * configure the NOOP process request call.
+   * 
+   * Classes that do not have a PRQ feature can ignore implementing a
+   * fact/empty process() method. Product classes now only need to provide
+   * the implementation of process( PRQ ) visitor that can provide the
+   * requested data or operation.
+   * 
+   * The following code should be added at the end of your public section of
+   * the class:
+   * 
+   * @code 
+   *  // Report all remaining features not available - e.g., 
+   *  // PRQFacet is not relevant to an Ellipsoid tracer or 
+   *  // other non-mesh tracers.
+      PSMRTS_PROCESS_CATCHALL( "EllipsoidShapeTracer" )
+   * @endcode
+   * 
+   * Note that there is no ; to end that statement. A compiler error will
+   * occur of one is added.
+   * 
+   * Also, during compilation, if the macro PSMRTS_DISABLE_PROCESS_CATCHALL
+   * is defined, this statement is not compiled. This will reveal, through
+   * ensuing compiler errors, all the process( PRQ ) calls issued against
+   * your class object. It may be helpful to get a summary of all potentail
+   * data return options that product class developers may find useful. To
+   * turn this on for your class only you could use the following code:
+   * 
+   * @code
+   * #define PSMRTS_DISABLE_PROCESS_CATCHALL 1
+   *   PSMRTS_PROCESS_CATCHALL( "EllipsoidShapeTracer" )
+   * #undef PSMRTS_DISABLE_PROCESS_CATCHALL
+   * @endcode
+   * 
+   * This technique allows you to add your own product classes and unique 
+   * requests without affecting/disrupting of other products.
+   * 
+   */
 #if !defined( PSMRTS_DISABLE_PROCESS_CATCHALL )
 #define PSMRTS_PROCESS_CATCHALL( producer_name ) \
-      /** Catch all unimplemnted producer_name::process( PRQ ) methods - e.g., PRQFacet not relevant to Ellipsoid format */ \
-      template <typename PRQ>  \
+      /* Catch all unimplemnted producer_name::process( PRQ ) methods - e.g., */ \
+      /* PRQFacet not relevant to Ellipsoid format */ \
+      template <typename PRQ> \
        bool process( PRQ &prq_t ) const { \
          return ( MissingProcessRequestHandler( producer_name ).process( prq_t ) ); \
       } 
