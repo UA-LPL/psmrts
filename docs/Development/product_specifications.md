@@ -110,7 +110,7 @@ The Bullet system configuration provides users the abilility to use a bounding v
           }
           "parameters": [
             {
-              "name": "bullet_optimizebvh",
+              "name": "bullet_optimize_bvh",
               "type": "bool",
               "description": "Use optimized bounding volume hierachy (BVH) when created",
               "status": "optional",
