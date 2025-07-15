@@ -581,7 +581,7 @@ TEST_CASE( "Bullet Shape Tracer Product Specification Test", "[bullet][shapetrac
     CHECK( spec.required().size()   == 0             );
     CHECK( spec.optional().size()   == 3             );
 
-    CHECK( spec.has_parameter( "obj_mtl_search_path" ) == false );
-    CHECK( spec.has_parameter( "bullet_optimizebvh" )  == true  );
+    CHECK( spec.has_parameter( "obj_mtl_search_path" )  == false );
+    CHECK( spec.has_parameter( "bullet_optimize_bvh" )  == true  );
 
 }
