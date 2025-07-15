@@ -199,7 +199,7 @@ namespace psmrts  {
           },
           "parameters": [
             {
-              "name": "bullet_optimizebvh",
+              "name": "bullet_optimize_bvh",
               "type": "bool",
               "description": "Use optimized bounding volume hierachy (BVH) when created",
               "status": "optional",
