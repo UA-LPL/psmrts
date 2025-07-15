@@ -1,18 +1,27 @@
 
 ## PSMRTS TODO
 
-### Tasks
+### Needs for Next PR
 - [ ] Add product requests APIs (see docs/Development/product_specifications.md) to:
   - [x] Formats/shapes: PLY, OBJ and DSK
   - [ ] Tracers: ellipsoid, bullet and naifdsk.
 - [ ] Add `PSMRTS` facet request C API functions.
 - [ ] Changes to ProductParameter:
-  - [ ] Add "size_t inclusions_count() const", and "size_t exclusions_count() const".
-  - [ ] Do we need "compare( )", "product_options()?
-  - [ ] Revisit parse_config() to remove reading of entire file. Perhaps set this upon facet read.
+  - [x] Add "size_t inclusions_count() const", and "size_t exclusions_count() const".
+  - [x] Do we need "compare( )", "product_options()?
+  - [x] Revisit parse_config() to remove reading of entire file. Perhaps set this upon facet read.
   - [ ] Add string read option, parse_from_string().
 - [x] Fix PsmrtsOBJFormat::create with options parameter.  
 - [x] Fix broken test during build.
+- [x] Add functions methods that convert between lon/lat/radius and x/y/z.
+- [x] Change all C++ reference args to pointers - required by C.
+- [x] Remove obsolete code in PsrmtsRequest.
+  - [x] Specifically, the proposed process dispatch implementation at the beginning of the file.
+  - [x] Also don't think we need the psmrts::traits structures either and should be removed.
+
+### Tasks
+- [ ] Rename all classes, filenames, etc..., with `ShapeTracer` to just `Tracer`. It became really difficult to draw any distinction between the two _class concepts_. It seems `Tracer` is in the spirit of `PSMRTS` meaning: `Planetary Shape Model and Ray Tracing System`. The concepts of shapes and tracers appear segregated and short.
+- [ ] Design/implement `psmrts_json` to replace our use/exposure of nlohmann::json in any of `PSMRTS`'s public APIs. This is essentail primarily because if developers should happen to use a different version of nlohmann:json (Anaconda's perhaps), then bad things will happen when they pass an _ordered_json_ object to PSMRTS. nlohmann::json is not ABI compatible from one release to the next. See also [VTKs reasoning](https://discourse.vtk.org/t/nlohmann-json-and-vtks-public-api/15131) on this.
 - [ ] Add `explicit` to constructors with just a string and another with just an ordered json object. They conflict. There could be others. Best practice is use explicit when in doubt.
 - [ ] Add PRQSpecifications class that collects any number of product specifications.
 - [ ] Add PRQForInfo class that returns product specific data in JSON format.
@@ -20,8 +29,6 @@
   - [ ] Implement parsing and substitution for file path name (whilst tracking both original file name and expanded).
 - [ ] Finish PsmrtsPriorityTracer classes and infrastructure.
 - [ ] Create PSMRTS Python API. Use [swig](https://www.swig.org) initially. Make this a new repo.
-- [x] Add functions methods that convert between lon/lat/radius and x/y/z.
-- [X] Change all C++ reference args to pointers - required by C.
 - [ ] Major cleanup of CMake, code set. For example, completely eliminate BulltTracerModel.hpp - its not needed.
   - [ ] Consider renaming files to remove/limit `Psmrts` redundancy.
 - [ ] Rename `formats` directory to `shapes`. Requires a bunch of code changes due to path change.
