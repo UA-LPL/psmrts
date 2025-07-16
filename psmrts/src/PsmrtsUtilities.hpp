@@ -440,6 +440,23 @@ namespace psmrts {
     return ( base_f );
   }  
 
+  /** Checks if a string is an acceptable boolean value, returning the equivalent if found */
+  inline bool is_bool( const std::string &val ) {
+    std::string target = psmrts_tolower(val);
+    static const std::vector<std::string> trues = {"true", "t", "yes", "y", "on", "1"};
+    static const std::vector<std::string> falses = {"false", "f", "no", "n", "off", "0"};
+
+    if (std::find(trues.begin(), trues.end(), target) != trues.end() ) {
+      return true;
+    }
+    else if (std::find(falses.begin(), falses.end(), target) != falses.end() ) {
+      return false;
+    }
+    else {
+      throw std::invalid_argument("Error: Acceptable boolean value not found - " + val );
+    }
+  }
+
 /**
  * @brief Mutex wrapper for arbitrary data type
  * 
