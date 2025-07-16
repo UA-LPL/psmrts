@@ -149,7 +149,7 @@ namespace psmrts {
         return;
       }
 
-      inline void add_error( const std::runtime_error &e ) {
+      inline void add_error( const std::exception &e ) {
       // Monitor the cache size of the error queue
         if ( m_errors.size() >= MaxQueuedErrors ) {
           (void) m_errors.pop_front();
@@ -182,7 +182,7 @@ namespace psmrts {
         return ( m_errors.size() );
       }
 
-      inline const std::deque<std::runtime_error> &errors() const {
+      inline const std::deque<std::exception> &errors() const {
         return ( m_errors );
       }
 
@@ -236,13 +236,13 @@ namespace psmrts {
     protected:
       inline static const size_t MaxQueuedErrors = 20;  // Limit cached error size
 
-      PsmrtsThreadSafeCounter m_tracker;
-      double                  m_runtime_ms;
-      std::string             m_name;
-      bool                    m_success_status;
-      bool                    m_is_present;
-      size_t                  m_times_run;
-      std::deque<std::runtime_error> m_errors;
+      PsmrtsThreadSafeCounter    m_tracker;
+      double                     m_runtime_ms;
+      std::string                m_name;
+      bool                       m_success_status;
+      bool                       m_is_present;
+      size_t                     m_times_run;
+      std::deque<std::exception> m_errors;
 
 
     private:
