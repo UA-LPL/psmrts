@@ -77,11 +77,11 @@ TEST_CASE( "PSMRTS String Functions Test", "[utilities][string]" ) {
     CHECK( psmrts::string_tokenizer(empty_e)          == std::vector<std::string> {"ellipsoid:"} );
     CHECK( psmrts::string_tokenizer(empty_all)        == std::vector<std::string> { "" } );
 
-    CHECK( psmrts::isBool( "T" )     == true );
-    CHECK( psmrts::isBool( "F" )     == false );
-    CHECK( psmrts::isBool( "yEs" )   == true );
-    CHECK( psmrts::isBool( "nO" )    == false );
-    CHECK_THROWS( psmrts::isBool( "invalid" ) );
+    CHECK( psmrts::is_bool( "T" )     == true );
+    CHECK( psmrts::is_bool( "F" )     == false );
+    CHECK( psmrts::is_bool( "yEs" )   == true );
+    CHECK( psmrts::is_bool( "nO" )    == false );
+    CHECK_THROWS( psmrts::is_bool( "invalid" ) );
 
 }
 
