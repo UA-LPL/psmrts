@@ -131,7 +131,12 @@ PSMRTS_Vector3d psmrts_negate( const PSMRTS_Vector3d *v ) {
  */
 PSMRTS_Vector3d psmrts_subtract( const PSMRTS_Vector3d *v1,
                                  const PSMRTS_Vector3d *v2 ) {
-  PSMRTS_Vector3d v3d = { v1->x-v2->x, v1->y-v2->y, v1->z-v2->z };
+  PSMRTS_Vector3d v3d;
+
+  v3d.x = v1->x - v2->x;
+  v3d.y = v1->y - v2->y;
+  v3d.z = v1->z - v2->z;
+
   return ( v3d );
 }
 
@@ -147,7 +152,12 @@ PSMRTS_Vector3d psmrts_subtract( const PSMRTS_Vector3d *v1,
  */
 PSMRTS_Vector3d psmrts_add( const PSMRTS_Vector3d *v1,
                             const PSMRTS_Vector3d *v2 ) {
-    PSMRTS_Vector3d v3d = { v1->x+v2->x, v1->y+v2->y, v1->z+v2->z };
+    PSMRTS_Vector3d v3d;
+
+    v3d.x = v1->x + v2->x;
+    v3d.y = v1->y + v2->y;
+    v3d.z = v1->z + v2->z;
+
     return ( v3d );
 }
 
@@ -171,7 +181,7 @@ PSMRTS_Vector3d psmrts_scale( const PSMRTS_Vector3d *v, const double scale ) {
  * Given a PSMRTS_Vector3d, this function returns its length.
  *
  * @param v Pointer to PSMRTS_Vector3d.
- * @return doube Vector length.
+ * @return double Vector length.
  */
 double psmrts_length( const PSMRTS_Vector3d *v ) {
   return ( sqrt(v->x*v->x + v->y*v->y + v->z*v->z) );
@@ -256,9 +266,9 @@ PSMRTS_RayTrace *psmrts_ray_trace( PSMRTS_RayTrace *ray,
  */
 PSMRTS_RayTrace *psmrts_ray_trace_v( const PSMRTS_Vector3d *observer,
                                      const PSMRTS_Vector3d *lookdir,
-                                     const PSMRTS_Tracer *ellipsoid ) {
+                                     const PSMRTS_Tracer *tracer ) {
   return ( psmrts_ray_trace( psmrts_create_ray( observer, lookdir ),
-                             ellipsoid ) );
+                             tracer ) );
 }
 
 /**
