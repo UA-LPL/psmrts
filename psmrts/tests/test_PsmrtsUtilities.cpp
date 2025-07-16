@@ -139,12 +139,34 @@ TEST_CASE( "PSMRTS Latitudinal to Rectangular Coordinate Conversion Test", "[uti
     Eigen::Vector3d llr_d; // lon, lon in degrees; radius in km
     Eigen::Vector3d xyz;   // km
 
+    // test at with latitude > 90.0 (should clamp to 90.0)
+    llr_d[0] = 0.0;   // longitude
+    llr_d[1] = 100.0; // latitude
+    llr_d[2] = 1.0;   // radius
+
+    xyz = psmrts::lonlatrad_to_xyz_d( llr_d );
+
+    CHECK_THAT( xyz[0], Catch::Matchers::WithinAbs( 0.0, tolerance ));
+    CHECK_THAT( xyz[1], Catch::Matchers::WithinAbs( 0.0, tolerance ));
+    CHECK_THAT( xyz[2], Catch::Matchers::WithinAbs( 1.0, tolerance ));
+
+    // test at with latitude < 90.0 (should clamp to -90.0)
+    llr_d[0] =    0.0; // longitude
+    llr_d[1] = -100.0; // latitude
+    llr_d[2] =    1.0; // radius
+
+    xyz = psmrts::lonlatrad_to_xyz_d( llr_d );
+
+    CHECK_THAT( xyz[0], Catch::Matchers::WithinAbs(  0.0, tolerance ));
+    CHECK_THAT( xyz[1], Catch::Matchers::WithinAbs(  0.0, tolerance ));
+    CHECK_THAT( xyz[2], Catch::Matchers::WithinAbs( -1.0, tolerance ));
+
     // test at lon = 0 in the XY plane
     llr_d[0] = 0.0; // longitude
     llr_d[1] = 0.0; // latitude
     llr_d[2] = 1.0;  // radius
 
-    xyz = psmrts::latlonrad_to_xyz_d( llr_d );
+    xyz = psmrts::lonlatrad_to_xyz_d( llr_d );
 
     CHECK_THAT( xyz[0], Catch::Matchers::WithinAbs( 1.0, tolerance ));
     CHECK_THAT( xyz[1], Catch::Matchers::WithinAbs( 0.0, tolerance ));
@@ -155,7 +177,7 @@ TEST_CASE( "PSMRTS Latitudinal to Rectangular Coordinate Conversion Test", "[uti
     llr_d[1] = 0.0; // latitude
     llr_d[2] = 1.0;  // radius
 
-    xyz = psmrts::latlonrad_to_xyz_d( llr_d );
+    xyz = psmrts::lonlatrad_to_xyz_d( llr_d );
 
     CHECK_THAT( xyz[0], Catch::Matchers::WithinAbs( 0.0, tolerance ));
     CHECK_THAT( xyz[1], Catch::Matchers::WithinAbs( 1.0, tolerance ));
@@ -166,7 +188,7 @@ TEST_CASE( "PSMRTS Latitudinal to Rectangular Coordinate Conversion Test", "[uti
     llr_d[1] = 0.0; // latitude
     llr_d[2] = 1.0;  // radius
 
-    xyz = psmrts::latlonrad_to_xyz_d( llr_d );
+    xyz = psmrts::lonlatrad_to_xyz_d( llr_d );
 
     CHECK_THAT( xyz[0], Catch::Matchers::WithinAbs( -1.0, tolerance ));
     CHECK_THAT( xyz[1], Catch::Matchers::WithinAbs( 0.0, tolerance ));
@@ -177,7 +199,7 @@ TEST_CASE( "PSMRTS Latitudinal to Rectangular Coordinate Conversion Test", "[uti
     llr_d[1] = 0.0; // latitude
     llr_d[2] = 1.0;  // radius
 
-    xyz = psmrts::latlonrad_to_xyz_d( llr_d );
+    xyz = psmrts::lonlatrad_to_xyz_d( llr_d );
 
     CHECK_THAT( xyz[0], Catch::Matchers::WithinAbs( 0.0, tolerance ));
     CHECK_THAT( xyz[1], Catch::Matchers::WithinAbs( -1.0, tolerance ));
@@ -188,7 +210,7 @@ TEST_CASE( "PSMRTS Latitudinal to Rectangular Coordinate Conversion Test", "[uti
     llr_d[1] = 45.0; // latitude
     llr_d[2] = 1.0;  // radius
 
-    xyz = psmrts::latlonrad_to_xyz_d( llr_d );
+    xyz = psmrts::lonlatrad_to_xyz_d( llr_d );
 
     CHECK_THAT( xyz[0], Catch::Matchers::WithinAbs( 0.5, tolerance ));
     CHECK_THAT( xyz[1], Catch::Matchers::WithinAbs( 0.5, tolerance ));
@@ -199,7 +221,7 @@ TEST_CASE( "PSMRTS Latitudinal to Rectangular Coordinate Conversion Test", "[uti
     llr_d[1] = -45.0; // latitude
     llr_d[2] = 1.0;  // radius
 
-    xyz = psmrts::latlonrad_to_xyz_d( llr_d );
+    xyz = psmrts::lonlatrad_to_xyz_d( llr_d );
 
     CHECK_THAT( xyz[0], Catch::Matchers::WithinAbs( 0.5, tolerance ));
     CHECK_THAT( xyz[1], Catch::Matchers::WithinAbs( -0.5, tolerance ));
@@ -210,7 +232,7 @@ TEST_CASE( "PSMRTS Latitudinal to Rectangular Coordinate Conversion Test", "[uti
     llr_d[1] = 45.0; // latitude
     llr_d[2] = 1.0;  // radius
 
-    xyz = psmrts::latlonrad_to_xyz_d( llr_d );
+    xyz = psmrts::lonlatrad_to_xyz_d( llr_d );
 
     CHECK_THAT( xyz[0], Catch::Matchers::WithinAbs( -0.5, tolerance ));
     CHECK_THAT( xyz[1], Catch::Matchers::WithinAbs( 0.5, tolerance ));
@@ -221,7 +243,7 @@ TEST_CASE( "PSMRTS Latitudinal to Rectangular Coordinate Conversion Test", "[uti
     llr_d[1] = -45.0; // latitude
     llr_d[2] = 1.0;  // radius
 
-    xyz = psmrts::latlonrad_to_xyz_d( llr_d );
+    xyz = psmrts::lonlatrad_to_xyz_d( llr_d );
 
     CHECK_THAT( xyz[0], Catch::Matchers::WithinAbs( -0.5, tolerance ));
     CHECK_THAT( xyz[1], Catch::Matchers::WithinAbs( -0.5, tolerance ));
@@ -233,13 +255,25 @@ TEST_CASE( "PSMRTS Rectangular to Latitudinal Coordinate Conversion Test", "[uti
     Eigen::Vector3d xyz;
     Eigen::Vector3d llr_d;
 
+    // test zero vector
+    xyz[0] = 0.0; // x
+    xyz[1] = 0.0; // y
+    xyz[2] = 0.0; // z
+
+    // convert to longitude, latitude, radius
+    llr_d = psmrts::xyz_to_lonlatrad_d( xyz );
+
+    CHECK_THAT( llr_d[0], Catch::Matchers::WithinAbs( 0.0, tolerance )); // lon
+    CHECK_THAT( llr_d[1], Catch::Matchers::WithinAbs( 0.0, tolerance )); // lat
+    CHECK_THAT( llr_d[2], Catch::Matchers::WithinAbs( 0.0, tolerance )); // rad
+
     // point at 45 lon, 45 lat
     xyz[0] = 0.5;         // x
     xyz[1] = 0.5;         // y
     xyz[2] = 0.707106781; // z
 
     // convert to longitude, latitude, radius
-    llr_d = psmrts::xyz_to_latlonrad_d( xyz );
+    llr_d = psmrts::xyz_to_lonlatrad_d( xyz );
 
     CHECK_THAT( llr_d[0], Catch::Matchers::WithinAbs( 45.0, tolerance )); // lon
     CHECK_THAT( llr_d[1], Catch::Matchers::WithinAbs( 45.0, tolerance )); // lat
@@ -251,7 +285,7 @@ TEST_CASE( "PSMRTS Rectangular to Latitudinal Coordinate Conversion Test", "[uti
     xyz[2] =  0.707106781; // z
 
     // convert to longitude, latitude, radius
-    llr_d = psmrts::xyz_to_latlonrad_d( xyz );
+    llr_d = psmrts::xyz_to_lonlatrad_d( xyz );
 
     CHECK_THAT( llr_d[0], Catch::Matchers::WithinAbs( 225.0, tolerance )); // lon
     CHECK_THAT( llr_d[1], Catch::Matchers::WithinAbs(  45.0, tolerance )); // lat
@@ -263,7 +297,7 @@ TEST_CASE( "PSMRTS Rectangular to Latitudinal Coordinate Conversion Test", "[uti
     xyz[2] = -0.707106781; // z
 
     // convert to longitude, latitude, radius
-    llr_d = psmrts::xyz_to_latlonrad_d( xyz );
+    llr_d = psmrts::xyz_to_lonlatrad_d( xyz );
 
     CHECK_THAT( llr_d[0], Catch::Matchers::WithinAbs( 315.0, tolerance )); // lon
     CHECK_THAT( llr_d[1], Catch::Matchers::WithinAbs( -45.0, tolerance )); // lat
@@ -275,7 +309,7 @@ TEST_CASE( "PSMRTS Rectangular to Latitudinal Coordinate Conversion Test", "[uti
     xyz[2] =  0.707106781; // z
 
     // convert to longitude, latitude, radius
-    llr_d = psmrts::xyz_to_latlonrad_d( xyz );
+    llr_d = psmrts::xyz_to_lonlatrad_d( xyz );
 
     CHECK_THAT( llr_d[0], Catch::Matchers::WithinAbs( 135.0, tolerance )); // lon
     CHECK_THAT( llr_d[1], Catch::Matchers::WithinAbs(  45.0, tolerance )); // lat

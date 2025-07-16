@@ -6,19 +6,20 @@
 #endif
 
 #include <algorithm>
-#include <functional>
-#include <exception>
-#include <iterator>
-#include <string>
-#include <locale>
-#include <vector>
-#include <ctime>
-#include <time.h>
+#include <cassert>
 #include <chrono>
 #include <cmath>
+#include <ctime>
+#include <exception>
+#include <functional>
+#include <iterator>
 #include <limits>
+#include <locale>
 #include <mutex>
 #include <stdexcept>
+#include <string>
+#include <time.h>
+#include <vector>
 
 #include <Eigen/Geometry>
 
@@ -194,7 +195,7 @@ namespace psmrts {
   }
   
   /**
-   * @brief latlonrad_to_xyz_d - Convert latitudinal coordinates (longitude,
+   * @brief lonlatrad_to_xyz_d - Convert latitudinal coordinates (longitude,
    *                             latitude, radius) to rectangular (xyz).
    *
    * Given a Eigen::Vector3d containing longitude, latitude, and radius
@@ -204,12 +205,20 @@ namespace psmrts {
    * converted to the 360 longitude domain if necessary.
    *
    * @param Eigen::Vector3d containing longitude, latitude, radius coordinates.
+   * @pre latitude must lie within -90 to +90 range.
    * @return Eigen::Vector3d Vector converted to xyz coordinates.
    */
-  inline Eigen::Vector3d latlonrad_to_xyz_d( const Eigen::Vector3d &llr_deg ) {
+  inline Eigen::Vector3d lonlatrad_to_xyz_d( const Eigen::Vector3d &llr_deg ) {
+
+      // verify latitude lies within -90 to +90 range, if outside of that
+      // range, clamp it identically to -90 or +90
+      // TBD: do we need Kris' toLatitudeDomain check instead?
+      assert( fabs(llr_deg[1]) <= 90.0 && "Latitude outside -90 to +90 range" );
+
+      double clamped_lat = std::clamp(llr_deg[1], -90.0, 90.0);
 
       double lon_r  = degrees_to_radians( to360LongitudeDomain_d( llr_deg[0] ) );
-      double lat_r  = degrees_to_radians( llr_deg[1] ) ;
+      double lat_r  = degrees_to_radians( clamped_lat ) ;
       double radius = llr_deg[2];
 
       double x = radius * std::cos( lon_r ) * std::cos( lat_r );
@@ -218,15 +227,11 @@ namespace psmrts {
 
       return ( Eigen::Vector3d( { x, y, z } ) );
 
-      // still need to add toLatitudeDomain
-      // Kris below
-      // double lon_r = deg2rad( to360Domain( llr_d[0] ) );
-      //*** double lat_r = deg2rad( toLatitudeDomain( llr_d[1] ) );
-      // double rad_m = llr_d[2];
+
   }
 
   /**
-   * @brief xyz_to_latlonrad_d - Convert rectangular coordinates (x,y,z) to
+   * @brief xyz_to_lonlatrad_d - Convert rectangular coordinates (x,y,z) to
    *                             latitudinal coordinates (longitude, latitude,
    *                             radius). Angular coordinates are in degrees.
    *
@@ -241,7 +246,7 @@ namespace psmrts {
    *                         coordinates.
    */
   /*  input x,y,z are km, output lat, lon in radians, radius in km */
-  inline Eigen::Vector3d xyz_to_latlonrad_d( const Eigen::Vector3d &xyz,
+  inline Eigen::Vector3d xyz_to_lonlatrad_d( const Eigen::Vector3d &xyz,
                                              const bool to360 = true ) {
 
       Eigen::Vector3d llr;
@@ -250,23 +255,31 @@ namespace psmrts {
                                       std::abs(xyz[1]),
                                       std::abs(xyz[2]) } );
 
-      double x = xyz[0] / vector_max;
-      double y = xyz[1] / vector_max;
-      double z = xyz[2] / vector_max;
+      if ( vector_max > 0.0 ) {
+        double x = xyz[0] / vector_max;
+        double y = xyz[1] / vector_max;
+        double z = xyz[2] / vector_max;
 
-      llr[2] = vector_max * sqrt( x*x + y*y + z*z ); // radius
-      llr[1] = radians_to_degrees( atan2(z, sqrt( x*x + y*y ) ) );         // latitude
+        llr[2] = vector_max * sqrt( x*x + y*y + z*z ); // radius
+        llr[1] = radians_to_degrees( atan2(z, sqrt( x*x + y*y ) ) );         // latitude
 
-      if (x == 0.0 && y == 0.0 ) {                   // longitude
-        llr[0] = 0.0;
+        if (x == 0.0 && y == 0.0 ) {                   // longitude
+          llr[0] = 0.0;
+        }
+        else {
+          llr[0] = radians_to_degrees( atan2(y, x) );
+        }
+
+        // Adjust longitude for -180, 180 domain if requested
+        if ( to360 && ( llr[0] < 0.0 ) ) {
+          llr[0] += 360.0;
+        }
       }
       else {
-        llr[0] = radians_to_degrees( atan2(y, x) );
-      }
-
-      // Adjust longitude for -180, 180 domain if requested
-      if ( to360 && ( llr[0] < 0.0 ) ) {
-        llr[0] += 360.0;
+        // vector is zero vector
+        llr[0] = 0.0;
+        llr[1] = 0.0;
+        llr[2] = 0.0;
       }
 
       return ( llr );
