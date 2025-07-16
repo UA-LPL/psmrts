@@ -9,6 +9,7 @@ include_directories ( ${PSMRTS_PROJECT_DIR}/psmrts/tests )
 
 # Build all-in-one render test application
 add_executable( ply_test_suite ply_catch2_main.cpp
+                               test_PlyShape.cpp
                                test_PsmrtsPLYFormat.cpp )
 
 # Add required libraries as needed for psmrts_test_suite

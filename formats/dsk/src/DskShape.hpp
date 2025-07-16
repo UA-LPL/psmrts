@@ -14,12 +14,13 @@ namespace psmrts {
       DskShape( const psmrts::PsmrtsDSKFormat &dsk_t ) :
                          m_model( dsk_t ) { }
         virtual ~DskShape() { } 
-
+     
+        /** 
      inline bool process( PRQFeatures &features ) const {
         features.add_feature( this->product_specifications().specs() );
         return ( true );
      }
-
+        */
 
      static inline ProductSpecification product_specifications() {
         char text[] = R"(
@@ -32,7 +33,7 @@ namespace psmrts {
                 "name": "dsk",
                 "type": "system",
                 "aliases": [ "DSK", "bds", "BDS" ]
-            }
+            },
             "parameters": [
                 {
                     "name": "dsk_string",
