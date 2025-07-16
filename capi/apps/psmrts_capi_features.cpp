@@ -124,5 +124,10 @@ int main( int argc, char *argv[] ) {
   printf( " error count: %zu\n", features.error_count() );
   printf( "  error size: %zu\n", features.errors().size() );
 
+  // free objects
+  psmrts_free_ray(ray);
+  psrmts_free_trace_array(tracearray);
+  psmrts_free_tracer(bulletTracer);
+
   return ( 0 );
 }
