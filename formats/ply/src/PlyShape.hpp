@@ -24,11 +24,12 @@ namespace psmrts {
           * @param features 
           * @return true 
           * @return false 
-          */
+          
          inline bool process( PRQFeatures &features ) const {
             features.add_feature( this->product_specifications().specs() );
             return ( true )
          }
+        */
 
          static inline ProductSpecification product_specifications() {
             char text[] = R"(
@@ -41,7 +42,7 @@ namespace psmrts {
                     "name": "ply",
                     "type": "system",
                     "aliases": [ "PLY" ]
-                }
+                },
                 "parameters": [
                     {
                         "name": "ply_file",
