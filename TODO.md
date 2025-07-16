@@ -2,15 +2,14 @@
 ## PSMRTS TODO
 
 ### Needs for Next PR
-- [ ] Add product requests APIs (see docs/Development/product_specifications.md) to:
+- [x] Add product requests APIs (see docs/Development/product_specifications.md) to:
   - [x] Formats/shapes: PLY, OBJ and DSK
-  - [ ] Tracers: ellipsoid, bullet and naifdsk.
-- [ ] Add `PSMRTS` facet request C API functions.
-- [ ] Changes to ProductParameter:
+  - [x] Tracers: ellipsoid, bullet and naifdsk.
+- [x] Changes to ProductParameter:
   - [x] Add "size_t inclusions_count() const", and "size_t exclusions_count() const".
   - [x] Do we need "compare( )", "product_options()?
-  - [x] Revisit parse_config() to remove reading of entire file. Perhaps set this upon facet read.
-  - [ ] Add string read option, parse_from_string().
+  - [x] Revisit parse_config() to remove reading of entire file. Perhaps set this upon facet read.  
+  ~~- [ ] Add string read option, parse_from_string().~~
 - [x] Fix PsmrtsOBJFormat::create with options parameter.  
 - [x] Fix broken test during build.
 - [x] Add functions methods that convert between lon/lat/radius and x/y/z.
@@ -20,6 +19,7 @@
   - [x] Also don't think we need the psmrts::traits structures either and should be removed.
 
 ### Tasks
+- [ ] Add `PSMRTS` facet request C API functions.
 - [ ] Rename all classes, filenames, etc..., with `ShapeTracer` to just `Tracer`. It became really difficult to draw any distinction between the two _class concepts_. It seems `Tracer` is in the spirit of `PSMRTS` meaning: `Planetary Shape Model and Ray Tracing System`. The concepts of shapes and tracers appear segregated and short.
 - [ ] Design/implement `psmrts_json` to replace our use/exposure of nlohmann::json in any of `PSMRTS`'s public APIs. This is essentail primarily because if developers should happen to use a different version of nlohmann:json (Anaconda's perhaps), then bad things will happen when they pass an _ordered_json_ object to PSMRTS. nlohmann::json is not ABI compatible from one release to the next. See also [VTKs reasoning](https://discourse.vtk.org/t/nlohmann-json-and-vtks-public-api/15131) on this.
 - [ ] Add `explicit` to constructors with just a string and another with just an ordered json object. They conflict. There could be others. Best practice is use explicit when in doubt.
