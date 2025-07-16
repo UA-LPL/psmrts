@@ -58,12 +58,12 @@ namespace psmrts {
    * method template in MissingProcessRequestHandler is called that will
    * configure the NOOP process request call.
    * 
-   * Classes that do not have a PRQ feature can ignore implementing a
-   * fact/empty process() method. Product classes now only need to provide
-   * the implementation of process( PRQ ) visitor that can provide the
+   * Classes that do not have a PRQ feature can ignore implementing an
+   * empty process() method. Product classes now only need to provide
+   * the implementation of process( PRQ ) visitors that can provide the
    * requested data or operation.
    * 
-   * The following code should be added at the end of your public section of
+   * The following code should be added at the end of the public section of
    * the class:
    * 
    * @code 
@@ -73,15 +73,16 @@ namespace psmrts {
       PSMRTS_PROCESS_CATCHALL( "EllipsoidShapeTracer" )
    * @endcode
    * 
-   * Note that there is no ; to end that statement. A compiler error will
-   * occur of one is added.
+   * Note that there is no ; at the end of that statement. A compiler error
+   * will occur if one is added.
    * 
    * Also, during compilation, if the macro PSMRTS_DISABLE_PROCESS_CATCHALL
    * is defined, this statement is not compiled. This will reveal, through
-   * ensuing compiler errors, all the process( PRQ ) calls issued against
-   * your class object. It may be helpful to get a summary of all potentail
-   * data return options that product class developers may find useful. To
-   * turn this on for your class only you could use the following code:
+   * ensuing compiler errors, all process( PRQ ) calls issued against
+   * your class object that are not physically iimplemented. It may be
+   * helpful to get a summary of all potential data return PRQ options which
+   * the product class developers may find useful. To turn this on for your
+   * class only you could use the following code:
    * 
    * @code
    * #define PSMRTS_DISABLE_PROCESS_CATCHALL 1
@@ -89,8 +90,13 @@ namespace psmrts {
    * #undef PSMRTS_DISABLE_PROCESS_CATCHALL
    * @endcode
    * 
-   * This technique allows you to add your own product classes and unique 
-   * requests without affecting/disrupting of other products.
+   * This technique provides a framework which allows you to add your own
+   * product classes and unique requests without affecting/disrupting any
+   * other products. Nor are you required to write all process( PRQ )
+   * methods that may exist.
+   * 
+   * Note this technique is applied/resolved at compile time due to the
+   * use of templates.
    * 
    */
 #if !defined( PSMRTS_DISABLE_PROCESS_CATCHALL )
