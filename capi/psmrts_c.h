@@ -73,7 +73,7 @@ typedef union {
 
 /* Facet data structure contains the elements defining a single facet */
 typedef struct psmrts_facet {
-  int m_has_facet;
+  PSMRTS_BOOL     m_has_facet;
   PSMRTS_Vector3i m_indexes;
   PSMRTS_Vector3d m_vector1;
   PSMRTS_Vector3d m_vector2;
@@ -126,12 +126,12 @@ extern PSMRTS_Vector3d psmrts_ray_raypt( const PSMRTS_RayTrace *ray );
 extern PSMRTS_Vector3d psmrts_ray_normal( const PSMRTS_RayTrace *ray );
 extern double psmrts_ray_intercept_radius( const PSMRTS_RayTrace *ray );
 extern double psmrts_ray_intercept_slant_distance( const PSMRTS_RayTrace *ray );
-extern double psrmrts_ray2ray_distance( const PSMRTS_RayTrace *ray1,
+extern double psmrts_ray2ray_distance( const PSMRTS_RayTrace *ray1,
                                         const PSMRTS_RayTrace *ray2 );
 extern double psmrts_separation_angle_radians( const PSMRTS_Vector3d *v1,
                                                const PSMRTS_Vector3d *v2 );
 
-extern bool psrmrts_isNear( const PSMRTS_RayTrace *ray1,
+extern PSMRTS_BOOL psmrts_isNear( const PSMRTS_RayTrace *ray1,
                             const PSMRTS_RayTrace *ray2,
                             const double tolerance_km ); // default argument?
 
@@ -201,8 +201,8 @@ extern void psmrts_free_shape( PSMRTS_Shape *shape );
 extern void psmrts_free_tracer( PSMRTS_Tracer *tracer );
 extern void psmrts_free_priority_tracer( PSMRTS_PriorityTracer *ptracer );
 extern void psmrts_free_photometric_ray( PSMRTS_PhotometricRayTrace *ptracer );
-extern void psrmts_free_trace_array( PSMRTS_TraceArray *tracearray );
-extern void psrmts_free_photometric_trace_array( PSMRTS_PhotometricTraceArray *ptracearray );
+extern void psmrts_free_trace_array( PSMRTS_TraceArray *tracearray );
+extern void psmrts_free_photometric_trace_array( PSMRTS_PhotometricTraceArray *ptracearray );
 
 #ifdef __cplusplus
 }

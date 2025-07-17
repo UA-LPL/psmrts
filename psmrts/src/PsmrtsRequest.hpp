@@ -399,8 +399,8 @@ class PRQRayTraceArray : public PsmrtsRequest {
         return ( m_traces );
       }
 
-      inline const PRQRayTrace *get_trace( size_t index ) const {
-        return ( &traces().at( index ));
+      inline const PRQRayTrace &get_trace( size_t index ) const {
+        return ( traces().at( index ));
       }
 
     public:
@@ -544,8 +544,8 @@ class PRQPhotometricTraceArray : public PsmrtsRequest {
         return ( m_traces );
       }
 
-      inline const PRQPhotometricTrace *get_trace( size_t index ) const {
-        return ( &traces().at( index ));
+      inline const PRQPhotometricTrace &get_trace( size_t index ) const {
+        return ( traces().at( index ));
       }
 
     public:

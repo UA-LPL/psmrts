@@ -171,7 +171,7 @@ namespace psmrts {
                                                             parm_t.name() + " does not exist in other" ) );
             }
           }
-          catch ( const std::runtime_error &rte ) {
+          catch ( const std::exception &rte ) {
             spec_errors_t.add_error( rte );
           }
         }
