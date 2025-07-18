@@ -447,7 +447,7 @@ namespace psmrts {
       options["optional"] = { "obj_data_type", "obj_mtl_search_path" };
       m_config_j = ProductSpecification("obj", "mesh", options);
     }
-#if 0
+
     /**
      * @brief returns true if the input ProductSpecification contains the same
      * values as the object
@@ -457,23 +457,9 @@ namespace psmrts {
      * @return false if params is empty or has different values
      */
     inline bool compare(const ProductSpecification &params) {
-      if (params.name() != m_config_j.name() || params.type() != m_config_j.type()) {
-        return false;
-      }
-
-      ordered_json options = m_config_j.specs().parameters();
-      ordered_json p_options = params.specs().parameters();
-      for (auto aspect : options.items()) {
-        if (!p_options.contains(aspect.key())) {
-          return false;
-        }
-        if(p_options.at(aspect.key()) != aspect.value()) {
-          return false;
-        }
-      }
-      return true;
+     return ( m_config_j.matches( params ) );
     }
-#endif
+
     /**
      * @brief Get the Product Config of an OBJ object
      * 

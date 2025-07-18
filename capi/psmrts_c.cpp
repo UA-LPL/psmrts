@@ -65,10 +65,10 @@ inline PSMRTS_Vector3d eigen_to_vector( const Eigen::Vector3d &v ) {
  * This function evaluates the given PSMRTS_BOOL and returns PSMRTS_TRUE or
  * PSMRTS_FALSE.
  *
- * @param b PSMRTS_BOOL
+ * @param b bool
  * @return Values of input PSMRTS_BOOL, PSMRTS_TRUE or PSMRTS_FALSE.
  */
-inline PSMRTS_BOOL evaluate(const PSMRTS_BOOL b) {
+inline PSMRTS_BOOL evaluate(const bool b) {
   return ( b ? PSMRTS_TRUE : PSMRTS_FALSE );
 }
 
@@ -113,8 +113,10 @@ const char *psmrts_info() {
  * @param v3 coordinate 3.
  * @return PSMRTS_Vector3d Vector with input coordinates.
  */
-PSMRTS_Vector3d psmrts_vector3d( const double v1, const double v2,
+PSMRTS_Vector3d psmrts_vector3d( const double v1,
+                                 const double v2,
                                  const double v3 ) {
+
   PSMRTS_Vector3d v3d = { v1, v2, v3 };
   return ( v3d );
 }
@@ -129,7 +131,12 @@ PSMRTS_Vector3d psmrts_vector3d( const double v1, const double v2,
  * @return PSMRTS_Vector3d with negated coordinates.
  */
 PSMRTS_Vector3d psmrts_negate( const PSMRTS_Vector3d *v ) {
-  PSMRTS_Vector3d v3d = { -v->x, -v->y, -v->z };
+
+  PSMRTS_Vector3d v3d;
+  v3d.x = -v->x;
+  v3d.y = -v->y;
+  v3d.z = -v->z;
+
   return ( v3d );
 }
 
@@ -184,9 +191,15 @@ PSMRTS_Vector3d psmrts_add( const PSMRTS_Vector3d *v1,
  * @param scale scale factor.
  * @return PSMRTS_Vector3d Scaled vector.
  */
-PSMRTS_Vector3d psmrts_scale( const PSMRTS_Vector3d *v, const double scale ) {
-    PSMRTS_Vector3d v3d = { scale*v->x, scale*v->y, scale*v->z };
-    return ( v3d );
+PSMRTS_Vector3d psmrts_scale( const PSMRTS_Vector3d *v,
+                              const double scale ) {
+  PSMRTS_Vector3d v3d;
+
+  v3d.x = scale * v->x;
+  v3d.y = scale * v->y;
+  v3d.z = scale * v->z;
+
+  return ( v3d );
 }
 
 /**
@@ -198,7 +211,14 @@ PSMRTS_Vector3d psmrts_scale( const PSMRTS_Vector3d *v, const double scale ) {
  * @return double Vector length.
  */
 double psmrts_length( const PSMRTS_Vector3d *v ) {
-  return ( sqrt(v->x*v->x + v->y*v->y + v->z*v->z) );
+
+  double x2 = v->x * v->x;
+  double y2 = v->y * v->y;
+  double z2 = v->z * v->z;
+
+  double length  = sqrt( x2 + y2 + z2 );
+
+  return ( length );
 }
 
 /**
@@ -210,8 +230,8 @@ double psmrts_length( const PSMRTS_Vector3d *v ) {
  * 
  * The observer position is a vector from the shape origin to its body-fixed
  * position relative to the target body origin.
- * 
- * the lookdir is converted to a unit vector and originates from the observer
+ *
+ * The lookdir is converted to a unit vector and originates from the observer
  * location toward the target body.
  * 
  * It is the responsibility of the caller to check for valid pointer return.
@@ -222,32 +242,30 @@ double psmrts_length( const PSMRTS_Vector3d *v ) {
  */
 PSMRTS_RayTrace *psmrts_create_ray( const PSMRTS_Vector3d *observer,
                                     const PSMRTS_Vector3d *lookdir ) {
+
   return ( new PSMRTS_RayTrace( vector_to_eigen( *observer ),
                                 vector_to_eigen( *lookdir ) ) );
 }
 
-/**  TBD: HOW DO INPUT AND OUTPUT RAYS DIFFER? Kris says they are the same ray,
- *   but the output ray will have a lot more content (WHAT CONTENT?).
- *   SHOULD THIS HAVE A MORE DESCRIPTIVE NAME?
+/**
+ * @brief psmrts_ray_trace - Runs a trace on ray and updates that ray with the
+ * trace results.
  *
- * @brief psmrts_ray_trace - Creates a PSMRTS ray trace object
+ * Given PSMRTS_Tracer and PSMRTS_RayTrace objects, the tracer is used to run a
+ * trace on the ray. The same ray is returned, containing the trace results.
  *
- * Given PSMRTS_RayTrace and PSMRTS_Tracer objects, this function creates a
- * new PSMRTS ray trace object that can be used to trace on a shape. The output
- * ray is identical to the input ray except it will contain more content as
- * provided by the PSMRTS_Tracer.
- *
- * It is the responsibility of the caller to check for valid pointer return.
+ * The input ray is required to have a valid observer and look direction. It is
+ * the responsibility of the caller to check for valid pointer return.
  *
  * @param ray PSMRTS_RayTrace object.
  * @param tracer PSMRTS_Tracer object.
- * @return PSMRTS_RayTrace* with updated content.
+ * @return PSMRTS_RayTrace* Same ray as input, with content updated by the trace.
  */
 PSMRTS_RayTrace *psmrts_ray_trace( PSMRTS_RayTrace *ray,
                                    const PSMRTS_Tracer *tracer ) {
 
   assert( ray != nullptr && "psmrts_ray_trace::PSMRTS_RayTrace is null" );
-  tracer->process(*ray);
+  tracer->process( *ray );
 
   return ( ray );
 }
@@ -255,9 +273,9 @@ PSMRTS_RayTrace *psmrts_ray_trace( PSMRTS_RayTrace *ray,
 /**
  * @brief psmrts_ray_trace_v - Creates a PSMRTS ray trace object.
  *
- * Given an ellipsoid tracer plus observer position and look direction
- * vectors, this function creates a PSMRTS ray trace object that can be
- * used to trace on a shape.
+ * Given a tracer plus observer position and look direction vectors, this
+ * function creates a PSMRTS ray trace object that can be used to trace on a
+ * shape.
  *
  * The observer position is a vector from the shape origin to its body-fixed
  * position relative to the target body origin.
@@ -265,20 +283,21 @@ PSMRTS_RayTrace *psmrts_ray_trace( PSMRTS_RayTrace *ray,
  * The lookdir is converted to unit vector and eminates from the observer
  * location toward the target body.
  *
- * The ellipsoid tracer object ... TBD.
- *
- * It is up to the caller to check for valid pointer return.
+ * It is the responsibility of the caller to check for valid pointer return. It
+ * is also the responsibility of the caller to free the pointer returned by this
+ * function.
  *
  * @param observer Pointer to 3d vector defining observer position (km), i.e.
  *                 the ray origin.
  * @param lookdir Pointer to 3d vector defining direction (km) vector from
  *                observer to trace.
- * @param ellipsoid Pointer to ellipsoid PSMRTS_Tracer object.
+ * @param tracer Pointer to PSMRTS_Tracer object.
  * @return Pointer to the resulting PSMRTS_RayTrace object.
  */
 PSMRTS_RayTrace *psmrts_ray_trace_v( const PSMRTS_Vector3d *observer,
                                      const PSMRTS_Vector3d *lookdir,
                                      const PSMRTS_Tracer *tracer ) {
+
   return ( psmrts_ray_trace( psmrts_create_ray( observer, lookdir ),
                              tracer ) );
 }
@@ -325,7 +344,6 @@ PSMRTS_BOOL psmrts_ray_has_hit( const PSMRTS_RayTrace *ray ) {
   return ( evaluate( ray->trace().hasHit() ) );
 }
 
-/* WHAT IF RAY DOESN'T HAVE INTERCEPT? */
 /**
  * @brief psmrts_ray_xyz - Returns surface intercept point relative to
  *        the body origin.
@@ -341,7 +359,6 @@ PSMRTS_Vector3d psmrts_ray_xyz( const PSMRTS_RayTrace *ray ) {
   return ( eigen_to_vector( ray->trace().xyz() ) );
 }
 
-/* WHAT IF RAY DOESN'T HAVE INTERCEPT? */
 /**
  * @brief psmrts_ray_raypt - Returns vector along look direction to
  *        surface.
@@ -356,7 +373,6 @@ PSMRTS_Vector3d psmrts_ray_raypt( const PSMRTS_RayTrace *ray ) {
   return ( eigen_to_vector( ray->trace().raypt() ) );
 }
 
-/* WHAT IF RAY DOESN'T HAVE INTERCEPT? */
 /**
  * @brief psmrts_ray_normal - Returns normal vector at the surface
  *        intercept, if the intercept exists.
@@ -371,7 +387,6 @@ PSMRTS_Vector3d psmrts_ray_normal( const PSMRTS_RayTrace *ray ) {
   return ( eigen_to_vector( ray->trace().normal() ) );
 }
 
-/* WHAT IF RAY DOESN'T HAVE INTERCEPT? */
 /**
  * @brief psmrts_ray_intercept_radius - Returns the radius at the surface
  *        intercept point, if it exists.
@@ -382,11 +397,10 @@ PSMRTS_Vector3d psmrts_ray_normal( const PSMRTS_RayTrace *ray ) {
  * @param ray Pointer to PSMRTS_RayTrace object.
  * @return double Radius at surface intercept, if it exists.
  */
-double psmrts_ray_intercept_radius( const PSMRTS_RayTrace *ray) {
+double psmrts_ray_intercept_radius( const PSMRTS_RayTrace *ray ) {
   return ( ray->trace().radius() );
 }
 
-/* WHAT IF RAY DOESN'T HAVE INTERCEPT? */
 /**
  * @brief psmrts_ray_intercept_slant_distance - Returns slant distance
  *        at the ray surface intercept point, if it exists.
@@ -399,11 +413,10 @@ double psmrts_ray_intercept_radius( const PSMRTS_RayTrace *ray) {
  * @param ray Pointer to PSMRTS_RayTrace object.
  * @return double Slant distance at surface intercept, if it exists.
  */
-double psmrts_ray_intercept_slant_distance( const PSMRTS_RayTrace *ray) {
+double psmrts_ray_intercept_slant_distance( const PSMRTS_RayTrace *ray ) {
   return ( ray->trace().slant_distance() );
 }
 
-/* WHAT IF ONE OR BOTH RAYS DON'T HAVE INTERCEPT? */
 /**
  * @brief psmrts_ray2ray_distance - Returns the distance between two
  *        ray trace surface intercepts, if they exist.
@@ -416,8 +429,9 @@ double psmrts_ray_intercept_slant_distance( const PSMRTS_RayTrace *ray) {
  * @return double Distance between input ray surface intercepts, if they exist.
  */
 double psmrts_ray2ray_distance( const PSMRTS_RayTrace *ray1,
-                                 const PSMRTS_RayTrace *ray2 ) {
-  return ( ray1->trace().distance(ray2->trace()) );
+                                const PSMRTS_RayTrace *ray2 ) {
+
+  return ( ray1->trace().distance( ray2->trace() ) );
 }
 
 /**
@@ -433,11 +447,11 @@ double psmrts_ray2ray_distance( const PSMRTS_RayTrace *ray1,
  */
 double psmrts_separation_angle_radians( const PSMRTS_Vector3d *v1,
                                         const PSMRTS_Vector3d *v2 ) {
-  return ( psmrts::PsmrtsRayTrace::separation_angle(vector_to_eigen(*v1),
-                                                    vector_to_eigen(*v2)));
+
+  return ( psmrts::PsmrtsRayTrace::separation_angle( vector_to_eigen( *v1 ),
+                                                     vector_to_eigen( *v2 ) ) );
 }
 
-/* what if one or both rays don't have intercept? */
 /**
  * @brief psmrts_isNear - Returns true/false if the distance between
  *        two ray surface intercepts is/isn't within a given
@@ -452,7 +466,8 @@ double psmrts_separation_angle_radians( const PSMRTS_Vector3d *v1,
  * @param tolerance_km Distance tolerance in km.
  * @return PSMRTS_BOOL True/false if distance is/isn't within given tolerance.
  */
-PSMRTS_BOOL psmrts_isNear( const PSMRTS_RayTrace *ray1, const PSMRTS_RayTrace *ray2,
+PSMRTS_BOOL psmrts_isNear( const PSMRTS_RayTrace *ray1,
+                           const PSMRTS_RayTrace *ray2,
                            const double tolerance_km ) {
 
   return ( evaluate( ray1->trace().isNear( ray2->trace() ) ) );
@@ -471,10 +486,10 @@ PSMRTS_BOOL psmrts_isNear( const PSMRTS_RayTrace *ray1, const PSMRTS_RayTrace *r
  */
 double psmrts_incidence( const PSMRTS_RayTrace *ray1,
                          const PSMRTS_RayTrace *ray2 ) {
-  return ( ray1->trace().incidence(ray2->trace()) );
+
+  return ( ray1->trace().incidence( ray2->trace() ) );
 }
 
-/* WHAT IF THE RAY DOESN'T HAVE AN INTERCEPT? */
 /**
  * @brief psmrts_emission - Returns the emission angle (in radians) between the
  *        normal vector at a surface point and a vector from that surface point
@@ -505,7 +520,8 @@ double psmrts_emission( const PSMRTS_RayTrace *ray ) {
  */
 double psmrts_phase( const PSMRTS_RayTrace *ray1,
                      const PSMRTS_RayTrace *ray2 ) {
-  return ( ray1->trace().phase(ray2->trace()) );
+
+  return ( ray1->trace().phase( ray2->trace() ) );
 }
 
 /**
@@ -527,7 +543,7 @@ PSMRTS_TraceArray *psmrts_create_trace_array() {
  * @param tracearray Pointer to PSMRTS_TraceArray object.
  * @return size_t Number of traces in array.
  */
-size_t psmrts_trace_array_size(const PSMRTS_TraceArray *tracearray) {
+size_t psmrts_trace_array_size( const PSMRTS_TraceArray *tracearray ) {
   return ( tracearray->size() );
 }
 
@@ -541,17 +557,18 @@ size_t psmrts_trace_array_size(const PSMRTS_TraceArray *tracearray) {
  * @return size_t Index of newly added trace.
  */
 size_t psmrts_trace_array_add_trace( PSMRTS_TraceArray *tracearray,
-                                   const PSMRTS_RayTrace *trace ) {
-  tracearray->add_trace( *trace );
-
-  return (tracearray->size() - 1 );
+                                     const PSMRTS_RayTrace *trace ) {    
+  return ( tracearray->add_trace( *trace ) );
 }
 
-/** TBD: Error handling, invalid index???
+/**
  * @brief psmrts_trace_array_get_trace - Get trace at given index from trace
  *                                       array.
  *
- * This function retrieve a PSMRTS_RayTrace at a given index.
+ * This function retrieves a PSMRTS_RayTrace at a given index.
+ *
+ * NOTE: index is zero-based, i.e. ranging from 0 to 'n-1' where 'n' is the
+ *       number of elements in the trace array.
  *
  * @param tracearray Pointer to PSMRTS_TraceArray.
  * @param index Integer array index for requested PSMRTS_RayTrace.
@@ -559,7 +576,14 @@ size_t psmrts_trace_array_add_trace( PSMRTS_TraceArray *tracearray,
  */
 const PSMRTS_RayTrace *psmrts_trace_array_get_trace( const PSMRTS_TraceArray *tracearray,
                                                      size_t index ) {
-  return ( &tracearray->get_trace( index ) );
+  try {
+    return ( &tracearray->get_trace( index ) );
+  }
+  catch( const std::exception &e ) {
+    tracearray->add_error(e);
+    //  return nullptr;
+  }
+  return nullptr;
 }
 
 /* Photometric Tracer methods */
@@ -590,9 +614,10 @@ const PSMRTS_RayTrace *psmrts_trace_array_get_trace( const PSMRTS_TraceArray *tr
 PSMRTS_PhotometricRayTrace *psmrts_create_photometric_ray( const PSMRTS_Vector3d *observer,
                                                            const PSMRTS_Vector3d *lookdir,
                                                            const PSMRTS_Vector3d *sunpos) {
+
   return ( new psmrts::PRQPhotometricTrace( vector_to_eigen( *observer ),
                                             vector_to_eigen( *lookdir ),
-                                            vector_to_eigen( *sunpos )) );
+                                            vector_to_eigen( *sunpos ) ) );
 }
 
 /**
@@ -608,8 +633,8 @@ PSMRTS_PhotometricRayTrace *psmrts_create_photometric_ray( const PSMRTS_Vector3d
  * @return double Photometric incidence angle of input photometric ray trace (in
  *                radians).
  */
-double psmrts_photometric_incidence(const PSMRTS_PhotometricRayTrace *photometricTrace ) {
-  return (photometricTrace->incidence() );
+double psmrts_photometric_incidence( const PSMRTS_PhotometricRayTrace *photometricTrace ) {
+  return ( photometricTrace->incidence() );
 }
 
 /**
@@ -625,27 +650,25 @@ double psmrts_photometric_incidence(const PSMRTS_PhotometricRayTrace *photometri
  * @return double Photometric emission angle of input photometric ray trace (in
  *                radians).
  */
-double psmrts_photometric_emission(const PSMRTS_PhotometricRayTrace *photometricTrace ) {
-  return (photometricTrace->emission() );
+double psmrts_photometric_emission( const PSMRTS_PhotometricRayTrace *photometricTrace ) {
+  return ( photometricTrace->emission() );
 }
 
 /**
  * @brief psmrts_photometric_phase - Returns the photometric phase angle (in
- *        radians) subtended between two vectors from a common surface point to
- *        1) an observer and 2) the sun.
+ *        radians) subtended between two vectors that define observer and sun
+ *        position.
  *
  * Given a PSMRTS_PhotometricRayTrace object, this function returns the
- * photometric phase angle (in radians) subtended between two vectors from a
- * common surface point to 1) an observer and 2) the sun.
+ * photometric phase angle (in radians) subtended between two vectors that
+ * define observer and sun position.
  *
- * @param photoTrace1 Pointer to 1st PSMRTS_PhotometricRayTrace object.
- * @param photoTrace2 Pointer to 2nd PSMRTS_PhotometricRayTrace object.
- * @return double Photometric phase angle between input trace objects (in
+ * @param photoTrace Pointer to PSMRTS_PhotometricRayTrace object.
+ * @return double Photometric phase angle between observer and sun position (in
  *                radians).
  */
-double psmrts_photometric_phase( const PSMRTS_PhotometricRayTrace *photoTrace1,
-                                 const PSMRTS_PhotometricRayTrace *photoTrace2 ) {
-  return ( photoTrace1->observer_trace().phase(photoTrace2->observer_trace()) );
+double psmrts_photometric_phase( const PSMRTS_PhotometricRayTrace *photoTrace ) {
+  return ( photoTrace->phase() );
 }
 
 /**
@@ -658,7 +681,7 @@ double psmrts_photometric_phase( const PSMRTS_PhotometricRayTrace *photoTrace1,
  * @param photoTrace Pointer to PSMRTS_PhotometricRayTrace object.
  * @return PSMRTS_RayTrace const pointer to PSMRTS_RayTrace observer trace.
  */
-const PSMRTS_RayTrace *psmrts_photometric_observer_trace( PSMRTS_PhotometricRayTrace *photoTrace) {
+const PSMRTS_RayTrace *psmrts_photometric_observer_trace( PSMRTS_PhotometricRayTrace *photoTrace ) {
   return ( &photoTrace->observer() );
 }
 
@@ -671,7 +694,7 @@ const PSMRTS_RayTrace *psmrts_photometric_observer_trace( PSMRTS_PhotometricRayT
  * @param photoTrace Pointer to PSMRTS_PhotometricRayTrace object.
  * @return PSMRTS_RayTrace const pointer to PSMRTS_RayTrace sun trace.
  */
-const PSMRTS_RayTrace *psmrts_photometric_sun_trace( PSMRTS_PhotometricRayTrace *photoTrace) {
+const PSMRTS_RayTrace *psmrts_photometric_sun_trace( PSMRTS_PhotometricRayTrace *photoTrace ) {
   return ( &photoTrace->sunpos() );
 }
 
@@ -684,7 +707,7 @@ const PSMRTS_RayTrace *psmrts_photometric_sun_trace( PSMRTS_PhotometricRayTrace 
  * @return Pointer to PSMRTS_PhotometricTraceArray.
  */
 PSMRTS_PhotometricTraceArray *psmrts_create_photometric_trace_array() {
-  return ( new PSMRTS_PhotometricTraceArray());
+  return ( new PSMRTS_PhotometricTraceArray() );
 }
 
 /**
@@ -696,7 +719,7 @@ PSMRTS_PhotometricTraceArray *psmrts_create_photometric_trace_array() {
  * @param tracearray Pointer to PSMRTS_PhotometricTraceArray object.
  * @return size_t Number of traces in array.
  */
-size_t psmrts_photometric_trace_array_size(const PSMRTS_PhotometricTraceArray *tracearray) {
+size_t psmrts_photometric_trace_array_size( const PSMRTS_PhotometricTraceArray *tracearray ) {
   return ( tracearray->size() );
 }
 
@@ -712,12 +735,10 @@ size_t psmrts_photometric_trace_array_size(const PSMRTS_PhotometricTraceArray *t
  */
 size_t psmrts_photometric_trace_array_add_trace( PSMRTS_PhotometricTraceArray *tracearray,
                                                  const PSMRTS_PhotometricRayTrace *trace ) {
-  tracearray->add_trace( *trace );
-
-  return (tracearray->size() - 1 );
+  return ( tracearray->add_trace( *trace ) );
 }
 
-/** TBD: Error handling, invalid index???
+/**
  * @brief psmrts_photometric_trace_array_get_trace - Get trace at given index
  *                                                   from trace array.
  *
@@ -729,7 +750,14 @@ size_t psmrts_photometric_trace_array_add_trace( PSMRTS_PhotometricTraceArray *t
  */
 const PSMRTS_PhotometricRayTrace *psmrts_photometric_trace_array_get_trace( const PSMRTS_PhotometricTraceArray *tracearray,
                                                                             size_t index ) {
-  return ( &tracearray->get_trace(index) );
+  try {
+    return ( &tracearray->get_trace( index ) );
+  }
+  catch( const std::exception &e ) {
+    tracearray->add_error(e);
+  //  return nullptr;
+  }
+  return nullptr;
 }
 
 /**
@@ -744,7 +772,8 @@ const PSMRTS_PhotometricRayTrace *psmrts_photometric_trace_array_get_trace( cons
  * @return PSMRTS_Vector3d Vector converted to xyz coordinates.
  */
 PSMRTS_Vector3d psmrts_lonlatrad_to_xyz( const PSMRTS_Vector3d *v ) {
-  return ( eigen_to_vector(psmrts::lonlatrad_to_xyz_d(vector_to_eigen(*v))) );
+
+  return ( eigen_to_vector( psmrts::lonlatrad_to_xyz_d( vector_to_eigen(*v) ) ) );
 }
 
 /**
@@ -759,7 +788,8 @@ PSMRTS_Vector3d psmrts_lonlatrad_to_xyz( const PSMRTS_Vector3d *v ) {
  * @return PSMRTS_Vector3d Vector converted to lon, lat, radius coordinates.
  */
 PSMRTS_Vector3d psmrts_xyz_to_lonlatrad( const PSMRTS_Vector3d *v ) {
-  return ( eigen_to_vector(psmrts::xyz_to_lonlatrad_d(vector_to_eigen(*v))) );
+
+  return ( eigen_to_vector( psmrts::xyz_to_lonlatrad_d( vector_to_eigen( *v ) ) ) );
 }
 
 /**
@@ -776,7 +806,8 @@ PSMRTS_Vector3d psmrts_xyz_to_lonlatrad( const PSMRTS_Vector3d *v ) {
  */
 PSMRTS_Tracer *psmrts_create_sphere( const double radius_km,
                                      const char *name ) {
-  return ( new PSMRTS_Tracer (psmrts::PsmrtsShapeTracer::sphere(radius_km, name )));
+
+  return ( new PSMRTS_Tracer ( psmrts::PsmrtsShapeTracer::sphere( radius_km, name ) ) );
 }
 
 /**
@@ -792,8 +823,13 @@ PSMRTS_Tracer *psmrts_create_sphere( const double radius_km,
  * @param name  Spheroid name (defaults to "spheroid" if none provided).
  * @return Pointer to the resulting PSMRTS_Tracer object.
  */
-PSMRTS_Tracer *psmrts_create_spheroid( const double a_radius_km, const double c_radius_km, const char *name ) {
-  return ( new PSMRTS_Tracer (psmrts::PsmrtsShapeTracer::spheroid(a_radius_km, c_radius_km, name )));
+PSMRTS_Tracer *psmrts_create_spheroid( const double a_radius_km,
+                                       const double c_radius_km,
+                                       const char *name ) {
+
+  return ( new PSMRTS_Tracer ( psmrts::PsmrtsShapeTracer::spheroid( a_radius_km,
+                                                                    c_radius_km,
+                                                                    name ) ) );
 }
 
 /**
@@ -810,8 +846,15 @@ PSMRTS_Tracer *psmrts_create_spheroid( const double a_radius_km, const double c_
  * @param name  Ellipsoid name (defaults to "ellipsoid" if none provided).
  * @return Pointer to the resulting PSMRTS_Tracer object.
  */
-PSMRTS_Tracer *psmrts_create_ellipsoid( const double a_radius_km, const double b_radius_km, const double c_radius_km, const char *name ) {
-  return ( new PSMRTS_Tracer (psmrts::PsmrtsShapeTracer::ellipsoid(a_radius_km, b_radius_km, c_radius_km, name )));
+PSMRTS_Tracer *psmrts_create_ellipsoid( const double a_radius_km,
+                                        const double b_radius_km,
+                                        const double c_radius_km,
+                                        const char *name ) {
+
+  return ( new PSMRTS_Tracer ( psmrts::PsmrtsShapeTracer::ellipsoid( a_radius_km,
+                                                                     b_radius_km,
+                                                                     c_radius_km,
+                                                                     name ) ) );
 }
 
 /**
@@ -827,8 +870,11 @@ PSMRTS_Tracer *psmrts_create_ellipsoid( const double a_radius_km, const double b
  * @param name  Ellipsoid name (defaults to "ellipsoid" if none provided).
  * @return Pointer to the resulting PSMRTS_Tracer object.
  */
-PSMRTS_Tracer *psmrts_create_ellipsoid_v( const PSMRTS_Vector3d &radii, const char *name ) {
-  return ( new PSMRTS_Tracer (psmrts::PsmrtsShapeTracer::ellipsoid(vector_to_eigen(radii), name )));
+PSMRTS_Tracer *psmrts_create_ellipsoid_v( const PSMRTS_Vector3d &radii,
+                                          const char *name ) {
+
+  return ( new PSMRTS_Tracer( psmrts::PsmrtsShapeTracer::ellipsoid( vector_to_eigen(radii),
+                                                                     name ) ) );
 }
 
 /**
@@ -843,7 +889,7 @@ PSMRTS_Tracer *psmrts_create_ellipsoid_v( const PSMRTS_Vector3d &radii, const ch
  * @return Pointer to the resulting PSMRTS_Tracer object.
  */
 PSMRTS_Tracer *psmrts_create_bullet( const char *meshfile ) {
-  return ( new PSMRTS_Tracer (psmrts::PsmrtsShapeTracer::bullet( meshfile )));
+  return ( new PSMRTS_Tracer( psmrts::PsmrtsShapeTracer::bullet( meshfile ) ) );
 }
 
 /**
@@ -858,7 +904,8 @@ PSMRTS_Tracer *psmrts_create_bullet( const char *meshfile ) {
  * @return Pointer to the resulting PSMRTS_Tracer object.
  */
 PSMRTS_Tracer *psmrts_create_naifdsk( const char *meshfile ) {
-  return ( new PSMRTS_Tracer (psmrts::PsmrtsShapeTracer::naifdsk( meshfile ) ));
+
+  return ( new PSMRTS_Tracer( psmrts::PsmrtsShapeTracer::naifdsk( meshfile ) ) );
 }
 
 /**

@@ -213,9 +213,7 @@ namespace psmrts {
       // verify latitude lies within -90 to +90 range, if outside of that
       // range, clamp it identically to -90 or +90
       // TBD: do we need Kris' toLatitudeDomain check instead?
-      assert( fabs(llr_deg[1]) <= 90.0 && "Latitude outside -90 to +90 range" );
-
-      double clamped_lat = std::clamp(llr_deg[1], -90.0, 90.0);
+      double clamped_lat = std::clamp( llr_deg[1], -90.0, 90.0 );
 
       double lon_r  = degrees_to_radians( to360LongitudeDomain_d( llr_deg[0] ) );
       double lat_r  = degrees_to_radians( clamped_lat ) ;
@@ -223,11 +221,9 @@ namespace psmrts {
 
       double x = radius * std::cos( lon_r ) * std::cos( lat_r );
       double y = radius * std::sin( lon_r ) * std::cos( lat_r );
-      double z = radius * std::sin( lat_r  );
+      double z = radius * std::sin( lat_r );
 
       return ( Eigen::Vector3d( { x, y, z } ) );
-
-
   }
 
   /**
