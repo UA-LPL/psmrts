@@ -175,13 +175,20 @@ namespace psmrts {
             spec_errors_t.add_error( se );
           }
         }
-        
+
+#if 0        
+        // Check for parameter size equivalency? Not if its a config. FIX THIS!
+        if ( this->size() != other.size() ) {
+              spec_errors_t.add_error( std::runtime_error( spec_errors_t.name() + " - number parameters differ in " +
+                                                            this->name() + "/" + other.name() + " product specs" ) );          
+        }
+#endif        
         // Now check for any errors and return a match if none
         if ( ( spec_errors_t.error_count() > 0 ) && ( throwException == true ) ) {
           spec_errors_t.throw_errors();
         }  
         
-        // Return match status...
+        // Return match status...WE REALLY SHOULD RETURN spec_errors_t.
         return ( spec_errors_t.error_count() == 0 );
       }
 
