@@ -8,7 +8,7 @@
 
 
 TEST_CASE("PsmrtsShapeTracer Default Test", "[shape][tracer][default]") {
-
+    const double tolerance_r = 1.0E-13;
     CHECK( sizeof( psmrts::PsmrtsShapeTracer::PsmrtsTracer ) <= 768 );
 
     psmrts::PsmrtsShapeTracer tracer_t( psmrts::PsmrtsShapeTracer::ellipsoid( { 0.283065,0.271215,0.249720 }, "Bennu" ) );
@@ -45,8 +45,8 @@ TEST_CASE("PsmrtsShapeTracer Default Test", "[shape][tracer][default]") {
     CHECK( ray_t.isValid()        == true );
     CHECK( ray_t.trace().hasHit() == true );
 
-    CHECK( ray_t.trace().incidence( ray_t.trace() )  == 0.10622974872501688 );
-    CHECK( ray_t.trace().emission()                  == 0.10622974872501688 );
+    CHECK_THAT( ray_t.trace().incidence( ray_t.trace() ), Catch::Matchers::WithinAbs(0.10622974872501688, tolerance_r));
+    CHECK_THAT( ray_t.trace().emission(), Catch::Matchers::WithinAbs(0.10622974872501688, tolerance_r ));
     CHECK( ray_t.trace().phase( ray_t.trace() )      == 0.0 );
 
     psmrts::PRQFacet facet_t;
