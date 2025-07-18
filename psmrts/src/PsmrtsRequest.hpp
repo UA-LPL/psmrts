@@ -149,7 +149,7 @@ namespace psmrts {
         return;
       }
 
-      inline void add_error( const std::exception &e ) {
+      inline void add_error( const std::exception &e ) const {
       // Monitor the cache size of the error queue
         if ( m_errors.size() >= MaxQueuedErrors ) {
           (void) m_errors.pop_front();
@@ -242,7 +242,7 @@ namespace psmrts {
       bool                       m_success_status;
       bool                       m_is_present;
       size_t                     m_times_run;
-      std::deque<std::exception> m_errors;
+      mutable std::deque<std::exception> m_errors;
 
 
     private:
@@ -382,13 +382,15 @@ class PRQRayTraceArray : public PsmrtsRequest {
         return ( m_traces.size() );
       }
 
-      inline void add_trace( const Eigen::Vector3d &observer, 
+      inline size_t add_trace( const Eigen::Vector3d &observer,
                              const Eigen::Vector3d &lookdir ) {
         m_traces.push_back( PRQRayTrace( observer, lookdir ) );
+        return ( m_traces.size() - 1 ); // returns index of added trace
       }
 
-      inline void add_trace( const PRQRayTrace &trace ) {
+      inline size_t add_trace( const PRQRayTrace &trace ) {
         m_traces.push_back( trace );
+        return ( m_traces.size() - 1 ); // returns index of added trace
       }
 
       inline const PRQRayTraceList &traces() const {
@@ -400,7 +402,10 @@ class PRQRayTraceArray : public PsmrtsRequest {
       }
 
       inline const PRQRayTrace &get_trace( size_t index ) const {
-        return ( traces().at( index ));
+        if ( index >= this->size() ) {
+          throw std::out_of_range( "PRQRayTraceArray::get_trace() - Index out of bounds for array access." );
+        }
+        return ( traces().at( index ) );
       }
 
     public:
@@ -526,14 +531,16 @@ class PRQPhotometricTraceArray : public PsmrtsRequest {
         return ( m_traces.size() );
       }
 
-      inline void add_trace( const Eigen::Vector3d &observer, 
-                             const Eigen::Vector3d &lookdir,
-                             const Eigen::Vector3d &sunpos ) {
+      inline size_t add_trace( const Eigen::Vector3d &observer,
+                               const Eigen::Vector3d &lookdir,
+                               const Eigen::Vector3d &sunpos ) {
         m_traces.push_back( PRQPhotometricTrace( observer, lookdir, sunpos ) );
+        return ( m_traces.size() - 1 ); // returns index of added trace
       }
 
-      inline void add_trace( const PRQPhotometricTrace &trace ) {
+      inline size_t add_trace( const PRQPhotometricTrace &trace ) {
         m_traces.push_back( trace );
+        return ( m_traces.size() - 1 ); // returns index of added trace
       }
 
       inline const PRQPhotometricTraceList &traces() const {
@@ -545,7 +552,10 @@ class PRQPhotometricTraceArray : public PsmrtsRequest {
       }
 
       inline const PRQPhotometricTrace &get_trace( size_t index ) const {
-        return ( traces().at( index ));
+        if ( index >= this->size() ) {
+          throw std::out_of_range( "PRQPhotometricTraceArray::get_trace() - Index out of bounds for array access." );
+        }
+        return ( traces().at( index ) );
       }
 
     public:
