@@ -15,12 +15,11 @@ namespace psmrts {
                          m_model( dsk_t ) { }
         virtual ~DskShape() { } 
      
-        /** 
+
      inline bool process( PRQFeatures &features ) const {
-        features.add_feature( this->product_specifications().specs() );
+        features.add_feature( this->product_specifications().json_specs() );
         return ( true );
      }
-        */
 
      static inline ProductSpecification product_specifications() {
         char text[] = R"(

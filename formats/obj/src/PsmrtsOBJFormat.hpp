@@ -417,7 +417,7 @@ namespace psmrts {
             return ( PsmrtsOBJFormat( objfile.value<std::string>( "obj_file" ), mtlopt ).get_mesh() );  
           }
         }
-        catch ( const std::runtime_error &re ) {
+        catch ( const std::exception &re ) {
           std::string msg = std::string( "PsmrtsOBJFormat::create() failed - ").append( re.what() );
         }
         

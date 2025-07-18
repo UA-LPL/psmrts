@@ -51,12 +51,13 @@ namespace psmrts  {
        *                  in a JSON format
        * @return true    If features were added successfully
        * @return false   If any issues during processing
-       
+       */
       inline bool process( PRQFeatures &features ) const {
-        features.add_feature( this->product_specifications().specs() );
+        features.add_feature( this->product_specifications().json_specs() );
         return ( true );
       }
-        */
+        
+
       static inline ProductSpecification product_specifications() {
         char text[] = R"(
         {
