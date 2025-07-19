@@ -184,7 +184,51 @@ namespace psmrts  {
         // this->local_tracker()++;
         return ( m_model.ray_trace( observer, lookdir, ray ) );
       }
-  
+      
+      static inline ProductSpecification product_specifications() {
+        char text[] = R"(
+        {
+          "name": "bullet",
+          "product": "shapetracer",
+          "type": "tracer",
+          "description": "The Bullet Physics ray tracing system specification",
+          "driver": {
+            "name": "bullet",
+            "type": "system",
+            "aliases": [ "shapetracer" ]
+          },
+          "parameters": [
+            {
+              "name": "bullet_optimize_bvh",
+              "type": "bool",
+              "description": "Use optimized bounding volume hierachy (BVH) when created",
+              "status": "optional",
+              "default": "false",
+              "valid": ["true", "1", "yes", "false", "0", "no"]
+            },
+            {
+              "name": "bullet_compressed",
+              "type": "bool",
+              "description": "Compress Bullet data during construction",
+              "status": "optional",
+              "default": "false",
+              "valid": ["true", "1", "yes", "false", "0", "no"]
+            },            
+            {
+              "name": "bullet_thread_safety",
+              "type": "bool",
+              "description": "Utilize thread locking before Bullet ray traces are run",
+              "status": "optional",
+              "default": "false",
+              "valid": ["true", "1", "yes", "false", "0", "no"]
+            }
+          ]       
+        } )";
+
+        // This validates the JSON structure and provides product info to callers
+        return ( ProductSpecification( "bullet", "tracer", "shapetracer", json_utils::parse_json_string( text )));
+      }
+
       /** Report all remaining features not available - e.g., PRQFacet not relevant to Ellipsoid format */
       PSMRTS_PROCESS_CATCHALL( "BulletShapeTracer" )
 

@@ -33,8 +33,46 @@ release.
 -->
 
 ## TODO
-- Bullet Physics Tracer Model
-  - Implement multi-threaded version of tinyobjloader
+- See [TODO](TODO.md)
+
+## [0.1.0] 2025-07-16
+- Update CHANGELOG.md.
+- Update TODO.md which is now tracking development.
+- CMakeLists.txt - Updated to version [0.1.0]. 
+- Create C API initial implementation in ./capi:
+  - Added initial implementations of psmrts_c.h and psmrts_c.cpp.
+  - Added ./apps directory and infrastructure: CMakeLists.txt and test directories.
+  - Added first implementation of C app psmrts_capi_features.cpp. 
+  - Added first implementation of C app psmrts_tracer_shape.cpp.
+- product_specification.md - NEW docs file that is the most up-to-date design document we are maintaining.
+- Documentation has been improved in a sweep through most all classes.
+- test_PsmrtsPLYFormat.cpp - Updated tests to comply with recent changes.
+- test_PsmrtsPriorityTracer.hpp - Added new tests using new tracers.
+- psmrts/tests/CMakeLists.txt - Added Bullet link libraries to tests.
+- DskShape.hpp - PSMRTS process request implementation to read a DSK mesh from a DSK .bds file.
+- test_DskShape.cpp - Test of DskShape.
+- ObjShape.hpp - PSMRTS process request implementation to read a OBJ mesh from a .obj file.
+- test_ObjShape.cpp - Test of ObjShape.
+- PlyShape.hpp - PSMRTS process request implementation to read a PLY mesh from a .ply file.
+- test_PlyShape.cpp - Test of PlyShape.
+- PsmrtsOBJFormat.hpp - Added product specification; create option using specification data.
+- ProductParameter.hpp - Updates to support comparisons of config options and specifications.
+- ProductSpecification.hpp - Use std::deque instead of std::vector; rework initialization an use of ProductParameters to track keyword and JSON manipulation.
+- test_ProductSpecification.cpp - Added test for ProductSpecification class.
+- PsmrtsRequest.hpp - Use std::deque rather than std::vector. The std::deque container does not ever reallocate or invalid references when prepending or appending data. This promotes safer pointer references in the C API; Provide/preserve constructors with std::vectors; removed the preliminary/proposed technique to dispatch PRQs to process methods using compiler directives (templates achieve the same things); removed psmrts::traits namespace associated with the obsolete dispatch approach; updated documentation.
+- test_PsmrtsRequest.cpp - Removed tests of obsolete process dispatch technique.
+- PsmrtsUtilities.hpp - Added latlonrad_d(), xyz_to_latlonrad_d(), string_tokenizer() functions.
+- test_PsmrtsUtilities.cpp - Added test for new functions.
+- psmrts_version.h.in - Changed template for PSMRTS CMake versioning scheme.
+- BulletShapeTracer.hpp - Added product specification for the Bullet tracer.
+- test_BulletShapeTracer.cpp - Updated to test new features.
+- EllipsoidShapeTracer.hpp - Added product specification for the Ellipsoid tracer.
+- test_EllipsoidShapeTracer.cpp - Updated to test new features.
+- NaifDskShapeTracer.hpp - Added product specification for the NaifDsk tracer.
+- test_NaifDskShapeTracer.cpp - Updated to test new features.
+
+
+
 
 ## [0.0.14] 2025-06-30
 - PsmrtsDskFormat.hpp - fixed formatting issues for config().

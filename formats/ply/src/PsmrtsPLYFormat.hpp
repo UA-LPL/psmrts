@@ -146,10 +146,16 @@ namespace psmrts {
             else {
                 m_file_type = "binary";
             }
-
+            //PSMRTS_SYSTEM_CLOCK_TIME start = psmrts::system_clock_time();
+            //PsmrtsThreadSafeCounter timer;
             // Config header data to json
-            parse_config(reader);
-
+            //parse_config(reader);
+            m_data_type = get_facet_vector_type( reader );
+            parse_config();
+            //PSMRTS_SYSTEM_CLOCK_TIME end = psmrts::system_clock_time();
+            //double total = elapsed_clock_time_ms(start, end);
+            //double total = timer.runtime_ms();
+            //std::cout << "-- parse_config elapsed time -- file: " << m_ply_source << " | time: " << total << std::endl;
             // Lets assume only triangles in the ply, which is more efficient to read here. See
             // https://github.com/vilya/miniply#loading-from-a-ply-file-known-to-only-contain-triangles
             uint32_t faceIdxs[3];
@@ -166,7 +172,8 @@ namespace psmrts {
             PsmrtsVector3d p_vectors;
             PsmrtsVector3i p_indexes;
             miniply::PLYPropertyType v_type =  miniply::PLYPropertyType::Double;
-
+            // May need to establish vertex/mesh data prior to assignment (read natively?)
+            // parse_config() based on old
             while ( reader.has_element() && (!p_vectors.isValid()|| !p_indexes.isValid() ))  {
 
                 if (reader.element_is(miniply::kPLYVertexElement) && reader.load_element() && reader.find_pos(indexes)) {
@@ -220,27 +227,16 @@ namespace psmrts {
          * 
          * @param reader miniply file reader 
          */
-        inline void parse_config( miniply::PLYReader& reader )  {
+        inline void parse_config( )  {
             ordered_json options;
             options["ply_file"] = m_ply_source;
             options["ply_file_type"] = m_file_type;
-            
-            int largest_type = 0;
-            std::string largest_text = "";
-            for (uint32_t i=0; i < reader.num_elements(); i++) {
-                const miniply::PLYElement* elem = reader.get_element(i);
-                for(const miniply::PLYProperty& prop : elem->properties) {
-                    if (property_type_size( prop.type ) > largest_type) {
-                        largest_type = property_type_size( prop.type );
-                        largest_text = property_type_string( prop.type );
-                    }
-                }
-            }
-            options["ply_data_type"] = largest_text;
+            options["ply_data_type"] = m_data_type;
             m_config = ProductSpecification("ply", "mesh", options);
             return;
         }
 
+        
         /**
          * @brief String output helper for miniply property types
          * 
@@ -311,14 +307,11 @@ namespace psmrts {
          * @return PsmrtsPLYFormat 
          */
         static inline PsmrtsMeshData create( const ProductSpecification &params ) {
-            ordered_json options = params.specs().parameters();
+
             try {
-                if (options.contains( "ply_file" ) ) {
-                    return (PsmrtsPLYFormat( options.at("ply_file")).get_mesh() );
-                }
-                else if ( params.name() == "ply" ) {
-                    std::string plyfile = params.specs().get_string_parameter( "file" );
-                    return (PsmrtsPLYFormat( plyfile ).get_mesh());
+                if ( params.has_parameter( "ply_file" ) ) {
+                    ProductParameter plyfile = params.get_parameter("ply_file");
+                    return ( PsmrtsPLYFormat(  plyfile.value<std::string>( "ply_file" ) ).get_mesh() );
                 }
             }
             catch ( const std::runtime_error &re) {
@@ -332,6 +325,7 @@ namespace psmrts {
             throw std::runtime_error( msg );
         }
 
+#if 0
         /**
          * @brief returns true if the input product json contains the same
          * values as the object
@@ -357,6 +351,7 @@ namespace psmrts {
               }
               return true;
         }
+#endif
 
         /** Returns the header json information
         inline const json &config() const {
@@ -429,9 +424,24 @@ namespace psmrts {
         private:
             std::string                m_ply_source;
             std::string                m_file_type;
+            std::string                m_data_type;
             PsmrtsMeshData             m_mesh;
             PsmrtsThreadSafeCounter    m_tracker;
             ProductSpecification       m_config;
+
+            inline std::string get_facet_vector_type( miniply::PLYReader& reader ) const {
+                int largest_type = 0;
+                std::string largest_text = "";
+    
+                const miniply::PLYElement* elem = reader.get_element(reader.find_element(miniply::kPLYVertexElement));
+                for(const miniply::PLYProperty& prop : elem->properties) {
+                    if (property_type_size( prop.type ) > largest_type) {
+                        largest_type = property_type_size( prop.type );
+                        largest_text = property_type_string( prop.type );
+                    }
+                }
+                return largest_text;
+            }
 
     };
 } // namespace psmrts

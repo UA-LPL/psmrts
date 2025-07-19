@@ -6,19 +6,20 @@
 #endif
 
 #include <algorithm>
-#include <functional>
-#include <exception>
-#include <iterator>
-#include <string>
-#include <locale>
-#include <vector>
-#include <ctime>
-#include <time.h>
+#include <cassert>
 #include <chrono>
 #include <cmath>
+#include <ctime>
+#include <exception>
+#include <functional>
+#include <iterator>
 #include <limits>
+#include <locale>
 #include <mutex>
 #include <stdexcept>
+#include <string>
+#include <time.h>
+#include <vector>
 
 #include <Eigen/Geometry>
 
@@ -193,6 +194,93 @@ namespace psmrts {
     return ( lon_adj );
   }
   
+  /**
+   * @brief lonlatrad_to_xyz_d - Convert latitudinal coordinates (longitude,
+   *                             latitude, radius) to rectangular (xyz).
+   *
+   * Given a Eigen::Vector3d containing longitude, latitude, and radius
+   * coordinates, this function converts it to rectangular coordinates.
+   *
+   * Input angular coordinates are assumed to be in degrees. Longitude is
+   * converted to the 360 longitude domain if necessary.
+   *
+   * @param Eigen::Vector3d containing longitude, latitude, radius coordinates.
+   * @pre latitude must lie within -90 to +90 range.
+   * @return Eigen::Vector3d Vector converted to xyz coordinates.
+   */
+  inline Eigen::Vector3d lonlatrad_to_xyz_d( const Eigen::Vector3d &llr_deg ) {
+
+      // verify latitude lies within -90 to +90 range, if outside of that
+      // range, clamp it identically to -90 or +90
+      // TBD: do we need Kris' toLatitudeDomain check instead?
+      double clamped_lat = std::clamp( llr_deg[1], -90.0, 90.0 );
+
+      double lon_r  = degrees_to_radians( to360LongitudeDomain_d( llr_deg[0] ) );
+      double lat_r  = degrees_to_radians( clamped_lat ) ;
+      double radius = llr_deg[2];
+
+      double x = radius * std::cos( lon_r ) * std::cos( lat_r );
+      double y = radius * std::sin( lon_r ) * std::cos( lat_r );
+      double z = radius * std::sin( lat_r );
+
+      return ( Eigen::Vector3d( { x, y, z } ) );
+  }
+
+  /**
+   * @brief xyz_to_lonlatrad_d - Convert rectangular coordinates (x,y,z) to
+   *                             latitudinal coordinates (longitude, latitude,
+   *                             radius). Angular coordinates are in degrees.
+   *
+   * Given a Eigen::Vector3d containing xyz coordinates, this function converts
+   * it to longitude, latitude, radius coordinates. Resulting angular
+   * coordinates are in degrees.
+   *
+   * @param Eigen::Vector3d containing xyz coordinates.
+   * @param bool Flag to convert resulting longitude coordinate to 360 longitude
+   *             domain if necessary. Defaults to true.
+   * @return Eigen::Vector3d Vector converted to longitude, latitude, and radius
+   *                         coordinates.
+   */
+  /*  input x,y,z are km, output lat, lon in radians, radius in km */
+  inline Eigen::Vector3d xyz_to_lonlatrad_d( const Eigen::Vector3d &xyz,
+                                             const bool to360 = true ) {
+
+      Eigen::Vector3d llr;
+
+      double vector_max = std::max( { std::abs(xyz[0]),
+                                      std::abs(xyz[1]),
+                                      std::abs(xyz[2]) } );
+
+      if ( vector_max > 0.0 ) {
+        double x = xyz[0] / vector_max;
+        double y = xyz[1] / vector_max;
+        double z = xyz[2] / vector_max;
+
+        llr[2] = vector_max * sqrt( x*x + y*y + z*z ); // radius
+        llr[1] = radians_to_degrees( atan2(z, sqrt( x*x + y*y ) ) );         // latitude
+
+        if (x == 0.0 && y == 0.0 ) {                   // longitude
+          llr[0] = 0.0;
+        }
+        else {
+          llr[0] = radians_to_degrees( atan2(y, x) );
+        }
+
+        // Adjust longitude for -180, 180 domain if requested
+        if ( to360 && ( llr[0] < 0.0 ) ) {
+          llr[0] += 360.0;
+        }
+      }
+      else {
+        // vector is zero vector
+        llr[0] = 0.0;
+        llr[1] = 0.0;
+        llr[2] = 0.0;
+      }
+
+      return ( llr );
+  }
+
   /** Returns true if the data of two Eigen::Vector3d have same relative values, with adjustable tolerance */
   inline bool isEqual( const Eigen::Vector3d &v1, 
                        const Eigen::Vector3d &v2,
@@ -251,6 +339,45 @@ namespace psmrts {
     }
 
     
+  /**
+   * @brief tokenization of an Ellipsoid string of a/b/c values
+   * 
+   * This function is meant to tokenize the string with multiple value
+   * character seperators as provided in a string. 
+   *
+   * It is desiged to accept strings similar to the following forms:
+   * - "Tracer:value"
+   * - "Tracer:value,value"
+   * - "Tracer:value,value,value"
+   * 
+   * This code parses the string format above and creates a string vector:
+   *  - { "Tracer", "value" }
+   * @code 
+   * auto tokens = string_tokenizer(s, ":,");
+   * @endcode
+   * 
+   * 
+   * @param s                         An string in the forms detailed above
+   * @param t_sep                     Default separator character, ','.
+   * @return std::vector<std::string> Returns a string vector of one or more values, unless provided
+   *                                  an incorrectly formatted string input
+   */
+  inline std::vector<std::string> string_tokenizer(const std::string &s,
+                                                   const std::string &t_sep = ",") {
+    std::vector<std::string> values;
+    std::string::size_type spos = 0;
+    size_t s_size = s.length();
+
+    for (std::string::size_type i=0; i != std::string::npos; spos = i+1) {
+      i = s.find_first_of(t_sep, spos);
+      std::string::size_type slen = (std::string::npos == i) ? i : i - spos;
+      if (slen > 0 ) {
+        values.push_back( s.substr(spos, slen) );
+      }
+    }
+    return values;
+  }
+
   /**
    * @brief Constructs a path that is OS sensitive
    * 
@@ -321,6 +448,23 @@ namespace psmrts {
     }
     return ( base_f );
   }  
+
+  /** Checks if a string is an acceptable boolean value, returning the equivalent if found */
+  inline bool is_bool( const std::string &val ) {
+    std::string target = psmrts_tolower(val);
+    static const std::vector<std::string> trues = {"true", "t", "yes", "y", "on", "1"};
+    static const std::vector<std::string> falses = {"false", "f", "no", "n", "off", "0"};
+
+    if (std::find(trues.begin(), trues.end(), target) != trues.end() ) {
+      return true;
+    }
+    else if (std::find(falses.begin(), falses.end(), target) != falses.end() ) {
+      return false;
+    }
+    else {
+      throw std::invalid_argument("Error: Acceptable boolean value not found - " + val );
+    }
+  }
 
 /**
  * @brief Mutex wrapper for arbitrary data type

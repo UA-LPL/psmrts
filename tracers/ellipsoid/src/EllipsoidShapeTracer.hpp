@@ -5,6 +5,7 @@
 
 #include <EllipsoidTracerModel.hpp>
 #include <PsmrtsRequest.hpp>
+#include <ProductSpecification.hpp>
 
 namespace psmrts  {
   /**
@@ -166,7 +167,41 @@ namespace psmrts  {
         // this->local_tracker()++;
         return ( m_model.ray_trace( observer, lookdir, ray ) );
       }
-  
+      
+      static inline ProductSpecification product_specifications() {
+        char text[] = R"(
+        {
+          "name": "ellipsoid",
+          "product": "shapetracer",
+          "type": "tracer",
+          "description": "Ellipsoid ray tracing system specifications",
+          "driver": {
+            "name": "ellipsoid",
+            "type": "system",
+            "aliases": ["shapetracer"]
+          },
+          "parameters": [
+            {
+              "name": "ellipsoid_radii",
+              "type": "list[double]",
+              "description": "Radii of the ellipsoid in kilometers, in the order [a, b, c]",
+              "status": "required",
+              "default": [1.0, 1.0, 1.0]
+            },
+            {
+              "name": "ellipsoid_source",
+              "type": "string",
+              "description": "Identifier or source for the ellipsoid - e.g., model or dataset",
+              "status": "optional",
+              "default": "ellipsoid"
+            }
+          ]       
+        } )";
+
+        // This validates the JSON structure and provides product info to callers
+        return ( ProductSpecification( "ellipsoid", "tracer", "shapetracer", json_utils::parse_json_string( text )));
+      }
+
       /** Report all remaining features not available - e.g., PRQFacet not relevant to Ellipsoid format */
       PSMRTS_PROCESS_CATCHALL( "EllipsoidShapeTracer" )
 

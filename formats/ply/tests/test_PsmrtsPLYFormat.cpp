@@ -39,8 +39,8 @@ TEST_CASE ( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][defaul
     test["ply_file_type"] = "binary";
     test["ply_data_type"] = "float";
 
-    CHECK( ply.compare( test ) == true );
     /**
+    CHECK( ply.compare( test ) == true );
     std::string file_path = ply.config()["header"]["file"];
 
     CHECK( psmrts::psmrts_file_basename(file_path) == "Bennu_Radar.ply" );

@@ -9,6 +9,7 @@ include_directories( ${PSMRTS_PROJECT_DIR}/psmrts/tests )
 
 # Build all-in-one renderer test application
 add_executable( dsk_test_suite  dsk_catch2_main.cpp
+                                test_DskShape.cpp
                                 test_PsmrtsDSKFormat.cpp )
 
 # Add required libraries as needed for psmrts_test_suite

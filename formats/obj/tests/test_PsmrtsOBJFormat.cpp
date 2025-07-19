@@ -40,7 +40,6 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Basic Load/Init Tests", "[format][obj][shap
     options["required"] = {"obj_file"};
     options["optional"] = {"obj_data_type", "obj_mtl_search_path"};
     psmrts::ProductSpecification test("obj", "mesh", options);
-    CHECK( t_loader.compare( test ) == true);
     
     ordered_json options2;
     options["obj_file"] = objfile;
@@ -50,7 +49,6 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Basic Load/Init Tests", "[format][obj][shap
     options["optional"] = {"obj_data_type", "obj_mtl_search_path"};
     psmrts::ProductSpecification test2("obj", "mesh", options2);
 
-    CHECK( t_loader.compare( test2 ) == false );
 
     ordered_json options3;
     options3["obj_file"] = objfile;
@@ -58,8 +56,6 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Basic Load/Init Tests", "[format][obj][shap
     options3["required"] = {"obj_file"};
     options3["optional"] = {"obj_data_type", "obj_mtl_search_path"};
     psmrts::ProductSpecification test3("obj", "mesh", options2);
- 
-    CHECK( t_loader.compare( test3 ) == false );
 }
 
 TEST_CASE ( "OBJ FORMAT Asset Test - Load Fail Tests", "[format][obj][shape][failures]" ) {

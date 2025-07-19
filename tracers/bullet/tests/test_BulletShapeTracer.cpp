@@ -569,3 +569,19 @@ TEST_CASE( "Bullet Shape Tracer Photometric Array Test", "[bullet][shapetracer][
 
 }
 
+TEST_CASE( "Bullet Shape Tracer Product Specification Test", "[bullet][shapetracer][product][specification]") {
+    psmrts::ProductSpecification spec = psmrts::BulletShapeTracer::product_specifications();
+
+    CHECK( spec.name()              == "bullet"      );
+    CHECK( spec.product()           == "shapetracer" ); 
+    CHECK( spec.type()              == "tracer"      );
+    CHECK( spec.driver().name()     == "bullet"      ); 
+    CHECK( spec.size()              == 3             );
+    CHECK( spec.parameters().size() == 3             );
+    CHECK( spec.required().size()   == 0             );
+    CHECK( spec.optional().size()   == 3             );
+
+    CHECK( spec.has_parameter( "obj_mtl_search_path" )  == false );
+    CHECK( spec.has_parameter( "bullet_optimize_bvh" )  == true  );
+
+}

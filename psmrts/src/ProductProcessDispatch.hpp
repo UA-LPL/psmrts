@@ -70,7 +70,7 @@ namespace psmrts {
                 status = product.process( request ); // Execute
                 request.process_complete( status );  // No thrown errors
               }
-              catch ( const std::runtime_error &e ) {
+              catch ( const std::exception &e ) {
                 request.add_error( e ); // Report errors 
                 status = false;
                 // return ( status  );
