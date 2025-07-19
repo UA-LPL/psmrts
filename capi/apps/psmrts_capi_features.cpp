@@ -1,9 +1,6 @@
 #include <stdio.h>
+#include <iostream>
 #include <string>
-
-#include <PsmrtsRequest.hpp>
-#include <PsmrtsUtilities.hpp>
-#include <PsmrtsShapeTracer.hpp>
 
 #include <psmrts_c.h>
 
@@ -22,8 +19,8 @@ int main( int argc, char *argv[] ) {
 
   // Confirm number of arguments. We expect one argument (the obj filename)
   // after the executable name in argv
-  if (argc < 2) {
-    const char *exename = strrchr(argv[0], '/');
+  if ( argc < 2 ) {
+    const char *exename = strrchr( argv[0], '/' );
     if ( exename ) {
       ++exename;
     }
@@ -41,93 +38,100 @@ int main( int argc, char *argv[] ) {
   // retrieve obj file name from argv[1]
   std::string objfile = argv[1];
 
-  printf("creating observer and lookdir vectors\n");
+  printf( "input obj file: %s\n", objfile.c_str() );
 
+  PSMRTS_RayTrace *sunray = nullptr;
+  PSMRTS_Vector3d xyz, raypt, normal, llr, sunpos, sundir;
+  double slant_d, raypt_d, radius_pt;
+  double emission, incidence, phase;
+
+  printf( "\n***creating observer and lookdir vectors\n" );
   PSMRTS_Vector3d observer;
-  observer.longitude = psmrts::degrees_to_radians( 45.0 );
-  observer.latitude = psmrts::degrees_to_radians ( 45.0 );
-  observer.radius = 1.0; // observer should be 5.0, 5.0, 7.071068
+  observer.longitude = degrees_to_radians( 45.0 );
+  observer.latitude = degrees_to_radians( 45.0 );
+  observer.radius = 1.0;
 
-  // output original observer in lon, lat, radius
-  printf("\nobserver in lon, lat, radius: %lf %lf %lf\n", observer.longitude,
-                                                          observer.latitude,
-                                                          observer.radius);
+  printf( "\n  observer lon (d), lat (d), radius (km): %lf, %lf, %lf\n", 45.0, 45.0, 1.0 );
+  printf( "  observer lon (r), lat (r), radius (km):  %lf,  %lf, %lf\n", observer.longitude,
+                                                                         observer.latitude,
+                                                                         observer.radius );
 
-  // scale vector by a factor of 10
-  observer = psmrts_scale(&observer, 10.0);
-
-  // convert vectors to rectangular
+  // convert observer from lon, lat, radius to xyz
   observer = psmrts_lonlatrad_to_xyz( &observer );
+  PSMRTS_Vector3d lookdir  = psmrts_negate( &observer );
 
-  // lookdir is negated observer vector
-  PSMRTS_Vector3d lookdir = psmrts_negate(&observer);
+  printf( "\n   observer xyz (km):  %lf,  %lf,  %lf\n", observer.x, observer.y, observer.z) ;
+  printf( "    lookdir xyz (km): %lf, %lf, %lf\n", lookdir.x, lookdir.y, lookdir.z );
 
-  // output scaled observer and lookdir vectors in x, y, z
-  printf("             observer in xyz: %lf %lf %lf\n", observer.x, observer.y,
-                                                        observer.z);
-  printf("              lookdir in xyz: %lf %lf %lf\n", lookdir.x, lookdir.y,
-                                                        lookdir.z);
-
-  // create trace and add to array
-  printf("\ncreating trace from observer and lookdir\n");
-  PSMRTS_RayTrace *ray = psmrts_create_ray( &observer, &lookdir );
-
-  // create trace array
-  printf("\ncreating trace array\n");
-  PSMRTS_TraceArray *tracearray = psmrts_create_trace_array();
-
-  // add trace to array
-  printf("\nadding trace to trace array\n");
-  psmrts_trace_array_add_trace( tracearray, ray );
-
-  // output # of traces in array
-  printf("\n# of traces in array: %zu\n", psmrts_trace_array_size(tracearray) );
-
-  // retrieve trace from array
-  printf("\nretrieving trace from array\n");
-  const PSMRTS_RayTrace *retrievedtrace
-      = psmrts_trace_array_get_trace(tracearray, 0);
-
-  // get observer and lookdir from retrieved trace
-  printf("\nretrieving observer and lookdir vectors from array trace\n");
-  PSMRTS_Vector3d retrievedobserver = psmrts_ray_observer(retrievedtrace);
-  PSMRTS_Vector3d retrievedlookdir = psmrts_ray_lookdir(retrievedtrace);
-
-  // output retrieved observer and lookdir vectors in x, y, z
-  printf("   retrieved observer xyz: %lf %lf %lf\n", retrievedobserver.x, retrievedobserver.y,
-                                                      retrievedobserver.z);
-  printf("    retrieved lookdir xyz: %lf %lf %lf\n", retrievedlookdir.x, retrievedlookdir.y,
-                                                     retrievedlookdir.z);
-
-  // Create PsmrtsShapeTracer with input obj file.
-  // can't get max radius yet
-  // const double max_radius = bt_tracer.maximum_radius();
-  // printf("  max radius: %lf\n", max_radius); //should be 0.283065
+  // create and validate bullet tracer
+  printf( "\n***creating/validating bullet tracer from input obj file\n" );
   PSMRTS_Tracer *bulletTracer = psmrts_create_bullet( objfile.c_str() );
-
-  // validate bullet tracer
-  if ( !psmrts_tracer_valid(bulletTracer) ) {
-    // extract string pointer to error (this is not defined yet)
-    printf("bullet tracer is not valid\n");
-    return ( 1 );
+  if ( !psmrts_tracer_valid( bulletTracer ) ) {
+//  printf("\n*** PSMRTS-C - create errors:\n%s\n", psmrts_tracer_error_string( bulletTracer ) );
+    printf("\n*** PSMRTS-C - errors: create bullet tracer failed\n exiting..." );
+    exit ( 1 );
   }
 
-  // Create PRQFeatures object. This is a configurable PSMRTS "Product Request"
-  psmrts::PRQFeatures features;
+  // Trace a ray on the input mesh obj. Create a reusable ray structure
+  // to minimize memory create/free overhead.
+  printf("\n***creating ray trace on input mesh\n");
+  PSMRTS_RayTrace *ray = psmrts_create_ray( &observer, &lookdir );
+  ray = psmrts_ray_trace( ray, bulletTracer );
 
-  // Report PRQFeatures information before any processing
-  // TBD: WHAT ELSE?
-  printf( "\nPRQFeatures Basic information Before Processing\n");
-  printf( "        name: %s\n", features.name().c_str() );
-  printf( "     invoked: %d\n", features.was_invoked() );
-  printf( "   run count: %zu\n", features.run_count() );
-  printf( " error count: %zu\n", features.error_count() );
-  printf( "  error size: %zu\n", features.errors().size() );
+  // if trace has a hit, output ray content
+  if ( psmrts_ray_has_hit( ray ) ) {
+    printf( "\n***ray has a hit!\n" );
+
+    /* Retrieve/calculate data from trace */
+    xyz        = psmrts_ray_xyz( ray );           // intercept in x,y,z
+    llr        = psmrts_xyz_to_lonlatrad( &xyz ); // intercept in lon, lat, radius
+    raypt      = psmrts_ray_raypt( ray );
+    normal     = psmrts_ray_normal( ray );
+    slant_d    = psmrts_ray_intercept_slant_distance( ray );
+    raypt_d    = psmrts_length( &raypt );
+    radius_pt  = psmrts_length( &xyz );
+
+    printf( "\n              trace surface intercept (xyz):  %lf,  %lf,  %lf\n", xyz.x, xyz.y, xyz.z ) ;
+    printf( "              trace surface intercept (llr):  %lf,  %lf,  %lf\n", llr.x, llr.y, llr.z ) ;
+    printf( "          vector along look direction (xyz): %lf, %lf, %lf\n", raypt.x, raypt.y, raypt.z ) ;
+    printf( "   normal vector at surface intercept (xyz):  %lf,  %lf,  %lf\n", normal.x, normal.y, normal.z );
+    printf( "        slant distance at surface intercept:  %lf\n", slant_d );
+    printf( " length of look direction vector to surface:  %lf\n", raypt_d );
+    printf( "    target radius at surface intercept (km): %lf\n", radius_pt );
+
+
+    // Use sunpos to get observational geometry */
+    sunpos = psmrts_vector3d( 300, 1000, 2000 );
+    sundir = psmrts_subtract( &xyz, &sunpos );
+
+    printf( "\n                               sun position:  %lf,  %lf,  %lf\n", sunpos.x, sunpos.y, sunpos.z );
+    printf( "                              sun direction: %lf,  %lf, %lf\n", sundir.x, sundir.y, sundir.z );
+
+    // Trace from sun position to surface intercept point
+    sunray = psmrts_ray_trace( psmrts_create_ray( &sunpos, &sundir ), bulletTracer );
+    if ( psmrts_ray_has_hit( sunray ) ) {
+      printf( "\n***sunray has a hit!\n" );
+
+      emission  = psmrts_emission( ray );
+      incidence = psmrts_incidence( ray, sunray );
+      phase     = psmrts_phase( ray, sunray );
+      double ed = radians_to_degrees(emission);
+      double id = radians_to_degrees(incidence);
+      double pd = radians_to_degrees(phase);
+
+      printf("\nphotometric angles\n");
+      printf("                          e, i, p (radians):  %lf  %lf  %lf\n", emission, incidence, phase);
+      printf("                          e, i, p (degrees): %lf %lf %lf\n", ed, id, pd);
+    }
+    else {
+      printf( "\n*** PSMRTS-C - Trace from sun failed!\n" );
+    }
+  }
 
   // free objects
-  psmrts_free_ray(ray);
-  psmrts_free_trace_array(tracearray);
-  psmrts_free_tracer(bulletTracer);
+  psmrts_free_ray( ray );
+  psmrts_free_ray( sunray );
+  psmrts_free_tracer( bulletTracer );
 
   return ( 0 );
 }

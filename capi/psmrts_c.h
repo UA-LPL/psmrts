@@ -173,8 +173,8 @@ extern PSMRTS_Vector3d psmrts_lonlatrad_to_xyz( const PSMRTS_Vector3d *lonlatrad
 extern PSMRTS_Vector3d psmrts_xyz_to_lonlatrad( const PSMRTS_Vector3d *xyz );
 
 /* Degree/radian conversion functions ===================*/
-extern PSMRTS_Vector3d psmrts_radians_to_degrees( const PSMRTS_Vector3d *lonlatrad_r );
-extern PSMRTS_Vector3d psmrts_degrees_to_radians( const PSMRTS_Vector3d *lonlatrad_d );
+extern double degrees_to_radians( const double d );
+extern double radians_to_degrees( const double d );
 
 /*============ PSMRTS Tracer functions ==================*/
 extern PSMRTS_Tracer *psmrts_create_sphere( const double radius_km,

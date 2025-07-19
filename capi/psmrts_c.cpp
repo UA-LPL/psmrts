@@ -68,7 +68,7 @@ inline PSMRTS_Vector3d eigen_to_vector( const Eigen::Vector3d &v ) {
  * @param b bool
  * @return Values of input PSMRTS_BOOL, PSMRTS_TRUE or PSMRTS_FALSE.
  */
-inline PSMRTS_BOOL evaluate(const bool b) {
+inline PSMRTS_BOOL evaluate( const bool b ) {
   return ( b ? PSMRTS_TRUE : PSMRTS_FALSE );
 }
 
@@ -790,6 +790,30 @@ PSMRTS_Vector3d psmrts_lonlatrad_to_xyz( const PSMRTS_Vector3d *v ) {
 PSMRTS_Vector3d psmrts_xyz_to_lonlatrad( const PSMRTS_Vector3d *v ) {
 
   return ( eigen_to_vector( psmrts::xyz_to_lonlatrad_d( vector_to_eigen( *v ) ) ) );
+}
+
+/**
+ * @brief degrees_to_radians - Convert number from degrees to radians.
+ *
+ * Given a double in degrees, this function converts it to radians.
+ *
+ * @param d double
+ * @return double Input converted to radians.
+ */
+double degrees_to_radians( const double d ) {
+  return ( psmrts::degrees_to_radians( d ) );
+}
+
+/**
+ * @brief radians_to_degrees - Convert number from radians to degrees.
+ *
+ * Given a double in radians, this function converts it to degrees.
+ *
+ * @param d double
+ * @return double Input converted to degrees.
+ */
+double radians_to_degrees( const double d ) {
+  return ( psmrts::radians_to_degrees( d ) );
 }
 
 /**
