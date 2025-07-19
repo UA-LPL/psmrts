@@ -59,14 +59,14 @@ inline PSMRTS_Vector3d eigen_to_vector( const Eigen::Vector3d &v ) {
 }
 
 /**
- * @brief evaluate - Evaluate input PSMRTS_BOOL and return PSMRTS_TRUE or
+ * @brief evaluate - Evaluate input bool type and return PSMRTS_TRUE or
  *                   PSMRTS_FALSE
  *
- * This function evaluates the given PSMRTS_BOOL and returns PSMRTS_TRUE or
+ * This function evaluates the given bool type and returns PSMRTS_TRUE or
  * PSMRTS_FALSE.
  *
- * @param b bool
- * @return Values of input PSMRTS_BOOL, PSMRTS_TRUE or PSMRTS_FALSE.
+ * @param b bool orginating from C++ to agnosting PSMRTS type
+ * @return Values of input PSMRTS_BOOL namely, PSMRTS_TRUE or PSMRTS_FALSE.
  */
 inline PSMRTS_BOOL evaluate( const bool b ) {
   return ( b ? PSMRTS_TRUE : PSMRTS_FALSE );
@@ -216,7 +216,7 @@ double psmrts_length( const PSMRTS_Vector3d *v ) {
   double y2 = v->y * v->y;
   double z2 = v->z * v->z;
 
-  double length  = sqrt( x2 + y2 + z2 );
+  double length  = std::sqrt( x2 + y2 + z2 );
 
   return ( length );
 }

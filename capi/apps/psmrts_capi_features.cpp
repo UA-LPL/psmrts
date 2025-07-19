@@ -49,9 +49,9 @@ int main( int argc, char *argv[] ) {
   PSMRTS_Vector3d observer;
   observer.longitude = degrees_to_radians( 45.0 );
   observer.latitude = degrees_to_radians( 45.0 );
-  observer.radius = 1.0;
+  observer.radius = 3000.0;  // Maxiumum radius of input shape from API
 
-  printf( "\n  observer lon (d), lat (d), radius (km): %lf, %lf, %lf\n", 45.0, 45.0, 1.0 );
+  printf( "\n  observer lon (d), lat (d), radius (km): %lf, %lf, %lf\n", 45.0, 45.0, observer.radius );
   printf( "  observer lon (r), lat (r), radius (km):  %lf,  %lf, %lf\n", observer.longitude,
                                                                          observer.latitude,
                                                                          observer.radius );
@@ -101,7 +101,7 @@ int main( int argc, char *argv[] ) {
 
 
     // Use sunpos to get observational geometry */
-    sunpos = psmrts_vector3d( 300, 1000, 2000 );
+    sunpos = psmrts_vector3d( 30000, 100000, 200000 );
     sundir = psmrts_subtract( &xyz, &sunpos );
 
     printf( "\n                               sun position:  %lf,  %lf,  %lf\n", sunpos.x, sunpos.y, sunpos.z );
