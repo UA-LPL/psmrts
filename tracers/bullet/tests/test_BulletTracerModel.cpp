@@ -25,7 +25,7 @@ TEST_CASE( "Bullet Tracer Model - Default Constructor", "[default][bullet][trace
 TEST_CASE( "Bullet Tracer Model - Ray Trace / Values Test", "[default][bullet][tracer][model][values]") {
     const double tolerance = 1.0e-6;
 
-    std::string objfile = psmrts_formats_path( "obj/data/bennu_20facets.obj" );
+    std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
     psmrts::bullet::PsmrtsBulletWorldModel bt_world( psmrts::bullet::PsmrtsBulletMeshMap( psmrts::PsmrtsOBJFormat(objfile)), objfile);
     
     psmrts::bullet::BulletTracerModel b_model( bt_world );

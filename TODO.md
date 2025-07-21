@@ -1,26 +1,21 @@
 
 ## PSMRTS TODO
 
-### Needs for Next PR
-- [x] Add product requests APIs (see docs/Development/product_specifications.md) to:
-  - [x] Formats/shapes: PLY, OBJ and DSK
-  - [x] Tracers: ellipsoid, bullet and naifdsk.
-- [x] Changes to ProductParameter:
-  - [x] Add "size_t inclusions_count() const", and "size_t exclusions_count() const".
-  - [x] Do we need "compare( )", "product_options()?
-  - [x] Revisit parse_config() to remove reading of entire file. Perhaps set this upon facet read.  
-  ~~- [ ] Add string read option, parse_from_string().~~
-- [x] Fix PsmrtsOBJFormat::create with options parameter.  
-- [x] Fix broken test during build.
-- [x] Add functions methods that convert between lon/lat/radius and x/y/z.
-- [x] Change all C++ reference args to pointers - required by C.
-- [x] Remove obsolete code in PsrmtsRequest.
-  - [x] Specifically, the proposed process dispatch implementation at the beginning of the file.
-  - [x] Also don't think we need the psmrts::traits structures either and should be removed.
+### Tasks for ShapeTracer Rename PR
+- [x] Rename all classes, filenames, etc..., with `ShapeTracer` to just `Tracer`. It became really difficult to draw any distinction between the two _class concepts_. It seems `Tracer` is in the spirit of `PSMRTS` meaning: `Planetary Shape Model and Ray Tracing System`. The concepts of shapes and tracers appear segregated and short.
+  - [x] Rename `formats` directory to `shapes`. Requires a bunch of code changes due to path change.
+  - [x] Update CMake files for file directory changes
+  - [x] Changed psmrts_formats_path -> psmrts_shapes_path
+  - [x] Change class names to renames impacted by changes
+- [x] Update product_specifications.md to reflex above changes
+  - [ ] Update psmrts capi documentation with contents of capi header 
+  - [ ] Update any capi functions that have been updated/added/changed
+- [ ] Update Changelog and main CMake list to reflect version 0.2.0 due to directory changes
+- [ ] Ensure builds and test on other OS
+- [ ] Add Capi to be included in Doxygen
 
 ### Tasks
 - [ ] Add `PSMRTS` facet request C API functions.
-- [ ] Rename all classes, filenames, etc..., with `ShapeTracer` to just `Tracer`. It became really difficult to draw any distinction between the two _class concepts_. It seems `Tracer` is in the spirit of `PSMRTS` meaning: `Planetary Shape Model and Ray Tracing System`. The concepts of shapes and tracers appear segregated and short.
 - [ ] Design/implement `psmrts_json` to replace our use/exposure of nlohmann::json in any of `PSMRTS`'s public APIs. This is essentail primarily because if developers should happen to use a different version of nlohmann:json (Anaconda's perhaps), then bad things will happen when they pass an _ordered_json_ object to PSMRTS. nlohmann::json is not ABI compatible from one release to the next. See also [VTKs reasoning](https://discourse.vtk.org/t/nlohmann-json-and-vtks-public-api/15131) on this.
 - [ ] Add `explicit` to constructors with just a string and another with just an ordered json object. They conflict. There could be others. Best practice is use explicit when in doubt.
 - [ ] Add PRQSpecifications class that collects any number of product specifications.
@@ -31,7 +26,6 @@
 - [ ] Create PSMRTS Python API. Use [swig](https://www.swig.org) initially. Make this a new repo.
 - [ ] Major cleanup of CMake, code set. For example, completely eliminate BulltTracerModel.hpp - its not needed.
   - [ ] Consider renaming files to remove/limit `Psmrts` redundancy.
-- [ ] Rename `formats` directory to `shapes`. Requires a bunch of code changes due to path change.
 - [ ] Rework PSMRTS include file strategy to use full paths to make external installs, maintanence and usage.
 - [ ] Fix CMake to install external include files and a library for export to other installations.
 - [ ] Add tawnee::args to main C++ applications that parses input arguments into mains apps.

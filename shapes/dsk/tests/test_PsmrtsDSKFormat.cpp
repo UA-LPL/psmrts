@@ -4,7 +4,7 @@
 #include <DskKernelModel.hpp>
 
 TEST_CASE( "DSK FORMAT Asset Test - Default Constructor", "[format][dsk][default]") {
-    std::string no_file = psmrts_formats_path( "dsk/data/bad_path.bds" );
+    std::string no_file = psmrts_shapes_path( "dsk/data/bad_path.bds" );
     psmrts::PsmrtsDSKFormat d_loader;
 
     CHECK( d_loader.isValid()             == false );
@@ -24,12 +24,12 @@ TEST_CASE( "DSK FORMAT Asset Test - Default Constructor", "[format][dsk][default
 
 
 TEST_CASE( "DSK FORMAT Basic Load/Innit Test", "[format][dsk][shape][bennu]") {
-    std::string dsk_file = psmrts_formats_path( "dsk/data/bennu_20facets.bds" );
+    std::string dsk_file = psmrts_shapes_path( "dsk/data/bennu_20facets.bds" );
     psmrts::PsmrtsDSKFormat d_loader( dsk_file );
     
     CHECK( d_loader.isValid()                   == true );
-    CHECK( d_loader.dsk_source()                == psmrts_formats_path( "dsk/data/bennu_20facets.bds" ) );
-    CHECK( d_loader.format_model_source()       == psmrts_formats_path( "dsk/data/bennu_20facets.bds" ) );
+    CHECK( d_loader.dsk_source()                == psmrts_shapes_path( "dsk/data/bennu_20facets.bds" ) );
+    CHECK( d_loader.format_model_source()       == psmrts_shapes_path( "dsk/data/bennu_20facets.bds" ) );
     CHECK( d_loader.nVertexes()                 == 20 );
     CHECK( d_loader.nIndexes()                  == 36 );
     CHECK( d_loader.get_mesh().isValid()        == true );
@@ -64,7 +64,7 @@ TEST_CASE( "DSK FORMAT Basic Load/Innit Test", "[format][dsk][shape][bennu]") {
 
 TEST_CASE( "DSK FORMAT Comparative Values Test", "[format][dsk][kernel][bennu]") {
     const double tolerance = 1.0e-6;
-    std::string dsk_file = psmrts_formats_path( "dsk/data/bennu_20facets.bds" );
+    std::string dsk_file = psmrts_shapes_path( "dsk/data/bennu_20facets.bds" );
     naif::DskKernelModel dsk( dsk_file );
     psmrts::PsmrtsDSKFormat d_loader( dsk_file );
 

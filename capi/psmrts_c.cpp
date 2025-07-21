@@ -15,7 +15,7 @@
 #include <PsmrtsBulletWorldModel.hpp>
 #include <PsmrtsRequest.hpp>
 #include <PsmrtsPriorityTracer.hpp>
-#include <PsmrtsShapeTracer.hpp>   // rename to PsmrtsTracer.hpp
+#include <PsmrtsTracer.hpp> 
 
 
 /*============ PSMRTS C API type definitions ============*/
@@ -23,8 +23,7 @@
 #define PSMRTS_POINTERS 1
 using PSMRTS_RayTrace              = psmrts::PRQRayTrace;
 using PSMRTS_Shape                 = psmrts::PsmrtsMeshData; // will be psmrts::PsmrtsShape
-using MyShapeTracer                = psmrts::PsmrtsShapeTracer; // this will go away
-using PSMRTS_Tracer                = MyShapeTracer;  // will rename to psmrts::PsmrtsTracer
+using PSMRTS_Tracer                = psmrts::PsmrtsTracer; 
 using PSMRTS_PriorityTracer        = psmrts::PsmrtsPriorityTracer;
 using PSMRTS_PhotometricRayTrace   = psmrts::PRQPhotometricTrace;
 using PSMRTS_TraceArray            = psmrts::PRQRayTraceArray;
@@ -831,7 +830,7 @@ double radians_to_degrees( const double d ) {
 PSMRTS_Tracer *psmrts_create_sphere( const double radius_km,
                                      const char *name ) {
 
-  return ( new PSMRTS_Tracer ( psmrts::PsmrtsShapeTracer::sphere( radius_km, name ) ) );
+  return ( new PSMRTS_Tracer ( psmrts::PsmrtsTracer::sphere( radius_km, name ) ) );
 }
 
 /**
@@ -851,7 +850,7 @@ PSMRTS_Tracer *psmrts_create_spheroid( const double a_radius_km,
                                        const double c_radius_km,
                                        const char *name ) {
 
-  return ( new PSMRTS_Tracer ( psmrts::PsmrtsShapeTracer::spheroid( a_radius_km,
+  return ( new PSMRTS_Tracer ( psmrts::PsmrtsTracer::spheroid( a_radius_km,
                                                                     c_radius_km,
                                                                     name ) ) );
 }
@@ -875,7 +874,7 @@ PSMRTS_Tracer *psmrts_create_ellipsoid( const double a_radius_km,
                                         const double c_radius_km,
                                         const char *name ) {
 
-  return ( new PSMRTS_Tracer ( psmrts::PsmrtsShapeTracer::ellipsoid( a_radius_km,
+  return ( new PSMRTS_Tracer ( psmrts::PsmrtsTracer::ellipsoid( a_radius_km,
                                                                      b_radius_km,
                                                                      c_radius_km,
                                                                      name ) ) );
@@ -897,7 +896,7 @@ PSMRTS_Tracer *psmrts_create_ellipsoid( const double a_radius_km,
 PSMRTS_Tracer *psmrts_create_ellipsoid_v( const PSMRTS_Vector3d &radii,
                                           const char *name ) {
 
-  return ( new PSMRTS_Tracer( psmrts::PsmrtsShapeTracer::ellipsoid( vector_to_eigen(radii),
+  return ( new PSMRTS_Tracer( psmrts::PsmrtsTracer::ellipsoid( vector_to_eigen(radii),
                                                                      name ) ) );
 }
 
@@ -913,7 +912,7 @@ PSMRTS_Tracer *psmrts_create_ellipsoid_v( const PSMRTS_Vector3d &radii,
  * @return Pointer to the resulting PSMRTS_Tracer object.
  */
 PSMRTS_Tracer *psmrts_create_bullet( const char *meshfile ) {
-  return ( new PSMRTS_Tracer( psmrts::PsmrtsShapeTracer::bullet( meshfile ) ) );
+  return ( new PSMRTS_Tracer( psmrts::PsmrtsTracer::bullet( meshfile ) ) );
 }
 
 /**
@@ -929,7 +928,7 @@ PSMRTS_Tracer *psmrts_create_bullet( const char *meshfile ) {
  */
 PSMRTS_Tracer *psmrts_create_naifdsk( const char *meshfile ) {
 
-  return ( new PSMRTS_Tracer( psmrts::PsmrtsShapeTracer::naifdsk( meshfile ) ) );
+  return ( new PSMRTS_Tracer( psmrts::PsmrtsTracer::naifdsk( meshfile ) ) );
 }
 
 /**

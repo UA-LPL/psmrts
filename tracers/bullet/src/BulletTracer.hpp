@@ -1,29 +1,27 @@
-#ifndef NaifDskShapeTracer_hpp
-#define NaifDskShapeTracer_hpp
+#ifndef BulletTracer_hpp
+#define BulletTracer_hpp
 
 #include <string>
 
-#include <NaifDskTracerModel.hpp>
+#include <PsmrtsBulletWorldModel.hpp>
+#include <BulletTracerModel.hpp>
 #include <PsmrtsRequest.hpp>
-#include <ProductSpecification.hpp>
 
 namespace psmrts  {
   /**
-   * @brief NAIF DSK ShapeModel
+   * @brief Bullet ShapeModel
    * 
    * 
    */
-  class NaifDskShapeTracer {
+  class BulletTracer {
     public:
-      NaifDskShapeTracer( ) {  }
-      NaifDskShapeTracer( const naif::DskKernelModel &dsktracer ) : 
-                          m_model( dsktracer ) {  }
-      NaifDskShapeTracer( const std::string &dsk ) : 
-                          m_model( dsk ) {  }
-      virtual ~NaifDskShapeTracer() { }
+     BulletTracer( ) {  }
+     BulletTracer( const bullet::PsmrtsBulletWorldModel &bt_model) :
+                        m_model( bt_model ) { }
+      virtual ~BulletTracer() { }
 
       /**
-       * @brief NAIF Dsk Ray Trace Processor
+       * @brief Bullet Ray Trace Processor
        * 
        * This method accepts a PRQRayTrace, which is instantiated with 
        * values necessary for a Ray Trace (observer, look direction), 
@@ -37,13 +35,14 @@ namespace psmrts  {
        * @return false  If no ray trace intercept was found
        */
       inline bool process ( PRQRayTrace &trace ) const {
+        trace.trace().validate_lookdir();
         Eigen::Vector3d observer ( trace.trace().observer() );
         Eigen::Vector3d lookdir ( trace.trace().lookdir() );
         return ( this->ray_trace( observer, lookdir, trace.trace() ) );
       }
 
       /**
-       * @brief NAIF Dsk Ray Trace Array Processor
+       * @brief Bullet Ray Trace Array Processor
        * 
        * This method accepts a PRQRayTraceArray, which represents
        * multiple PRQRayTraces in an array object, runs each trace,
@@ -70,7 +69,7 @@ namespace psmrts  {
       }
 
       /**
-       * @brief NAIF Dsk Facet Processor
+       * @brief Bullet Facet Processor
        * 
        * This method accepts a PRQFacet, usually instantiated with a ray
        * trace, and processes it - storing the facet associated with the 
@@ -89,7 +88,7 @@ namespace psmrts  {
       }
 
       /**
-       * @brief NAIF Dsk Photometric Trace Processor
+       * @brief Bullet Photometric Trace Processor
        * 
        * This method accepts a PRQPhotometricTrace, which is instantiated with 
        * values necessary for a Photometric Trace (observer, look direction,
@@ -113,8 +112,8 @@ namespace psmrts  {
         return ( false );
       }
 
-       /**
-       * @brief NAIF Dsk Photometric Trace Array Processor
+      /**
+       * @brief Bullet Photometric Trace Array Processor
        * 
        * This method accepts a PRQPhotomericTraceArray, which represents
        * multiple PRQPhotometricTraces in an array object, runs each trace,
@@ -129,7 +128,7 @@ namespace psmrts  {
        * @return true     If at least one of the traces intercepts the shape
        * @return false    If no appropriate trace intercepts were found
        */
-       inline bool process ( PRQPhotometricTraceArray &tracelist ) const {
+      inline bool process ( PRQPhotometricTraceArray &tracelist ) const {
         size_t n_good = 0;
         for ( auto &trace : tracelist.traces() ) {
           if ( this->process( trace ) ) {
@@ -140,11 +139,11 @@ namespace psmrts  {
         return ( n_good > 0 );
       }
 
-       /**
-       * @brief NAIF Dsk Features Processor
+      /**
+       * @brief Bullet Features Processor
        * 
        * This method accepts a PRQFeatures, and stores into it all the 
-       * relevant DSK information using JSON.
+       * relevant Bullet information using JSON.
        * 
        * @param features PRQFeatures that holds tracer-relevant information
        *                  in a JSON format
@@ -153,15 +152,17 @@ namespace psmrts  {
        */
       inline bool process( PRQFeatures &features ) const {
         psmrts_json f_e;
-        f_e += { "name" , "naifdsk" };
-        f_e += { "product" , "shapetracer" };
-        f_e += { "mesh" , true };
+        f_e["name"]        = "bullet";
+        f_e["product"]     = "tracer";
+        f_e["mesh"]        = true;
+        f_e["optimizebvh"] = false;
+        f_e["vectortype"]  = { "double", "float" };
         features.add_feature( f_e );
         return ( true );
       }
 
       /**
-       * @brief NAIF Dsk Virtual Ray Trace Method
+       * @brief Bullet Virtual Ray Trace Method
        * 
        * Deriving classes must implement this method as is specified for 
        * shape models.
@@ -183,47 +184,56 @@ namespace psmrts  {
         // this->local_tracker()++;
         return ( m_model.ray_trace( observer, lookdir, ray ) );
       }
-  
-      /** Report all remaining features not available - e.g., PRQFacet not relevant to Ellipsoid format */
-      PSMRTS_PROCESS_CATCHALL( "NaifDskShapeTracer" )
-
+      
       static inline ProductSpecification product_specifications() {
         char text[] = R"(
         {
-          "name": "naifdsk",
-          "product": "shapetracer",
+          "name": "bullet",
+          "product": "tracer",
           "type": "tracer",
-          "description": "NAIF DSK ray tracing system specifications",
+          "description": "The Bullet Physics ray tracing system specification",
           "driver": {
-            "name": "naifdsk",
-            "type": "system",
-            "aliases": ["shapetracer"]
+            "name": "bullet",
+            "type": "system"
           },
           "parameters": [
             {
-              "name": "naif_dsk_kernel_paths",
-              "type": "list[string]",
-              "description": "List of NAIF kernel file paths (DSK, SPK, PCK, etc.) to load",
+              "name": "bullet_optimize_bvh",
+              "type": "bool",
+              "description": "Use optimized bounding volume hierachy (BVH) when created",
               "status": "optional",
-              "default": []
+              "default": "false",
+              "valid": ["true", "1", "yes", "false", "0", "no"]
             },
             {
-              "name": "naif_dsk_segment_priority",
-              "type": "string",
-              "description": "How to resolve multiple DSK segments",
+              "name": "bullet_compressed",
+              "type": "bool",
+              "description": "Compress Bullet data during construction",
               "status": "optional",
-              "default": "last",
-              "valid": ["first", "last"]
+              "default": "false",
+              "valid": ["true", "1", "yes", "false", "0", "no"]
+            },            
+            {
+              "name": "bullet_thread_safety",
+              "type": "bool",
+              "description": "Utilize thread locking before Bullet ray traces are run",
+              "status": "optional",
+              "default": "false",
+              "valid": ["true", "1", "yes", "false", "0", "no"]
             }
           ]       
         } )";
 
         // This validates the JSON structure and provides product info to callers
-        return ( ProductSpecification( "naifdsk", "tracer", "shapetracer", json_utils::parse_json_string( text )));
+        return ( ProductSpecification( "bullet", "tracer", "tracer", json_utils::parse_json_string( text )));
       }
 
+      /** Report all remaining features not available - e.g., PRQFacet not relevant to Ellipsoid format */
+      PSMRTS_PROCESS_CATCHALL( "BulletTracer" )
+
+
     protected:
-       NaifDskTracerModel  m_model;
+      bullet::BulletTracerModel  m_model;
   };
 
 } // namespace psmrts

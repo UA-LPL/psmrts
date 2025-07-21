@@ -18,8 +18,8 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Default Constructor", "[format][obj][defaul
     CHECK( t_loader.nMaterials()        == 0 );
 }
 
-TEST_CASE ( "OBJ FORMAT Asset Test - Basic Load/Init Tests", "[format][obj][shape][bennu]" ) {
-    std::string objfile = psmrts_formats_path( "obj/data/bennu_20facets.obj" );
+TEST_CASE ( "OBJ FORMAT Asset Test - Basic Load/Init Tests", "[format][obj][bennu]" ) {
+    std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
     
     psmrts::PsmrtsOBJFormat t_loader( objfile );
     CHECK_NOTHROW( t_loader.check_obj_errors() ); 
@@ -58,13 +58,13 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Basic Load/Init Tests", "[format][obj][shap
     psmrts::ProductSpecification test3("obj", "mesh", options2);
 }
 
-TEST_CASE ( "OBJ FORMAT Asset Test - Load Fail Tests", "[format][obj][shape][failures]" ) {
-    std::string objfile = psmrts_formats_path( "obj/data/NOT_FOUND.obj" );
+TEST_CASE ( "OBJ FORMAT Asset Test - Load Fail Tests", "[format][obj][failures]" ) {
+    std::string objfile = psmrts_shapes_path( "obj/data/NOT_FOUND.obj" );
     CHECK_THROWS( psmrts::PsmrtsOBJFormat( objfile ) ); 
 }
 
 // Test loading an OBJ from text
-TEST_CASE ( "OBJ FORMAT Asset Test - Text OBJ Load", "[format][obj][shape][text]" ) {
+TEST_CASE ( "OBJ FORMAT Asset Test - Text OBJ Load", "[format][obj][text]" ) {
     std::string objtext = "v     -0.1634276539482     -0.1634276539482      0.1634276539482\n\
                            v      0.2644314943232      0.1010038565354      0.0000000000000\n\
                            v      0.2644314943232     -0.1010038565354      0.0000000000000\n\
@@ -185,8 +185,8 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Text OBJ Load", "[format][obj][shape][text]
 
 
 // Test export of get_indexes() and get_vector() match with contents of *shape().
-TEST_CASE ( "OBJ FORMAT Asset Test - Data Export Tests", "[format][obj][shape][bennu][export]" ) {
-    std::string file = psmrts_formats_path( "obj/data/bennu_20facets.obj" );
+TEST_CASE ( "OBJ FORMAT Asset Test - Data Export Tests", "[format][obj][bennu][export]" ) {
+    std::string file = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
     
     psmrts::PsmrtsOBJFormat t_loader( file );
     CHECK_NOTHROW( t_loader.check_obj_errors() ); 
@@ -225,7 +225,7 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Data Export Tests", "[format][obj][shape][b
 TEST_CASE ( "OBJ FORMAT Asset Test - OBJ / DSK Vector Comparison Test", "[format][obj][dsk][vectors]") {
     auto tolerance = 1.0e-6;
 
-    std::string objfile = psmrts_formats_path( "obj/data/bennu_20facets.obj" );
+    std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds");
     
     psmrts::PsmrtsOBJFormat t_loader( objfile );
@@ -256,7 +256,7 @@ TEST_CASE ( "OBJ FORMAT Asset Test - OBJ / DSK Vector Comparison Test", "[format
 
 
 #if 0
-TEST_CASE ( "OBJ FORMAT Asset Test - Huge OBJ Tests", "[format][obj][shape][hugeone]" ) {
+TEST_CASE ( "OBJ FORMAT Asset Test - Huge OBJ Tests", "[format][obj][hugeone]" ) {
     //std::string objfile = "/opt/isis3/data/osirisrex/kernels/dsk/l_00050mm_alt_ptm_5595n04217_v020.obj";
     std::string objfile = "watermarkRedTest1.obj";
 

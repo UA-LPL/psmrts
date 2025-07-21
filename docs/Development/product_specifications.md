@@ -100,13 +100,12 @@ The Bullet system configuration provides users the abilility to use a bounding v
         char text[] = R"(
         {
           "name": "bullet",
-          "product": "shapetracer",
+          "product": "tracer",
           "type": "tracer"
           "description": "The Bullet Physics ray tracing system specification",
           "driver": {
             "name": "bullet",
-            "type": "system",
-            "aliases": [ "shapetracer" ]
+            "type": "system"
           }
           "parameters": [
             {
@@ -296,7 +295,7 @@ So how does this look in a `PSMRTS` C application? The following is a simple C m
 int main( int argc, char *argv[] ) {
 
   PSMRTS_Factory       *p_factory;
-  PSMRTS_ShapeTracer   *ellipsoid;
+  PSMRTS_Tracer        *ellipsoid;
   PSMRTS_RayTrace      *ray, *sunray;
   PSMRTS_Vector3d      observer, lookdir, sunpos, sundir, position_v, look_v;
   PSMRTS_Vector3d      emission, incidence, phase, normal, sepang, xyz, surfpt, radlonlat;
@@ -447,7 +446,6 @@ enum PSMRTSTypes {
   PSMRTS_RAYTRACE,
   PSMRTS_SHAPE,
   PSMRTS_TRACER,
-  PSMRTS_SHAPE_TRACER,
   PSMRTS_PRIORITY_TRACER
 };
 
@@ -478,13 +476,14 @@ typedef union {
 
 /*============ PSMRTS C API type definitions ============*/
 #if !defined( PSMRTS_POINTERS )
-typedef struct psmrts_raytrace        PSMRTS_RayTrace;
-typedef struct psmrts_shape           PSMRTS_Shape;
-typedef struct psmrts_tracer          PSMRTS_Tracer;
-typedef struct psmrts_shape_tracer    PSMRTS_ShapeTracer;
-typedef struct psmrts_priority_tracer PSMRTS_PriorityTracer;
+typedef struct psmrts_raytrace                PSMRTS_RayTrace;
+typedef struct psmrts_shape                   PSMRTS_Shape;
+typedef struct psmrts_tracer                  PSMRTS_Tracer;
+typedef struct psmrts_priority_tracer         PSMRTS_PriorityTracer;
+typedef struct psmrts_photometric_tracer      PSMRTS_PhotometricRayTrace;
 
-typedef struct psmrts_photometric_tracer PSMRTS_PhotometricRayTrace;
+typedef struct psmrts_trace_array             PSMRTS_TraceArray;
+typedef struct psmrts_photometric_trace_array PSMRTS_PhotometricTraceArray;
 #endif
 
 /* TBD: need to add methods to create tracers

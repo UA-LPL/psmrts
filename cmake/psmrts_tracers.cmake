@@ -3,7 +3,7 @@ if(NOT PSMRTS_PROJECT_DIR)
 endif()
 
 set(PSMRTS_INCLUDE_DIRS "${PSMRTS_INCLUDE_DIRS}" 
-                         ${PSMRTS_TRACER_DIR}/bullet/src
-                         ${PSMRTS_TRACER_DIR}/ellipsoid/src
-                         ${PSMRTS_TRACER_DIR}/naifdsk/src )
+                         ${PSMRTS_TRACERS_DIR}/bullet/src
+                         ${PSMRTS_TRACERS_DIR}/ellipsoid/src
+                         ${PSMRTS_TRACERS_DIR}/naifdsk/src )
 # message("TracersIncludes: ${PSMRTS_INCLUDE_DIRS}")

@@ -11,7 +11,7 @@ include_directories( ${PSMRTS_PROJECT_DIR}/psmrts/tests )
 add_executable( naif_test_suite  naif_catch2_main.cpp
                                  test_DskKernelModel.cpp 
                                  test_KernelFileSystem.cpp
-                                 test_NaifDskShapeTracer.cpp
+                                 test_NaifDskTracer.cpp
                                  test_NaifDskTracerModel.cpp
                                  test_NaifEllipsoidShape.cpp 
                                  test_NaifPsmrtsPriorityTracer.cpp
