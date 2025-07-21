@@ -32,7 +32,7 @@ set( PSMRTS_DIR          ${CMAKE_SOURCE_DIR}/psmrts )
 set( PSMRTS_TEST_DIR     ${CMAKE_SOURCE_DIR}/psmrts/tests )
 set( PSMRTS_DATA_DIR     ${CMAKE_SOURCE_DIR}/data )
 set( PSMRTS_TRACER_DIR   ${CMAKE_SOURCE_DIR}/tracers )
-set( PSMRTS_FORMAT_DIR   ${CMAKE_SOURCE_DIR}/formats )
+set( PSMRTS_SHAPE_DIR   ${CMAKE_SOURCE_DIR}/shapes )
 
 set( VERSION_MAJOR 0)
 set( VERSION_MINOR 1)
@@ -72,7 +72,6 @@ target_include_directories( psmrts INTERFACE "${PSMRTS_INCLUDE_DIRS}" )
 target_link_libraries( psmrts INTERFACE psmrts::psmrts-dependencies )
 add_library( psmrts::psmrts ALIAS psmrts )
 
-# add_executable(psmrts src/psmrts.cpp)
 # Build C-API here if requested
 if( BUILD_CAPI_APPS )
   add_subdirectory( capi )
@@ -99,24 +98,25 @@ if( BUILD_TESTING )
                    obj_test_suite
                    ply_test_suite
       BASE_DIRECTORY "${PSMRTS_PROJECT_DIR}"
-      EXCLUDE "psmrts/tests/*" 
+      EXCLUDE "psmrts/tests/*"
+              "shapes/dsk/tests/*"
+              "shapes/obj/tests/*"
+              "shapes/ply/tests/*"      
               "tracers/bullet/tests/*"
               "tracers/ellipsoid/tests/*"
               "tracers/naifdsk/tests/*"
-              "formats/dsk/tests/*"
-              "formats/obj/tests/*"
-              "formats/ply/tests/*"
               "build/vcpkg_installed/*"
     )
   endif(BUILD_COVERAGE)
 
   add_subdirectory( psmrts/tests )
+  add_subdirectory( shapes/dsk/tests )
+  add_subdirectory( shapes/obj/tests )
+  add_subdirectory( shapes/ply/tests )  
   add_subdirectory( tracers/naifdsk/tests )
   add_subdirectory( tracers/ellipsoid/tests )
   add_subdirectory( tracers/bullet/tests )
-  add_subdirectory( formats/dsk/tests )
-  add_subdirectory( formats/obj/tests )
-  add_subdirectory( formats/ply/tests )
+
   enable_testing()
 endif( BUILD_TESTING )
 
