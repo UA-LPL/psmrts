@@ -21,7 +21,7 @@ int main( int argc, char *argv[] ) {
   // Confirm number of arguments. We expect one argument (the obj filename)
   // after the executable name in argv
   if ( argc < 2 ) {
-    const char *exename = strrchr( argv[0], '/' );
+    const char *exename = std::strrchr( argv[0], '/' );
     if ( exename ) {
       ++exename;
     }
