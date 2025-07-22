@@ -71,7 +71,7 @@ namespace psmrts {
          * This is the main method that will load a mesh based on a DSK
          * file. It retrieves and allocates appropriate index and double
          * vector data. It is advisable to input the correct pathing
-         * prefaced by the PsmrtsUtilities' psmrts_formats_path function.
+         * prefaced by the PsmrtsUtilities' psmrts_shapes_path function.
          * 
          * @param dskfile      Absolute path string of the target DSK file
          * @return true        If the load was successful
