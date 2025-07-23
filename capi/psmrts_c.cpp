@@ -105,9 +105,9 @@ const char *psmrts_info() {
  *
  * Given input coordinates, this function creates and returns a PSMRTS_Vector3d
  * object. The coordinates could be ...
- *  1) xyz;
- *  2) longitude (degrees), latitude (degrees), radius (km)
- *  3) longitude (radians), latitude (radians), radius (km)
+ *  1. xyz
+ *  2. longitude (degrees), latitude (degrees), radius (km)
+ *  3. longitude (radians), latitude (radians), radius (km)
  *
  * @param v1 coordinate 1.
  * @param v2 coordinate 2.
