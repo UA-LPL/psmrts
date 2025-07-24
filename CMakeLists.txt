@@ -97,6 +97,7 @@ if( BUILD_TESTING )
                    dsk_test_suite
                    obj_test_suite
                    ply_test_suite
+                   capi_test_suite
       BASE_DIRECTORY "${PSMRTS_PROJECT_DIR}"
       EXCLUDE "psmrts/tests/*"
               "shapes/dsk/tests/*"
@@ -105,6 +106,7 @@ if( BUILD_TESTING )
               "tracers/bullet/tests/*"
               "tracers/ellipsoid/tests/*"
               "tracers/naifdsk/tests/*"
+              "capi/tests/*"
               "build/vcpkg_installed/*"
     )
   endif(BUILD_COVERAGE)
@@ -116,6 +118,7 @@ if( BUILD_TESTING )
   add_subdirectory( tracers/naifdsk/tests )
   add_subdirectory( tracers/ellipsoid/tests )
   add_subdirectory( tracers/bullet/tests )
+  add_subdirectory( capi/tests )
 
   enable_testing()
 endif( BUILD_TESTING )

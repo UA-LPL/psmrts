@@ -236,7 +236,7 @@ double psmrts_length( const PSMRTS_Vector3d *v ) {
  * location toward the target body.
  * 
  * It is the responsibility of the caller to check for valid pointer return.
- * .
+ *
  * @param observer Vector defining observer position (km); i.e. ray origin.
  * @param lookdir  Vector defining direction (km) from observer to trace.
  * @return Resulting PSMRTS_RayTrace object.
@@ -246,6 +246,37 @@ PSMRTS_RayTrace *psmrts_create_ray( const PSMRTS_Vector3d *observer,
 
   return ( new PSMRTS_RayTrace( vector_to_eigen( *observer ),
                                 vector_to_eigen( *lookdir ) ) );
+}
+
+/**
+ * @brief psmrts_ray_set_observation - Resets an existing trace with input
+ *                                     observer and look direction vectors.
+ *
+ * Given vectors describing observer position and look direction, this
+ * function resets the input PSMRTS_RayTrace object.
+ *
+ * The observer position is a vector from the shape origin to its body-fixed
+ * position relative to the target body origin.
+ *
+ * The lookdir is converted to a unit vector and originates from the observer
+ * location toward the target body.
+ *
+ * It is the responsibility of the caller to check for valid pointer return.
+ *
+ * @param observer Observer position vector (km); i.e. ray origin.
+ * @param lookdir  Look direction vector (km) from observer to trace.
+ * @return PSMRTS_RayTrace with updated observer and look direction vectors.
+ */
+PSMRTS_RayTrace *psmrts_ray_set_observation( const PSMRTS_Vector3d *observer,
+                                             const PSMRTS_Vector3d *lookdir,
+                                             PSMRTS_RayTrace *trace ) {
+
+  assert( trace != nullptr && "psmrts_ray_trace::PSMRTS_RayTrace is null" );
+
+  *trace = PSMRTS_RayTrace( vector_to_eigen( *observer ),
+                            vector_to_eigen( *lookdir ) );
+
+  return ( trace );
 }
 
 /**
@@ -563,6 +594,20 @@ size_t psmrts_trace_array_add_trace( PSMRTS_TraceArray *tracearray,
 }
 
 /**
+ * @brief psmrts_trace_array_clear - Clears trace array.
+ *
+ * This function removes all traces from the given PSMRTS_TraceArray.
+ *
+ * @param tracearray Pointer to PSMRTS_TraceArray.
+ * @return void
+ */
+void psmrts_trace_array_clear(PSMRTS_TraceArray *tracearray) {
+  tracearray->clear();
+
+  // now
+}
+
+/**
  * @brief psmrts_trace_array_get_trace - Get trace at given index from trace
  *                                       array.
  *
@@ -605,10 +650,9 @@ const PSMRTS_RayTrace *psmrts_trace_array_get_trace( const PSMRTS_TraceArray *tr
  *
  * It is the responsibility of the caller to check for valid pointer return.
  *
- * @param observer Pointer to 3d vector defining observer position (km), i.e.
- *                 the ray origin.
- * @param lookdir  Pointer to 3d vector defining direction (km) vector from
- *                 observer to trace.
+ * @param observer Vector defining observer position (km), i.e. the ray origin.
+ * @param lookdir  Vector defining direction (km) vector from observer to trace.
+ * @param sunpos   Vector defining sun direction (km).
  * @return PSMRTS_PhotometricRayTrace Pointer to resulting photometric ray
  *                                    trace.
  */
@@ -619,6 +663,41 @@ PSMRTS_PhotometricRayTrace *psmrts_create_photometric_ray( const PSMRTS_Vector3d
   return ( new psmrts::PRQPhotometricTrace( vector_to_eigen( *observer ),
                                             vector_to_eigen( *lookdir ),
                                             vector_to_eigen( *sunpos ) ) );
+}
+
+/**
+ * @brief psmrts_photometric_ray_set_observation - Resets an existing photometric
+ *        trace with input observer, look direction and sun position vectors.
+ *
+ * Given vectors describing observer position, look direction, and sun position,
+ * this function resets the input PSMRTS_PhotometricRayTrace object.
+ *
+ * The observer position is a vector from the shape origin to its body-fixed
+ * position relative to the target body origin.
+ *
+ * The lookdir is converted to a unit vector and originates from the observer
+ * location toward the target body.
+ *
+ * It is the responsibility of the caller to check for valid pointer return.
+ *
+ * @param observer Observer position vector (km); i.e. ray origin.
+ * @param lookdir  Look direction vector (km) from observer to trace.
+ * @param sunpos  Sun position vector (km).
+ * @return PSMRTS_PhotometricRayTrace with updated observer, look direction, and
+ *         sun position vectors.
+ */
+PSMRTS_PhotometricRayTrace *psmrts_photometric_ray_set_observation( const PSMRTS_Vector3d *observer,
+                                                                    const PSMRTS_Vector3d *lookdir,
+                                                                    const PSMRTS_Vector3d *sunpos,
+                                                                    PSMRTS_PhotometricRayTrace *phototrace ) {
+
+  assert( phototrace != nullptr && "psmrts_ray_trace::PSMRTS_PhotometricRayTrace is null" );
+
+  *phototrace = PSMRTS_PhotometricRayTrace( vector_to_eigen( *observer ),
+                                            vector_to_eigen( *lookdir ),
+                                            vector_to_eigen( *sunpos ) );
+
+  return ( phototrace );
 }
 
 /**
@@ -740,6 +819,18 @@ size_t psmrts_photometric_trace_array_add_trace( PSMRTS_PhotometricTraceArray *t
 }
 
 /**
+ * @brief psmrts_photometric_trace_array_clear - Clears photometric trace array.
+ *
+ * This function removes all traces from the given PSMRTS_PhotometricTraceArray.
+ *
+ * @param tracearray Pointer to PSMRTS_PhotometricTraceArray.
+ * @return void
+ */
+void psmrts_photometric_trace_array_clear(PSMRTS_PhotometricTraceArray *tracearray) {
+  tracearray->clear();
+}
+
+/**
  * @brief psmrts_photometric_trace_array_get_trace - Get trace at given index
  *                                                   from trace array.
  *
@@ -772,7 +863,7 @@ const PSMRTS_PhotometricRayTrace *psmrts_photometric_trace_array_get_trace( cons
  * @param v Pointer to PSMRTS_Vector3d in lon, lat, radius coordinates.
  * @return PSMRTS_Vector3d Vector converted to xyz coordinates.
  */
-PSMRTS_Vector3d psmrts_lonlatrad_to_xyz( const PSMRTS_Vector3d *v ) {
+PSMRTS_Vector3d psmrts_lonlatrad_to_xyz_d( const PSMRTS_Vector3d *v ) {
 
   return ( eigen_to_vector( psmrts::lonlatrad_to_xyz_d( vector_to_eigen(*v) ) ) );
 }
@@ -788,33 +879,73 @@ PSMRTS_Vector3d psmrts_lonlatrad_to_xyz( const PSMRTS_Vector3d *v ) {
  * @param v Pointer to PSMRTS_Vector3d in xyz coordinates.
  * @return PSMRTS_Vector3d Vector converted to lon, lat, radius coordinates.
  */
-PSMRTS_Vector3d psmrts_xyz_to_lonlatrad( const PSMRTS_Vector3d *v ) {
+PSMRTS_Vector3d psmrts_xyz_to_lonlatrad_d( const PSMRTS_Vector3d *v ) {
 
   return ( eigen_to_vector( psmrts::xyz_to_lonlatrad_d( vector_to_eigen( *v ) ) ) );
 }
 
 /**
- * @brief degrees_to_radians - Convert number from degrees to radians.
+ * @brief psmrts_degrees_to_radians - Convert number from degrees to radians.
  *
  * Given a double in degrees, this function converts it to radians.
  *
  * @param d double
  * @return double Input converted to radians.
  */
-double degrees_to_radians( const double d ) {
+double psmrts_degrees_to_radians( const double d ) {
   return ( psmrts::degrees_to_radians( d ) );
 }
 
 /**
- * @brief radians_to_degrees - Convert number from radians to degrees.
+ * @brief psmrts_radians_to_degrees - Convert number from radians to degrees.
  *
  * Given a double in radians, this function converts it to degrees.
  *
  * @param d double
  * @return double Input converted to degrees.
  */
-double radians_to_degrees( const double d ) {
+double psmrts_radians_to_degrees( const double d ) {
   return ( psmrts::radians_to_degrees( d ) );
+}
+
+/**
+ * @brief psmrts_vector3d_to_radians - Convert vector longitude/latitude
+ *                                     coordinates from degrees to radians.
+ *
+ * Given a PSMRTS_Vector3d with longitude/latitude in degrees, this function
+ * converts them to radians.
+ *
+ * @param v PSMRTS_Vector3d
+ * @return PSMRTS_Vector3d Vector with longitude/latitude converted to radians.
+ */
+PSMRTS_Vector3d psmrts_vector3d_to_radians( const PSMRTS_Vector3d *v ) {
+    PSMRTS_Vector3d newvec;
+
+    newvec.longitude = psmrts_degrees_to_radians( v->longitude );
+    newvec.latitude  = psmrts_degrees_to_radians( v->latitude );
+    newvec.radius    = v->radius;
+
+    return ( newvec );
+}
+
+/**
+ * @brief psmrts_vector3d_to_degrees - Convert vector longitude/latitude
+ *                                     coordinates from radians to degrees.
+ *
+ * Given a PSMRTS_Vector3d with longitude/latitude in radians, this function
+ * converts them to degrees.
+ *
+ * @param v PSMRTS_Vector3d
+ * @return PSMRTS_Vector3d Vector with longitude/latitude converted to degrees.
+ */
+PSMRTS_Vector3d psmrts_vector3d_to_degrees( const PSMRTS_Vector3d *v ) {    
+    PSMRTS_Vector3d newvec;
+
+    newvec.longitude = psmrts_radians_to_degrees( v->longitude );
+    newvec.latitude  = psmrts_radians_to_degrees( v->latitude );
+    newvec.radius    = v->radius;
+
+    return ( newvec );
 }
 
 /**
