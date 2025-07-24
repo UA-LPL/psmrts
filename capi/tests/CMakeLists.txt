@@ -19,3 +19,15 @@ include ( CTest )
 include ( Catch )
 
 catch_discover_tests( capi_test_suite WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+# ----- CMocka Testing Additions TEMP ------
+find_package( cmocka REQUIRED )
+
+add_executable( capi_cmocka_test_suite  cmocka_test.c )
+set_source_files_properties( cmocka_test.c PROPERTIES LANGUAGE C)
+set_property(TARGET capi_cmocka_test_suite PROPERTY LINKER_LANGUAGE C)
+
+target_link_libraries( capi_cmocka_test_suite PRIVATE psmrts::psmrts_c )
+target_link_libraries( capi_cmocka_test_suite PRIVATE cmocka::cmocka )
+
+add_test( NAME capi_cmocka_test_suite COMMAND capi_cmocka_test_suite )

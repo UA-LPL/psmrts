@@ -98,6 +98,7 @@ if( BUILD_TESTING )
                    obj_test_suite
                    ply_test_suite
                    capi_test_suite
+                   capi_cmocka_test_suite 
       BASE_DIRECTORY "${PSMRTS_PROJECT_DIR}"
       EXCLUDE "psmrts/tests/*"
               "shapes/dsk/tests/*"

@@ -10,6 +10,7 @@
     "catch2",
     "spdlog",
     "miniply",
+    "cmocka",
     {
       "name": "bullet3",
       "features": ["double-precision", "extras"]
