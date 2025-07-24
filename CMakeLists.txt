@@ -53,6 +53,7 @@ find_package( nlohmann_json CONFIG REQUIRED )
 find_package( Eigen3 CONFIG REQUIRED )
 find_package( Bullet CONFIGS BulletConfig-float64.cmake REQUIRED )
 find_library( SPICE_LIB cspice )
+add_library(tinyobj STATIC ${CMAKE_CURRENT_SOURCE_DIR}/formats/obj/src/tiny_obj_loader.cc)
 
 add_library( psmrts-dependencies INTERFACE)
 target_link_libraries( psmrts-dependencies INTERFACE nlohmann_json::nlohmann_json )
@@ -60,6 +61,7 @@ target_link_libraries( psmrts-dependencies INTERFACE Eigen3::Eigen )
 target_link_libraries( psmrts-dependencies INTERFACE "${SPICE_LIB}" )
 target_link_libraries( psmrts-dependencies INTERFACE ${BULLET_LIBRARIES} )
 target_link_libraries( psmrts-dependencies INTERFACE spdlog::spdlog )
+target_link_libraries( psmrts-dependencies INTERFACE tinyobj )
 add_library( psmrts::psmrts-dependencies ALIAS psmrts-dependencies )
 
 # Create the PSMRTS interface export target
