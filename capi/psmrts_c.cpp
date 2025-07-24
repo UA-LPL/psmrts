@@ -1026,11 +1026,11 @@ PSMRTS_Tracer *psmrts_create_ellipsoid( const double a_radius_km,
  * @param name  Ellipsoid name (defaults to "ellipsoid" if none provided).
  * @return Pointer to the resulting PSMRTS_Tracer object.
  */
-PSMRTS_Tracer *psmrts_create_ellipsoid_v( const PSMRTS_Vector3d &radii,
+PSMRTS_Tracer *psmrts_create_ellipsoid_v( const PSMRTS_Vector3d *radii,
                                           const char *name ) {
 
-  return ( new PSMRTS_Tracer( psmrts::PsmrtsTracer::ellipsoid( vector_to_eigen(radii),
-                                                                     name ) ) );
+  return ( new PSMRTS_Tracer( psmrts::PsmrtsTracer::ellipsoid( vector_to_eigen(*radii),
+                                                               name ) ) );
 }
 
 /**

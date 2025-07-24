@@ -195,7 +195,7 @@ extern PSMRTS_Tracer *psmrts_create_ellipsoid( const double a_radius_km,
                                                const double b_radius_km,
                                                const double c_radius_km,
                                                const char *name );
-extern PSMRTS_Tracer *psmrts_create_ellipsoid_v( const PSMRTS_Vector3d &radii,
+extern PSMRTS_Tracer *psmrts_create_ellipsoid_v( const PSMRTS_Vector3d *radii,
                                                  const char *name );
 extern PSMRTS_Tracer *psmrts_create_bullet( const char *meshfile );
 extern PSMRTS_Tracer *psmrts_create_naifdsk( const char *meshfile );
