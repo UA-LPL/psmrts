@@ -1,6 +1,7 @@
 #ifndef PsmrtsOBJFormat_hpp
 #define PsmrtsOBJFormat_hpp
 
+
 #include <string>
 #include <memory>
 #include <exception>
@@ -17,6 +18,8 @@
 #include <ProductSpecification.hpp>
 
 // See PsmrtsOBJImplementation.hpp for defining the tinyobj implemantion in your main
+#define TINYOBJLOADER_IMPLEMENTATION
+#define TINYOBJLOADER_USE_DOUBLE
 #include "tiny_obj_loader.h"
 namespace psmrts {
   /**
