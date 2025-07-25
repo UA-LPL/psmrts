@@ -13,8 +13,8 @@ add_executable( dsk_test_suite  dsk_catch2_main.cpp
                                 test_PsmrtsDSKFormat.cpp )
 
 # Add required libraries as needed for psmrts_test_suite
-target_link_libraries( dsk_test_suite PRIVATE psmrts::psmrts )
-target_link_libraries( dsk_test_suite PRIVATE Catch2::Catch2WithMain )
+target_link_libraries( dsk_test_suite PRIVATE psmrts Catch2::Catch2WithMain )
+target_include_directories( dsk_test_suite PRIVATE ${PSMRTS_INCLUDE_DIRS} )
 
 # Add the tests to the system
 include( CTest )

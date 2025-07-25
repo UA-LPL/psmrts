@@ -15,6 +15,8 @@ option( BUILD_CAPI_APPS "Build C API and apps"      ON )
 if( DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE )
   set( CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
       CACHE STRING "" )
+else()
+  add_compile_definitions(TINYOBJLOADER_USE_DOUBLE)
 endif()
 
 # See https://github.com/Microsoft/vcpkg/issues/4497 as to why this
@@ -45,15 +47,19 @@ configure_file( psmrts_version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/psmrts/src/psmrt
 include(psmrts_includes)
 
 # Set psmrts source and include directory
-set( PSMRTS_BUILD_DIR    ${CMAKE_BINARY_DIR} )
+set( PSMRTS_BUILD_DIR    "${CMAKE_BINARY_DIR}" )
+set( PSMRTS_INSTALL_INCLUDE_DIR "include/psmrts" )
 
 # Set up link dependencies for PSMRTS
 find_package( spdlog CONFIG REQUIRED )
 find_package( nlohmann_json CONFIG REQUIRED )
 find_package( Eigen3 CONFIG REQUIRED )
-find_package( Bullet CONFIGS BulletConfig-float64.cmake REQUIRED )
+if (DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+  find_package( Bullet CONFIGS REQUIRED )
+else()
+  find_package( Bullet CONFIGS BulletConfig-float64.cmake REQUIRED )
+endif()
 find_library( SPICE_LIB cspice )
-add_library(tinyobj STATIC ${CMAKE_CURRENT_SOURCE_DIR}/formats/obj/src/tiny_obj_loader.cc)
 
 add_library( psmrts-dependencies INTERFACE)
 target_link_libraries( psmrts-dependencies INTERFACE nlohmann_json::nlohmann_json )
@@ -61,19 +67,41 @@ target_link_libraries( psmrts-dependencies INTERFACE Eigen3::Eigen )
 target_link_libraries( psmrts-dependencies INTERFACE "${SPICE_LIB}" )
 target_link_libraries( psmrts-dependencies INTERFACE ${BULLET_LIBRARIES} )
 target_link_libraries( psmrts-dependencies INTERFACE spdlog::spdlog )
-target_link_libraries( psmrts-dependencies INTERFACE tinyobj )
-add_library( psmrts::psmrts-dependencies ALIAS psmrts-dependencies )
 
 # Create the PSMRTS interface export target
-add_library( psmrts STATIC ${PSMRTS_FORMAT_DIR}/ply/src/miniply.cpp)
-target_include_directories( psmrts INTERFACE "${PSMRTS_INCLUDE_DIRS}" "${BULLET_ROOT_DIR}/${BULLET_INCLUDE_DIR}" )
-target_link_libraries( psmrts INTERFACE psmrts::psmrts-dependencies )
-add_library( psmrts::psmrts ALIAS psmrts )
+add_library( psmrts STATIC ${PSMRTS_FORMAT_DIR}/ply/src/miniply.cpp 
+                           ${CMAKE_CURRENT_SOURCE_DIR}/formats/obj/src/tiny_obj_loader.cc )
+target_include_directories( psmrts PUBLIC $<BUILD_INTERFACE:${PSMRTS_INCLUDE_DIRS}>
+                                          $<INSTALL_INTERFACE:include/psmrts> 
+                                   PRIVATE "${BULLET_ROOT_DIR}/${BULLET_INCLUDE_DIR}" )
+target_link_libraries( psmrts INTERFACE psmrts-dependencies )
 
 # Build C-API here if requested
 if( BUILD_CAPI_APPS )
   add_subdirectory( capi )
 endif( BUILD_CAPI_APPS )
+
+install(TARGETS psmrts LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+# Generate the package config
+configure_file(cmake/config.cmake.in
+              ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake
+              @ONLY)
+
+# Install the package config
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake
+              DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
+
+# Install the library
+install(TARGETS psmrts psmrts_c psmrts-dependencies
+        EXPORT psmrtsTargets
+        LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        INCLUDES DESTINATION ${PSMRTS_INSTALL_INCLUDE_DIR})
+
+# Install the target
+install(EXPORT psmrtsTargets
+        NAMESPACE psmrts::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
 
 # Optionally add unit tests of psmrts classes
 if( BUILD_TESTING )
@@ -117,4 +145,3 @@ if( BUILD_TESTING )
 
   enable_testing()
 endif( BUILD_TESTING )
-

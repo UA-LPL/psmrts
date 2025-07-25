@@ -25,8 +25,8 @@ add_executable( psmrts_test_suite  psmrts_catch2_main.cpp
 
 
 # Add required libraries as needed for psmrts_test_suite
-target_link_libraries( psmrts_test_suite PRIVATE psmrts::psmrts )
-target_link_libraries( psmrts_test_suite PRIVATE Catch2::Catch2WithMain )
+target_link_libraries( psmrts_test_suite PRIVATE psmrts Catch2::Catch2WithMain )
+target_include_directories( psmrts_test_suite PRIVATE ${PSMRTS_INCLUDE_DIRS} "${BULLET_ROOT_DIR}/${BULLET_INCLUDE_DIR}" )
 
 #  Add the tests to the system
 include( CTest )

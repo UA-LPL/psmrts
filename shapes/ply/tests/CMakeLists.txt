@@ -13,8 +13,8 @@ add_executable( ply_test_suite ply_catch2_main.cpp
                                test_PsmrtsPLYFormat.cpp )
 
 # Add required libraries as needed for psmrts_test_suite
-target_link_libraries( ply_test_suite PRIVATE psmrts::psmrts )
-target_link_libraries( ply_test_suite PRIVATE Catch2::Catch2WithMain )
+target_link_libraries( ply_test_suite PRIVATE psmrts Catch2::Catch2WithMain )
+target_include_directories( ply_test_suite PRIVATE ${PSMRTS_INCLUDE_DIRS} )
 
 # Add the tests to the system
 include( CTest )

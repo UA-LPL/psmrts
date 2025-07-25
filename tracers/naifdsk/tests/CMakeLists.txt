@@ -23,8 +23,8 @@ add_executable( naif_test_suite  naif_catch2_main.cpp
 
 
 # Add required libraries as needed for psmrts_test_suite
-target_link_libraries( naif_test_suite PRIVATE psmrts::psmrts )
-target_link_libraries( naif_test_suite PRIVATE Catch2::Catch2WithMain )
+target_link_libraries( naif_test_suite PRIVATE psmrts Catch2::Catch2WithMain )
+target_include_directories( naif_test_suite PRIVATE ${PSMRTS_INCLUDE_DIRS} )
 
 #  Add the tests to the system
 include( CTest )
