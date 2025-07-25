@@ -1,0 +1,16 @@
+name: psmrts
+channels:
+  - conda-forge
+
+dependencies:
+  - args
+  - bullet=3
+  - catch2
+  - cmake>=3.15
+  - cspice
+  - cxx-compiler=1.7
+  - eigen=3
+  - embree3
+  - nlohmann_json
+  - spdlog
+  - swig
