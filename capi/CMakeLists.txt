@@ -11,7 +11,6 @@ target_include_directories( psmrts_c PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_S
                                      PRIVATE "${BULLET_ROOT_DIR}/${BULLET_INCLUDE_DIR}")
 target_include_directories( psmrts_c PRIVATE ${PSMRTS_INCLUDE_DIRS} )
 target_link_libraries( psmrts_c PRIVATE psmrts )
-# add_library( psmrts::psmrts_c ALIAS psmrts_c )
 
 install(FILES ${PSMRTS_CAPI_DIR}/psmrts_c.h DESTINATION ${PSMRTS_INSTALL_INCLUDE_DIR})
 
