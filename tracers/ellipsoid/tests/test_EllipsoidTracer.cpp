@@ -1,11 +1,11 @@
 #include <psmrts_catch2_environment.hpp>
 
-#include <EllipsoidShapeTracer.hpp>
+#include <EllipsoidTracer.hpp>
 #include <EllipsoidTracerModel.hpp>
 #include <PsmrtsUtilities.hpp>
 
 TEST_CASE( "Ellipsoid Shape Tracer - Request Default Constructor", "[default][ellipsoid][shapetracer]") {
-    psmrts::EllipsoidShapeTracer e_tracer;
+    psmrts::EllipsoidTracer e_tracer;
 
     psmrts::PRQFeatures features;
     CHECK( e_tracer.process( features ) == true );
@@ -34,7 +34,7 @@ TEST_CASE( "Ellipsoid Shape Tracer Test", "[ellipsoid][shapetracer]") {
 
     Eigen::Vector3d radii( {1.0, 1.0, 1.0} );
 
-    psmrts::EllipsoidShapeTracer e_tracer( radii );
+    psmrts::EllipsoidTracer e_tracer( radii );
      
     Eigen::Vector3d obs;
     double radius = 1.0;
@@ -115,7 +115,7 @@ TEST_CASE( "Ellipsoid Shape Tracer Ray Trace Array Test", "[ellipsoid][shapetrac
 
     Eigen::Vector3d radii( {1.0, 1.0, 1.0} );
 
-    psmrts::EllipsoidShapeTracer e_tracer( radii );
+    psmrts::EllipsoidTracer e_tracer( radii );
 
     // Ray Trace 1
     Eigen::Vector3d obs1;
@@ -204,7 +204,7 @@ TEST_CASE("Ellipsoid Shape Tracer Photometric Values Test", "[ellipsoid][shapetr
     const double tolerance = 1.0e-6;
 
     Eigen::Vector3d radii( {1.0, 1.0, 1.0 } );
-    psmrts::EllipsoidShapeTracer e_tracer( radii );
+    psmrts::EllipsoidTracer e_tracer( radii );
 
     // Compute the position of the observer at (45, 45, 10)
     Eigen::Vector3d observer;
@@ -316,7 +316,7 @@ TEST_CASE( "Ellipsoid Shape Tracer Photometric Array Test", "[ellipsoid][shapetr
     const double tolerance = 1.0e-6;
 
     Eigen::Vector3d radii( {1.0, 1.0, 1.0 } );
-    psmrts::EllipsoidShapeTracer e_tracer( radii );
+    psmrts::EllipsoidTracer e_tracer( radii );
 
     const double max_radius = 1.0;
 
@@ -448,7 +448,7 @@ TEST_CASE( "Ellipsoid Shape Tracer Photometric Array Test", "[ellipsoid][shapetr
 }
 
 TEST_CASE( "Ellipsoid Shape Tracer Product Specification Test", "[ellipsoid][shapetracer][product][specification]") {
-    psmrts::ProductSpecification spec = psmrts::EllipsoidShapeTracer::product_specifications();
+    psmrts::ProductSpecification spec = psmrts::EllipsoidTracer::product_specifications();
 
     CHECK( spec.name()              == "ellipsoid"   );
     CHECK( spec.product()           == "shapetracer" ); 

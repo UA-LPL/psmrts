@@ -20,7 +20,7 @@ TEST_CASE ( "Bullet Mesh Map Test - Default Constructor", "[default][bullet][mes
 
 TEST_CASE ( "Bullet Mesh Map Test - Small Dataset", "[bullet][mesh]" ) {
 
-    std::string objfile = psmrts_formats_path( "obj/data/bennu_20facets.obj" );
+    std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
     psmrts::PsmrtsOBJFormat t_loader( objfile );
     CHECK( t_loader.nIndexes()  == 36 );
     CHECK( t_loader.nVertexes() == 20 );
@@ -90,7 +90,7 @@ TEST_CASE ( "Bullet Mesh Map OBJ/DSK Comparison - Bullet == NaifDSK ", "[bullet]
     CHECK ( naif::KernelFileSystem::size() == 0 );         // No cached files either...
 
     // Files to compare    
-    std::string objfile = psmrts_formats_path( "obj/data/bennu_20facets.obj" );
+    std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
 
     // Load the OBJ

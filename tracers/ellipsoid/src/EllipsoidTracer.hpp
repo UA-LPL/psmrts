@@ -1,27 +1,28 @@
-#ifndef BulletShapeTracer_hpp
-#define BulletShapeTracer_hpp
+#ifndef EllipsoidTracer_hpp
+#define EllipsoidTracer_hpp
 
 #include <string>
 
-#include <PsmrtsBulletWorldModel.hpp>
-#include <BulletTracerModel.hpp>
+#include <EllipsoidTracerModel.hpp>
 #include <PsmrtsRequest.hpp>
+#include <ProductSpecification.hpp>
 
 namespace psmrts  {
   /**
-   * @brief Bullet ShapeModel
+   * @brief Ellipsoid ShapeModel
    * 
    * 
    */
-  class BulletShapeTracer {
+  class EllipsoidTracer {
     public:
-     BulletShapeTracer( ) {  }
-     BulletShapeTracer( const bullet::PsmrtsBulletWorldModel &bt_model) :
-                        m_model( bt_model ) { }
-      virtual ~BulletShapeTracer() { }
+     EllipsoidTracer( ) {  }
+     EllipsoidTracer( const Eigen::Vector3d &radii,
+                           const std::string &source = "ellipsoid"  ) : 
+                           m_model( radii, source ) { }     
+      virtual ~EllipsoidTracer() { }
 
       /**
-       * @brief Bullet Ray Trace Processor
+       * @brief Ellipsoid Ray Trace Processor
        * 
        * This method accepts a PRQRayTrace, which is instantiated with 
        * values necessary for a Ray Trace (observer, look direction), 
@@ -36,13 +37,13 @@ namespace psmrts  {
        */
       inline bool process ( PRQRayTrace &trace ) const {
         trace.trace().validate_lookdir();
-        Eigen::Vector3d observer ( trace.trace().observer() );
-        Eigen::Vector3d lookdir ( trace.trace().lookdir() );
-        return ( this->ray_trace( observer, lookdir, trace.trace() ) );
+        Eigen::Vector3d observer( trace.trace().observer() );
+        Eigen::Vector3d lookdir( trace.trace().lookdir() );
+        return (this->ray_trace( observer, lookdir, trace.trace() ) );
       }
 
       /**
-       * @brief Bullet Ray Trace Array Processor
+       * @brief Ellipsoid Ray Trace Array Processor
        * 
        * This method accepts a PRQRayTraceArray, which represents
        * multiple PRQRayTraces in an array object, runs each trace,
@@ -68,27 +69,10 @@ namespace psmrts  {
         return ( n_good > 0 );
       }
 
-      /**
-       * @brief Bullet Facet Processor
-       * 
-       * This method accepts a PRQFacet, usually instantiated with a ray
-       * trace, and processes it - storing the facet associated with the 
-       * trace's intercept back into the PRQFacet. The resulting facet
-       * can be accessed using the PRQFacet's facet() function.
-       * 
-       * It returns true if the process results in a valid facet.
-       * 
-       * @param facet   PRQFacet provides desired ray trace, and stores
-       *                  resulting facet data
-       * @return true   If process results in valid facet intercept
-       * @return false  If process fails to find facet/intercept
-       */
-      inline bool process( PRQFacet &facet ) const {
-         return ( m_model.get_facet( facet.trace(), facet.facet() ) );
-      }
+
 
       /**
-       * @brief Bullet Photometric Trace Processor
+       * @brief Ellipsoid Photometric Trace Processor
        * 
        * This method accepts a PRQPhotometricTrace, which is instantiated with 
        * values necessary for a Photometric Trace (observer, look direction,
@@ -113,7 +97,7 @@ namespace psmrts  {
       }
 
       /**
-       * @brief Bullet Photometric Trace Array Processor
+       * @brief Ellipsoid Photometric Trace Array Processor
        * 
        * This method accepts a PRQPhotomericTraceArray, which represents
        * multiple PRQPhotometricTraces in an array object, runs each trace,
@@ -140,10 +124,10 @@ namespace psmrts  {
       }
 
       /**
-       * @brief Bullet Features Processor
+       * @brief Ellipsoid Features Processor
        * 
        * This method accepts a PRQFeatures, and stores into it all the 
-       * relevant Bullet information using JSON.
+       * relevant Ellipsoid information using JSON.
        * 
        * @param features PRQFeatures that holds tracer-relevant information
        *                  in a JSON format
@@ -152,17 +136,16 @@ namespace psmrts  {
        */
       inline bool process( PRQFeatures &features ) const {
         psmrts_json f_e;
-        f_e["name"]        = "bullet";
-        f_e["product"]     = "shapetracer";
-        f_e["mesh"]        = true;
-        f_e["optimizebvh"] = false;
-        f_e["vectortype"]  = { "double", "float" };
+        f_e["name"] = "ellisoid" ;
+        f_e["product"] = "shapetracer" ;
+        f_e["mesh"] = false ;
+        f_e["radii"] = { 1, 2, 3 } ;
         features.add_feature( f_e );
         return ( true );
       }
 
       /**
-       * @brief Bullet Virtual Ray Trace Method
+       * @brief Ellipsoid Virtual Ray Trace Method
        * 
        * Deriving classes must implement this method as is specified for 
        * shape models.
@@ -188,53 +171,42 @@ namespace psmrts  {
       static inline ProductSpecification product_specifications() {
         char text[] = R"(
         {
-          "name": "bullet",
+          "name": "ellipsoid",
           "product": "shapetracer",
           "type": "tracer",
-          "description": "The Bullet Physics ray tracing system specification",
+          "description": "Ellipsoid ray tracing system specifications",
           "driver": {
-            "name": "bullet",
+            "name": "ellipsoid",
             "type": "system",
-            "aliases": [ "shapetracer" ]
+            "aliases": ["shapetracer"]
           },
           "parameters": [
             {
-              "name": "bullet_optimize_bvh",
-              "type": "bool",
-              "description": "Use optimized bounding volume hierachy (BVH) when created",
-              "status": "optional",
-              "default": "false",
-              "valid": ["true", "1", "yes", "false", "0", "no"]
+              "name": "ellipsoid_radii",
+              "type": "list[double]",
+              "description": "Radii of the ellipsoid in kilometers, in the order [a, b, c]",
+              "status": "required",
+              "default": [1.0, 1.0, 1.0]
             },
             {
-              "name": "bullet_compressed",
-              "type": "bool",
-              "description": "Compress Bullet data during construction",
+              "name": "ellipsoid_source",
+              "type": "string",
+              "description": "Identifier or source for the ellipsoid - e.g., model or dataset",
               "status": "optional",
-              "default": "false",
-              "valid": ["true", "1", "yes", "false", "0", "no"]
-            },            
-            {
-              "name": "bullet_thread_safety",
-              "type": "bool",
-              "description": "Utilize thread locking before Bullet ray traces are run",
-              "status": "optional",
-              "default": "false",
-              "valid": ["true", "1", "yes", "false", "0", "no"]
+              "default": "ellipsoid"
             }
           ]       
         } )";
 
         // This validates the JSON structure and provides product info to callers
-        return ( ProductSpecification( "bullet", "tracer", "shapetracer", json_utils::parse_json_string( text )));
+        return ( ProductSpecification( "ellipsoid", "tracer", "shapetracer", json_utils::parse_json_string( text )));
       }
 
       /** Report all remaining features not available - e.g., PRQFacet not relevant to Ellipsoid format */
-      PSMRTS_PROCESS_CATCHALL( "BulletShapeTracer" )
-
+      PSMRTS_PROCESS_CATCHALL( "EllipsoidTracer" )
 
     protected:
-      bullet::BulletTracerModel  m_model;
+      EllipsoidTracerModel m_model;
   };
 
 } // namespace psmrts

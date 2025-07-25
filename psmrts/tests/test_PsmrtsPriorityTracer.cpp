@@ -32,7 +32,7 @@ TEST_CASE( "PsmrtsPriorityTrace Values Test", "[priority][tracer][values]") {
     psmrts::PsmrtsPriorityTracer p_tracer;
 
     // Bullet Tracer
-    std::string objfile = psmrts_formats_path( "obj/data/bennu_20facets.obj" );
+    std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
     psmrts::bullet::PsmrtsBulletWorldModel bt_world( psmrts::bullet::PsmrtsBulletMeshMap( psmrts::PsmrtsOBJFormat(objfile)), objfile);
 
     // NAIF Dsk Tracer
@@ -54,7 +54,7 @@ TEST_CASE( "PsmrtsPriorityTrace Values Test", "[priority][tracer][values]") {
     CHECK( p_tracer.size()    == 3 );
     CHECK( p_tracer.isValid() == true );
 
-    CHECK( p_tracer.get_shapefile_names() == std::vector<std::string> {psmrts_formats_path( "obj/data/bennu_20facets.obj" ), 
+    CHECK( p_tracer.get_shapefile_names() == std::vector<std::string> {psmrts_shapes_path( "obj/data/bennu_20facets.obj" ), 
                                                                        psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" ),
                                                                        "TriaxialEllipsoid"} );
     CHECK( p_tracer.find_model_by_name( "TriaxialEllipsoid" )->maximum_radius() == 0.5 );
@@ -82,7 +82,7 @@ TEST_CASE( "PsmrtsPriorityTrace Values Test", "[priority][tracer][values]") {
     const psmrts::PsmrtsTracerModel* ray_result = p_tracer.ray_trace( obs, lookdir, ray );
 
     REQUIRE( ray_result            != nullptr );
-    CHECK( ray_result->shapefile() == psmrts_formats_path( "obj/data/bennu_20facets.obj" ) );
+    CHECK( ray_result->shapefile() == psmrts_shapes_path( "obj/data/bennu_20facets.obj" ) );
 
     p_tracer.clear();
     CHECK( p_tracer.size()    == 0 );

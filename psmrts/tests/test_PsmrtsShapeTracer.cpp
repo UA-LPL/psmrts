@@ -2,16 +2,16 @@
 
 #include <PsmrtsUtilities.hpp>
 #include <PsmrtsRequest.hpp>
-#include <PsmrtsShapeTracer.hpp>
+#include <PsmrtsTracer.hpp>
 
 #include <DskKernelModel.hpp>
 
 
-TEST_CASE("PsmrtsShapeTracer Default Test", "[shape][tracer][default]") {
+TEST_CASE("PsmrtsTracer Default Test", "[tracer][default]") {
     const double tolerance_r = 1.0E-13;
-    CHECK( sizeof( psmrts::PsmrtsShapeTracer::PsmrtsTracer ) <= 768 );
+    CHECK( sizeof( psmrts::PsmrtsTracer::Tracer ) <= 768 );
 
-    psmrts::PsmrtsShapeTracer tracer_t( psmrts::PsmrtsShapeTracer::ellipsoid( { 0.283065,0.271215,0.249720 }, "Bennu" ) );
+    psmrts::PsmrtsTracer tracer_t( psmrts::PsmrtsTracer::ellipsoid( { 0.283065,0.271215,0.249720 }, "Bennu" ) );
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
 
     Eigen::Vector3d obs;
@@ -60,14 +60,14 @@ TEST_CASE("PsmrtsShapeTracer Default Test", "[shape][tracer][default]") {
 
   }
 
-  TEST_CASE("PsmrtsShapeTracer Default Test", "[shape][tracer][bullet][naifdsk]") {
+  TEST_CASE("PsmrtsTracer Default Test", "[tracer][bullet][naifdsk]") {
     const double tolerance_r = 1.0E-13;
 
-    CHECK( sizeof( psmrts::PsmrtsShapeTracer::PsmrtsTracer ) <= 768 );
+    CHECK( sizeof( psmrts::PsmrtsTracer::Tracer ) <= 768 );
 
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
-    psmrts::PsmrtsShapeTracer bullet_t( psmrts::PsmrtsShapeTracer::bullet( dskfile ) );
-    psmrts::PsmrtsShapeTracer naifdsk_t( psmrts::PsmrtsShapeTracer::naifdsk( dskfile ) );
+    psmrts::PsmrtsTracer bullet_t( psmrts::PsmrtsTracer::bullet( dskfile ) );
+    psmrts::PsmrtsTracer naifdsk_t( psmrts::PsmrtsTracer::naifdsk( dskfile ) );
 
     Eigen::Vector3d obs;
     double radius = 10.0;

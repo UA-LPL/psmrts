@@ -22,10 +22,10 @@ TEST_CASE ( "Bullet World Test - Default Constructor", "[default][bullet][world]
 
 // Load mesh and run some traces
 
-TEST_CASE( "Bullet Shape Tracer Test", "[bullet][shape][tracer]" ) {
+TEST_CASE( "Bullet Tracer Test", "[bullet][tracer]" ) {
     const double tolerance_km = 1.0e-6;
 
-    std::string objfile = psmrts_formats_path( "obj/data/bennu_20facets.obj" );
+    std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
 
 
     // psmrts::PsmrtsOBJFormat t_loader( objfile );
@@ -99,7 +99,7 @@ TEST_CASE( "Bullet Shape Tracer Test", "[bullet][shape][tracer]" ) {
 TEST_CASE("Bullet-DSK Comparison Test", "[bullet][dsk][raytrace]") {
     auto tolerance = 1.0e-12;
 
-    std::string objfile = psmrts_formats_path( "obj/data/bennu_20facets.obj" );
+    std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
 
     psmrts::PsmrtsOBJFormat t_loader( objfile );
@@ -215,7 +215,7 @@ TEST_CASE("Bullet-DSK Comparison Test - float", "[bullet][dsk][raytrace][float]"
 
     auto tolerance = 1.0e-7;
 
-    std::string objfile = psmrts_formats_path( "obj/data/bennu_20facets.obj" );
+    std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
 
     psmrts::PsmrtsOBJFormat t_loader( objfile );
@@ -346,7 +346,7 @@ TEST_CASE("Bullet-DSK Comparison Test - float", "[bullet][dsk][raytrace][float]"
 TEST_CASE( "BulletTracerModel Test", "[bullet][tracer][model]" ) {
     const double tolerance_km = 1.0e-6;
 
-    std::string objfile = psmrts_formats_path( "obj/data/bennu_20facets.obj" );
+    std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
 
     // This spec saves significant memory... and confirms Bullet preserves data
     psmrts::bullet::PsmrtsBulletWorldModel bt_world_model( psmrts::bullet::PsmrtsBulletMeshMap ( psmrts::PsmrtsOBJFormat( objfile ) ), objfile );

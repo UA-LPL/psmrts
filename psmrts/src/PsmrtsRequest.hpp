@@ -70,7 +70,7 @@ namespace psmrts {
    *  // Report all remaining features not available - e.g., 
    *  // PRQFacet is not relevant to an Ellipsoid tracer or 
    *  // other non-mesh tracers.
-      PSMRTS_PROCESS_CATCHALL( "EllipsoidShapeTracer" )
+      PSMRTS_PROCESS_CATCHALL( "EllipsoidTracer" )
    * @endcode
    * 
    * Note that there is no ; at the end of that statement. A compiler error
@@ -86,7 +86,7 @@ namespace psmrts {
    * 
    * @code
    * #define PSMRTS_DISABLE_PROCESS_CATCHALL 1
-   *   PSMRTS_PROCESS_CATCHALL( "EllipsoidShapeTracer" )
+   *   PSMRTS_PROCESS_CATCHALL( "EllipsoidTracer" )
    * #undef PSMRTS_DISABLE_PROCESS_CATCHALL
    * @endcode
    * 

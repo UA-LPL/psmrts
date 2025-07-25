@@ -7,7 +7,7 @@
 
 // Test Default (No / Bad file) Constructor Cases
 TEST_CASE( "PLY FORMAT Asset Test - No File Default Constructor", "[format][ply]") {
-    std::string no_file = psmrts_formats_path("ply/data/bad_path.ply");
+    std::string no_file = psmrts_shapes_path("ply/data/bad_path.ply");
     psmrts::PsmrtsPLYFormat ply;
 
     CHECK( ply.ply_source()          == "" );
@@ -29,7 +29,7 @@ TEST_CASE( "PLY FORMAT Asset Test - No File Default Constructor", "[format][ply]
 TEST_CASE ( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][default]") {
     auto tolerance = 1.0e-12;
 
-    std::string plyfile = psmrts_formats_path("ply/data/Bennu_Radar.ply");
+    std::string plyfile = psmrts_shapes_path("ply/data/Bennu_Radar.ply");
     psmrts::PsmrtsPLYFormat ply( plyfile );
     
     ordered_json test;
@@ -166,7 +166,7 @@ TEST_CASE("PLY FORMAT Asset Test - Text Based Ply Reader and Comparison", "[form
     // Original binary-base ply file was converted to text version via Meshlab: https://github.com/cnr-isti-vclab/meshlab
     auto tolerance = 1.0e-6;
 
-    std::string binary_file = psmrts_formats_path("ply/data/icosahedron_binary.ply");
+    std::string binary_file = psmrts_shapes_path("ply/data/icosahedron_binary.ply");
 
     psmrts::PsmrtsPLYFormat binary_ply( binary_file );
 
@@ -260,7 +260,7 @@ TEST_CASE("PLY FORMAT Asset Test - Text Based Ply Reader and Comparison", "[form
     CHECK( binary_indexes(0)[2] == 1 ); // txt ply (via meshlab) value: 1
 
     // Create text converted ply version for comparison
-    std::string text_file  = psmrts_formats_path("ply/data/icosahedron.ply");
+    std::string text_file  = psmrts_shapes_path("ply/data/icosahedron.ply");
 
     psmrts::PsmrtsPLYFormat text_ply( text_file );
 
@@ -315,10 +315,10 @@ TEST_CASE( "PLY FORMAT Asset Test - OBJ Data Value Test", "[format][ply][obj]" )
     auto tolerance_f = 1.0e-6;
     auto tolerance_d = 1.0e-4;
 
-    std::string plyfile = psmrts_formats_path( "ply/data/Bennu_Radar.ply" );
+    std::string plyfile = psmrts_shapes_path( "ply/data/Bennu_Radar.ply" );
     psmrts::PsmrtsPLYFormat ply_data_loader( plyfile );
     
-    std::string objfile = psmrts_formats_path( "ply/data/Bennu_Radar.obj" );
+    std::string objfile = psmrts_shapes_path( "ply/data/Bennu_Radar.obj" );
     psmrts::PsmrtsOBJFormat obj_data_loader( objfile );
 
     auto ply_floats = ply_data_loader.get_float_vectors();

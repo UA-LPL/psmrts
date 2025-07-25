@@ -35,6 +35,15 @@ release.
 ## TODO
 - See [TODO](TODO.md)
 
+## [0.2.0] 2025-07-22
+- Update CHANGELOG.md, CMakeLists.txt to version [0.2.0].
+- Renamed formats directory to shapes.
+- Simplified, renamed all instances of ShapeTracer to Tracer.
+- Changed psmrts_formats_path() to psmrts_shapes_path() in psmrts_catch2_environment.hpp.
+- C API documentation updated and included in Doxygen.
+- Updated product_specifications.md to reflect relevant changes.
+
+
 ## [0.1.0] 2025-07-16
 - Update CHANGELOG.md.
 - Update TODO.md which is now tracking development.
@@ -70,9 +79,6 @@ release.
 - test_EllipsoidShapeTracer.cpp - Updated to test new features.
 - NaifDskShapeTracer.hpp - Added product specification for the NaifDsk tracer.
 - test_NaifDskShapeTracer.cpp - Updated to test new features.
-
-
-
 
 ## [0.0.14] 2025-06-30
 - PsmrtsDskFormat.hpp - fixed formatting issues for config().
