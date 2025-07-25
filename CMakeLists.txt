@@ -69,8 +69,8 @@ target_link_libraries( psmrts-dependencies INTERFACE ${BULLET_LIBRARIES} )
 target_link_libraries( psmrts-dependencies INTERFACE spdlog::spdlog )
 
 # Create the PSMRTS interface export target
-add_library( psmrts STATIC ${PSMRTS_FORMAT_DIR}/ply/src/miniply.cpp 
-                           ${CMAKE_CURRENT_SOURCE_DIR}/formats/obj/src/tiny_obj_loader.cc )
+add_library( psmrts STATIC ${PSMRTS_SHAPES_DIR}/ply/src/miniply.cpp 
+                           ${PSMRTS_SHAPES_DIR}/obj/src/tiny_obj_loader.cc )
 target_include_directories( psmrts PUBLIC $<BUILD_INTERFACE:${PSMRTS_INCLUDE_DIRS}>
                                           $<INSTALL_INTERFACE:include/psmrts> 
                                    PRIVATE "${BULLET_ROOT_DIR}/${BULLET_INCLUDE_DIR}" )
