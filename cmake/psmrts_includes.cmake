@@ -14,7 +14,7 @@ set( PSMRTS_HEADER_FILES ${PSMRTS_BASE_HEADER_DIR}ProductParameter.hpp
                          ${PSMRTS_BASE_HEADER_DIR}PsmrtsProduct.hpp
                          ${PSMRTS_BASE_HEADER_DIR}PsmrtsRayTrace.hpp
                          ${PSMRTS_BASE_HEADER_DIR}PsmrtsRequest.hpp
-                         ${PSMRTS_BASE_HEADER_DIR}PsmrtsShapeTracer.hpp
+                         ${PSMRTS_BASE_HEADER_DIR}PsmrtsTracer.hpp
                          ${PSMRTS_BASE_HEADER_DIR}PsmrtsShapeTracerAdapter.hpp
                          ${PSMRTS_BASE_HEADER_DIR}PsmrtsStridingBuffer.hpp
                          ${PSMRTS_BASE_HEADER_DIR}PsmrtsTracerModel.hpp
