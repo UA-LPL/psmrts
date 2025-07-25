@@ -9,14 +9,9 @@
     "cspice",
     "catch2",
     "spdlog",
-    "miniply",
     {
       "name": "bullet3",
       "features": ["double-precision", "extras"]
-    },
-    {
-      "name": "tinyobjloader",
-      "features": [ "double" ]
     }
   ]
 }
