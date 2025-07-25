@@ -76,9 +76,12 @@ target_include_directories( psmrts PUBLIC $<BUILD_INTERFACE:${PSMRTS_INCLUDE_DIR
                                    PRIVATE "${BULLET_ROOT_DIR}/${BULLET_INCLUDE_DIR}" )
 target_link_libraries( psmrts INTERFACE psmrts-dependencies )
 
+set( PSMRTS_TARGETS psmrts psmrts-dependencies )
 # Build C-API here if requested
 if( BUILD_CAPI_APPS )
   add_subdirectory( capi )
+  set( PSMRTS_TARGETS ${PSMRTS_TARGETS}
+                      psmrts_c )
 endif( BUILD_CAPI_APPS )
 
 install(TARGETS psmrts LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
@@ -93,7 +96,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake
               DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
 
 # Install the library
-install(TARGETS psmrts psmrts_c psmrts-dependencies
+install(TARGETS ${PSMRTS_TARGETS}
         EXPORT psmrtsTargets
         LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
         INCLUDES DESTINATION ${PSMRTS_INSTALL_INCLUDE_DIR})
