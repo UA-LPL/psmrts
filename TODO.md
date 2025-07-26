@@ -8,11 +8,11 @@
   - [x] Changed psmrts_formats_path -> psmrts_shapes_path
   - [x] Change class names to renames impacted by changes
 - [x] Update product_specifications.md to reflex above changes
-  - [ ] Update psmrts capi documentation with contents of capi header 
-  - [ ] Update any capi functions that have been updated/added/changed
-- [ ] Update Changelog and main CMake list to reflect version 0.2.0 due to directory changes
-- [ ] Ensure builds and test on other OS
-- [ ] Add Capi to be included in Doxygen
+  - [x] Update psmrts capi documentation with contents of capi header 
+  - [x] Update any capi functions that have been updated/added/changed
+- [x] Update Changelog and main CMake list to reflect version 0.2.0 due to directory changes
+- [x] Ensure builds and test on other OS
+- [x] Add Capi to be included in Doxygen
 
 ### Tasks
 - [ ] Add `PSMRTS` facet request C API functions.
