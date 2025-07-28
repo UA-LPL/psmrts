@@ -9,7 +9,7 @@ include_directories(${PSMRTS_PROJECT_DIR}/psmrts/tests)
 
 # Build all-in-one renderer test application
 add_executable( capi_test_suite  capi_catch2_main.cpp
-                                 test_PsmrtsCAPI_Vector3D.cpp )
+                                 test_PsmrtsCAPI.cpp )
 
 # Add required libraries as needed for capi_test_suite
 target_link_libraries( capi_test_suite PRIVATE psmrts::psmrts_c )

@@ -157,7 +157,7 @@ TEST_CASE( "PSMRTS Latitudinal to Rectangular Coordinate Conversion Test", "[uti
     CHECK_THAT( xyz[1], Catch::Matchers::WithinAbs( 0.0, tolerance ));
     CHECK_THAT( xyz[2], Catch::Matchers::WithinAbs( 1.0, tolerance ));
 
-    // test at with latitude < 90.0 (should clamp to -90.0)
+    // test with latitude < 90.0 (should clamp to -90.0)
     llr_d[0] =    0.0; // longitude
     llr_d[1] = -100.0; // latitude
     llr_d[2] =    1.0; // radius
