@@ -5,6 +5,7 @@
 
 #include "psmrts_c.h" 
 
+// --- PSMRTS information Functions ---
 static void test_psmrts_version_info(void **state) {
     (void)state;
 
@@ -15,7 +16,7 @@ static void test_psmrts_version_info(void **state) {
     assert_string_equal(info, "psmrts-0.2.0");
 }
 
-
+// --- PSMRTS Vector3d Functions ---
 static void test_psmrts_vector3d_init(void **state) {
     (void)state;
 
@@ -96,6 +97,83 @@ static void test_psmrts_length(void **state) {
     assert_float_equal(result, 9.0, 1e-6);
 }
 
+// --- PSMRTS Trace Functions ---
+static void test_psmrts_ray(void **state) {
+    (void)state;
+
+    PSMRTS_Vector3d obs = psmrts_vector3d(2.0, 4.0, 6.0);
+    PSMRTS_Vector3d lkdr = psmrts_vector3d(-1.0, 0.0, 12.0);
+
+    PSMRTS_RayTrace *ray = psmrts_create_ray(&obs, &lkdr);
+
+    assert_non_null(ray);
+
+    PSMRTS_Vector3d obs_result = psmrts_ray_observer(ray);
+    PSMRTS_Vector3d lkdr_result = psmrts_ray_lookdir(ray);
+
+    assert_float_equal(obs_result.x, 2.0, 1e-6);
+    assert_float_equal(obs_result.y, 4.0, 1e-6);
+    assert_float_equal(obs_result.z, 6.0, 1e-6);
+
+    assert_float_equal(lkdr_result.x, -1.0, 1e-6);
+    assert_float_equal(lkdr_result.y, 0.0, 1e-6);
+    assert_float_equal(lkdr_result.z, 12.0, 1e-6);
+
+    PSMRTS_BOOL nohit = psmrts_ray_has_hit(ray);
+
+    assert_int_equal(nohit, 0);
+
+    /*
+    PSMRTS_Vector3d raypt = psmrts_ray_raypt(ray);
+    assert_int_equal(raypt.x, 0.0);
+    assert_int_equal(raypt.y, 0.0);
+    assert_int_equal(raypt.z, 0.0);
+    // checked just to see, numbers result in hexadec #s
+    */
+
+    PSMRTS_Vector3d new_obs = psmrts_vector3d(3.0, -5.0, 7.0);
+    PSMRTS_Vector3d new_lkdr = psmrts_vector3d(100.0, 20.2, 30.0);
+
+    psmrts_ray_set_observation(&new_obs, &new_lkdr, ray);
+
+    obs_result = psmrts_ray_observer(ray);
+    lkdr_result = psmrts_ray_lookdir(ray);
+
+    assert_float_equal(obs_result.x, 3.0, 1e-6);
+    assert_float_equal(obs_result.y, -5.0, 1e-6);
+    assert_float_equal(obs_result.z, 7.0, 1e-6);
+
+    assert_float_equal(lkdr_result.x, 100.0, 1e-6);
+    assert_float_equal(lkdr_result.y, 20.2, 1e-6);
+    assert_float_equal(lkdr_result.z, 30.0, 1e-6);
+}
+
+static void test_psmrts_raytrace(void **state) {
+    (void)state;
+    const char *name = "test";
+    PSMRTS_Tracer *ellipse = psmrts_create_sphere(1.0, name);
+
+    PSMRTS_Vector3d obs = psmrts_vector3d(0.0, 0.0, 3.0);
+    PSMRTS_Vector3d lkdr = psmrts_vector3d(0.0, 0.0, -1.0);
+    PSMRTS_RayTrace *ray = psmrts_create_ray(&obs, &lkdr);
+
+    PSMRTS_RayTrace *raytrace = psmrts_ray_trace(ray, ellipse);
+
+    PSMRTS_BOOL hashit = psmrts_ray_has_hit(raytrace);
+    assert_int_equal(hashit, 1);
+
+    PSMRTS_Vector3d xyz = psmrts_ray_xyz(raytrace);
+    assert_float_equal(xyz.x, 0.0, 1e-6);
+    assert_float_equal(xyz.y, 0.0, 1e-6);
+    assert_float_equal(xyz.z, 1.0, 1e-6);
+
+    PSMRTS_Vector3d raypt = psmrts_ray_raypt(raytrace);
+    assert_float_equal(raypt.x, 0.0, 1e-6);
+    assert_float_equal(raypt.y, 0.0, 1e-6);
+    assert_float_equal(raypt.z, -2.0, 1e-6);
+}
+
+
 int main(void) {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(test_psmrts_version_info),
@@ -105,6 +183,8 @@ int main(void) {
         cmocka_unit_test(test_psmrts_add),
         cmocka_unit_test(test_psmrts_scale),
         cmocka_unit_test(test_psmrts_length),
+        cmocka_unit_test(test_psmrts_ray),
+        cmocka_unit_test(test_psmrts_raytrace),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);
