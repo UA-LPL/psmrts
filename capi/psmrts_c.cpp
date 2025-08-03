@@ -502,7 +502,7 @@ PSMRTS_BOOL psmrts_isNear( const PSMRTS_RayTrace *ray1,
                            const PSMRTS_RayTrace *ray2,
                            const double tolerance_km ) {
 
-  return ( evaluate( ray1->trace().isNear( ray2->trace() ) ) );
+  return ( evaluate( ray1->trace().isNear( ray2->trace(), tolerance_km ) ) );
 }
 
 /**
@@ -638,12 +638,11 @@ const PSMRTS_RayTrace *psmrts_trace_array_get_trace( const PSMRTS_TraceArray *tr
  * @brief psmrts_create_photometric_ray - Creates a PSMRTS photometric ray
  *        trace object.
  *
- * Given vectors describing observer position and look direction, this
- * function creates a PSMRTS ray trace object that can be used to trace
- * on a shape.
+ * Given vectors describing observer position and look direction, this function
+ * creates a PSMRTS photometric ray trace object that can be used to trace on a
+ * shape.
  *
- * The observer position is a vector from the shape origin to its body-fixed
- * position relative to the target body origin.
+ * Observer position is a vector from the shape origin to its body-fixed position relative to the target body origin.
  *
  * the lookdir is converted to a unit vector and originates from the observer
  * location toward the target body.
@@ -969,8 +968,11 @@ PSMRTS_Tracer *psmrts_create_sphere( const double radius_km,
 /**
  * @brief psmrts_create_spheroid - Creates a PSMRTS spheroid tracer
  *
- * Given axes 'a' and 'c' radii (km) and an optional name, this function
+ * Given 'a' and 'c' radii (km) and an optional name, this function
  * creates a PSMRTS tracer object that can be used to trace on a spheroid.
+ *
+ * The a, b radii are set to the input 'a' value. Radii a,b > c produces an 'oblate'
+ * or flattened spheroid. Radii a,b < c produces a 'prolate' or elongated spheroid.
  *
  * It is the responsibility of the caller to check for valid pointer return.
  *
@@ -984,8 +986,8 @@ PSMRTS_Tracer *psmrts_create_spheroid( const double a_radius_km,
                                        const char *name ) {
 
   return ( new PSMRTS_Tracer ( psmrts::PsmrtsTracer::spheroid( a_radius_km,
-                                                                    c_radius_km,
-                                                                    name ) ) );
+                                                               c_radius_km,
+                                                               name ) ) );
 }
 
 /**
@@ -1008,9 +1010,9 @@ PSMRTS_Tracer *psmrts_create_ellipsoid( const double a_radius_km,
                                         const char *name ) {
 
   return ( new PSMRTS_Tracer ( psmrts::PsmrtsTracer::ellipsoid( a_radius_km,
-                                                                     b_radius_km,
-                                                                     c_radius_km,
-                                                                     name ) ) );
+                                                                b_radius_km,
+                                                                c_radius_km,
+                                                                name ) ) );
 }
 
 /**
@@ -1065,15 +1067,12 @@ PSMRTS_Tracer *psmrts_create_naifdsk( const char *meshfile ) {
 }
 
 /**
- * @brief psmrts_tracer_valid - Determines validity of a PSMRTS_ShapeTracer
- *        object.
+ * @brief psmrts_tracer_valid - Validates PSMRTS_Tracer.
  *
- * Given a PSMRTS_PhotometricRayTrace object, this function returns the
- * photometric phase angle (in radians) subtended between two vectors from a
- * common surface point to 1) an observer and 2) the sun.
+ * Validates given PSMRTS_Tracer pointer by confirming it is not null.
  *
- * @param tracer Pointer to PSMRTS_ShapeTracer object.
- * @return PSMRTS_BOOL Validity of input PSMRTS_ShapeTracer.
+ * @param tracer Pointer to PSMRTS_Tracer object.
+ * @return PSMRTS_BOOL Validity of input PSMRTS_Tracer.
  */
 PSMRTS_BOOL psmrts_tracer_valid( const PSMRTS_Tracer *tracer ) {
   return ( evaluate( 0 != tracer ) );
@@ -1132,7 +1131,7 @@ void psmrts_free_shapetracer( PSMRTS_Tracer *stracer ) {
 }
 
 /**
- * @brief psmrts_free - Frees memory allocated to input
+ * @brief psmrts_free_priority_tracer - Frees memory allocated to input
  *                      PSMRTS_PriorityTracer pointer.
  *
  * This function frees memory allocated to the input PSMRTS_PriorityTracer

@@ -96,51 +96,51 @@ typedef struct psmrts_photometric_trace_array  PSMRTS_PhotometricTraceArray;
 extern const char PSMRTS_DLL *psmrts_version();
 extern const char PSMRTS_DLL *psmrts_info();
 
-/*============ PSMRTS_Vector3d functions ================*/
-extern PSMRTS_Vector3d psmrts_vector3d( const double v1, const double v2,
+/*============ PSMRTS_Vector3d functions ======TESTED====*/
+extern PSMRTS_Vector3d psmrts_vector3d( const double v1, const double v2,           // tested
                                         const double v3 );
 
-extern PSMRTS_Vector3d psmrts_negate( const PSMRTS_Vector3d *v );
-extern PSMRTS_Vector3d psmrts_subtract( const PSMRTS_Vector3d *v1,
+extern PSMRTS_Vector3d psmrts_negate( const PSMRTS_Vector3d *v );                   // tested
+extern PSMRTS_Vector3d psmrts_subtract( const PSMRTS_Vector3d *v1,                  // tested
                                         const PSMRTS_Vector3d *v2 );
-extern PSMRTS_Vector3d psmrts_add( const PSMRTS_Vector3d *v1,
+extern PSMRTS_Vector3d psmrts_add( const PSMRTS_Vector3d *v1,                       // tested
                                    const PSMRTS_Vector3d *v2 );
-extern PSMRTS_Vector3d psmrts_scale( const PSMRTS_Vector3d *v,
+extern PSMRTS_Vector3d psmrts_scale( const PSMRTS_Vector3d *v,                      // tested
                                      const double scale );
-extern double          psmrts_length( const PSMRTS_Vector3d *v );
+extern double          psmrts_length( const PSMRTS_Vector3d *v );                   // tested
 
 /*============ PSMRTS Trace functions ===================*/
-extern PSMRTS_RayTrace *psmrts_create_ray( const PSMRTS_Vector3d *observer,
+extern PSMRTS_RayTrace *psmrts_create_ray( const PSMRTS_Vector3d *observer,         // tested
                                            const PSMRTS_Vector3d *lookdir );
-extern PSMRTS_RayTrace *psmrts_ray_set_observation( const PSMRTS_Vector3d *observer,
+extern PSMRTS_RayTrace *psmrts_ray_set_observation( const PSMRTS_Vector3d *observer, // NOT TESTED YET
                                                     const PSMRTS_Vector3d *lookdir,
                                                     PSMRTS_RayTrace *trace );
-extern PSMRTS_RayTrace *psmrts_ray_trace( PSMRTS_RayTrace *ray,
+extern PSMRTS_RayTrace *psmrts_ray_trace( PSMRTS_RayTrace *ray,                     // tested
                                           const PSMRTS_Tracer *tracer );
-extern PSMRTS_RayTrace *psmrts_ray_trace_v( const PSMRTS_Vector3d *observer,
+extern PSMRTS_RayTrace *psmrts_ray_trace_v( const PSMRTS_Vector3d *observer,        // tested
                                             const PSMRTS_Vector3d *lookdir,
                                             const PSMRTS_Tracer *tracer );
-extern PSMRTS_Vector3d psmrts_ray_observer( const PSMRTS_RayTrace *ray );
-extern PSMRTS_Vector3d psmrts_ray_lookdir( const PSMRTS_RayTrace *ray );
-extern PSMRTS_BOOL     psmrts_ray_has_hit( const PSMRTS_RayTrace *ray );
-extern PSMRTS_Vector3d psmrts_ray_xyz( const PSMRTS_RayTrace *ray );
-extern PSMRTS_Vector3d psmrts_ray_raypt( const PSMRTS_RayTrace *ray );
-extern PSMRTS_Vector3d psmrts_ray_normal( const PSMRTS_RayTrace *ray );
-extern double psmrts_ray_intercept_radius( const PSMRTS_RayTrace *ray );
-extern double psmrts_ray_intercept_slant_distance( const PSMRTS_RayTrace *ray );
-extern double psmrts_ray2ray_distance( const PSMRTS_RayTrace *ray1,
+extern PSMRTS_Vector3d psmrts_ray_observer( const PSMRTS_RayTrace *ray );           // tested
+extern PSMRTS_Vector3d psmrts_ray_lookdir( const PSMRTS_RayTrace *ray );            // tested
+extern PSMRTS_BOOL     psmrts_ray_has_hit( const PSMRTS_RayTrace *ray );            // tested
+extern PSMRTS_Vector3d psmrts_ray_xyz( const PSMRTS_RayTrace *ray );                // tested
+extern PSMRTS_Vector3d psmrts_ray_raypt( const PSMRTS_RayTrace *ray );              // tested
+extern PSMRTS_Vector3d psmrts_ray_normal( const PSMRTS_RayTrace *ray );             // tested
+extern double psmrts_ray_intercept_radius( const PSMRTS_RayTrace *ray );            // tested
+extern double psmrts_ray_intercept_slant_distance( const PSMRTS_RayTrace *ray );    // tested
+extern double psmrts_ray2ray_distance( const PSMRTS_RayTrace *ray1,                 // tested
                                         const PSMRTS_RayTrace *ray2 );
-extern double psmrts_separation_angle_radians( const PSMRTS_Vector3d *v1,
+extern double psmrts_separation_angle_radians( const PSMRTS_Vector3d *v1,           // tested
                                                const PSMRTS_Vector3d *v2 );
 
-extern PSMRTS_BOOL psmrts_isNear( const PSMRTS_RayTrace *ray1,
+extern PSMRTS_BOOL psmrts_isNear( const PSMRTS_RayTrace *ray1,                      // tested
                             const PSMRTS_RayTrace *ray2,
-                            const double tolerance_km ); // default argument?
+                            const double tolerance_km );
 
-extern double psmrts_incidence( const PSMRTS_RayTrace *ray1,
+extern double psmrts_incidence( const PSMRTS_RayTrace *ray1,                        // tested
                                 const PSMRTS_RayTrace *ray2 );
-extern double psmrts_emission( const PSMRTS_RayTrace *ray );
-extern double psmrts_phase( const PSMRTS_RayTrace *ray1,
+extern double psmrts_emission( const PSMRTS_RayTrace *ray );                        // tested
+extern double psmrts_phase( const PSMRTS_RayTrace *ray1,                            // tested
                             const PSMRTS_RayTrace *ray2 );
 
 /*============ PSMRTS TraceArray functions ==============*/
@@ -175,32 +175,32 @@ extern size_t psmrts_photometric_trace_array_add_trace( PSMRTS_PhotometricTraceA
 extern const PSMRTS_PhotometricRayTrace *psmrts_photometric_trace_array_get_trace( const PSMRTS_PhotometricTraceArray *tracearray,
                                                                                    size_t index );
 
-/* Coordinate conversion functions ======================*/
-extern PSMRTS_Vector3d psmrts_lonlatrad_to_xyz_d( const PSMRTS_Vector3d *lonlatrad );
-extern PSMRTS_Vector3d psmrts_xyz_to_lonlatrad_d( const PSMRTS_Vector3d *xyz );
+/* Coordinate conversion functions =======TESTED=========*/
+extern PSMRTS_Vector3d psmrts_lonlatrad_to_xyz_d( const PSMRTS_Vector3d *lonlatrad );     // tested
+extern PSMRTS_Vector3d psmrts_xyz_to_lonlatrad_d( const PSMRTS_Vector3d *xyz );           // tested
 
-/* Degree/radian conversion functions ===================*/
-extern double psmrts_degrees_to_radians( const double d );
-extern double psmrts_radians_to_degrees( const double d );
-extern PSMRTS_Vector3d psmrts_vector3d_to_radians( const PSMRTS_Vector3d *v );
-extern PSMRTS_Vector3d psmrts_vector3d_to_degrees( const PSMRTS_Vector3d *v );
+/* Degree/radian conversion functions ====TESTED=========*/
+extern double psmrts_degrees_to_radians( const double d );                                // tested
+extern double psmrts_radians_to_degrees( const double d );                                // tested
+extern PSMRTS_Vector3d psmrts_vector3d_to_radians( const PSMRTS_Vector3d *v );            // tested
+extern PSMRTS_Vector3d psmrts_vector3d_to_degrees( const PSMRTS_Vector3d *v );            // tested
 
 /*============ PSMRTS Tracer functions ==================*/
-extern PSMRTS_Tracer *psmrts_create_sphere( const double radius_km,
+extern PSMRTS_Tracer *psmrts_create_sphere( const double radius_km,                       // tested
                                             const char *name );
-extern PSMRTS_Tracer *psmrts_create_spheroid( const double a_radius_km,
+extern PSMRTS_Tracer *psmrts_create_spheroid( const double a_radius_km,                   // tested
                                               const double c_radius_km,
                                               const char *name );
-extern PSMRTS_Tracer *psmrts_create_ellipsoid( const double a_radius_km,
+extern PSMRTS_Tracer *psmrts_create_ellipsoid( const double a_radius_km,                  // tested?
                                                const double b_radius_km,
                                                const double c_radius_km,
                                                const char *name );
-extern PSMRTS_Tracer *psmrts_create_ellipsoid_v( const PSMRTS_Vector3d *radii,
+extern PSMRTS_Tracer *psmrts_create_ellipsoid_v( const PSMRTS_Vector3d *radii,            // tested
                                                  const char *name );
-extern PSMRTS_Tracer *psmrts_create_bullet( const char *meshfile );
-extern PSMRTS_Tracer *psmrts_create_naifdsk( const char *meshfile );
+extern PSMRTS_Tracer *psmrts_create_bullet( const char *meshfile );                       // tested in Trace tests
+extern PSMRTS_Tracer *psmrts_create_naifdsk( const char *meshfile );                      // NOT TESTED YET
 
-extern PSMRTS_BOOL psmrts_tracer_valid( const PSMRTS_Tracer *trace );
+extern PSMRTS_BOOL psmrts_tracer_valid( const PSMRTS_Tracer *trace );                     // tested in multiple tests
 
 /*============ PSMRTS memory free functions =============*/
 extern void psmrts_free_ray( PSMRTS_RayTrace *trace );
