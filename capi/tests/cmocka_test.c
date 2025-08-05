@@ -146,6 +146,8 @@ static void test_psmrts_ray(void **state) {
     assert_double_equal(lkdr_result.x, 100.0, tolerance);
     assert_double_equal(lkdr_result.y, 20.2, tolerance);
     assert_double_equal(lkdr_result.z, 30.0, tolerance);
+
+    psmrts_free_ray( ray );
 }
 
 static void test_psmrts_raytrace(void **state) {
@@ -221,6 +223,12 @@ static void test_psmrts_raytrace(void **state) {
 
     double phase = psmrts_phase(raytrace, raytrace2);
     assert_double_equal(phase, 0.0, tolerance);
+
+    psmrts_free_tracer( ellipse );
+    psmrts_free_ray( ray );
+    psmrts_free_ray( raytrace );
+    psmrts_free_ray( ray2 );
+    psmrts_free_ray( raytrace2 );
 }
 
 // --- PSMRTS TraceArray Functions ---
@@ -265,6 +273,15 @@ static void test_psmrts_trace_array(void **state) {
     assert_double_equal(sec_obs.x, 0.0, tolerance);
     assert_double_equal(sec_obs.y, 3.0, tolerance);
     assert_double_equal(sec_obs.z, 2.0, tolerance);
+
+    psmrts_free_trace_array( t_array );
+    psmrts_free_tracer( ellipse );
+    psmrts_free_ray( ray );
+    psmrts_free_ray( raytrace1 );
+    psmrts_free_ray( ray2 );
+    psmrts_free_ray( raytrace2 );
+    psmrts_free_ray( first );
+    psmrts_free_ray( second );
 }
 
 // --- PSMRTS Photometric Trace/Array Functions ---
@@ -324,6 +341,13 @@ static void test_psmrts_photometric_trace(void **state) {
     assert_double_equal(new_obs_result.x, new_obs.x, tolerance);
     assert_double_equal(new_obs_result.y, new_obs.y, tolerance);
     assert_double_equal(new_obs_result.z, new_obs.z, tolerance);
+
+    psmrts_free_tracer( ellipse );
+    psmrts_free_ray( observer_ray );
+    psmrts_free_photometric_ray( p_ray );
+    psmrts_free_ray( obs_ray );
+    psmrts_free_ray( sun_ray );
+    psmrts_free_ray( new_obs_ray );
 }
 
 static void test_psmrts_photometric_array(void **state) {
@@ -366,6 +390,10 @@ static void test_psmrts_photometric_array(void **state) {
     assert_double_equal(target_obs.y, obs2.y, 1e-6);
     assert_double_equal(target_obs.z, obs2.z, 1e-6);
     */
+
+    psmrts_free_photometric_trace_array( p_array );
+    psmrts_free_photometric_ray( p_ray1 );
+    psmrts_free_photometric_ray( p_ray2 );
 }
 
 // --- Conversion Fuctions ---
@@ -406,6 +434,45 @@ static void test_psmrts_conversions(void **state) {
     assert_double_equal(rev_vec.z, deg_vec.z, tolerance);
 }
 
+// --- Tracer Functions --- 
+static void test_psmrts_tracers(void **state) {
+    (void)state;
+
+    PSMRTS_Tracer *sphere = psmrts_create_sphere(1.0, "sphere");
+    PSMRTS_BOOL sphere_valid = psmrts_tracer_valid( sphere );
+    assert_int_equal(sphere_valid, 1);
+
+    PSMRTS_Tracer *spheroid = psmrts_create_spheroid( 1.0, 2.0, "spheroid" );
+    PSMRTS_BOOL spheroid_valid = psmrts_tracer_valid( spheroid );
+    assert_int_equal(spheroid_valid, 1);
+
+    PSMRTS_Tracer *ellipsoid = psmrts_create_ellipsoid(1.0, 2.0, 3.0, "ellipsoid");
+    PSMRTS_BOOL ellipsoid_valid = psmrts_tracer_valid( ellipsoid );
+    assert_int_equal(ellipsoid_valid, 1);
+
+    PSMRTS_Vector3d e_vector = psmrts_vector3d(1.0, 2.0, 3.0);
+    PSMRTS_Tracer *ellipsoid_v = psmrts_create_ellipsoid_v(&e_vector, "ellipsoid_v");
+    PSMRTS_BOOL ellipsoid_v_valid = psmrts_tracer_valid( ellipsoid_v );
+    assert_int_equal(ellipsoid_v_valid, 1);
+
+    // Can we make a create path function? Struggled to get it to read based on relative pathing..
+    // /Users/kabecker/PSMRTS/GitCheckouts/Jul292025ctests/psmrts/shapes/obj/data/bennu_20facets.obj
+    PSMRTS_Tracer *bullet = psmrts_create_bullet("/Users/kabecker/PSMRTS/GitCheckouts/Jul292025ctests/psmrts/shapes/obj/data/bennu_20facets.obj");
+    PSMRTS_BOOL bullet_valid = psmrts_tracer_valid( bullet );
+    assert_int_equal(bullet_valid, 1);
+
+    PSMRTS_Tracer *naifdsk = psmrts_create_naifdsk("/Users/kabecker/PSMRTS/GitCheckouts/Jul292025ctests/psmrts/shapes/dsk/data/bennu_20facets.bds");
+    PSMRTS_BOOL dsk_valid = psmrts_tracer_valid( naifdsk );
+    assert_int_equal(dsk_valid, 1);
+
+    psmrts_free_tracer( sphere );
+    psmrts_free_tracer( spheroid );
+    psmrts_free_tracer( ellipsoid );
+    psmrts_free_tracer( ellipsoid_v );
+    psmrts_free_tracer( bullet );
+    psmrts_free_tracer( naifdsk );
+}
+
 int main(void) {
     cmocka_set_message_output(CM_OUTPUT_STDOUT);
 
@@ -423,6 +490,7 @@ int main(void) {
         cmocka_unit_test(test_psmrts_photometric_trace),
         cmocka_unit_test(test_psmrts_photometric_array),
         cmocka_unit_test(test_psmrts_conversions),
+        cmocka_unit_test(test_psmrts_tracers),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);
