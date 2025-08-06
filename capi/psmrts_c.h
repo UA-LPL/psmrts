@@ -2,11 +2,10 @@
 #ifndef psmrts_c_h
 #define psmrts_c_h
 
-#include <cassert>
-
 #ifndef __cplusplus
 # include <stddef.h> /* for size_t definition */
 #else
+#include <cassert>
 #include <cstddef>
 using std::size_t;
 #endif

@@ -35,6 +35,10 @@ release.
 ## TODO
 - See [TODO](TODO.md)
 
+## [0.2.1] 2025-08-06
+- C++ version of C API documentation and testing updated.
+- C version of C API cmocka tests and documentation added.
+
 ## [0.2.0] 2025-07-22
 - Update CHANGELOG.md, CMakeLists.txt to version [0.2.0].
 - Renamed formats directory to shapes.

@@ -457,20 +457,20 @@ static void test_psmrts_tracers(void **state) {
 
     // Can we make a create path function? Struggled to get it to read based on relative pathing..
     // /Users/kabecker/PSMRTS/GitCheckouts/Jul292025ctests/psmrts/shapes/obj/data/bennu_20facets.obj
-    PSMRTS_Tracer *bullet = psmrts_create_bullet("/Users/kabecker/PSMRTS/GitCheckouts/Jul292025ctests/psmrts/shapes/obj/data/bennu_20facets.obj");
-    PSMRTS_BOOL bullet_valid = psmrts_tracer_valid( bullet );
-    assert_int_equal(bullet_valid, 1);
+    // PSMRTS_Tracer *bullet = psmrts_create_bullet("/Users/kabecker/PSMRTS/GitCheckouts/Jul292025ctests/psmrts/shapes/obj/data/bennu_20facets.obj");
+    // PSMRTS_BOOL bullet_valid = psmrts_tracer_valid( bullet );
+    // assert_int_equal(bullet_valid, 1);
 
-    PSMRTS_Tracer *naifdsk = psmrts_create_naifdsk("/Users/kabecker/PSMRTS/GitCheckouts/Jul292025ctests/psmrts/shapes/dsk/data/bennu_20facets.bds");
-    PSMRTS_BOOL dsk_valid = psmrts_tracer_valid( naifdsk );
-    assert_int_equal(dsk_valid, 1);
+    // PSMRTS_Tracer *naifdsk = psmrts_create_naifdsk("/Users/kabecker/PSMRTS/GitCheckouts/Jul292025ctests/psmrts/shapes/dsk/data/bennu_20facets.bds");
+    // PSMRTS_BOOL dsk_valid = psmrts_tracer_valid( naifdsk );
+    // assert_int_equal(dsk_valid, 1);
 
     psmrts_free_tracer( sphere );
     psmrts_free_tracer( spheroid );
     psmrts_free_tracer( ellipsoid );
     psmrts_free_tracer( ellipsoid_v );
-    psmrts_free_tracer( bullet );
-    psmrts_free_tracer( naifdsk );
+    // psmrts_free_tracer( bullet );
+    // psmrts_free_tracer( naifdsk );
 }
 
 int main(void) {

@@ -36,8 +36,8 @@ set( PSMRTS_SHAPES_DIR    ${CMAKE_SOURCE_DIR}/shapes )
 
 set( VERSION_MAJOR 0)
 set( VERSION_MINOR 2)
-set( VERSION_PATCH 0)
-set( VERSION_DATE  "2026-07-22")
+set( VERSION_PATCH 1)
+set( VERSION_DATE  "2025-08-03")
 # set( PSMRTS_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 # Configure the project include/header files 
