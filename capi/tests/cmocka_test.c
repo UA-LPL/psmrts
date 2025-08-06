@@ -15,8 +15,8 @@ static void test_psmrts_version_info(void **state) {
     const char* version = psmrts_version();
     const char* info = psmrts_info();
 
-    assert_string_equal(version, "0.2.0");
-    assert_string_equal(info, "psmrts-0.2.0");
+    assert_string_equal(version, "0.2.1");
+    assert_string_equal(info, "psmrts-0.2.1");
 }
 
 // --- PSMRTS Vector3d Functions ---
