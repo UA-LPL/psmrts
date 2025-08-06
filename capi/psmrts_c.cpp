@@ -700,6 +700,29 @@ PSMRTS_PhotometricRayTrace *psmrts_photometric_ray_set_observation( const PSMRTS
 }
 
 /**
+ * @brief psmrts_photo_ray_trace - Runs a photometric trace on PSMRTS_PhotometricRayTrace
+ * and updates that raytrace with the results.
+ *
+ * Given PSMRTS_Tracer and PSMRTS_PhotometricRayTrace objects, the tracer is used to run a
+ * trace on the ray. The same ray is returned, containing the trace results.
+ *
+ * The input ray is required to have a valid observer and look direction. It is
+ * the responsibility of the caller to check for valid pointer return.
+ *
+ * @param photoray PSMRTS_PhotometricRayTrace object.
+ * @param tracer PSMRTS_Tracer object.
+ * @return PSMRTS_PhotometricRayTrace Same ray as input, with content updated by the trace.
+ */
+PSMRTS_PhotometricRayTrace *psmrts_photo_ray_trace( PSMRTS_PhotometricRayTrace *photoray,
+                                                    const PSMRTS_Tracer *tracer ) {
+
+    assert( photoray != nullptr && "psmrts_photo_ray_trace::PSMRTS_PhotometricRayTrace is null" );
+    tracer->process( *photoray );
+
+    return ( photoray );
+}
+
+/**
  * @brief psmrts_photometric_incidence - Returns the photometric incidence angle
  *        (in radians) between the normal at a surface point and the vector from
  *        that surface point to the Sun.
@@ -752,10 +775,10 @@ double psmrts_photometric_phase( const PSMRTS_PhotometricRayTrace *photoTrace ) 
 
 /**
  * @brief psmrts_photometric_observer_trace - Returns the photometric observer
- *        trace.
+ *        PSMRTS_RayTrace.
  *
- * Given a PSMRTS_PhotometricRayTrace object, this function returns the
- * photometric observer trace.
+ * Given a PSMRTS_PhotometricRayTrace, this function returns the contained
+ * PSMRTS_RayTrace observer trace.
  *
  * @param photoTrace Pointer to PSMRTS_PhotometricRayTrace object.
  * @return PSMRTS_RayTrace const pointer to PSMRTS_RayTrace observer trace.
