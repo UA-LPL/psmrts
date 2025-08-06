@@ -175,10 +175,6 @@ static void test_psmrts_raytrace(void **state) {
     assert_double_equal(raypt.z, -2.091710456612, tolerance);
 
     PSMRTS_Vector3d normal = psmrts_ray_normal(raytrace);
-    /** 
-    printf("normal.x: %.12f, y: %.12f, z: %.12f\n", normal.x, normal.y, normal.z);
-    fflush(stdout);
-    */
     assert_double_equal(normal.x, 0.0, tolerance);
     assert_double_equal(normal.y, -0.418342091322, tolerance);
     assert_double_equal(normal.z, 0.908289543388, tolerance);
@@ -187,10 +183,6 @@ static void test_psmrts_raytrace(void **state) {
     assert_double_equal(intercept, 1.0, tolerance);
 
     double slant = psmrts_ray_intercept_slant_distance(raytrace);
-    /*
-    printf("slant: %.12f\n", slant);
-    fflush(stdout);
-    */
     assert_double_equal(slant, 2.133134487010, tolerance);
 
     // Second Ray Trace
@@ -208,8 +200,6 @@ static void test_psmrts_raytrace(void **state) {
     PSMRTS_Vector3d v1 = psmrts_vector3d(1.0, 0.0, 0.0);
     PSMRTS_Vector3d v2 = psmrts_vector3d(1.0, 1.0, 0.0); 
     double sep_angle = psmrts_separation_angle_radians(&v1, &v2);
-    //printf("sep_angle: %.12f\n", sep_angle);
-    //fflush(stdout);
     assert_double_equal(sep_angle, 0.785398163397, tolerance);
 
     PSMRTS_BOOL near = psmrts_isNear(raytrace, raytrace2, 5.0);
@@ -224,11 +214,13 @@ static void test_psmrts_raytrace(void **state) {
     double phase = psmrts_phase(raytrace, raytrace2);
     assert_double_equal(phase, 0.0, tolerance);
 
+    /*
     psmrts_free_tracer( ellipse );
     psmrts_free_ray( ray );
     psmrts_free_ray( raytrace );
     psmrts_free_ray( ray2 );
     psmrts_free_ray( raytrace2 );
+    */
 }
 
 // --- PSMRTS TraceArray Functions ---
@@ -274,12 +266,14 @@ static void test_psmrts_trace_array(void **state) {
     assert_double_equal(sec_obs.y, 3.0, tolerance);
     assert_double_equal(sec_obs.z, 2.0, tolerance);
 
+    /** 
     psmrts_free_trace_array( t_array );
     psmrts_free_tracer( ellipse );
     psmrts_free_ray( ray );
     psmrts_free_ray( raytrace1 );
     psmrts_free_ray( ray2 );
     psmrts_free_ray( raytrace2 );
+    */
 }
 
 // --- PSMRTS Photometric Trace/Array Functions ---
@@ -293,7 +287,17 @@ static void test_psmrts_photometric_trace(void **state) {
     obs = psmrts_lonlatrad_to_xyz_d(&obs);
     obs = psmrts_scale(&obs, 10.0);
 
-    PSMRTS_Vector3d lkdr = psmrts_negate(&obs);
+    PSMRTS_Vector3d surf = psmrts_vector3d(45.0, 50.0, 1.0);
+    surf = psmrts_lonlatrad_to_xyz_d(&surf);
+    surf = psmrts_scale(&surf, 1.5);
+    PSMRTS_Vector3d surf_neg = psmrts_negate(&surf);
+
+    PSMRTS_RayTrace *surf_ray = psmrts_create_ray(&surf, &surf_neg);
+    PSMRTS_Vector3d surf_xyz = psmrts_ray_xyz(surf_ray);
+    double x = surf_xyz.x - obs.x;
+    double y = surf_xyz.y - obs.y;
+    double z = surf_xyz.z - obs.z;
+    PSMRTS_Vector3d lkdr = psmrts_vector3d(x, y, z);
 
     PSMRTS_RayTrace *observer_ray = psmrts_ray_trace_v(&obs, &lkdr, ellipse);
     PSMRTS_BOOL obs_hit = psmrts_ray_has_hit(observer_ray);
@@ -305,16 +309,19 @@ static void test_psmrts_photometric_trace(void **state) {
 
     PSMRTS_PhotometricRayTrace *p_ray = psmrts_create_photometric_ray(&obs, &lkdr, &sun_pos);
 
-    /** Need photometric specific ray trace to test further
+    PSMRTS_PhotometricRayTrace *p_trace = psmrts_photo_ray_trace(p_ray, ellipse);
+
     double incidence = psmrts_photometric_incidence(p_ray);
-    assert_double_equal(incidence, 0.0, 1e-6);
+    incidence = psmrts_radians_to_degrees(incidence);
+    assert_double_equal(incidence, 33.054445480456, 1e-6);
 
     double emission = psmrts_photometric_emission(p_ray);
+    emission = psmrts_radians_to_degrees(emission);
     assert_double_equal(emission, 0.0, 1e-6);
 
     double phase = psmrts_photometric_phase(p_ray);
-    assert_double_equal(phase, 0.0, 1e-6);
-    */
+    phase = psmrts_radians_to_degrees(phase);
+    assert_double_equal(phase, 33.054445480456, 1e-6);
 
     const PSMRTS_RayTrace *obs_ray = psmrts_photometric_observer_trace(p_ray);
     PSMRTS_Vector3d obs_result = psmrts_ray_observer(obs_ray);
@@ -322,13 +329,11 @@ static void test_psmrts_photometric_trace(void **state) {
     assert_double_equal(obs_result.y, obs.y, tolerance);
     assert_double_equal(obs_result.z, obs.z, tolerance);
 
-    // For this, would the sun be the observer? How can we retrieve the
-    // sunpos from this structure..?
-    const PSMRTS_RayTrace *sun_ray = psmrts_photometric_sun_trace(p_ray);
-    //PSMRTS_Vector3d sun_result = psmrts_ray_observer(obs_ray);
-    //assert_double_equal(sun_result.x, sun_pos.x, 1e-6);
-    //assert_double_equal(sun_result.y, sun_pos.y, 1e-6);
-    //assert_double_equal(sun_result.z, sun_pos.z, 1e-6);
+    const PSMRTS_RayTrace *sun_ray = psmrts_photometric_sun_trace(p_trace);
+    PSMRTS_Vector3d sun_result = psmrts_ray_observer(sun_ray);
+    assert_double_equal(sun_result.x, sun_pos.x, 1e-6);
+    assert_double_equal(sun_result.y, sun_pos.y, 1e-6);
+    assert_double_equal(sun_result.z, sun_pos.z, 1e-6);
 
     PSMRTS_Vector3d new_obs = psmrts_vector3d(2.0, 4.0, 6.0);
     PSMRTS_Vector3d new_lkdr = psmrts_negate(&new_obs);
@@ -377,7 +382,7 @@ static void test_psmrts_photometric_array(void **state) {
     assert_int_equal(size, 2);
 
     // Photometric Trace Array
-    /** 
+    /** how can I best access this data?
     const PSMRTS_PhotometricRayTrace *target = psmrts_photometric_trace_array_get_trace(p_array, 1);
     const PSMRTS_RayTrace *target_ray = psmrts_photometric_observer_trace(target);
     PSMRTS_Vector3d target_obs = psmrts_ray_observer(target_ray);
