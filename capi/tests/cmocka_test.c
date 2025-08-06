@@ -280,8 +280,6 @@ static void test_psmrts_trace_array(void **state) {
     psmrts_free_ray( raytrace1 );
     psmrts_free_ray( ray2 );
     psmrts_free_ray( raytrace2 );
-    psmrts_free_ray( first );
-    psmrts_free_ray( second );
 }
 
 // --- PSMRTS Photometric Trace/Array Functions ---
@@ -345,9 +343,6 @@ static void test_psmrts_photometric_trace(void **state) {
     psmrts_free_tracer( ellipse );
     psmrts_free_ray( observer_ray );
     psmrts_free_photometric_ray( p_ray );
-    psmrts_free_ray( obs_ray );
-    psmrts_free_ray( sun_ray );
-    psmrts_free_ray( new_obs_ray );
 }
 
 static void test_psmrts_photometric_array(void **state) {
