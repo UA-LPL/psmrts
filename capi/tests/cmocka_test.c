@@ -153,13 +153,13 @@ static void test_psmrts_ray(void **state) {
 static void test_psmrts_raytrace(void **state) {
     (void)state;
     const char *name = "test";
-    PSMRTS_Tracer *ellipse = psmrts_create_sphere(1.0, name);
+    PSMRTS_Tracer *sphere = psmrts_create_sphere(1.0, name);
 
     PSMRTS_Vector3d obs = psmrts_vector3d(0.0, 0.0, 3.0);
     PSMRTS_Vector3d lkdr = psmrts_vector3d(0.0, -0.2, -1.0);
     PSMRTS_RayTrace *ray = psmrts_create_ray(&obs, &lkdr);
 
-    PSMRTS_RayTrace *raytrace = psmrts_ray_trace(ray, ellipse);
+    PSMRTS_RayTrace *raytrace = psmrts_ray_trace(ray, sphere);
 
     PSMRTS_BOOL hashit = psmrts_ray_has_hit(raytrace);
     assert_int_equal(hashit, 1);
@@ -190,7 +190,7 @@ static void test_psmrts_raytrace(void **state) {
     PSMRTS_Vector3d lkdr2 = psmrts_vector3d(-0.2, -2.0, -2.0);
     PSMRTS_RayTrace *ray2 = psmrts_create_ray(&obs, &lkdr);
 
-    PSMRTS_RayTrace *raytrace2 = psmrts_ray_trace(ray2, ellipse);
+    PSMRTS_RayTrace *raytrace2 = psmrts_ray_trace(ray2, sphere);
     PSMRTS_BOOL hashit2 = psmrts_ray_has_hit(raytrace2);
     assert_int_equal(hashit2, 1); 
 
@@ -266,13 +266,13 @@ static void test_psmrts_trace_array(void **state) {
     assert_double_equal(sec_obs.y, 3.0, tolerance);
     assert_double_equal(sec_obs.z, 2.0, tolerance);
 
-    /** 
-    psmrts_free_trace_array( t_array );
-    psmrts_free_tracer( ellipse );
-    psmrts_free_ray( ray );
-    psmrts_free_ray( raytrace1 );
-    psmrts_free_ray( ray2 );
+    /*
     psmrts_free_ray( raytrace2 );
+    psmrts_free_ray( ray2 );
+    psmrts_free_ray( raytrace1 );
+    psmrts_free_ray( ray );
+    psmrts_free_tracer( ellipse );
+    psmrts_free_trace_array( t_array);
     */
 }
 
@@ -292,7 +292,7 @@ static void test_psmrts_photometric_trace(void **state) {
     surf = psmrts_scale(&surf, 1.5);
     PSMRTS_Vector3d surf_neg = psmrts_negate(&surf);
 
-    PSMRTS_RayTrace *surf_ray = psmrts_create_ray(&surf, &surf_neg);
+    PSMRTS_RayTrace *surf_ray = psmrts_ray_trace_v(&surf, &surf_neg, ellipse);
     PSMRTS_Vector3d surf_xyz = psmrts_ray_xyz(surf_ray);
     double x = surf_xyz.x - obs.x;
     double y = surf_xyz.y - obs.y;
@@ -313,15 +313,15 @@ static void test_psmrts_photometric_trace(void **state) {
 
     double incidence = psmrts_photometric_incidence(p_ray);
     incidence = psmrts_radians_to_degrees(incidence);
-    assert_double_equal(incidence, 33.054445480456, 1e-6);
+    assert_double_equal(incidence, 36.64334758469323816, 1e-6);
 
     double emission = psmrts_photometric_emission(p_ray);
     emission = psmrts_radians_to_degrees(emission);
-    assert_double_equal(emission, 0.0, 1e-6);
+    assert_double_equal(emission, 5.55459887153097576, 1e-6);
 
     double phase = psmrts_photometric_phase(p_ray);
     phase = psmrts_radians_to_degrees(phase);
-    assert_double_equal(phase, 33.054445480456, 1e-6);
+    assert_double_equal(phase, 32.73787834081892356, 1e-6);
 
     const PSMRTS_RayTrace *obs_ray = psmrts_photometric_observer_trace(p_ray);
     PSMRTS_Vector3d obs_result = psmrts_ray_observer(obs_ray);
@@ -457,6 +457,7 @@ static void test_psmrts_tracers(void **state) {
 
     // Can we make a create path function? Struggled to get it to read based on relative pathing..
     // /Users/kabecker/PSMRTS/GitCheckouts/Jul292025ctests/psmrts/shapes/obj/data/bennu_20facets.obj
+    /* 
     PSMRTS_Tracer *bullet = psmrts_create_bullet("/Users/kabecker/PSMRTS/GitCheckouts/Jul292025ctests/psmrts/shapes/obj/data/bennu_20facets.obj");
     PSMRTS_BOOL bullet_valid = psmrts_tracer_valid( bullet );
     assert_int_equal(bullet_valid, 1);
@@ -464,13 +465,13 @@ static void test_psmrts_tracers(void **state) {
     PSMRTS_Tracer *naifdsk = psmrts_create_naifdsk("/Users/kabecker/PSMRTS/GitCheckouts/Jul292025ctests/psmrts/shapes/dsk/data/bennu_20facets.bds");
     PSMRTS_BOOL dsk_valid = psmrts_tracer_valid( naifdsk );
     assert_int_equal(dsk_valid, 1);
-
+    */
     psmrts_free_tracer( sphere );
     psmrts_free_tracer( spheroid );
     psmrts_free_tracer( ellipsoid );
     psmrts_free_tracer( ellipsoid_v );
-    psmrts_free_tracer( bullet );
-    psmrts_free_tracer( naifdsk );
+    //psmrts_free_tracer( bullet );
+    //psmrts_free_tracer( naifdsk );
 }
 
 int main(void) {
