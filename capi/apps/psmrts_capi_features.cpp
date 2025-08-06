@@ -58,16 +58,17 @@ int main( int argc, char *argv[] ) {
   // create ray traces and add to ray trace array
   printf( "\n***creating ray traces and adding to ray trace array\n" );
 
-  PSMRTS_Vector3d observer1;
-  observer1.longitude = psmrts_degrees_to_radians( 45.0 );
-  observer1.latitude  = psmrts_degrees_to_radians( 45.0 );
-  observer1.radius    = 3000.0;  // Maxiumum radius of input shape from API
+  PSMRTS_Vector3d observer1 = psmrts_vector3d( 45.0, 45.0, 3000.0 );
 
   printf( "\n  observer1 lon (d), lat (d), radius (km): %lf, %lf, %lf\n",
-         45.0, 45.0, observer1.radius );
+          observer1.longitude, observer1.latitude, observer1.radius );
 
-  // convert observer from lon, lat, radius to xyz
+  // convert observer1 from lon, lat, radius to xyz
   observer1 = psmrts_lonlatrad_to_xyz_d( &observer1 );
+  printf( "                   x (km), y (km), z (km): %lf, %lf, %lf\n",
+          observer1.x, observer1.y, observer1.z );
+
+  // look direction vector for observer1 is the negative of observer1
   PSMRTS_Vector3d lookdir1 = psmrts_negate( &observer1 );
 
   // create ray trace 'ray1' from observer and look direction vector
@@ -76,11 +77,15 @@ int main( int argc, char *argv[] ) {
 
   PSMRTS_Vector3d observer2 = psmrts_vector3d( 46.0, 46.0, 3000.0 );
 
-  printf( " observer2 lon (d), lat (d), radius (km): %lf, %lf, %lf\n",
-          46.0, 46.0, observer2.radius );
+  printf( "\n  observer2 lon (d), lat (d), radius (km): %lf, %lf, %lf\n",
+          observer2.longitude, observer2.latitude, observer2.radius );
 
   // convert observer2 from lon, lat, radius to xyz
   observer2 = psmrts_lonlatrad_to_xyz_d( &observer2 );
+  printf( "                   x (km), y (km), z (km): %lf, %lf, %lf\n",
+         observer2.x, observer2.y, observer2.z );
+
+  // look direction vector for observer2 is the negative of observer2
   PSMRTS_Vector3d lookdir2  = psmrts_negate( &observer2 );
 
   // create ray trace 'ray2' from observer and look direction vector
@@ -132,7 +137,7 @@ int main( int argc, char *argv[] ) {
     sunray = psmrts_ray_trace( psmrts_create_ray( &sunpos, &sundir ), bulletTracer );
     if ( psmrts_ray_has_hit( sunray ) ) {
       printf( "\n***sunray has a hit!\n" );
-      emission  = psmrts_emission( r );
+      emission  = psmrts_emission( sunray );
       incidence = psmrts_incidence( r, sunray );
       phase     = psmrts_phase( r, sunray );
       double ed = psmrts_radians_to_degrees(emission);
