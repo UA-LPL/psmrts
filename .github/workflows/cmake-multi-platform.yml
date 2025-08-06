@@ -103,7 +103,7 @@ jobs:
       if: runner.os != 'Windows'
       run: |
         cd build
-        ctest
+        ctest --output-on-failure
 
     - name: Run Tests (Windows)
       if: runner.os == 'Windows'
@@ -111,7 +111,7 @@ jobs:
         Set-Location -Path ".\build"
         MSBuild psmrts.sln /p:Configuration=Release
         Get-Command ctest
-        ctest
+        ctest -C Release
 
     - name: Basic Coverage
       if: runner.os == 'Linux'
