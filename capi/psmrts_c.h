@@ -2,6 +2,7 @@
 #ifndef psmrts_c_h
 #define psmrts_c_h
 
+#include <cassert>
 
 #ifndef __cplusplus
 # include <stddef.h> /* for size_t definition */
@@ -197,8 +198,8 @@ extern PSMRTS_Tracer *psmrts_create_ellipsoid( const double a_radius_km,
                                                const char *name );
 extern PSMRTS_Tracer *psmrts_create_ellipsoid_v( const PSMRTS_Vector3d *radii,
                                                  const char *name );
-extern PSMRTS_Tracer *psmrts_create_bullet( const char *meshfile );
-extern PSMRTS_Tracer *psmrts_create_naifdsk( const char *meshfile ); // to be tested
+extern PSMRTS_Tracer *psmrts_create_bullet( const char *objfile );
+extern PSMRTS_Tracer *psmrts_create_naifdsk( const char *dskfile ); // to be tested
 
 extern PSMRTS_BOOL psmrts_tracer_valid( const PSMRTS_Tracer *trace );
 

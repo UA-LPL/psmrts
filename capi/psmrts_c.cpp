@@ -1069,8 +1069,8 @@ PSMRTS_Tracer *psmrts_create_ellipsoid_v( const PSMRTS_Vector3d *radii,
  * @param meshfile const char*, mesh filename.
  * @return Pointer to the resulting PSMRTS_Tracer object.
  */
-PSMRTS_Tracer *psmrts_create_bullet( const char *meshfile ) {
-  return ( new PSMRTS_Tracer( psmrts::PsmrtsTracer::bullet( meshfile ) ) );
+PSMRTS_Tracer *psmrts_create_bullet( const char *objfile ) {
+  return ( new PSMRTS_Tracer( psmrts::PsmrtsTracer::bullet( objfile ) ) );
 }
 
 /**
@@ -1084,9 +1084,9 @@ PSMRTS_Tracer *psmrts_create_bullet( const char *meshfile ) {
  * @param meshfile const char*, mesh filename.
  * @return Pointer to the resulting PSMRTS_Tracer object.
  */
-PSMRTS_Tracer *psmrts_create_naifdsk( const char *meshfile ) {
+PSMRTS_Tracer *psmrts_create_naifdsk( const char *dskfile ) {
 
-  return ( new PSMRTS_Tracer( psmrts::PsmrtsTracer::naifdsk( meshfile ) ) );
+  return ( new PSMRTS_Tracer( psmrts::PsmrtsTracer::naifdsk( dskfile ) ) );
 }
 
 /**
