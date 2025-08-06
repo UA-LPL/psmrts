@@ -139,7 +139,7 @@ cd psmrts
 .\make_psmrts.ps1 -t
 cd build
 MSBuild psmrts.sln /p:Configuration=Release
-ctest
+ctest -C Release
 ```
 
 Note that code coverage is not included in Windows support at this time. For any errors or complications of above, please reach out to the development team.
