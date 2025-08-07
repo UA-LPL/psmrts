@@ -393,6 +393,11 @@ class PRQRayTraceArray : public PsmrtsRequest {
         return ( m_traces.size() - 1 ); // returns index of added trace
       }
 
+      inline void clear() {
+        m_traces.clear();    // calls std::deque::clear()
+        reset();             // this resets tracker/timer
+      }
+
       inline const PRQRayTraceList &traces() const {
         return ( m_traces );
       }
@@ -541,6 +546,11 @@ class PRQPhotometricTraceArray : public PsmrtsRequest {
       inline size_t add_trace( const PRQPhotometricTrace &trace ) {
         m_traces.push_back( trace );
         return ( m_traces.size() - 1 ); // returns index of added trace
+      }
+
+      inline void clear() {
+        m_traces.clear();    // calls std::deque::clear()
+        reset();             // this resets tracker/timer
       }
 
       inline const PRQPhotometricTraceList &traces() const {

@@ -35,8 +35,8 @@ namespace psmrts {
 
       inline static PsmrtsTracer spheroid( const double a_km, const double c_km, 
                                                 const std::string &name="spheroid" ) {
-        Eigen::Vector3d radii( { a_km, c_km, c_km} );
-        return ( PsmrtsTracer( EllipsoidTracer( radii, name ) ) ); 
+        Eigen::Vector3d radii( { a_km, a_km, c_km} ); // testing
+        return ( PsmrtsTracer( EllipsoidTracer( radii, name ) ) );
       }
 
       inline static PsmrtsTracer ellipsoid( const double a_km,  const double b_km, const double c_km, 

@@ -36,8 +36,8 @@ set( PSMRTS_SHAPES_DIR    ${CMAKE_SOURCE_DIR}/shapes )
 
 set( VERSION_MAJOR 0)
 set( VERSION_MINOR 2)
-set( VERSION_PATCH 0)
-set( VERSION_DATE  "2026-07-22")
+set( VERSION_PATCH 1)
+set( VERSION_DATE  "2025-08-03")
 # set( PSMRTS_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 # Configure the project include/header files 
@@ -97,6 +97,8 @@ if( BUILD_TESTING )
                    dsk_test_suite
                    obj_test_suite
                    ply_test_suite
+                   capi_test_suite
+                   capi_cmocka_test_suite 
       BASE_DIRECTORY "${PSMRTS_PROJECT_DIR}"
       EXCLUDE "psmrts/tests/*"
               "shapes/dsk/tests/*"
@@ -105,6 +107,7 @@ if( BUILD_TESTING )
               "tracers/bullet/tests/*"
               "tracers/ellipsoid/tests/*"
               "tracers/naifdsk/tests/*"
+              "capi/tests/*"
               "build/vcpkg_installed/*"
     )
   endif(BUILD_COVERAGE)
@@ -116,6 +119,7 @@ if( BUILD_TESTING )
   add_subdirectory( tracers/naifdsk/tests )
   add_subdirectory( tracers/ellipsoid/tests )
   add_subdirectory( tracers/bullet/tests )
+  add_subdirectory( capi/tests )
 
   enable_testing()
 endif( BUILD_TESTING )
