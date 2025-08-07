@@ -55,6 +55,9 @@ int main( int argc, char *argv[] ) {
   double slant_d, raypt_d, radius_pt;
   double emission, incidence, phase;
 
+  // create ray trace vector
+  PSMRTS_TraceArray *tracearray = psmrts_create_trace_array();
+
   // create ray traces and add to ray trace array
   printf( "\n***creating ray traces and adding to ray trace array\n" );
 
@@ -71,9 +74,8 @@ int main( int argc, char *argv[] ) {
   // look direction vector for observer1 is the negative of observer1
   PSMRTS_Vector3d lookdir1 = psmrts_negate( &observer1 );
 
-  // create ray trace 'ray1' from observer and look direction vector
-  PSMRTS_RayTrace *ray1 = psmrts_create_ray( &observer1, &lookdir1 );
-  ray1 = psmrts_ray_trace( ray1, bulletTracer );
+  // create ray trace from observer and look direction vector and add to array
+  psmrts_trace_array_add_trace( tracearray, psmrts_create_ray( &observer1, &lookdir1 ) );
 
   PSMRTS_Vector3d observer2 = psmrts_vector3d( 46.0, 46.0, 3000.0 );
 
@@ -88,15 +90,11 @@ int main( int argc, char *argv[] ) {
   // look direction vector for observer2 is the negative of observer2
   PSMRTS_Vector3d lookdir2  = psmrts_negate( &observer2 );
 
-  // create ray trace 'ray2' from observer and look direction vector
-  PSMRTS_RayTrace *ray2 = psmrts_create_ray( &observer2, &lookdir2 );
-  ray2 = psmrts_ray_trace( ray2, bulletTracer );
+  // create ray trace from observer and look direction vector and add to array
+  psmrts_trace_array_add_trace( tracearray, psmrts_create_ray( &observer2, &lookdir2 ) );
 
-  // create ray trace vector and add traces
-  PSMRTS_TraceArray *tracearray = psmrts_create_trace_array();
-
-  psmrts_trace_array_add_trace( tracearray, ray1 );
-  psmrts_trace_array_add_trace( tracearray, ray2 );
+  // process all traces in array
+  psmrts_trace_array_trace( tracearray, bulletTracer );
 
   // loop over trace array and output ray content if trace has a hit
   printf("\nLooping over traces in trace array...\n");
@@ -246,8 +244,8 @@ int main( int argc, char *argv[] ) {
   }
 */
   // free objects
-  psmrts_free_ray( ray1 );
-  psmrts_free_ray( ray2 );
+//  psmrts_free_ray( ray1 );
+//  psmrts_free_ray( ray2 );
   psmrts_free_ray( sunray );
   psmrts_free_tracer( bulletTracer );
 

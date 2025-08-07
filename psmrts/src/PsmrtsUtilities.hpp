@@ -204,6 +204,10 @@ namespace psmrts {
    * Input angular coordinates are assumed to be in degrees. Longitude is
    * converted to the 360 longitude domain if necessary.
    *
+   * WARNING: Latitude is assumed to lie within -90 to +90 degree range. If
+   *          latitude falls outside of that range, it is clamped to
+   *          identically -90 or +90 degrees.
+   *
    * @param Eigen::Vector3d containing longitude, latitude, radius coordinates.
    * @pre latitude must lie within -90 to +90 range.
    * @return Eigen::Vector3d Vector converted to xyz coordinates.

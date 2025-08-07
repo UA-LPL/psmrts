@@ -146,6 +146,8 @@ extern PSMRTS_TraceArray *psmrts_create_trace_array();
 extern size_t psmrts_trace_array_size( const PSMRTS_TraceArray *tracearray );
 extern size_t psmrts_trace_array_add_trace( PSMRTS_TraceArray *tracearray,
                                             const PSMRTS_RayTrace *trace );
+extern PSMRTS_BOOL psmrts_trace_array_trace( PSMRTS_TraceArray *tracearray,
+                                             const PSMRTS_Tracer *tracer);
 //extern void psmrts_trace_array_clear(PSMRTS_TraceArray *tracearray);
 extern const PSMRTS_RayTrace *psmrts_trace_array_get_trace( const PSMRTS_TraceArray *tracearray,
                                                             size_t index );
@@ -171,6 +173,8 @@ extern PSMRTS_PhotometricTraceArray *psmrts_create_photometric_trace_array();
 extern size_t psmrts_photometric_trace_array_size( const PSMRTS_PhotometricTraceArray *tracearray );
 extern size_t psmrts_photometric_trace_array_add_trace( PSMRTS_PhotometricTraceArray *tracearray,
                                                         const PSMRTS_PhotometricRayTrace *trace );
+extern PSMRTS_BOOL psmrts_photometric_trace_array_trace( PSMRTS_PhotometricTraceArray *tracearray,
+                                                         const PSMRTS_Tracer *tracer);
 //extern void psmrts_photometric_trace_array_clear(PSMRTS_PhotometricTraceArray *tracearray);
 extern const PSMRTS_PhotometricRayTrace *psmrts_photometric_trace_array_get_trace( const PSMRTS_PhotometricTraceArray *tracearray,
                                                                                    size_t index );

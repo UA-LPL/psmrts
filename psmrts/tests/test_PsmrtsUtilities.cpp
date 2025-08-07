@@ -140,6 +140,17 @@ TEST_CASE( "PSMRTS Longitude Domain Test - 180 to 360", "[utilities][longitude][
  
 }
 
+/**
+ * @brief Tests PSMRTS functionality for the conversion from latitudinal to rectangular
+ *        coordinates.
+ *
+ * This test exercises the PSMRTS function lonlatrad_to_xyz_d.
+ *
+ * NOTE: Latitude is assumed to lie within -90 to +90 degree range. If latitude falls
+ *       outside of that range, it is clamped to identically -90 or +90 degrees. We
+ *       test those conditions below.
+ *
+ */
 TEST_CASE( "PSMRTS Latitudinal to Rectangular Coordinate Conversion Test", "[utilities][lat2rect][conversion]") {
     const double tolerance = 1.0e-6;
 
@@ -257,7 +268,14 @@ TEST_CASE( "PSMRTS Latitudinal to Rectangular Coordinate Conversion Test", "[uti
     CHECK_THAT( xyz[2], Catch::Matchers::WithinAbs( -0.707106, tolerance ));
  }
 
-TEST_CASE( "PSMRTS Rectangular to Latitudinal Coordinate Conversion Test", "[utilities][rect2lat][conversion]") {
+/**
+ * @brief Tests PSMRTS functionality for the conversion from rectangular to
+ *        latitudinal coordinates.
+ *
+ * This test exercises the PSMRTS function xyz_to_lonlatrad_d.
+ *
+ */
+ TEST_CASE( "PSMRTS Rectangular to Latitudinal Coordinate Conversion Test", "[utilities][rect2lat][conversion]") {
     const double tolerance = 1.0e-6;
     Eigen::Vector3d xyz;
     Eigen::Vector3d llr_d;

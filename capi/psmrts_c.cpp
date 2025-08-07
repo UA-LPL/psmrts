@@ -594,9 +594,25 @@ size_t psmrts_trace_array_add_trace( PSMRTS_TraceArray *tracearray,
 }
 
 /**
+ * @brief psmrts_trace_array_trace - Processes all traces in a trace array.
+ *
+ * This function processes all traces in a trace array.
+ *
+ * @param tracearray Pointer to PSMRTS_TraceArray.
+ * @param tracer Pointer to PSMRTS_Tracer.
+ * @return PSMRTS_BOOL Success or failure of process.
+ */
+extern PSMRTS_BOOL psmrts_trace_array_trace( PSMRTS_TraceArray *tracearray,
+                                             const PSMRTS_Tracer *tracer) {
+  return ( tracer->process( *tracearray ) );
+}
+
+/**
  * @brief psmrts_trace_array_clear - Clears trace array.
  *
  * This function removes all traces from the given PSMRTS_TraceArray.
+ *
+ * WARNING: References to rays in the trace array are invalidated after this call!
  *
  * @param tracearray Pointer to PSMRTS_TraceArray.
  * @return void
@@ -642,9 +658,10 @@ const PSMRTS_RayTrace *psmrts_trace_array_get_trace( const PSMRTS_TraceArray *tr
  * creates a PSMRTS photometric ray trace object that can be used to trace on a
  * shape.
  *
- * Observer position is a vector from the shape origin to its body-fixed position relative to the target body origin.
+ * Observer position is a vector from the shape origin to its body-fixed position
+ * relative to the target body origin.
  *
- * the lookdir is converted to a unit vector and originates from the observer
+ * The lookdir is converted to a unit vector and originates from the observer
  * location toward the target body.
  *
  * It is the responsibility of the caller to check for valid pointer return.
@@ -841,9 +858,26 @@ size_t psmrts_photometric_trace_array_add_trace( PSMRTS_PhotometricTraceArray *t
 }
 
 /**
+ * @brief psmrts_photometric_trace_array_trace - Processes all traces in a photometric trace
+ *                                               array.
+ *
+ * This function processes all traces in a photometric trace array.
+ *
+ * @param tracearray Pointer to PSMRTS_PhotometricTraceArray.
+ * @param tracer Pointer to PSMRTS_Tracer.
+ * @return PSMRTS_BOOL Success or failure of process.
+ */
+extern PSMRTS_BOOL psmrts_photometric_trace_array_trace( PSMRTS_PhotometricTraceArray *tracearray,
+                                                         const PSMRTS_Tracer *tracer) {
+    return ( tracer->process( *tracearray ) );
+}
+
+/**
  * @brief psmrts_photometric_trace_array_clear - Clears photometric trace array.
  *
  * This function removes all traces from the given PSMRTS_PhotometricTraceArray.
+ *
+ * WARNING: References to rays in the trace array are invalidated after this call!
  *
  * @param tracearray Pointer to PSMRTS_PhotometricTraceArray.
  * @return void
@@ -881,6 +915,10 @@ const PSMRTS_PhotometricRayTrace *psmrts_photometric_trace_array_get_trace( cons
  * Given an PSMRTS_Vector3d in longitude, latitude, radius coordinates, this
  * function converts it to xyz coordinates. Input angular coordinates are
  * assumed to be in degrees.
+ *
+ * WARNING: Latitude is assumed to lie within -90 to +90 degree range. If
+ *          latitude falls outside of that range, it is clamped to
+ *          identically -90 or +90 degrees.
  *
  * @param v Pointer to PSMRTS_Vector3d in lon, lat, radius coordinates.
  * @return PSMRTS_Vector3d Vector converted to xyz coordinates.
@@ -957,7 +995,7 @@ PSMRTS_Vector3d psmrts_vector3d_to_radians( const PSMRTS_Vector3d *v ) {
  * Given a PSMRTS_Vector3d with longitude/latitude in radians, this function
  * converts them to degrees.
  *
- * @param v PSMRTS_Vector3d
+ * @param v PSMRTS_Vector3d Input vector with longitude/latitude in radians.
  * @return PSMRTS_Vector3d Vector with longitude/latitude converted to degrees.
  */
 PSMRTS_Vector3d psmrts_vector3d_to_degrees( const PSMRTS_Vector3d *v ) {    

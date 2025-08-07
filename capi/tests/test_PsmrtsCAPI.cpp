@@ -62,7 +62,7 @@ class bulletTraceFixture {
       CHECK( psmrts_ray_has_hit( ray ) == PSMRTS_TRUE );
     }
 
-    ~bulletTraceFixture() { // tear down code
+    virtual ~bulletTraceFixture() { // tear down code
       psmrts_free_ray( ray );
       psmrts_free_tracer( bulletTracer );
     }
@@ -283,7 +283,6 @@ TEST_CASE_METHOD ( bulletTraceFixture,  "PSMRTS C API - Two Traces", "[capi][c++
   PSMRTS_Vector3d lookdir2 = psmrts_negate( &observer2 );
 
   // create PSMRTS_RayTrace with observer2, lookdir2 vectors and tracer and run trace
-  // TBD: WOULD THIS METHOD BE BETTER CALLED "psmrts_run_ray_trace_v"? And why v?
   PSMRTS_RayTrace *ray2 =
       psmrts_ray_trace_v( &observer2, &lookdir2, bulletTracer );
 
@@ -352,9 +351,7 @@ TEST_CASE ( "PSMRTS C API - Bullet Trace Array", "[capi][c++][BulletTraceArray]"
   CHECK_THAT( observer1.z, Catch::Matchers::WithinAbs( 2121.320344, tolerance ) );
 
   PSMRTS_Vector3d lookdir1 = psmrts_negate( &observer1 );
-  PSMRTS_RayTrace *ray1 = psmrts_create_ray( &observer1, &lookdir1 );
-  ray1 = psmrts_ray_trace( ray1, bulletTracer );
-  psmrts_trace_array_add_trace( tracearray, ray1 );
+  psmrts_trace_array_add_trace( tracearray, psmrts_create_ray( &observer1, &lookdir1 ) );
 
   PSMRTS_Vector3d observer2 = psmrts_vector3d( 45.0, 50.0, 5000.0 );
   observer2 = psmrts_lonlatrad_to_xyz_d( &observer2 );
@@ -363,9 +360,7 @@ TEST_CASE ( "PSMRTS C API - Bullet Trace Array", "[capi][c++][BulletTraceArray]"
   CHECK_THAT( observer2.z, Catch::Matchers::WithinAbs( 3830.222216, tolerance ) );
 
   PSMRTS_Vector3d lookdir2 = psmrts_negate( &observer1 );
-  PSMRTS_RayTrace *ray2 = psmrts_create_ray( &observer2, &lookdir2 );
-  ray2 = psmrts_ray_trace( ray2, bulletTracer );
-  psmrts_trace_array_add_trace( tracearray, ray2 );
+  psmrts_trace_array_add_trace( tracearray, psmrts_create_ray( &observer2, &lookdir2 ) );
 
   PSMRTS_Vector3d observer3 = psmrts_vector3d( 45.0, 55.0, 5000.0 );
   observer3 = psmrts_lonlatrad_to_xyz_d( &observer3 );
@@ -374,9 +369,10 @@ TEST_CASE ( "PSMRTS C API - Bullet Trace Array", "[capi][c++][BulletTraceArray]"
   CHECK_THAT( observer3.z, Catch::Matchers::WithinAbs( 4095.760221, tolerance ) );
 
   PSMRTS_Vector3d lookdir3 = psmrts_negate( &observer3 );
-  PSMRTS_RayTrace *ray3 = psmrts_create_ray( &observer3, &lookdir3 );
-  ray3 = psmrts_ray_trace( ray3, bulletTracer );
-  psmrts_trace_array_add_trace( tracearray, ray3 );
+  psmrts_trace_array_add_trace( tracearray, psmrts_create_ray( &observer3, &lookdir3 ) );
+
+  // process all traces in trace array
+  CHECK( psmrts_trace_array_trace( tracearray, bulletTracer ) == PSMRTS_TRUE );
 
   // verify array size is three
   CHECK( psmrts_trace_array_size(tracearray ) == 3 );
@@ -391,9 +387,6 @@ TEST_CASE ( "PSMRTS C API - Bullet Trace Array", "[capi][c++][BulletTraceArray]"
   CHECK_THAT( ray2observer.z, Catch::Matchers::WithinAbs( observer2.z, tolerance ) );
 
   // free memory
-  psmrts_free_ray( ray1 );
-  psmrts_free_ray( ray2 );
-  psmrts_free_ray( ray3 );
   psmrts_free_trace_array( tracearray );
 }
 
@@ -402,6 +395,10 @@ TEST_CASE ( "PSMRTS C API - Bullet Trace Array", "[capi][c++][BulletTraceArray]"
  *        rectangular coordinates.
  *
  * This test exercises the PSMRTS C API function psmrts_lonlatrad_to_xyz_d.
+ *
+ * NOTE: Latitude is assumed to lie within -90 to +90 degree range. If latitude falls
+ *       outside of that range, it is clamped to identically -90 or +90 degrees. We
+ *       test those conditions below.
  *
  */
 TEST_CASE( "PSMRTS C API - Latitudinal to Rectangular Coordinate Conversion", "[capi][c++][utilities][lat2rect][conversion]" ) {
@@ -422,7 +419,7 @@ TEST_CASE( "PSMRTS C API - Latitudinal to Rectangular Coordinate Conversion", "[
   CHECK_THAT( xyz.y, Catch::Matchers::WithinAbs( 0.0, tolerance ));
   CHECK_THAT( xyz.z, Catch::Matchers::WithinAbs( 1.0, tolerance ));
 
-  // test at with latitude < 90.0 (should clamp to -90.0)
+  // test with latitude < -90.0 (should clamp to -90.0)
   llr_d.longitude =  0.0;
   llr_d.latitude  = -100.0;
   llr_d.radius    =  1.0;
@@ -597,8 +594,8 @@ TEST_CASE( "PSMRTS C API - Rectangular to Latitudinal Coordinate Conversion", "[
 }
 
 /**
- * @brief Tests PSMRTS C API degree2radian and radian2degree conversions for
- *        individual numbers and for PSMRTS_Vector3d.
+ * @brief Tests PSMRTS C API psmrts_degrees_to_radians and psmrts_radians_to_degrees
+ *        functionality for individual numbers and for PSMRTS_Vector3d.
  *
  * This test exercises degree to radian (and vice versa) conversion in the
  * PSMRTS C API...
