@@ -305,15 +305,15 @@ static void test_psmrts_photometric_trace(void **state) {
 
     double incidence = psmrts_photometric_incidence(p_ray);
     incidence = psmrts_radians_to_degrees(incidence);
-    assert_double_equal(incidence, 36.64334758469323816, 1e-6);
+    assert_double_equal(incidence, 36.64334758469323816, tolerance);
 
     double emission = psmrts_photometric_emission(p_ray);
     emission = psmrts_radians_to_degrees(emission);
-    assert_double_equal(emission, 5.55459887153097576, 1e-6);
+    assert_double_equal(emission, 5.55459887153097576, tolerance);
 
     double phase = psmrts_photometric_phase(p_ray);
     phase = psmrts_radians_to_degrees(phase);
-    assert_double_equal(phase, 32.73787834081892356, 1e-6);
+    assert_double_equal(phase, 32.73787834081892356, tolerance);
 
     const PSMRTS_RayTrace *obs_ray = psmrts_photometric_observer_trace(p_ray);
     PSMRTS_Vector3d obs_result = psmrts_ray_observer(obs_ray);
