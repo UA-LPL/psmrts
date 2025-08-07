@@ -111,7 +111,7 @@ jobs:
         Set-Location -Path ".\build"
         MSBuild psmrts.sln /p:Configuration=Release
         Get-Command ctest
-        ctest -C Release
+        ctest -C Release --output-on-failure
 
     - name: Basic Coverage
       if: runner.os == 'Linux'

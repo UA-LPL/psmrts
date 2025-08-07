@@ -159,30 +159,30 @@ static void test_psmrts_raytrace(void **state) {
     PSMRTS_Vector3d lkdr = psmrts_vector3d(0.0, -0.2, -1.0);
     PSMRTS_RayTrace *ray = psmrts_create_ray(&obs, &lkdr);
 
-    PSMRTS_RayTrace *raytrace = psmrts_ray_trace(ray, sphere);
+    ray = psmrts_ray_trace(ray, sphere);
 
-    PSMRTS_BOOL hashit = psmrts_ray_has_hit(raytrace);
+    PSMRTS_BOOL hashit = psmrts_ray_has_hit(ray);
     assert_int_equal(hashit, 1);
 
-    PSMRTS_Vector3d xyz = psmrts_ray_xyz(raytrace);
+    PSMRTS_Vector3d xyz = psmrts_ray_xyz(ray);
     assert_double_equal(xyz.x, 0.0, tolerance);
     assert_double_equal(xyz.y, -0.418342091322, tolerance);
     assert_double_equal(xyz.z, 0.908289543388, tolerance);
 
-    PSMRTS_Vector3d raypt = psmrts_ray_raypt(raytrace);
+    PSMRTS_Vector3d raypt = psmrts_ray_raypt(ray);
     assert_double_equal(raypt.x, 0.0, tolerance);
     assert_double_equal(raypt.y, -0.418342091322, tolerance);
     assert_double_equal(raypt.z, -2.091710456612, tolerance);
 
-    PSMRTS_Vector3d normal = psmrts_ray_normal(raytrace);
+    PSMRTS_Vector3d normal = psmrts_ray_normal(ray);
     assert_double_equal(normal.x, 0.0, tolerance);
     assert_double_equal(normal.y, -0.418342091322, tolerance);
     assert_double_equal(normal.z, 0.908289543388, tolerance);
 
-    double intercept = psmrts_ray_intercept_radius(raytrace);
+    double intercept = psmrts_ray_intercept_radius(ray);
     assert_double_equal(intercept, 1.0, tolerance);
 
-    double slant = psmrts_ray_intercept_slant_distance(raytrace);
+    double slant = psmrts_ray_intercept_slant_distance(ray);
     assert_double_equal(slant, 2.133134487010, tolerance);
 
     // Second Ray Trace
@@ -190,11 +190,11 @@ static void test_psmrts_raytrace(void **state) {
     PSMRTS_Vector3d lkdr2 = psmrts_vector3d(-0.2, -2.0, -2.0);
     PSMRTS_RayTrace *ray2 = psmrts_create_ray(&obs, &lkdr);
 
-    PSMRTS_RayTrace *raytrace2 = psmrts_ray_trace(ray2, sphere);
-    PSMRTS_BOOL hashit2 = psmrts_ray_has_hit(raytrace2);
+    ray2 = psmrts_ray_trace(ray2, sphere);
+    PSMRTS_BOOL hashit2 = psmrts_ray_has_hit(ray2);
     assert_int_equal(hashit2, 1); 
 
-    double dist = psmrts_ray2ray_distance(raytrace, raytrace2);
+    double dist = psmrts_ray2ray_distance(ray, ray2);
     assert_double_equal(dist, 0.0, tolerance); // Should this be 0?
 
     PSMRTS_Vector3d v1 = psmrts_vector3d(1.0, 0.0, 0.0);
@@ -202,25 +202,21 @@ static void test_psmrts_raytrace(void **state) {
     double sep_angle = psmrts_separation_angle_radians(&v1, &v2);
     assert_double_equal(sep_angle, 0.785398163397, tolerance);
 
-    PSMRTS_BOOL near = psmrts_isNear(raytrace, raytrace2, 5.0);
+    PSMRTS_BOOL near = psmrts_isNear(ray, ray2, 5.0);
     assert_int_equal(near, 1);
 
-    double incidence = psmrts_incidence(raytrace, raytrace2);
+    double incidence = psmrts_incidence(ray, ray2);
     assert_double_equal(incidence, 0.629014802427, tolerance);
 
-    double emission = psmrts_emission(raytrace);
+    double emission = psmrts_emission(ray);
     assert_double_equal(emission, 0.629014802427, tolerance);
 
-    double phase = psmrts_phase(raytrace, raytrace2);
+    double phase = psmrts_phase(ray, ray2);
     assert_double_equal(phase, 0.0, tolerance);
 
-    /*
-    psmrts_free_tracer( ellipse );
+    psmrts_free_tracer( sphere );
     psmrts_free_ray( ray );
-    psmrts_free_ray( raytrace );
     psmrts_free_ray( ray2 );
-    psmrts_free_ray( raytrace2 );
-    */
 }
 
 // --- PSMRTS TraceArray Functions ---
@@ -238,9 +234,9 @@ static void test_psmrts_trace_array(void **state) {
     PSMRTS_Vector3d lkdr = psmrts_vector3d(0.0, 0.0, -1.0);
     PSMRTS_RayTrace *ray = psmrts_create_ray(&obs, &lkdr);
 
-    PSMRTS_RayTrace *raytrace1 = psmrts_ray_trace(ray, ellipse);
+    ray = psmrts_ray_trace(ray, ellipse);
 
-    psmrts_trace_array_add_trace(t_array, raytrace1);
+    psmrts_trace_array_add_trace(t_array, ray);
     size = psmrts_trace_array_size(t_array);
     assert_int_equal(size, 1);
 
@@ -248,9 +244,9 @@ static void test_psmrts_trace_array(void **state) {
     PSMRTS_Vector3d lkdr2 = psmrts_vector3d(0.0, -2.0, -1.0);
     PSMRTS_RayTrace *ray2 = psmrts_create_ray(&obs2, &lkdr2);
 
-    PSMRTS_RayTrace *raytrace2 = psmrts_ray_trace(ray2, ellipse);
+    ray2 = psmrts_ray_trace(ray2, ellipse);
 
-    psmrts_trace_array_add_trace(t_array, raytrace2);
+    psmrts_trace_array_add_trace(t_array, ray2);
     size = psmrts_trace_array_size(t_array);
     assert_int_equal(size, 2);
 
@@ -266,14 +262,10 @@ static void test_psmrts_trace_array(void **state) {
     assert_double_equal(sec_obs.y, 3.0, tolerance);
     assert_double_equal(sec_obs.z, 2.0, tolerance);
 
-    /*
-    psmrts_free_ray( raytrace2 );
     psmrts_free_ray( ray2 );
-    psmrts_free_ray( raytrace1 );
     psmrts_free_ray( ray );
     psmrts_free_tracer( ellipse );
     psmrts_free_trace_array( t_array);
-    */
 }
 
 // --- PSMRTS Photometric Trace/Array Functions ---
@@ -381,15 +373,12 @@ static void test_psmrts_photometric_array(void **state) {
     size = psmrts_photometric_trace_array_size(p_array);
     assert_int_equal(size, 2);
 
-    // Photometric Trace Array
-    /** how can I best access this data?
     const PSMRTS_PhotometricRayTrace *target = psmrts_photometric_trace_array_get_trace(p_array, 1);
     const PSMRTS_RayTrace *target_ray = psmrts_photometric_observer_trace(target);
     PSMRTS_Vector3d target_obs = psmrts_ray_observer(target_ray);
-    assert_double_equal(target_obs.x, obs2.x, 1e-6);
-    assert_double_equal(target_obs.y, obs2.y, 1e-6);
-    assert_double_equal(target_obs.z, obs2.z, 1e-6);
-    */
+    assert_double_equal(target_obs.x, obs2.x, tolerance);
+    assert_double_equal(target_obs.y, obs2.y, tolerance);
+    assert_double_equal(target_obs.z, obs2.z, tolerance);
 
     psmrts_free_photometric_trace_array( p_array );
     psmrts_free_photometric_ray( p_ray1 );
@@ -454,24 +443,21 @@ static void test_psmrts_tracers(void **state) {
     PSMRTS_Tracer *ellipsoid_v = psmrts_create_ellipsoid_v(&e_vector, "ellipsoid_v");
     PSMRTS_BOOL ellipsoid_v_valid = psmrts_tracer_valid( ellipsoid_v );
     assert_int_equal(ellipsoid_v_valid, 1);
-
-    // Can we make a create path function? Struggled to get it to read based on relative pathing..
-    // /Users/kabecker/PSMRTS/GitCheckouts/Jul292025ctests/psmrts/shapes/obj/data/bennu_20facets.obj
-    /* 
-    PSMRTS_Tracer *bullet = psmrts_create_bullet("/Users/kabecker/PSMRTS/GitCheckouts/Jul292025ctests/psmrts/shapes/obj/data/bennu_20facets.obj");
+    
+    PSMRTS_Tracer *bullet = psmrts_create_bullet("../../../shapes/obj/data/bennu_20facets.obj");
     PSMRTS_BOOL bullet_valid = psmrts_tracer_valid( bullet );
     assert_int_equal(bullet_valid, 1);
 
-    PSMRTS_Tracer *naifdsk = psmrts_create_naifdsk("/Users/kabecker/PSMRTS/GitCheckouts/Jul292025ctests/psmrts/shapes/dsk/data/bennu_20facets.bds");
+    PSMRTS_Tracer *naifdsk = psmrts_create_naifdsk("../../../shapes/dsk/data/bennu_20facets.bds");
     PSMRTS_BOOL dsk_valid = psmrts_tracer_valid( naifdsk );
     assert_int_equal(dsk_valid, 1);
-    */
+    
     psmrts_free_tracer( sphere );
     psmrts_free_tracer( spheroid );
     psmrts_free_tracer( ellipsoid );
     psmrts_free_tracer( ellipsoid_v );
-    //psmrts_free_tracer( bullet );
-    //psmrts_free_tracer( naifdsk );
+    psmrts_free_tracer( bullet );
+    psmrts_free_tracer( naifdsk );
 }
 
 int main(void) {

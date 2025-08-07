@@ -163,8 +163,8 @@ extern PSMRTS_PhotometricRayTrace *psmrts_photo_ray_trace( PSMRTS_PhotometricRay
 extern double psmrts_photometric_incidence( const PSMRTS_PhotometricRayTrace *photoTrace );
 extern double psmrts_photometric_emission( const PSMRTS_PhotometricRayTrace *photoTrace );
 extern double psmrts_photometric_phase( const PSMRTS_PhotometricRayTrace *photoTrace );
-extern const PSMRTS_RayTrace *psmrts_photometric_observer_trace( PSMRTS_PhotometricRayTrace *photoTrace );
-extern const PSMRTS_RayTrace *psmrts_photometric_sun_trace( PSMRTS_PhotometricRayTrace *photoTrace);
+extern const PSMRTS_RayTrace *psmrts_photometric_observer_trace( const PSMRTS_PhotometricRayTrace *photoTrace );
+extern const PSMRTS_RayTrace *psmrts_photometric_sun_trace( const PSMRTS_PhotometricRayTrace *photoTrace);
 
 /*====== PSMRTS Photometric TraceArray functions ========*/ // to be tested
 extern PSMRTS_PhotometricTraceArray *psmrts_create_photometric_trace_array();

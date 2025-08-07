@@ -783,7 +783,7 @@ double psmrts_photometric_phase( const PSMRTS_PhotometricRayTrace *photoTrace ) 
  * @param photoTrace Pointer to PSMRTS_PhotometricRayTrace object.
  * @return PSMRTS_RayTrace const pointer to PSMRTS_RayTrace observer trace.
  */
-const PSMRTS_RayTrace *psmrts_photometric_observer_trace( PSMRTS_PhotometricRayTrace *photoTrace ) {
+const PSMRTS_RayTrace *psmrts_photometric_observer_trace( const PSMRTS_PhotometricRayTrace *photoTrace ) {
   return ( &photoTrace->observer() );
 }
 
@@ -796,7 +796,7 @@ const PSMRTS_RayTrace *psmrts_photometric_observer_trace( PSMRTS_PhotometricRayT
  * @param photoTrace Pointer to PSMRTS_PhotometricRayTrace object.
  * @return PSMRTS_RayTrace const pointer to PSMRTS_RayTrace sun trace.
  */
-const PSMRTS_RayTrace *psmrts_photometric_sun_trace( PSMRTS_PhotometricRayTrace *photoTrace ) {
+const PSMRTS_RayTrace *psmrts_photometric_sun_trace( const PSMRTS_PhotometricRayTrace *photoTrace ) {
   return ( &photoTrace->sunpos() );
 }
 
