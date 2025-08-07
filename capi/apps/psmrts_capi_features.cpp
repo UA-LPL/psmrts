@@ -74,8 +74,11 @@ int main( int argc, char *argv[] ) {
   // look direction vector for observer1 is the negative of observer1
   PSMRTS_Vector3d lookdir1 = psmrts_negate( &observer1 );
 
-  // create ray trace from observer and look direction vector and add to array
-  psmrts_trace_array_add_trace( tracearray, psmrts_create_ray( &observer1, &lookdir1 ) );
+  // create ray trace from observer1 and lookdir 1
+  PSMRTS_RayTrace *ray1 = psmrts_create_ray( &observer1, &lookdir1 );
+
+  // add ray trace to array
+  psmrts_trace_array_add_trace( tracearray, ray1 );
 
   PSMRTS_Vector3d observer2 = psmrts_vector3d( 46.0, 46.0, 3000.0 );
 
@@ -90,8 +93,11 @@ int main( int argc, char *argv[] ) {
   // look direction vector for observer2 is the negative of observer2
   PSMRTS_Vector3d lookdir2  = psmrts_negate( &observer2 );
 
-  // create ray trace from observer and look direction vector and add to array
-  psmrts_trace_array_add_trace( tracearray, psmrts_create_ray( &observer2, &lookdir2 ) );
+  // create ray trace from observer2 and lookdir 2
+  PSMRTS_RayTrace *ray2 = psmrts_create_ray( &observer2, &lookdir2 );
+
+  // add ray trace to array
+  psmrts_trace_array_add_trace( tracearray, ray2 );
 
   // process all traces in array
   psmrts_trace_array_trace( tracearray, bulletTracer );
@@ -244,8 +250,8 @@ int main( int argc, char *argv[] ) {
   }
 */
   // free objects
-//  psmrts_free_ray( ray1 );
-//  psmrts_free_ray( ray2 );
+  psmrts_free_ray( ray1 );
+  psmrts_free_ray( ray2 );
   psmrts_free_ray( sunray );
   psmrts_free_tracer( bulletTracer );
 
