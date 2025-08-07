@@ -77,8 +77,9 @@ int main( int argc, char *argv[] ) {
   // create ray trace from observer1 and lookdir 1
   PSMRTS_RayTrace *ray1 = psmrts_create_ray( &observer1, &lookdir1 );
 
-  // add ray trace to array
-  psmrts_trace_array_add_trace( tracearray, ray1 );
+  // add ray trace to array and validate array index
+  size_t index = psmrts_trace_array_add_trace( tracearray, ray1 );
+  printf( "\n  ray 1 added to array at index %zu\n", index);
 
   PSMRTS_Vector3d observer2 = psmrts_vector3d( 46.0, 46.0, 3000.0 );
 
@@ -96,8 +97,9 @@ int main( int argc, char *argv[] ) {
   // create ray trace from observer2 and lookdir 2
   PSMRTS_RayTrace *ray2 = psmrts_create_ray( &observer2, &lookdir2 );
 
-  // add ray trace to array
-  psmrts_trace_array_add_trace( tracearray, ray2 );
+  // add ray trace to array and validate array index
+  index = psmrts_trace_array_add_trace( tracearray, ray2 );
+  printf( "\n  ray 2 added to array at index %zu\n", index);
 
   // process all traces in array
   psmrts_trace_array_trace( tracearray, bulletTracer );

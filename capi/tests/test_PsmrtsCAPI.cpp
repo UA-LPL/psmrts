@@ -355,8 +355,8 @@ TEST_CASE ( "PSMRTS C API - Bullet Trace Array", "[capi][c++][BulletTraceArray]"
   // create ray trace from observer1 and lookdir1 vectors
   PSMRTS_RayTrace *ray1 = psmrts_create_ray( &observer1, &lookdir1 );
 
-  // add ray1 to trace array
-  psmrts_trace_array_add_trace( tracearray, ray1 );
+  // add ray1 to trace array and validate returned array index
+  CHECK( psmrts_trace_array_add_trace( tracearray, ray1 ) == 0 );
 
   PSMRTS_Vector3d observer2 = psmrts_vector3d( 45.0, 50.0, 5000.0 );
   observer2 = psmrts_lonlatrad_to_xyz_d( &observer2 );
@@ -369,8 +369,8 @@ TEST_CASE ( "PSMRTS C API - Bullet Trace Array", "[capi][c++][BulletTraceArray]"
   // create ray trace from observer2 and lookdir2 vectors
   PSMRTS_RayTrace *ray2 = psmrts_create_ray( &observer2, &lookdir2 );
 
-  // add ray2 to trace array
-  psmrts_trace_array_add_trace( tracearray, ray2 );
+  // add ray2 to trace array and validate returned array index
+  CHECK( psmrts_trace_array_add_trace( tracearray, ray2 ) == 1 );
 
   PSMRTS_Vector3d observer3 = psmrts_vector3d( 45.0, 55.0, 5000.0 );
   observer3 = psmrts_lonlatrad_to_xyz_d( &observer3 );
@@ -383,8 +383,8 @@ TEST_CASE ( "PSMRTS C API - Bullet Trace Array", "[capi][c++][BulletTraceArray]"
   // create ray trace from observer3 and lookdir3 vectors
   PSMRTS_RayTrace *ray3 = psmrts_create_ray( &observer3, &lookdir3 );
 
-  // add ray3 to trace array
-  psmrts_trace_array_add_trace( tracearray, ray3 );
+  // add ray3 to trace array and validate returned array index
+  CHECK( psmrts_trace_array_add_trace( tracearray, ray3 ) == 2 );
 
   // process all traces in trace array
   CHECK( psmrts_trace_array_trace( tracearray, bulletTracer ) == PSMRTS_TRUE );
