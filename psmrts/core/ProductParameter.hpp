@@ -8,8 +8,8 @@
 #include <vector>
 #include <exception>
 
-#include <PsmrtsUtilities.hpp>
-#include <PsmrtsParameters.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsParameters.hpp>
 
 namespace psmrts { 
 

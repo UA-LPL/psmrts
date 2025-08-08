@@ -1,8 +1,8 @@
-#include <psmrts_catch2_environment.hpp>
+#include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
-#include <PlyShape.hpp>
+#include <psmrts/shapes/ply/PlyShape.hpp>
 #include <PsmrtsPLYFormat.hpp>
-#include <ProductSpecification.hpp>
+#include <psmrts/core/ProductSpecification.hpp>
 
 TEST_CASE( "PLY SHAPE - Default Test", "[ply][shape][specification]") {
     psmrts::ProductSpecification spec = psmrts::PlyShape::product_specifications();

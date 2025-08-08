@@ -1,7 +1,7 @@
 #include <psmrts_catch2_environment.hpp>
 
-#include <PsmrtsUtilities.hpp>
-#include <PsmrtsBuffer.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsBuffer.hpp>
 
 
 TEST_CASE( "PsmrtsBuffer Default Test", "[databuffer][default]") {

@@ -6,9 +6,9 @@
 #include <memory>
 #include <exception>
 
-#include <PsmrtsUtilities.hpp>
-#include <PsmrtsParameters.hpp>
-#include <PsmrtsRayTrace.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsParameters.hpp>
+#include <psmrts/core/PsmrtsRayTrace.hpp>
 
 namespace psmrts { 
 

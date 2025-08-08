@@ -1,8 +1,8 @@
 #include <psmrts_catch2_environment.hpp>
 
-#include <ObjShape.hpp>
+#include <psmrts/shapes/obj/ObjShape.hpp>
 #include <PsmrtsOBJFormat.hpp>
-#include <ProductSpecification.hpp>
+#include <psmrts/core/ProductSpecification.hpp>
 
 
 TEST_CASE( "OBJ SHAPE - Default Test", "[obj][shape][specification]") {

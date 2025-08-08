@@ -1,8 +1,8 @@
-#include <psmrts_catch2_environment.hpp>
+#include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
-#include <DskShape.hpp>
+#include <psmrts/shapes/dsk/DskShape.hpp>
 #include <PsmrtsDSKFormat.hpp>
-#include <ProductSpecification.hpp>
+#include <psmrts/core/ProductSpecification.hpp>
 
 TEST_CASE( "DSK SHAPE - Default Test", "[dsk][shape][specification]") {
     psmrts::ProductSpecification spec = psmrts::DskShape::product_specifications();

@@ -1,7 +1,7 @@
 #include <psmrts_catch2_environment.hpp>
 
-#include <PsmrtsStridingBuffer.hpp>
-#include <PsmrtsBufferData.hpp>
+#include <psmrts/core/PsmrtsStridingBuffer.hpp>
+#include <psmrts/core/PsmrtsBufferData.hpp>
 
 /*
 StridingBuffer allocates and assigns data as bytes, rather than hard data.

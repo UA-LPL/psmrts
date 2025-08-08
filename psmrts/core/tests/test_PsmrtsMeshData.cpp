@@ -1,6 +1,6 @@
-#include <psmrts_catch2_environment.hpp>
+#include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
-#include <PsmrtsMeshData.hpp>
+#include <psmrts/core/PsmrtsMeshData.hpp>
 #include <Eigen/Geometry>
 #include <typeinfo>
 

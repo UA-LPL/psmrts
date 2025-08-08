@@ -1,8 +1,8 @@
-#include <psmrts_catch2_environment.hpp>
+#include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
 #include <BulletTracerModel.hpp>
 #include <PsmrtsOBJFormat.hpp>
-#include <PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
 
 
 TEST_CASE( "Bullet Tracer Model - Default Constructor", "[default][bullet][tracer][model]") {

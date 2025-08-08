@@ -1,7 +1,7 @@
 
-#include <psmrts_catch2_environment.hpp>
+#include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
-#include <PsmrtsBufferData.hpp>
+#include <psmrts/core/PsmrtsBufferData.hpp>
 #include <thread>
 #include <chrono>
 

@@ -1,8 +1,8 @@
-#include <psmrts_catch2_environment.hpp>
+#include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
 #include <BulletSystemModel.hpp>
-#include <PsmrtsVector3.hpp>
-#include <PsmrtsMeshData.hpp>
+#include <psmrts/core/PsmrtsVector3.hpp>
+#include <psmrts/core/PsmrtsMeshData.hpp>
 #include <PsmrtsOBJFormat.hpp>
 #include <PsmrtsBulletMeshMap.hpp>
 #include <PsmrtsBulletWorldModel.hpp>

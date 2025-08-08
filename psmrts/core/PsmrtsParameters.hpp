@@ -8,7 +8,7 @@
 #include <fstream>
 #include <memory>
 
-#include <PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
 
 
 /// This section adds a JSON translation for Eigen::Quaterniond. In order

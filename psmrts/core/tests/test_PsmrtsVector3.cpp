@@ -1,9 +1,9 @@
-#include <psmrts_catch2_environment.hpp>
+#include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
-#include <PsmrtsUtilities.hpp>
-#include <PsmrtsBufferData.hpp>
-#include <PsmrtsBuffer.hpp>
-#include <PsmrtsVector3.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsBufferData.hpp>
+#include <psmrts/core/PsmrtsBuffer.hpp>
+#include <psmrts/core/PsmrtsVector3.hpp>
 
 
 TEST_CASE( "PsmrtsVector3 Default Test", "[vector3][buffer][default]") {

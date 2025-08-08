@@ -1,6 +1,6 @@
-#include <psmrts_catch2_environment.hpp>
+#include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
-#include <PsmrtsRayTrace.hpp>
+#include <psmrts/core/PsmrtsRayTrace.hpp>
 #include <Eigen/Geometry>
 #include <cspice/SpiceUsr.h>
 #include <EllipsoidTracerModel.hpp>

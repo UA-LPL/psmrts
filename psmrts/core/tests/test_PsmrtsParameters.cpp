@@ -1,12 +1,12 @@
-#include <psmrts_catch2_environment.hpp>
+#include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
 #include <string>
 #include <memory>
 #include <exception>
 #include <iostream>
 
-#include <PsmrtsParameters.hpp>
-#include <PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsParameters.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
 
 // using namespace psmrts::json_utils;
 

@@ -7,7 +7,7 @@
 #include <deque>
 #include <exception>
 
-#include <ProductParameter.hpp>
+#include <psmrts/core/ProductParameter.hpp>
 
 namespace psmrts { 
 

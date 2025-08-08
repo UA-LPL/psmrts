@@ -1,7 +1,7 @@
-#include <psmrts_catch2_environment.hpp>
+#include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
 #include <PsmrtsOBJFormat.hpp>
-#include <ProductSpecification.hpp>
+#include <psmrts/core/ProductSpecification.hpp>
 
 #include <DskKernelModel.hpp>
 

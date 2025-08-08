@@ -1,9 +1,9 @@
-#include <psmrts_catch2_environment.hpp>
+#include <psmrts/core/testspsmrts_catch2_environment.hpp>
 
 #include <NaifUtilities.hpp>
-#include <PsmrtsRayTrace.hpp>
-#include <PsmrtsTracerModel.hpp>
-#include <PsmrtsShapeTracerAdapter.hpp>
+#include <psmrts/core/PsmrtsRayTrace.hpp>
+#include <psmrts/core/PsmrtsTracerModel.hpp>
+#include <psmrts/core/PsmrtsShapeTracerAdapter.hpp>
 #include <NaifEllipsoidShape.hpp>
 
 typedef psmrts::PsmrtsShapeTracerAdapter<naif::NaifEllipsoidShape> PsmrtsAdaptedEllipsoidShape;

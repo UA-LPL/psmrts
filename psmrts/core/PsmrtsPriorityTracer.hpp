@@ -8,9 +8,9 @@
 #include <mutex>
 
 #include <Eigen/Geometry>
-#include <PsmrtsUtilities.hpp>
-#include <PsmrtsRayTrace.hpp>
-#include <PsmrtsTracerModel.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsRayTrace.hpp>
+#include <psmrts/core/PsmrtsTracerModel.hpp>
 
 namespace psmrts {
 

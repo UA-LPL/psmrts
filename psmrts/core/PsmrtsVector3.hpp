@@ -5,8 +5,8 @@
 #include <string>
 #include <exception>
 
-#include <PsmrtsUtilities.hpp>
-#include <PsmrtsBuffer.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsBuffer.hpp>
 
 namespace psmrts {
 /**

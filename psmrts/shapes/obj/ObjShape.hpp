@@ -3,8 +3,8 @@
 
 #include <string>
 
-#include <PsmrtsOBJFormat.hpp>
-#include <PsmrtsRequest.hpp>
+#include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
+#include <psmrts/core/PsmrtsRequest.hpp>
 
 namespace psmrts  {
   /**

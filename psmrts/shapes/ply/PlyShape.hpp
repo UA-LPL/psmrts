@@ -4,7 +4,7 @@
 #include <string>
 
 #include <PsmrtsPLYFormat.hpp>
-#include <PsmrtsRequest.hpp>
+#include <psmrts/core/PsmrtsRequest.hpp>
 
 namespace psmrts {
     /**

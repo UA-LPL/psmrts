@@ -8,10 +8,10 @@
 
 #include <Eigen/Geometry>
 
-#include <PsmrtsUtilities.hpp>
-#include <PsmrtsStridingBuffer.hpp>
-#include <PsmrtsVector3.hpp>
-#include <PsmrtsRayTrace.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsStridingBuffer.hpp>
+#include <psmrts/core/PsmrtsVector3.hpp>
+#include <psmrts/core/PsmrtsRayTrace.hpp>
 
 namespace psmrts {
 

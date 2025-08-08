@@ -1,8 +1,8 @@
 
-#include <psmrts_catch2_environment.hpp>
+#include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 #include <NaifEllipsoidShape.hpp>
 #include <DskKernelModel.hpp>
-#include <PsmrtsRayTrace.hpp>
+#include <psmrts/core/PsmrtsRayTrace.hpp>
 
 TEST_CASE( "Ray Trace Default Test - Basic Spheroid Ellipse", "[ray][trace][ellipsoid]") {
     const double tolerance = 1.0e-10;

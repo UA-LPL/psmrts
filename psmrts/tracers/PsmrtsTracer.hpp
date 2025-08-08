@@ -7,16 +7,16 @@
 
 #include <Eigen/Geometry>
 
-#include <PsmrtsUtilities.hpp>
-#include <PsmrtsRayTrace.hpp>
-#include <PsmrtsRequest.hpp>
-#include <ProductProcessDispatch.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsRayTrace.hpp>
+#include <psmrts/core/PsmrtsRequest.hpp>
+#include <psmrts/core/ProductProcessDispatch.hpp>
 
-#include <PsmrtsPLYFormat.hpp>
+#include <psmrts/shapes/ply/private/PsmrtsPLYFormat.hpp>
 
-#include <BulletTracer.hpp>
-#include <EllipsoidTracer.hpp>
-#include <NaifDskTracer.hpp>
+#include <psmrts/tracers/bullet/BulletTracer.hpp>
+#include <psmrts/tracers/ellipsoid/EllipsoidTracer.hpp>
+#include <psmrts/tracers/naifdsk/NaifDskTracer.hpp>
 
 namespace psmrts {
 

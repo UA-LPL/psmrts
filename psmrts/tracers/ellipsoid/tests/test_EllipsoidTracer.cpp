@@ -1,8 +1,8 @@
 #include <psmrts_catch2_environment.hpp>
 
-#include <EllipsoidTracer.hpp>
-#include <EllipsoidTracerModel.hpp>
-#include <PsmrtsUtilities.hpp>
+#include <psmrts/tracers/ellipsoid/EllipsoidTracer.hpp>
+#include <psmrts/tracers/ellipsoid/private/EllipsoidTracerModel.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
 
 TEST_CASE( "Ellipsoid Shape Tracer - Request Default Constructor", "[default][ellipsoid][shapetracer]") {
     psmrts::EllipsoidTracer e_tracer;

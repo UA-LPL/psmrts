@@ -3,9 +3,9 @@
 
 #include <string>
 
-#include <NaifDskTracerModel.hpp>
-#include <PsmrtsRequest.hpp>
-#include <ProductSpecification.hpp>
+#include <psmrts/tracers/naifdsk/private/NaifDskTracerModel.hpp>
+#include <psmrts/core/PsmrtsRequest.hpp>
+#include <psmrts/core/ProductSpecification.hpp>
 
 namespace psmrts  {
   /**

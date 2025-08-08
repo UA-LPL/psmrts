@@ -9,11 +9,11 @@
 #include <Eigen/Geometry>
 #include <nlohmann/json.hpp>
 
-#include <PsmrtsUtilities.hpp>
-#include <PsmrtsBufferData.hpp>
-#include <PsmrtsVector3.hpp>
-#include <PsmrtsMeshData.hpp>
-#include <DskKernelModel.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsBufferData.hpp>
+#include <psmrts/core/PsmrtsVector3.hpp>
+#include <psmrts/core/PsmrtsMeshData.hpp>
+#include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
 
 
 namespace psmrts {

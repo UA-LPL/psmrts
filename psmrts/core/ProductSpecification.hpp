@@ -9,10 +9,10 @@
 #include <variant>
 #include <exception>
 
-#include <PsmrtsParameters.hpp>
-#include <ProductParameter.hpp>
-#include <ProductRequest.hpp>
-#include <PsmrtsRequest.hpp>
+#include <psmrts/core/PsmrtsParameters.hpp>
+#include <psmrts/core/ProductParameter.hpp>
+#include <psmrts/core/ProductRequest.hpp>
+#include <psmrts/core/PsmrtsRequest.hpp>
 
 
 namespace psmrts { 

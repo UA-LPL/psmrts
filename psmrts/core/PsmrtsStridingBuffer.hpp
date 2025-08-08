@@ -7,8 +7,8 @@
 #include <exception>
 #include <Eigen/Geometry>
 
-#include <PsmrtsUtilities.hpp>
-#include <PsmrtsBufferData.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsBufferData.hpp>
 
 namespace psmrts {
 

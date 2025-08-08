@@ -5,9 +5,9 @@
 #include <string>
 #include <exception>
 
-#include <PsmrtsUtilities.hpp>
-#include <PsmrtsBufferData.hpp>
-#include <PsmrtsStridingBuffer.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsBufferData.hpp>
+#include <psmrts/core/PsmrtsStridingBuffer.hpp>
 
 namespace psmrts {
 /**

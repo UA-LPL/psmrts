@@ -1,10 +1,10 @@
 #include <psmrts_catch2_environment.hpp>
 
-#include <PsmrtsUtilities.hpp>
-#include <PsmrtsRequest.hpp>
-#include <PsmrtsTracer.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsRequest.hpp>
+#include <psmrts/core/PsmrtsTracer.hpp>
 
-#include <DskKernelModel.hpp>
+#include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
 
 
 TEST_CASE("PsmrtsTracer Default Test", "[tracer][default]") {

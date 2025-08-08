@@ -1,4 +1,4 @@
-#include <psmrts_catch2_environment.hpp>
+#include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
 #include <PsmrtsPLYFormat.hpp>
 #include <PsmrtsOBJFormat.hpp>

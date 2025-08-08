@@ -1,7 +1,7 @@
-#include <psmrts_catch2_environment.hpp>
+#include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
-#include <PsmrtsUtilities.hpp>
-#include <PsmrtsProduct.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsProduct.hpp>
 #include <PsmrtsDSKFormat.hpp>
 #include <PsmrtsOBJFormat.hpp>
 #include <PsmrtsPLYFormat.hpp>

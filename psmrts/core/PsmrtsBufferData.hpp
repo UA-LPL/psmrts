@@ -7,7 +7,7 @@
 #include <memory>
 #include <exception>
 
-#include <PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
 namespace psmrts {
 /**
  * @brief Provides fundamental byte memory of arbitrary data types

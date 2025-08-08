@@ -1,9 +1,9 @@
 
-#include <psmrts_catch2_environment.hpp>
+#include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
-#include <PsmrtsUtilities.hpp>
-#include <PsmrtsTracerModel.hpp>
-#include <PsmrtsShapeTracerAdapter.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsTracerModel.hpp>
+#include <psmrts/core/PsmrtsShapeTracerAdapter.hpp>
 
 #include <DskKernelModel.hpp>
 

@@ -3,9 +3,9 @@
 
 #include <string>
 
-#include <PsmrtsDSKFormat.hpp>
-#include <PsmrtsRequest.hpp>
-#include <ProductSpecification.hpp>
+#include <psmrts/shapes/dsk/private/PsmrtsDSKFormat.hpp>
+#include <psmrts/core/PsmrtsRequest.hpp>
+#include <psmrts/core/ProductSpecification.hpp>
 
 namespace psmrts {
     class DskShape {

@@ -12,7 +12,7 @@
 #include <psmrts_version.h>
 #include <psmrts_test_config.h>
 
-#include <PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
 
 // Ensure this is on for all tests!
 #define PSMRTS_BOUNDS_CHECK 1

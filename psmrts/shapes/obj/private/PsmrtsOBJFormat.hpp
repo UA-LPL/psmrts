@@ -8,13 +8,13 @@
 
 #include <Eigen/Geometry>
 
-#include <PsmrtsUtilities.hpp>
-#include <PsmrtsBufferData.hpp>
-#include <PsmrtsBuffer.hpp>
-#include <PsmrtsParameters.hpp>
-#include <PsmrtsVector3.hpp>
-#include <PsmrtsMeshData.hpp>
-#include <ProductSpecification.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsBufferData.hpp>
+#include <psmrts/core/PsmrtsBuffer.hpp>
+#include <psmrts/core/PsmrtsParameters.hpp>
+#include <psmrts/core/PsmrtsVector3.hpp>
+#include <psmrts/core/PsmrtsMeshData.hpp>
+#include <psmrts/core/ProductSpecification.hpp>
 
 // See PsmrtsOBJImplementation.hpp for defining the tinyobj implemantion in your main
 #include "tiny_obj_loader.h"

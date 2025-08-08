@@ -1,10 +1,10 @@
-#include <psmrts_catch2_environment.hpp>
+#include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
 #include <NaifUtilities.hpp>
-#include <PsmrtsRayTrace.hpp>
-#include <PsmrtsTracerModel.hpp>
-#include <PsmrtsPriorityTracer.hpp>
-#include <PsmrtsShapeTracerAdapter.hpp>
+#include <psmrts/core/PsmrtsRayTrace.hpp>
+#include <psmrts/core/PsmrtsTracerModel.hpp>
+#include <psmrts/core/PsmrtsPriorityTracer.hpp>
+#include <psmrts/core/PsmrtsShapeTracerAdapter.hpp>
 #include <NaifEllipsoidShape.hpp>
 #include <DskKernelModel.hpp>
 

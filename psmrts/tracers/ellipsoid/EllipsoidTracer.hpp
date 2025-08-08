@@ -3,9 +3,9 @@
 
 #include <string>
 
-#include <EllipsoidTracerModel.hpp>
-#include <PsmrtsRequest.hpp>
-#include <ProductSpecification.hpp>
+#include <psmrts/tracers/ellipsoid/private/EllipsoidTracerModel.hpp>
+#include <psmrts/core/PsmrtsRequest.hpp>
+#include <psmrts/core/ProductSpecification.hpp>
 
 namespace psmrts  {
   /**

@@ -1,8 +1,8 @@
-#include <psmrts_catch2_environment.hpp>
+#include <psmrts/core/testspsmrts_catch2_environment.hpp>
 
-#include <NaifDskTracer.hpp>
+#include <psmrts/tracers/naifdsk/NaifDskTracer.hpp>
 #include <DskKernelModel.hpp>
-#include <PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
 
 TEST_CASE("NAIF Dsk Shape Tracer - Default Constructor", "[default][naifdsk][shapetracer]"){
     const double tolerance = 1.0e-6;

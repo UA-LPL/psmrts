@@ -2,8 +2,8 @@
 
 #include <thread>
 
-#include <PsmrtsUtilities.hpp>
-#include <PsmrtsRequest.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsRequest.hpp>
 
 TEST_CASE( "PsmrtsRequest Default Test", "[request][default]" ) {
     

@@ -1,8 +1,8 @@
-#include <psmrts_catch2_environment.hpp> 
+#include <psmrts/core/tests/psmrts_catch2_environment.hpp> 
 
 #include <NaifDskTracerModel.hpp>
 #include <DskKernelModel.hpp>
-#include <PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
 
 /**
 TEST_CASE("NAIF Dsk Tracer Model - Default Constructor", "[default][naifdsk][tracer][model]") {

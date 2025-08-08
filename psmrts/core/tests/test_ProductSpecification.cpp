@@ -5,9 +5,9 @@
 #include <iostream>
 #include <string>
 
-#include <ProductSpecification.hpp>
-#include <PsmrtsParameters.hpp>
-#include <PsmrtsUtilities.hpp>
+#include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/core/PsmrtsParameters.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
 
 
 TEST_CASE ( "ProductSpecification Constructor / Base Function Test", "[product][specification][constructor][base]") {

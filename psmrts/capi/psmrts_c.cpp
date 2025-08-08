@@ -5,19 +5,19 @@
 
 #include "psmrts_version.h"
 
-#include <PsmrtsUtilities.hpp>
-#include <PsmrtsBufferData.hpp>
-#include <PsmrtsBuffer.hpp>
-#include <PsmrtsMeshData.hpp>
-#include <PsmrtsRayTrace.hpp>
-#include <PsmrtsOBJFormat.hpp>
-#include <PsmrtsDSKFormat.hpp>
-#include <PsmrtsPLYFormat.hpp>
-#include <EllipsoidTracerModel.hpp>
-#include <PsmrtsBulletWorldModel.hpp>
-#include <PsmrtsRequest.hpp>
-#include <PsmrtsPriorityTracer.hpp>
-#include <PsmrtsTracer.hpp> 
+#include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsBufferData.hpp>
+#include <psmrts/core/PsmrtsBuffer.hpp>
+#include <psmrts/core/PsmrtsMeshData.hpp>
+#include <psmrts/core/PsmrtsRayTrace.hpp>
+#include <psmrts/shapes/obj/privatePsmrtsOBJFormat.hpp>
+#include <psmrts/shapes/dsk/privatePsmrtsDSKFormat.hpp>
+#include <psmrts/shapes/ply/privatePsmrtsPLYFormat.hpp>
+#include <psmrts/tracers/ellipsoid/private/EllipsoidTracerModel.hpp>
+#include <psmrts/tracers/bullet/private/PsmrtsBulletWorldModel.hpp>
+#include <psmrts/core/PsmrtsRequest.hpp>
+#include <psmrts/core/PsmrtsPriorityTracer.hpp>
+#include <psmrts/tracers/PsmrtsTracer.hpp> 
 
 
 /*============ PSMRTS C API type definitions ============*/
