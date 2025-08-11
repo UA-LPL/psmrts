@@ -7,8 +7,8 @@
 #include <Eigen/Geometry>
 
 #include <NaifUtilities.hpp>
-#include <PsmrtsRayTrace.hpp>
-#include <PsmrtsTracerModel.hpp>
+#include <psmrts/core/PsmrtsRayTrace.hpp>
+#include <psmrts/core/PsmrtsTracerModel.hpp>
 
 namespace naif {
 

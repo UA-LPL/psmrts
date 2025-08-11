@@ -5,7 +5,7 @@
 
 #include <PsmrtsBulletWorldModel.hpp>
 #include <BulletTracerModel.hpp>
-#include <PsmrtsRequest.hpp>
+#include <psmrts/core/PsmrtsRequest.hpp>
 
 namespace psmrts  {
   /**

@@ -8,8 +8,8 @@
 
 #include <Eigen/Geometry>
 
-#include <PsmrtsUtilities.hpp>
-#include <PsmrtsRayTrace.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsRayTrace.hpp>
 #include <BulletSystemModel.hpp>
 #include <PsmrtsBulletMeshMap.hpp>
 #include <PsmrtsBulletClosestRayCallback.hpp>

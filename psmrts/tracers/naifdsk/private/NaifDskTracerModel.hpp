@@ -9,7 +9,7 @@
 #include <Eigen/Geometry>
 
 #include <DskKernelModel.hpp>
-#include <PsmrtsTracerModel.hpp>
+#include <psmrts/core/PsmrtsTracerModel.hpp>
 #include <EllipsoidTracerModel.hpp>
 
 namespace psmrts  {

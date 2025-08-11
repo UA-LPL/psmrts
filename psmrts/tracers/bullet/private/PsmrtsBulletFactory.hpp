@@ -8,7 +8,7 @@
 
 #include <Eigen/Geometry>
 
-#include <PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
 #include <BulletSystemModel.hpp>
 #include <PsmrtsBulletMeshMap.hpp>
 #include <PsmrtsBulletWorldModel.hpp>

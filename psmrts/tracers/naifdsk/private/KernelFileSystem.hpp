@@ -6,7 +6,7 @@
 #include <map>
 #include <mutex>
 
-#include <PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
 #include <NaifUtilities.hpp>
 
 namespace naif {

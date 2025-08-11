@@ -9,12 +9,12 @@
 
 #include <Eigen/Geometry>
 
-#include <PsmrtsUtilities.hpp>
-#include <PsmrtsBufferData.hpp>
-#include <PsmrtsBuffer.hpp>
-#include <PsmrtsVector3.hpp>
-#include <PsmrtsTracerModel.hpp>
-#include <PsmrtsRayTrace.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsBufferData.hpp>
+#include <psmrts/core/PsmrtsBuffer.hpp>
+#include <psmrts/core/PsmrtsVector3.hpp>
+#include <psmrts/core/PsmrtsTracerModel.hpp>
+#include <psmrts/core/PsmrtsRayTrace.hpp>
 
 #include <NaifUtilities.hpp>
 #include <DskSegment.hpp>
