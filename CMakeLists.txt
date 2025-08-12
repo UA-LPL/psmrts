@@ -6,12 +6,13 @@ set( CMAKE_CXX_STANDARD_REQUIRED True )
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 # Add option to build tests and tools
-option( BUILD_TESTING   "Add PSMRTS unit tests"     OFF  )
-option( BUILD_EXTRAS    "Add PSMRTS tools/extras"   OFF  )
-option( BUILD_COVERAGE  "Build with code coverage"  OFF  )
-option( BUILD_CAPI_APPS "Build C API and apps"      ON )
+option( PSMRTS_BUILD_TESTING    "Add PSMRTS unit tests"       OFF )
+option( PSMRTS_BUILD_EXTRAS     "Add PSMRTS tools/extras"     OFF )
+option( PSMRTS_BUILD_COVERAGE   "Build with code coverage"    OFF )
+option( PSMRTS_BUILD_CAPI       "Build PSMRTS C API"           ON )
+option( PSMRTS_BUILD_CAPI_APPS  "Build PMSRTS C API and APPS"  ON )
 
-# Ensure we have a valid toolchain
+# Ensure we have a valid toolchain for vcpkg builds
 if( DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE )
   set( CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
       CACHE STRING "" )
@@ -23,8 +24,14 @@ endif()
 #set( other_flags "${other_flags} -fvisibility=hidden" )
 #set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${other_flags}" )
 
+# Must be set before project()
+#set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+#set(CMAKE_VISIBILITY_INLINES_HIDDEN YES)
+
+
 # This is PROJECT_SOURCE_DIR=psmrts
-project( psmrts )
+project(psmrts VERSION 0.20.0 LANGUAGES CXX C)
+set( PSMRTS_VERSION_DATE  "2025-08-03")
 include(GNUInstallDirs)
 
 set( PSMRTS_PROJECT_DIR  ${CMAKE_SOURCE_DIR} )
@@ -33,12 +40,6 @@ set( PSMRTS_TEST_DIR     ${CMAKE_SOURCE_DIR}/psmrts/tests )
 set( PSMRTS_DATA_DIR     ${CMAKE_SOURCE_DIR}/data )
 set( PSMRTS_TRACERS_DIR   ${CMAKE_SOURCE_DIR}/tracers )
 set( PSMRTS_SHAPES_DIR    ${CMAKE_SOURCE_DIR}/shapes )
-
-set( VERSION_MAJOR 0)
-set( VERSION_MINOR 2)
-set( VERSION_PATCH 1)
-set( VERSION_DATE  "2025-08-03")
-# set( PSMRTS_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 # Configure the project include/header files 
 configure_file( psmrts_version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/psmrts/src/psmrts_version.h @ONLY )
@@ -56,14 +57,17 @@ find_library( SPICE_LIB cspice )
 find_package( tinyobjloader CONFIG REQUIRED)
 find_package( unofficial-miniply CONFIG REQUIRED )
 
+# Create interface library that collects PSMRTS dependencies
 add_library( psmrts-dependencies INTERFACE)
-target_link_libraries( psmrts-dependencies INTERFACE nlohmann_json::nlohmann_json )
-target_link_libraries( psmrts-dependencies INTERFACE Eigen3::Eigen )
-target_link_libraries( psmrts-dependencies INTERFACE "${SPICE_LIB}" )
-target_link_libraries( psmrts-dependencies INTERFACE ${BULLET_LIBRARIES} )
-target_link_libraries( psmrts-dependencies INTERFACE tinyobjloader::tinyobjloader_double )
-target_link_libraries( psmrts-dependencies INTERFACE unofficial::miniply::miniply )
-target_link_libraries( psmrts-dependencies INTERFACE spdlog::spdlog )
+target_link_libraries( psmrts-dependencies INTERFACE 
+    nlohmann_json::nlohmann_json
+    Eigen3::Eigen
+    "${SPICE_LIB}"
+    ${BULLET_LIBRARIES}
+    tinyobjloader::tinyobjloader_double
+    unofficial::miniply::miniply
+    spdlog::spdlog
+)
 add_library( psmrts::psmrts-dependencies ALIAS psmrts-dependencies )
 
 # Create the PSMRTS interface export target
