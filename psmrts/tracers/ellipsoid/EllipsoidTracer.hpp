@@ -1,24 +1,47 @@
-#ifndef EllipsoidTracer_hpp
-#define EllipsoidTracer_hpp
-
+#pragma once
 #include <string>
 
-#include <psmrts/tracers/ellipsoid/private/EllipsoidTracerModel.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
 
 namespace psmrts  {
   /**
-   * @brief Ellipsoid ShapeModel
+   * @brief Ellipsoid ShapeModel supports spheres, spheroids and ellipsiods
    * 
+   * In this hybrid implementation, EllipsoidModel must provide an init method
+   * constructor, a destructor method that takes a three element Eigen::Vector3d and an option
+   * string name for the ellipsoid, i.e., 
+   * init_ellipsoid_tracer_model( const Eigen::Vector3d &, const string &).
+   * In addition, destruct_ellipsoid_tracer_model() must also be implemented
+   * which is called in this ~EllisoidTracer() destructor.
    * 
+   * The private implementation also must provide a method called ray_trace()
+   * that accepts an observer location, look direction vector, 
+   * both Eigen::Vector3d, and a PsmrtsRayTrace. Note that is up to the 
+   * private implementation to handle threading/mutex locking as PSMRTS may
+   * call these methods in a threaded environment. See the class that PSMRTS
+   * uses for mutex locking: psmrts::PsmrtsThreadSafeCounter in 
+   * PsmrtsUtilities.hpp.
+   * 
+   * See ./private for implementation details. 
+   * 
+   * @history 2025-08-12 Kris J. Becker - Restructured to use private
+   *                       implementation 
    */
   class EllipsoidTracer {
+    private:
+      class EllipsoidModel;
+      std::shared_ptr<EllipsoidModel> m_model;      
+
     public:
      EllipsoidTracer( ) {  }
      EllipsoidTracer( const Eigen::Vector3d &radii,
-                           const std::string &source = "ellipsoid"  ) : 
-                           m_model( radii, source ) { }     
+                      const std::string &source = "ellipsoid" ) { 
+
+        // Responsible for allocating model
+        m_model = std::make_shared<EllipsoidModel( radii.data(), source );
+      }   
+        
       virtual ~EllipsoidTracer() { }
 
       /**
@@ -138,8 +161,12 @@ namespace psmrts  {
         psmrts_json f_e;
         f_e["name"] = "ellisoid" ;
         f_e["product"] = "shapetracer" ;
-        f_e["mesh"] = false ;
-        f_e["radii"] = { 1, 2, 3 } ;
+        f_e["mesh"] = false;
+
+        double radii[3];
+        m_model->get_radii( &radii[0] )
+        f_e["radii"] = { radii[0], radii[1], radii[2] } ;
+
         features.add_feature( f_e );
         return ( true );
       }
@@ -162,10 +189,14 @@ namespace psmrts  {
        * @return false   If trace fails to intercept
        */
       inline bool ray_trace( const Eigen::Vector3d &observer,
-                              const Eigen::Vector3d &lookdir,
-                              PsmrtsRayTrace &ray ) const {
-        // this->local_tracker()++;
-        return ( m_model.ray_trace( observer, lookdir, ray ) );
+                             const Eigen::Vector3d &lookdir,
+                             PsmrtsRayTrace &ray ) const {
+
+        // Let the model do it!
+        ray.datum().h_hit = m_model->ray_trace( observer.data(), lookdir.data(), 
+                                                ray.datum().m_xyz.data(), 
+                                                ray.dataum().normal.data() ) );
+        return ( ray.hasHit() );
       }
       
       static inline ProductSpecification product_specifications() {
@@ -205,10 +236,5 @@ namespace psmrts  {
       /** Report all remaining features not available - e.g., PRQFacet not relevant to Ellipsoid format */
       PSMRTS_PROCESS_CATCHALL( "EllipsoidTracer" )
 
-    protected:
-      EllipsoidTracerModel m_model;
-  };
-
 } // namespace psmrts
 
-#endif
