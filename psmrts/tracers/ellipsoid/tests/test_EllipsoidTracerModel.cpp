@@ -11,14 +11,14 @@ TEST_CASE( "EllipsoidTracerModel Default Test", "[ellipsoid][default]") {
     // No Parameter Initialization
     CHECK ( e_shape.name() == "ellipsoid" );
 
-    CHECK ( e_shape.maximum_radius() == 1 );  // Naif auto-initializes this max to 1.0
+    CHECK ( e_shape.maximum_radius() == 0.0 ); 
 
     // Creating Tracer Model from Naif Ellipsoid
     psmrts::EllipsoidTracer naif_ellipse( 1.0, 2.0, 3.0 );
 
     psmrts::EllipsoidTracerModel etm_ellipse ( 1.0, 2.0, 3.0  );
 
-    CHECK ( etm_ellipse.name() == "ellipse" );
+    CHECK ( etm_ellipse.name() == "ellipsoid" );
     // CHECK ( etm_ellipse.maximum_radius() == naif_ellipse.c() );
 
     // Creating Tracer Model from Eigen Radii
@@ -26,7 +26,7 @@ TEST_CASE( "EllipsoidTracerModel Default Test", "[ellipsoid][default]") {
 
     psmrts::EllipsoidTracerModel etm_radii_ellipse ( e_radii, "my_sphere" );
 
-    CHECK ( etm_radii_ellipse.name() == "NaifEllipsoid" );
+    CHECK ( etm_radii_ellipse.name() == "my_sphere" );
     CHECK ( etm_radii_ellipse.maximum_radius() == 2.0 );
 
     // Deliberate Empty Name Check and Clone
@@ -45,6 +45,7 @@ TEST_CASE ("EllipsoidTracerModel Basic Values / RayTrace Test", "[tracer][ellips
 
     Eigen::Vector3d observer;
     double radius = naif_ellipse.maximum_radius();
+    CHECK( radius == 3.0 );
     double obs_long = psmrts::degrees_to_radians(45.0); 
     double obs_lat = psmrts::degrees_to_radians(45.0);
     latrec_c ( radius, obs_long, obs_lat, observer.data() );
@@ -52,10 +53,10 @@ TEST_CASE ("EllipsoidTracerModel Basic Values / RayTrace Test", "[tracer][ellips
 
     Eigen::Vector3d surf;
     double surf_long = psmrts::degrees_to_radians(45.0);
-    double surf_lat = psmrts::degrees_to_radians(45.0); 
+    double surf_lat = psmrts::degrees_to_radians(50.0); 
     latrec_c ( radius, surf_long, surf_lat, surf.data() );
 
-    Eigen::Vector3d lkdr = observer - surf;
+    Eigen::Vector3d lkdr = surf - observer;
 
     psmrts::PsmrtsRayTrace naif_ray;
     psmrts::PsmrtsRayTrace etm_ray;

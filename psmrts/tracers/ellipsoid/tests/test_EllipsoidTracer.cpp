@@ -15,9 +15,8 @@ TEST_CASE( "Ellipsoid Shape Tracer - Request Default Constructor", "[default][el
     j_add["name"] = "ellisoid" ;
     j_add["product"] = "shapetracer" ;
     j_add["mesh"] = false ;
-
-    // Note: this reflects the object can have 1, 2, or 3 radii values
-    j_add["radii"] = { 1, 2, 3 } ;
+    // Default radii values for unspecified constructed ellipsoid
+    j_add["radii"] = { 1.0, 1.0, 1.0 } ;
 
     j_output += j_add;
 
