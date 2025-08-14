@@ -10,7 +10,7 @@
 // doing any higher level raytrace testing, we're going to use ellipse as a baseline
 // due to it being the simplest, and most commonly relevant, shape object to 
 // test raytracing on. It is also ensured to be available at all levels of
-// psmrst/testing.
+// psmrts/testing.
 
 TEST_CASE( "PsmrtsRayTrace Default Test", "[ray][trace][default]") { 
     // No parameters
@@ -76,11 +76,11 @@ TEST_CASE( "PsmrtsRayTrace Facet Test", "[ray][trace][facet][default]") {
 // create another instantiation with values, then use that to create another to ensure each constructor works
 
 // 2 more tests, one is for facet datum - default case, constructors, 
-// second is for ray trace datum, constructers (obs, lkdir), reset, then retest (should no longer be valid)
+// second is for ray trace datum, constructors (obs, lkdir), reset, then retest (should no longer be valid)
 
 // These are to be done later:
 // For each tracer (ellipsoid), then check for facet in ellipsoid - should be false.
-// Any mathmatically based models should not have a facet.
+// Any mathematically based models should not have a facet.
 // Then naifdsk tracers now with valid facets, pull naif mesh, and see if you can get same facet from dsk
 // (can do similar with bullet, as well)
 
@@ -127,7 +127,6 @@ TEST_CASE( "PsmrtsRayTrace Baseline Values Test - Ellipsoid", "[ray][trace][valu
     CHECK( ellipse_ray.segment_number() == -1 ); 
     CHECK( psmrts::isnull(ellipse_ray.emission()) ==  false );   
 
-
     // Constructor initialized with another ray as parameter
     psmrts::PsmrtsRayTrace second_ray( ellipse_ray );
 
@@ -148,7 +147,6 @@ TEST_CASE( "PsmrtsRayTrace Baseline Values Test - Ellipsoid", "[ray][trace][valu
     CHECK( second_ray.segment_number() == -1 ); 
     CHECK( psmrts::isnull(second_ray.emission()) ==  false );   
 
-
     // Reset with new obs / lkdr values
     Eigen::Vector3d obs_reset;
     double obs_long_r = psmrts::degrees_to_radians(44.5);
@@ -167,7 +165,7 @@ TEST_CASE( "PsmrtsRayTrace Baseline Values Test - Ellipsoid", "[ray][trace][valu
     e_tracer.ray_trace( ellipse_ray.observer(), ellipse_ray.lookdir(), reset_ray);
     CHECK( reset_ray.hasHit()   == true ); 
     CHECK( reset_ray.observer() == -obs_reset );
-    CHECK( reset_ray.lookdir()  == lkdr_reset ); 
+    CHECK( reset_ray.lookdir()  == lkdr_reset );
     CHECK_THAT( reset_ray.normal()[0], Catch::Matchers::WithinAbs( -0.508726, tolerance ));
     CHECK_THAT( reset_ray.normal()[1], Catch::Matchers::WithinAbs( -0.499924, tolerance )); 
     CHECK_THAT( reset_ray.normal()[2], Catch::Matchers::WithinAbs( -0.700909, tolerance )); 
