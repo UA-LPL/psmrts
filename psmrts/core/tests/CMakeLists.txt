@@ -33,4 +33,5 @@ include( CTest )
 include( Catch )
 
 # Run ctest and all catch2 tests in the build directory!
-catch_discover_tests( psmrts_test_suite WORKING_DIRECTORY ${CMAKE_BINARY_DIR} )
+set(CMAKE_CATCH_DISCOVER_TESTS_DISCOVERY_MODE PRE_TEST)
+catch_discover_tests( psmrts_test_suite )

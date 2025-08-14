@@ -16,9 +16,9 @@
 #include <psmrts/core/PsmrtsTracerModel.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 
-#include <NaifUtilities.hpp>
-#include <DskSegment.hpp>
-#include <KernelFileSystem.hpp>
+#include "NaifUtilities.hpp"
+#include "DskSegment.hpp"
+#include "KernelFileSystem.hpp"
 
 namespace naif {
 

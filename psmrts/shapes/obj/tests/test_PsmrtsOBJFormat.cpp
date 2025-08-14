@@ -1,9 +1,9 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
-#include <PsmrtsOBJFormat.hpp>
+#include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
 
-#include <DskKernelModel.hpp>
+#include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
 
 
 // Test Default constructor for PsmrtsOBJFormat

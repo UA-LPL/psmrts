@@ -6,7 +6,7 @@
 #include <psmrts/core/PsmrtsShapeTracerAdapter.hpp>
 #include <psmrts/core/PsmrtsPriorityTracer.hpp>
 
-#include <DskKernelModel.hpp>
+#include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
 
 // Test Default constructor for DskKernelModel
 TEST_CASE ( "NAIF DSK Priority Tracer Test", "[naif][shape][priority][tracer][adapter]") {

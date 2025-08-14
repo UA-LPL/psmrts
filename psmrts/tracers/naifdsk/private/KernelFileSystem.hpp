@@ -7,7 +7,7 @@
 #include <mutex>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
-#include <NaifUtilities.hpp>
+#include "NaifUtilities.hpp"
 
 namespace naif {
 

@@ -1,7 +1,7 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
 #include <psmrts/shapes/ply/PlyShape.hpp>
-#include <PsmrtsPLYFormat.hpp>
+#include <psmrts/shapes/ply/private/PsmrtsPLYFormat.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
 
 TEST_CASE( "PLY SHAPE - Default Test", "[ply][shape][specification]") {

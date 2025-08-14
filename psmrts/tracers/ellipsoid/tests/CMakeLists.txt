@@ -23,3 +23,9 @@ include( Catch )
 
 # Run ctest and all catch2 tests in the build directory!
 catch_discover_tests( ellipsoid_test_suite WORKING_DIRECTORY ${CMAKE_BINARY_DIR} )
+
+# Update the test dependencies and excludes
+if(BUILD_COVERAGE)
+  set( PSMRTS_COVERAGE_DEPENDENCIES ${PSMRTS_COVERAGE_DEPENDENCIES} ellipsoid_test_suite )
+  set( PSMRTS_COVERAGE_EXCLUDES     ${PSMRTS_COVERAGE_EXCLUDES}   "${CMAKE_CURRENT_BINARY_DIR}/*" )
+endif(BUILD_COVERAGE)

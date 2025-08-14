@@ -10,9 +10,9 @@
 #include <psmrts/core/PsmrtsBuffer.hpp>
 #include <psmrts/core/PsmrtsMeshData.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
-#include <psmrts/shapes/obj/privatePsmrtsOBJFormat.hpp>
-#include <psmrts/shapes/dsk/privatePsmrtsDSKFormat.hpp>
-#include <psmrts/shapes/ply/privatePsmrtsPLYFormat.hpp>
+#include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
+#include <psmrts/shapes/dsk/private/PsmrtsDSKFormat.hpp>
+#include <psmrts/shapes/ply/private/PsmrtsPLYFormat.hpp>
 #include <psmrts/tracers/ellipsoid/private/EllipsoidTracerModel.hpp>
 #include <psmrts/tracers/bullet/private/PsmrtsBulletWorldModel.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>

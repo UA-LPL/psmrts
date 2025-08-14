@@ -1,7 +1,6 @@
-# This currently relies on NAIF, which should already be in psrmts-dependencies
+# This requires Bullet double precision, which should already be in psrmts-dependencies
 
-# Add ellipsoid classes to PSRMTS target
-#target_sources(psmrts PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/EllipsoidTracerModel.cpp)
+# Add naifdsk classes to PSRMTS target
 target_include_directories(psmrts INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 add_subdirectory( private )    # May not need this
 

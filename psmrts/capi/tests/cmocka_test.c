@@ -15,8 +15,8 @@ static void test_psmrts_version_info(void **state) {
     const char* version = psmrts_version();
     const char* info = psmrts_info();
 
-    assert_string_equal(version, "0.2.1");
-    assert_string_equal(info, "psmrts-0.2.1");
+    assert_string_equal(version, "0.20.0");
+    assert_string_equal(info, "PSMRTS-0.20.0");
 }
 
 // --- PSMRTS Vector3d Functions ---
@@ -444,11 +444,11 @@ static void test_psmrts_tracers(void **state) {
     PSMRTS_BOOL ellipsoid_v_valid = psmrts_tracer_valid( ellipsoid_v );
     assert_int_equal(ellipsoid_v_valid, 1);
     
-    PSMRTS_Tracer *bullet = psmrts_create_bullet("../../../shapes/obj/data/bennu_20facets.obj");
+    PSMRTS_Tracer *bullet = psmrts_create_bullet("../psmrts/shapes/obj/data/bennu_20facets.obj");
     PSMRTS_BOOL bullet_valid = psmrts_tracer_valid( bullet );
     assert_int_equal(bullet_valid, 1);
 
-    PSMRTS_Tracer *naifdsk = psmrts_create_naifdsk("../../../shapes/dsk/data/bennu_20facets.bds");
+    PSMRTS_Tracer *naifdsk = psmrts_create_naifdsk("../psmrts/shapes/dsk/data/bennu_20facets.bds");
     PSMRTS_BOOL dsk_valid = psmrts_tracer_valid( naifdsk );
     assert_int_equal(dsk_valid, 1);
     

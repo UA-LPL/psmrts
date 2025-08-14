@@ -3,8 +3,8 @@
 
 #include <string>
 
-#include <PsmrtsBulletWorldModel.hpp>
-#include <BulletTracerModel.hpp>
+#include "private/PsmrtsBulletWorldModel.hpp"
+#include "private/BulletTracerModel.hpp"
 #include <psmrts/core/PsmrtsRequest.hpp>
 
 namespace psmrts  {

@@ -1,12 +1,12 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
-#include <BulletSystemModel.hpp>
+#include <psmrts/tracers/bullet/private/BulletSystemModel.hpp>
 #include <psmrts/core/PsmrtsVector3.hpp>
 #include <psmrts/core/PsmrtsMeshData.hpp>
-#include <PsmrtsOBJFormat.hpp>
-#include <PsmrtsBulletMeshMap.hpp>
+#include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
+#include <psmrts/tracers/bullet/private/PsmrtsBulletMeshMap.hpp>
 
-#include <DskKernelModel.hpp>
+#include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
 
 
 TEST_CASE ( "Bullet Mesh Map Test - Default Constructor", "[default][bullet][mesh]" ) {

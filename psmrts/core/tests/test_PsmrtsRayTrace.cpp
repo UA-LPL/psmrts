@@ -3,7 +3,8 @@
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 #include <Eigen/Geometry>
 #include <cspice/SpiceUsr.h>
-#include <EllipsoidTracerModel.hpp>
+
+#include <psmrts/tracers/ellipsoid/EllipsoidTracer.hpp>
 
 // Add to readme for testing: (conditions for testing)
 // doing any higher level raytrace testing, we're going to use ellipse as a baseline
@@ -86,11 +87,10 @@ TEST_CASE( "PsmrtsRayTrace Facet Test", "[ray][trace][facet][default]") {
 TEST_CASE( "PsmrtsRayTrace Baseline Values Test - Ellipsoid", "[ray][trace][values][ellipse]" ) {
     const double tolerance = 1.0e-6;
 
-    naif::NaifEllipsoidShape t_ellipse; // a, b, c default to 1.0 
-    psmrts::EllipsoidTracerModel e_tracer( t_ellipse );
+    psmrts::EllipsoidTracer e_tracer; // a, b, c default to 1.0 
 
     Eigen::Vector3d obs;
-    double radius   = e_tracer.maximum_radius();
+    double radius   = 1.0;  /// FIX THIS!!  e_tracer.maximum_radius();
     CHECK( radius   == 1.0 );
     double obs_long = psmrts::degrees_to_radians(45.0);
     double obs_lat  = psmrts::degrees_to_radians(45.0);

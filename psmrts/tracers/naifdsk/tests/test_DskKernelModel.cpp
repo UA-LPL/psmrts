@@ -1,7 +1,7 @@
 
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
-#include <DskKernelModel.hpp>
+#include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
 
 
 

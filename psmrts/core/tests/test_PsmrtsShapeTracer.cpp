@@ -2,7 +2,7 @@
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
-#include <psmrts/core/PsmrtsTracer.hpp>
+#include <psmrts/tracers/PsmrtsTracer.hpp>
 
 #include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
 

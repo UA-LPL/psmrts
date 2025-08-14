@@ -10,7 +10,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <psmrts_version.h>
-#include <psmrts_test_config.h>
+#include "psmrts_test_config.h"
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 
@@ -35,12 +35,12 @@ inline std::string psmrts_data_path( const std::string &subpart = "" ) {
 
 /** Returns directory to the main ./tracers source directory with optional subdir/file */
 inline std::string psmrts_tracers_path( const std::string &subpart = "" ) {
-  return ( psmrts::psmrts_make_path( psmrts::psmrts_make_path( psmrts_rootpath(), "tracers" ), subpart ) );
+  return ( psmrts::psmrts_make_path( psmrts::psmrts_make_path( psmrts_rootpath(), "psmrts/tracers" ), subpart ) );
 }
 
 /** Returns directory to the main ./shapes source directory with optional subdir/file */
 inline std::string psmrts_shapes_path( const std::string &subpart = "" ) {
-  return ( psmrts::psmrts_make_path( psmrts::psmrts_make_path( psmrts_rootpath(), "shapes" ), subpart ) );
+  return ( psmrts::psmrts_make_path( psmrts::psmrts_make_path( psmrts_rootpath(), "psmrts/shapes" ), subpart ) );
 }
 
 #endif

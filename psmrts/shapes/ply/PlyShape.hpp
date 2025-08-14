@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include <PsmrtsPLYFormat.hpp>
+#include <psmrts/shapes/ply/private/PsmrtsPLYFormat.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 
 namespace psmrts {

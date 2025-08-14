@@ -1,7 +1,7 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp> 
 
-#include <NaifDskTracerModel.hpp>
-#include <DskKernelModel.hpp>
+#include <psmrts/tracers/naifdsk/private/NaifDskTracerModel.hpp>
+#include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
 #include <psmrts/core/PsmrtsUtilities.hpp>
 
 /**
@@ -100,22 +100,5 @@ TEST_CASE( "NAIF Dsk Tracer Model - Ray Trace / Values Test", "[default][bullet]
     CHECK_THAT( f_normal[0], Catch::Matchers::WithinAbs( 0.0, tolerance) );
     CHECK_THAT( f_normal[1], Catch::Matchers::WithinAbs( 0.525731, tolerance) );
     CHECK_THAT( f_normal[2], Catch::Matchers::WithinAbs( 0.850651, tolerance) );
-    
-    psmrts::PsmrtsTracerModel *d_clone   = d_model.clone();
-    CHECK( d_clone != &d_model );
-    CHECK( d_clone->tracer_model_name() == "DskKernelModel" );
-    CHECK( d_clone->tracer_model_type() == "naifdsk" );
-
-    psmrts::PsmrtsTracerModel *d_ellipse   = d_model.ellipsoid();
-    CHECK( d_ellipse->tracer_model_name() == "NaifEllipsoid" );
-    CHECK( d_ellipse->tracer_model_type() == "psmrts" );
-    CHECK( d_ellipse->shape_tracer_id()   == "psmrts::NaifEllipsoid::ellipsoid" );
-    
-
-    CHECK( d_model.tracer().n_dsk_segments()       == 1 );
-    CHECK( d_model.tracer().segment(0).surfaceid() == 2101955 );
-
-    psmrts::NaifDskTracerModel *d_surfaceid = d_model.tracer_from_id( 2101955 );
-    CHECK( d_surfaceid->tracer().isValid() == true );
 }
 

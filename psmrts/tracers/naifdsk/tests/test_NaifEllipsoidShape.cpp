@@ -1,7 +1,7 @@
 
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
-#include <NaifEllipsoidShape.hpp>
+#include <psmrts/tracers/naifdsk/private/NaifEllipsoidShape.hpp>
 
 TEST_CASE( "NaifEllipsoidShape Default Test", "[naif][ellipsoid][default]") {
 

@@ -7,8 +7,8 @@
 #include <mutex>
 
 #include <Eigen/Geometry>
-#include <NaifUtilities.hpp>
-#include <KernelFileSystem.hpp>
+#include "NaifUtilities.hpp"
+#include "KernelFileSystem.hpp"
 
 namespace naif {
 

@@ -3,6 +3,7 @@
 
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
+#include "private/EllipsoidTracerModel.hpp"
 
 namespace psmrts  {
   /**
@@ -29,18 +30,15 @@ namespace psmrts  {
    *                       implementation 
    */
   class EllipsoidTracer {
-    private:
-      class EllipsoidModel;
-      std::shared_ptr<EllipsoidModel> m_model;      
 
     public:
-     EllipsoidTracer( ) {  }
+     EllipsoidTracer( ) : m_model( 1.0, 1.0, 1.0 ) {  }
+     EllipsoidTracer( const double a, const double b, const double c,
+                      const std::string &source = "ellipsoid") :
+                      m_model( a, b, c, source) { }     
      EllipsoidTracer( const Eigen::Vector3d &radii,
-                      const std::string &source = "ellipsoid" ) { 
-
-        // Responsible for allocating model
-        m_model = std::make_shared<EllipsoidModel( radii.data(), source );
-      }   
+                      const std::string &source = "ellipsoid" ) : 
+                      m_model( radii.data(), source) { }   
         
       virtual ~EllipsoidTracer() { }
 
@@ -164,7 +162,7 @@ namespace psmrts  {
         f_e["mesh"] = false;
 
         double radii[3];
-        m_model->get_radii( &radii[0] )
+        m_model.get_radii( &radii[0] );
         f_e["radii"] = { radii[0], radii[1], radii[2] } ;
 
         features.add_feature( f_e );
@@ -193,9 +191,9 @@ namespace psmrts  {
                              PsmrtsRayTrace &ray ) const {
 
         // Let the model do it!
-        ray.datum().h_hit = m_model->ray_trace( observer.data(), lookdir.data(), 
-                                                ray.datum().m_xyz.data(), 
-                                                ray.dataum().normal.data() ) );
+        ray.datum().m_hit = m_model.ray_trace( observer.data(), lookdir.data(), 
+                                               ray.datum().m_xyz.data(), 
+                                               ray.datum().m_normal.data() );
         return ( ray.hasHit() );
       }
       
@@ -235,6 +233,10 @@ namespace psmrts  {
 
       /** Report all remaining features not available - e.g., PRQFacet not relevant to Ellipsoid format */
       PSMRTS_PROCESS_CATCHALL( "EllipsoidTracer" )
+
+    private:
+      EllipsoidTracerModel m_model;   
+  };
 
 } // namespace psmrts
 

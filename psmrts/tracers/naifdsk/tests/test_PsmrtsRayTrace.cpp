@@ -1,7 +1,7 @@
 
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
-#include <NaifEllipsoidShape.hpp>
-#include <DskKernelModel.hpp>
+#include <psmrts/tracers/naifdsk/private/NaifEllipsoidShape.hpp>
+#include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 
 TEST_CASE( "Ray Trace Default Test - Basic Spheroid Ellipse", "[ray][trace][ellipsoid]") {

@@ -1,7 +1,7 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
-#include <PsmrtsDSKFormat.hpp>
-#include <DskKernelModel.hpp>
+#include <psmrts/shapes/dsk/private/PsmrtsDSKFormat.hpp>
+#include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
 
 TEST_CASE( "DSK FORMAT Asset Test - Default Constructor", "[format][dsk][default]") {
     std::string no_file = psmrts_shapes_path( "dsk/data/bad_path.bds" );

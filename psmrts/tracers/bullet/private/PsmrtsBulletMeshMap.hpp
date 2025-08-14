@@ -8,9 +8,9 @@
 #include <Eigen/Geometry>
 
 #include <psmrts/core/PsmrtsMeshData.hpp>
-#include <PsmrtsOBJFormat.hpp>
+#include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
 
-#include <BulletSystemModel.hpp>
+#include "BulletSystemModel.hpp"
 
 
 namespace psmrts::bullet {

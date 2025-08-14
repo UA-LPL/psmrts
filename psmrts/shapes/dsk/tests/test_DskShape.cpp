@@ -1,7 +1,7 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
 #include <psmrts/shapes/dsk/DskShape.hpp>
-#include <PsmrtsDSKFormat.hpp>
+#include <psmrts/shapes/dsk/private/PsmrtsDSKFormat.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
 
 TEST_CASE( "DSK SHAPE - Default Test", "[dsk][shape][specification]") {

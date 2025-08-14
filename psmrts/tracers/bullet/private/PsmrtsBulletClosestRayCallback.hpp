@@ -7,8 +7,8 @@
 
 #include <Eigen/Geometry>
 
-#include <BulletSystemModel.hpp>
-#include "BulletCollision/NarrowPhaseCollision/btRaycastCallback.h"
+#include "BulletSystemModel.hpp"
+#include <BulletCollision/NarrowPhaseCollision/btRaycastCallback.h>
 
 namespace psmrts::bullet {
 

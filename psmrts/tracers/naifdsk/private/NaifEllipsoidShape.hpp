@@ -6,7 +6,7 @@
 #include <exception>
 #include <Eigen/Geometry>
 
-#include <NaifUtilities.hpp>
+#include <psmrts/tracers/naifdsk/private/NaifUtilities.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 #include <psmrts/core/PsmrtsTracerModel.hpp>
 

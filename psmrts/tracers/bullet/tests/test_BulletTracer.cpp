@@ -1,9 +1,9 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
-#include <PsmrtsBulletWorldModel.hpp>
-#include <BulletTracerModel.hpp>
-#include </psmrts/tracers/bullet/BulletTracer.hpp>
-#include <PsmrtsOBJFormat.hpp>
+#include <psmrts/tracers/bullet/private/PsmrtsBulletWorldModel.hpp>
+#include <psmrts/tracers/bullet/private/BulletTracerModel.hpp>
+#include <psmrts/tracers/bullet/BulletTracer.hpp>
+#include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
 #include <psmrts/core/PsmrtsUtilities.hpp>
 
 TEST_CASE ( "Bullet Tracer - Default Constructor", "[default][bullet][tracer]" ) {

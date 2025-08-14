@@ -8,9 +8,9 @@
 
 #include <Eigen/Geometry>
 
-#include <DskKernelModel.hpp>
+#include "DskKernelModel.hpp"
 #include <psmrts/core/PsmrtsTracerModel.hpp>
-#include <EllipsoidTracerModel.hpp>
+#include <psmrts/tracers/ellipsoid/private/EllipsoidTracerModel.hpp>
 
 namespace psmrts  {
   /**
@@ -28,50 +28,48 @@ namespace psmrts  {
    * @see PsmrtsShapeTracerAdaptor.hpp
    * 
    */
-  class NaifDskTracerModel : public PsmrtsTracerModel {
+  class NaifDskTracerModel {
     public:
       NaifDskTracerModel( ) {  }
       NaifDskTracerModel( const naif::DskKernelModel &dsktracer ) : 
-                          PsmrtsTracerModel( ),
                           m_model( dsktracer ) {  }
       NaifDskTracerModel( const std::string &dsk ) : 
-                          PsmrtsTracerModel( ),
                           m_model( dsk ) {  }
 
       virtual ~NaifDskTracerModel() { }
 
       /* Name of tracer system (PSMRTS) */
-      virtual std::string tracer_model_type() const {
+      inline std::string tracer_model_type() const {
         return ( m_model.tracer_model_type() );
       };
 
       /** Name of tracer model such as  "naifdsk" and "bullet" */
-      virtual std::string tracer_model_name() const {
+      inline std::string tracer_model_name() const {
         return ( m_model.tracer_model_name() );
       }
 
       /** Unique tracer id of this instance */
-      virtual std::string shape_tracer_id()   const {
+      inline std::string shape_tracer_id()   const {
         return ( m_model.shape_tracer_id()  );
       }
 
       /** Name of the shape model source */
-      virtual std::string shapefile()         const {
+      inline std::string shapefile()         const {
         return ( m_model.shapefile() );
       };
 
       /** Total number of plates/facets in model */
-      virtual size_t plate_count()  const {
+      inline size_t plate_count()  const {
         return ( m_model.plate_count() );
       };
 
       /** Total verticies in the model */
-      virtual size_t vertex_count() const {
+      inline size_t vertex_count() const {
         return ( m_model.vertex_count() ); // was plate_count() - kab
       };
 
       /** Returns the maximum radius in the model */
-      virtual double maximum_radius() const {
+      inline double maximum_radius() const {
         return ( m_model.maximum_radius() );
       };
 
@@ -97,10 +95,10 @@ namespace psmrts  {
        * @return true    If the trace intercepts the shape
        * @return false   If no ray trace intercept was found
        */
-      virtual bool ray_trace( const Eigen::Vector3d &observer,
+      inline bool ray_trace( const Eigen::Vector3d &observer,
                               const Eigen::Vector3d &lookdir,
                               PsmrtsRayTrace &ray ) const {
-        this->local_tracker()++;
+        // this->local_tracker()++;
         return ( m_model.ray_trace( observer, lookdir, ray ) );
       }
 
@@ -111,11 +109,11 @@ namespace psmrts  {
        * @return true 
        * @return false 
        */
-      virtual bool get_facet( const PsmrtsRayTrace &ray,
+      inline bool get_facet( const PsmrtsRayTrace &ray,
                               PsmrtsRayTrace::FacetDatum &facet ) const {
         return ( m_model.get_facet( ray, facet ) );
       }
-
+#if 0
 
       /** Clone a copy of this shape tracer model */
       virtual PsmrtsTracerModel *clone() const {
@@ -126,7 +124,7 @@ namespace psmrts  {
       virtual PsmrtsTracerModel *ellipsoid() const {
         return ( new EllipsoidTracerModel( m_model.radii() ) );
       }
-    
+#endif    
       /** Returns a new DSK tracer model using target surface ID */
       inline NaifDskTracerModel *tracer_from_id( const int surfaceId ) const {
         if ( nullptr != m_model.get_segment_with_id( surfaceId ) ) {

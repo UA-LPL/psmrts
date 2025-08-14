@@ -1,7 +1,7 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
-#include <BulletTracerModel.hpp>
-#include <PsmrtsOBJFormat.hpp>
+#include <psmrts/tracers/bullet/private/BulletTracerModel.hpp>
+#include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
 #include <psmrts/core/PsmrtsUtilities.hpp>
 
 
@@ -13,12 +13,6 @@ TEST_CASE( "Bullet Tracer Model - Default Constructor", "[default][bullet][trace
     CHECK( b_model.plate_count()       == 0 );
     CHECK( b_model.vertex_count()      == 0 );
     CHECK( b_model.maximum_radius()    == 0 );
-
-    psmrts::PsmrtsTracerModel *b2_model   = b_model.clone();
-    CHECK( b2_model                      != &b_model );
-    CHECK( b2_model->tracer_model_name() == "bullet" );
-   
-    CHECK_THROWS( b_model.ellipsoid() );
 }
 
 
@@ -84,10 +78,4 @@ TEST_CASE( "Bullet Tracer Model - Ray Trace / Values Test", "[default][bullet][t
     CHECK_THAT( f_normal[1], Catch::Matchers::WithinAbs( 0.525731, tolerance) );
     CHECK_THAT( f_normal[2], Catch::Matchers::WithinAbs( 0.850651, tolerance) );
 
-    psmrts::PsmrtsTracerModel *b2_model   = b_model.clone();
-    CHECK( b2_model                      != &b_model );
-    CHECK( b2_model->tracer_model_name() == "bullet" );
-
-    psmrts::PsmrtsTracerModel *e_model   = b_model.ellipsoid();
-    CHECK( e_model->tracer_model_name() == "NaifEllipsoid" );
 }

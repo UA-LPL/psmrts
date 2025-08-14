@@ -2,7 +2,7 @@
 
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
-#include <NaifUtilities.hpp>
+#include <psmrts/tracers/naifdsk/private/NaifUtilities.hpp>
 
 
 TEST_CASE ( "NAIF Utilities Test - Basics", "[naif][utilities]" ) {

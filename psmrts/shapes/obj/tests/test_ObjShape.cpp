@@ -1,7 +1,7 @@
-#include <psmrts_catch2_environment.hpp>
+#include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
 #include <psmrts/shapes/obj/ObjShape.hpp>
-#include <PsmrtsOBJFormat.hpp>
+#include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
 
 

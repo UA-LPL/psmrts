@@ -1,9 +1,6 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
-
-#include <PsmrtsPLYFormat.hpp>
-#include <PsmrtsOBJFormat.hpp>
-
-#include <DskKernelModel.hpp>
+#include <psmrts/shapes/ply/PlyShape.hpp>
+#include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
 
 // Test Default (No / Bad file) Constructor Cases
 TEST_CASE( "PLY FORMAT Asset Test - No File Default Constructor", "[format][ply]") {
