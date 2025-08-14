@@ -22,7 +22,7 @@ include ( CTest )
 include ( Catch )
 
 set(CMAKE_CATCH_DISCOVER_TESTS_DISCOVERY_MODE PRE_TEST)
-catch_discover_tests( capi_test_suite WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
+catch_discover_tests( capi_test_suite WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
 # ----- CMocka Testing Additions TEMP ------
 find_package( cmocka REQUIRED )
@@ -34,7 +34,7 @@ set_property(TARGET capi_cmocka_test_suite PROPERTY LINKER_LANGUAGE C)
 target_link_libraries( capi_cmocka_test_suite PRIVATE psmrts::psmrts_c )
 target_link_libraries( capi_cmocka_test_suite PRIVATE cmocka::cmocka )
 
-add_test( NAME capi_cmocka_test_suite COMMAND capi_cmocka_test_suite )
+add_test( NAME capi_cmocka_test_suite COMMAND capi_cmocka_test_suite WORKING_DIRECTORY ${CMAKE_BINARY_DIR} )
 
 # Update the test dependencies and excludes
 if(BUILD_COVERAGE)
