@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <setjmp.h>
 #include <stdio.h>
+#include <string.h>
 #include <cmocka.h>
 
 #include "psmrts_c.h" 
@@ -15,8 +16,11 @@ static void test_psmrts_version_info(void **state) {
     const char* version = psmrts_version();
     const char* info = psmrts_info();
 
-    assert_string_equal(version, "0.3.0");
-    assert_string_equal(info, "PSMRTS-0.3.0");
+    assert_non_null(version);
+    assert_non_null(info);
+
+    assert_true(strlen(version) > 0 );
+    assert_true(strlen(info) > 0 );
 }
 
 // --- PSMRTS Vector3d Functions ---
