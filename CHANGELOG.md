@@ -35,6 +35,10 @@ release.
 ## TODO
 - See [TODO](TODO.md)
 
+## [0.3.0] 2025-08-15
+- Major restructure of PSMRTS directory hierarchy and CMake implementation to simplify future development/maintenance. Includes necessary modifications to include paths, scripts, and tests to ensure successful building, testing, and code coverage across all platforms (Linux, OSX, Windows, etc.).
+- PSMRTS version updated to [0.3.0] in CHANGELOG.md, CMakeLists.txt, and cmocka_test.c files.
+
 ## [0.2.1] 2025-08-06
 - C++ version of C API documentation and testing updated.
 - C version of C API cmocka tests and documentation added.
