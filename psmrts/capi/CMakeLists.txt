@@ -19,8 +19,8 @@ if(BUILD_CAPI_APPS)
   add_subdirectory( apps )
 endif(BUILD_CAPI_APPS)
 
-if(BUILD_TESTS)
+if(BUILD_TESTING)
  add_subdirectory(tests)
-endif(BUILD_TESTS)
+endif(BUILD_TESTING)
 
 # add subdirectory for tests (see other test directories)

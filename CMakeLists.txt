@@ -8,21 +8,22 @@ set( CMAKE_C_STANDARD 17 )
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 # Add option to build tests and tools
-option( BUILD_TESTS      "Add PSMRTS unit tests"       OFF )
+option( BUILD_TESTING    "Add PSMRTS unit tests"       OFF )
 option( BUILD_COVERAGE   "Build with code coverage"    OFF )
 option( BUILD_EXTRAS     "Add PSMRTS tools extras"     OFF )
 option( BUILD_CAPI       "Build PSMRTS C API"           ON )
 option( BUILD_CAPI_APPS  "Build PMSRTS C API and APPS"  ON )
 
 if(BUILD_COVERAGE)
-    set(BUILD_TESTS ON)
+    set(BUILD_TESTING ON)
+    # Product configs build up coverage targets
     set( PSMRTS_COVERAGE_DEPENDENCIES "" )
     set( PSMRTS_COVERAGE_EXCLUDES "")  
 endif(BUILD_COVERAGE)
 
-if(BUILD_TESTS)
+if(BUILD_TESTING)
     enable_testing()
-endif(BUILD_TESTS)
+endif(BUILD_TESTING)
 
 # See https://github.com/Microsoft/vcpkg/issues/4497 as to why this
 # is needed. Its a conflict with proj and nlohmann_json.
@@ -42,13 +43,12 @@ include(GNUInstallDirs)
 set( PSMRTS_PROJECT_DIR  ${CMAKE_SOURCE_DIR} )
 set( PSMRTS_DIR          ${CMAKE_SOURCE_DIR}/psmrts )
 set( PSMRTS_TEST_DIR     ${CMAKE_SOURCE_DIR}/psmrts )
-set( PSMRTS_DATA_DIR     ${CMAKE_SOURCE_DIR}core//data )
+set( PSMRTS_DATA_DIR     ${CMAKE_SOURCE_DIR}core/data )
 set( PSMRTS_TRACERS_DIR   ${CMAKE_SOURCE_DIR}/tracers )
 set( PSMRTS_SHAPES_DIR    ${CMAKE_SOURCE_DIR}/shapes )
 
 # Configure the project include/header files 
 configure_file( psmrts_version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/psmrts/core/psmrts_version.h @ONLY )
-# include(psmrts_includes)
 
 # Set psmrts source and include directory
 set( PSMRTS_BUILD_DIR    ${CMAKE_BINARY_DIR} )
@@ -91,7 +91,7 @@ if( BUILD_CAPI OR BUILD_CAPI_APPS )
 endif( BUILD_CAPI OR BUILD_CAPI_APPS )
 
 # Optionally add unit tests of psmrts classes
-if( BUILD_TESTS )
+if( BUILD_TESTING )
   configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/psmrts/core/tests/psmrts_test_config.h.in 
                   ${CMAKE_CURRENT_SOURCE_DIR}/psmrts/core/tests/psmrts_test_config.h @ONLY )
 
@@ -115,6 +115,5 @@ if( BUILD_TESTS )
       EXCLUDE        "${PSMRTS_COVERAGE_EXCLUDES}" 
     )
   endif(BUILD_COVERAGE)
-  # enable_testing()
-endif( BUILD_TESTS )
+endif( BUILD_TESTING )
 

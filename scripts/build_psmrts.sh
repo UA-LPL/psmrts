@@ -11,11 +11,11 @@ usecpus=""
 while getopts ":htcdxj:" o; do
     case "${o}" in
         t)
-            testopts="-DBUILD_TESTS=ON"
+            testopts="-DBUILD_TESTING=ON"
             ;;
         c)
             codecovopts="-DBUILD_COVERAGE=ON"
-            testopts="-DBUILD_TESTS=ON"
+            testopts="-DBUILD_TESTING=ON"
 
             ;;
         x)

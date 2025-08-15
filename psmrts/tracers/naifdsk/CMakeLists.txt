@@ -4,7 +4,7 @@
 target_include_directories(psmrts INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 add_subdirectory( private )    # May not need this
 
-# Add test directory if BUILD_TESTS and/or BUILD_COVERAGE is set
-if( BUILD_TESTS )
+# Add test directory if BUILD_TESTING and/or BUILD_COVERAGE is set
+if( BUILD_TESTING )
   add_subdirectory(tests)
-endif( BUILD_TESTS )
+endif( BUILD_TESTING )
