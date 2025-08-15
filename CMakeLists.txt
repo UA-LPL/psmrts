@@ -17,8 +17,8 @@ option( BUILD_CAPI_APPS  "Build PMSRTS C API and APPS"  ON )
 if(BUILD_COVERAGE)
     set(BUILD_TESTING ON)
     # Product configs build up coverage targets
-    set_property(GLOBAL PROPERTY PSMRTS_COVERAGE_DEPENDENCIES "" )
-    set_property(GLOBAL PROPERTY PSMRTS_COVERAGE_EXCLUDES "")  
+    set(PSMRTS_COVERAGE_DEPENDENCIES  "")  # CACHE STRING "Code Coverage Apps" )
+    set(PSMRTS_COVERAGE_EXCLUDES      "")  # CACHE STRING "Code Coverate Excludes")  
 endif(BUILD_COVERAGE)
 
 if(BUILD_TESTING)
@@ -36,7 +36,7 @@ endif(BUILD_TESTING)
 #set(CMAKE_VISIBILITY_INLINES_HIDDEN YES)
 
 # This is PROJECT_SOURCE_DIR=psmrts
-project(PSMRTS VERSION 0.20.0 LANGUAGES CXX C)
+project(PSMRTS VERSION 0.3.0 LANGUAGES CXX C)
 set( PSMRTS_VERSION_DATE  "2025-08-03")
 include(GNUInstallDirs)
 
@@ -104,8 +104,8 @@ if( BUILD_TESTING )
     append_coverage_compiler_flags()
 
     # Exclude any instances of VCPKG
-    set( PSMRTS_COVERAGE_EXCLUDES "${PSMRTS_COVERAGE_EXCLUDES}" "build/vcpkg_installed/*" 
-                                                                "vcpkg_installed/*")  
+    set( PSMRTS_COVERAGE_EXCLUDES ${PSMRTS_COVERAGE_EXCLUDES} "build/vcpkg_installed/*" 
+                                                              "vcpkg_installed/*")  
     message("Dependencies: ${PSMRTS_COVERAGE_DEPENDENCIES}")
     message("Exclusions:   ${PSMRTS_COVERAGE_EXCLUDES}")
     message("BaseDir:      ${PSMRTS_PROJECT_DIR}")
