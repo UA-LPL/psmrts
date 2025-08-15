@@ -17,8 +17,8 @@ option( BUILD_CAPI_APPS  "Build PMSRTS C API and APPS"  ON )
 if(BUILD_COVERAGE)
     set(BUILD_TESTING ON)
     # Product configs build up coverage targets
-    set( PSMRTS_COVERAGE_DEPENDENCIES "" )
-    set( PSMRTS_COVERAGE_EXCLUDES "")  
+    set_property(GLOBAL PROPERTY PSMRTS_COVERAGE_DEPENDENCIES "" )
+    set_property(GLOBAL PROPERTY PSMRTS_COVERAGE_EXCLUDES "")  
 endif(BUILD_COVERAGE)
 
 if(BUILD_TESTING)
@@ -106,7 +106,9 @@ if( BUILD_TESTING )
     # Exclude any instances of VCPKG
     set( PSMRTS_COVERAGE_EXCLUDES "${PSMRTS_COVERAGE_EXCLUDES}" "build/vcpkg_installed/*" 
                                                                 "vcpkg_installed/*")  
-
+    message("Dependencies: ${PSMRTS_COVERAGE_DEPENDENCIES}")
+    message("Exclusions:   ${PSMRTS_COVERAGE_EXCLUDES}")
+    message("BaseDir:      ${PSMRTS_PROJECT_DIR}")
     setup_target_for_coverage_gcovr_html(
       NAME coverage
       EXECUTABLE ctest --schedule-random

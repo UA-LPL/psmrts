@@ -35,3 +35,10 @@ include( Catch )
 # Run ctest and all catch2 tests in the build directory!
 set(CMAKE_CATCH_DISCOVER_TESTS_DISCOVERY_MODE PRE_TEST)
 catch_discover_tests( psmrts_test_suite )
+
+# Update the test dependencies and excludes
+if(BUILD_COVERAGE)
+  set( PSMRTS_COVERAGE_DEPENDENCIES ${PSMRTS_COVERAGE_DEPENDENCIES} psmrts_test_suite )
+  set( PSMRTS_COVERAGE_EXCLUDES     ${PSMRTS_COVERAGE_EXCLUDES}     "${CMAKE_CURRENT_BINARY_DIR}/*" )
+endif(BUILD_COVERAGE)
+

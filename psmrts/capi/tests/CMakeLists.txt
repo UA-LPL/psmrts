@@ -40,4 +40,6 @@ add_test( NAME capi_cmocka_test_suite COMMAND capi_cmocka_test_suite WORKING_DIR
 if(BUILD_COVERAGE)
   set( PSMRTS_COVERAGE_DEPENDENCIES ${PSMRTS_COVERAGE_DEPENDENCIES} capi_test_suite  capi_cmocka_test_suite)
   set( PSMRTS_COVERAGE_EXCLUDES     ${PSMRTS_COVERAGE_EXCLUDES}     "${CMAKE_CURRENT_BINARY_DIR}/*" )
+  message("CAPI-CoverageDeps: ${PSMRTS_COVERAGE_DEPENDENCIES}")
+  message("CAPI-CoverageExcl: ${PSMRTS_COVERAGE_EXCLUDES}")
 endif(BUILD_COVERAGE)

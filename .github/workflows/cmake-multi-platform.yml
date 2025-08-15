@@ -83,7 +83,7 @@ jobs:
       #  git clone https://github.com/microsoft/vcpkg
       #  ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
       #  ./scripts/install_vcpkg_packages.sh
-       # ./scripts/build_psmrts.sh -t
+       # ./scripts/build_psmrts.sh -t  -c -d
       #  du -sh .
       
     - name: Set up MSBuild

@@ -20,7 +20,7 @@ if(BUILD_CAPI_APPS)
 endif(BUILD_CAPI_APPS)
 
 if(BUILD_TESTING)
- add_subdirectory(tests)
+  add_subdirectory(tests)
 endif(BUILD_TESTING)
 
 # add subdirectory for tests (see other test directories)

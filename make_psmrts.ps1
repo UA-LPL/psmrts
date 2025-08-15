@@ -22,7 +22,7 @@ function Show-Usage {
 .\scripts\install_vcpkg.ps1
 
 if ($t) {
-    $testopts = "-DBUILD_TESTS=ON"
+    $testopts = "-DBUILD_TESTING=ON"
 }
 
 #if ($c) {
