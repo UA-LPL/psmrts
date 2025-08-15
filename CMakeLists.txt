@@ -6,6 +6,7 @@ set( CMAKE_CXX_STANDARD_REQUIRED True )
 set( CMAKE_C_STANDARD 17 )
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+include(psmrts_log_code_coverage)
 
 # Add option to build tests and tools
 option( BUILD_TESTING    "Add PSMRTS unit tests"       OFF )
@@ -16,9 +17,8 @@ option( BUILD_CAPI_APPS  "Build PMSRTS C API and APPS"  ON )
 
 if(BUILD_COVERAGE)
     set(BUILD_TESTING ON)
-    # Product configs build up coverage targets
-    set(PSMRTS_COVERAGE_DEPENDENCIES  "")  # CACHE STRING "Code Coverage Apps" )
-    set(PSMRTS_COVERAGE_EXCLUDES      "")  # CACHE STRING "Code Coverate Excludes")  
+    # Initialize configs to build up coverage targets
+    psmrts_log_code_coverage(DEPENDENCY  EXCLUDES  )
 endif(BUILD_COVERAGE)
 
 if(BUILD_TESTING)
@@ -104,17 +104,20 @@ if( BUILD_TESTING )
     append_coverage_compiler_flags()
 
     # Exclude any instances of VCPKG
-    set( PSMRTS_COVERAGE_EXCLUDES ${PSMRTS_COVERAGE_EXCLUDES} "build/vcpkg_installed/*" 
-                                                              "vcpkg_installed/*")  
-    message("Dependencies: ${PSMRTS_COVERAGE_DEPENDENCIES}")
-    message("Exclusions:   ${PSMRTS_COVERAGE_EXCLUDES}")
+    psmrts_log_code_coverage(EXCLUDES  "build/vcpkg_installed/*;vcpkg_installed/*")
+    get_property(psmrts_cc_depends  GLOBAL PROPERTY PSMRTS_COVERAGE_DEPENDENCIES )
+    get_property(psmrts_cc_excludes GLOBAL PROPERTY PSMRTS_COVERAGE_EXCLUDES )
+
+    message("Dependencies: ${psmrts_cc_depends}")
+    message("Exclusions:   ${psmrts_cc_excludes}")
     message("BaseDir:      ${PSMRTS_PROJECT_DIR}")
+
     setup_target_for_coverage_gcovr_html(
       NAME coverage
       EXECUTABLE ctest --schedule-random
-      DEPENDENCIES   "${PSMRTS_COVERAGE_DEPENDENCIES}"
-      BASE_DIRECTORY "${PSMRTS_PROJECT_DIR}"
-      EXCLUDE        "${PSMRTS_COVERAGE_EXCLUDES}" 
+      DEPENDENCIES   "${psmrts_cc_depends}"
+      BASE_DIRECTORY "${PSMRTS_PROJECT_DIR}/build"
+      EXCLUDE        "${psmrts_cc_excludes}" 
     )
   endif(BUILD_COVERAGE)
 endif( BUILD_TESTING )
