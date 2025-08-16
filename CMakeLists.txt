@@ -103,11 +103,14 @@ if( BUILD_TESTING )
     include(CodeCoverage)
     append_coverage_compiler_flags()
 
-    # Try hard coding
+    # Try hard coding as it does seem to work without it.
     target_compile_options(psmrts INTERFACE -coverage)
     target_link_options(psmrts INTERFACE -coverage)
-    target_compile_options(psmrts_c INTERFACE -coverage)
-    target_link_options(psmrts_c INTERFACE -coverage)    
+
+    if(BUILD_CAPI)
+      target_compile_options(psmrts_c INTERFACE -coverage)
+      target_link_options(psmrts_c INTERFACE -coverage)
+    endif(BUILD_CAPI)   
 
     # Exclude any instances of VCPKG
     psmrts_log_code_coverage(EXCLUDES "build/vcpkg_installed/*;vcpkg_installed/*")
