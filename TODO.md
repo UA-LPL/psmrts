@@ -1,18 +1,17 @@
 
 ## PSMRTS TODO
 
-### Tasks for ShapeTracer Rename PR
-- [x] Rename all classes, filenames, etc..., with `ShapeTracer` to just `Tracer`. It became really difficult to draw any distinction between the two _class concepts_. It seems `Tracer` is in the spirit of `PSMRTS` meaning: `Planetary Shape Model and Ray Tracing System`. The concepts of shapes and tracers appear segregated and short.
-  - [x] Rename `formats` directory to `shapes`. Requires a bunch of code changes due to path change.
-  - [x] Update CMake files for file directory changes
-  - [x] Changed psmrts_formats_path -> psmrts_shapes_path
-  - [x] Change class names to renames impacted by changes
-- [x] Update product_specifications.md to reflex above changes
-  - [x] Update psmrts capi documentation with contents of capi header 
-  - [x] Update any capi functions that have been updated/added/changed
-- [x] Update Changelog and main CMake list to reflect version 0.2.0 due to directory changes
-- [x] Ensure builds and test on other OS
-- [x] Add Capi to be included in Doxygen
+### Tasks for PSMRTS Restructure PR#24
+- [x] Objective is to get the system building with all tests passing on all supported platforms (Linux (Ubuntu 22), MacOS (Intel and Arm) and Windows) under the new system. This goal brings us to the same state before the reorganization.
+- [x] Reorganize the project directory hierarchy that requires one include path to headers (an additional path is required for the C API as it is buildable as an option).
+- [x] Reimplement a CMAKE system to manage the new structure.
+- [x] Devise strategy to support independent testing and code coverage.
+  - [ ] Get code coverage actually reporting results.
+- [ ] Develop export and packaging options.
+- [x] Create private directory structures to support flexibility in how producer's code. For example, some developers can choose to code completely implement code that is not distributed in a binary install.
+- [ ] Minimize impact on adding/removing/changing drivers status in PSMRTS.
+- [ ] Support builds types of STATIC, SHARED and MODULE.
+- [ ] Improve PSMRTS overall ease of use and import/export.
 
 ### Tasks
 - [ ] Add `PSMRTS` facet request C API functions.
