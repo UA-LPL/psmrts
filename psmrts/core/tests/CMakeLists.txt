@@ -3,9 +3,6 @@
 # Add the catch2 package
 find_package( Catch2 CONFIG REQUIRED )
 
-# Add the test directory for includes
-set( CMAKE_INCLUDE_CURRENT_DIR ON )
-
 # Build all-in-one renderer test application
 add_executable( psmrts_test_suite  psmrts_catch2_main.cpp
                                    test_ProductParameter.cpp
@@ -34,10 +31,11 @@ include( Catch )
 
 # Run ctest and all catch2 tests in the build directory!
 set(CMAKE_CATCH_DISCOVER_TESTS_DISCOVERY_MODE PRE_TEST)
-catch_discover_tests( psmrts_test_suite )
+catch_discover_tests( psmrts_test_suite WORKING_DIRECTORY ${CMAKE_BINARY_DIR} )
 
 # Update the test dependencies and excludes
 if(BUILD_COVERAGE)
-  psmrts_log_code_coverage(DEPENDENCY "psmrts_test_suite" EXCLUDES "${CMAKE_CURRENT_BINARY_DIR}/*")
+  get_target_property(psmrts_test_sources psmrts_test_suite SOURCES)
+  psmrts_log_code_coverage(DEPENDENCY "psmrts_test_suite" EXCLUDES "${psmrts_test_sources}")
 endif(BUILD_COVERAGE)
 

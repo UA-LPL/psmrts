@@ -1,5 +1,4 @@
 # Add current directorty to include path
-target_include_directories( psmrts INTERFACE ${CMAKE_CURRENT_SOURCE_DIR} )
 
 # Add test directory if BUILD_TESTING and/or BUILD_COVERAGE is set
 add_subdirectory( core )

@@ -6,9 +6,9 @@
 
 #include <Eigen/Geometry>
 
-#include <PsmrtsUtilities.hpp>
-#include <PsmrtsTracerModel.hpp>
-#include <PsmrtsRayTrace.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsTracerModel.hpp>
+#include <psmrts/core/PsmrtsRayTrace.hpp>
 
 namespace psmrts {
 

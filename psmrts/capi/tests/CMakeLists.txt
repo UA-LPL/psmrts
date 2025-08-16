@@ -3,13 +3,6 @@
 # Add the catch2 package
 find_package( Catch2 CONFIG REQUIRED )
 
-# Add test directory for includes
-set( CMAKE_INCLUDE_CURRENT_DIR ON )
-include_directories( ${PSMRTS_PROJECT_DIR} )
-include_directories( ${PSMRTS_PROJECT_DIR}/psmrts )
-include_directories( ${PSMRTS_PROJECT_DIR}/psmrts/core)
-include_directories( ${PSMRTS_PROJECT_DIR}/psmrts/core/tests )
-
 # Build all-in-one renderer test application
 add_executable( capi_test_suite  capi_catch2_main.cpp
                                  test_PsmrtsCAPI.cpp )
@@ -38,5 +31,8 @@ add_test( NAME capi_cmocka_test_suite COMMAND capi_cmocka_test_suite WORKING_DIR
 
 # Update the test dependencies and excludes
 if(BUILD_COVERAGE)
-  psmrts_log_code_coverage(DEPENDENCY "capi_test_suite;capi_cmocka_test_suite" EXCLUDES "${CMAKE_CURRENT_BINARY_DIR}/*")
+  get_target_property(capi_test_sources   capi_test_suite SOURCES)
+  get_target_property(cmocka_test_sources capi_cmocka_test_suite SOURCES)
+  psmrts_log_code_coverage(DEPENDENCY "capi_test_suite"        EXCLUDES "${capi_test_sources}")
+  psmrts_log_code_coverage(DEPENDENCY "capi_cmocka_test_suite" EXCLUDES "${cmocka_test_sources}")
 endif(BUILD_COVERAGE)

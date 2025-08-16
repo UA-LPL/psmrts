@@ -23,7 +23,7 @@
 
 #include <Eigen/Geometry>
 
-#include <psmrts_version.h>
+#include <psmrts/core/psmrts_version.h>
 
 // Different versions of the JSON library are not ABI compatible.
 // When you enable JSON diagnostics, it will also cause similar

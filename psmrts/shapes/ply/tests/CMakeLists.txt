@@ -3,9 +3,6 @@
 # Add the catch2 package
 find_package( Catch2 CONFIG REQUIRED )
 
-# Add the test directory for includes
-set( CMAKE_INCLUDE_CURRENT_DIR ON )
-
 # Build all-in-one render test application
 add_executable( ply_test_suite ply_catch2_main.cpp
                                test_PlyShape.cpp
@@ -24,5 +21,6 @@ catch_discover_tests( ply_test_suite WORKING_DIRECTORY ${CMAKE_BINARY_DIR} )
 
 # Update the test dependencies and excludes
 if(BUILD_COVERAGE)
-  psmrts_log_code_coverage(DEPENDENCY "ply_test_suite" EXCLUDES "${CMAKE_CURRENT_BINARY_DIR}/*")
+  get_target_property(ply_test_sources ply_test_suite SOURCES)
+  psmrts_log_code_coverage(DEPENDENCY "ply_test_suite" EXCLUDES "${ply_test_sources}")
 endif(BUILD_COVERAGE)

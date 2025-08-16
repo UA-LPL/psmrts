@@ -14,7 +14,7 @@ while getopts ":htcdxj:" o; do
             testopts="-DBUILD_TESTING=ON"
             ;;
         c)
-            codecovopts="-DBUILD_COVERAGE=ON"
+            codecovopts="-DBUILD_COVERAGE=ON" #  "-DCODE_COVERAGE_VERBOSE=ON"
             testopts="-DBUILD_TESTING=ON"
 
             ;;

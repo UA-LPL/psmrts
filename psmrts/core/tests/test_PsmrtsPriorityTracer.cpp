@@ -1,5 +1,5 @@
 
-#include <psmrts_catch2_environment.hpp>
+#include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
 #include <psmrts/core/PsmrtsPriorityTracer.hpp>
 #include <psmrts/tracers/PsmrtsTracer.hpp>

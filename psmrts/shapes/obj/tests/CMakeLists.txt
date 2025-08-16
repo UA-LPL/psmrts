@@ -3,8 +3,6 @@
 # Add the catch2 package
 find_package( Catch2 CONFIG REQUIRED )
 
-# Add the test directory for includes#set( CMAKE_INCLUDE_CURRENT_DIR ON )
-
 # Build all-in-one renderer test application
 add_executable( obj_test_suite  obj_catch2_main.cpp
                                 test_ObjShape.cpp
@@ -25,5 +23,6 @@ catch_discover_tests( obj_test_suite WORKING_DIRECTORY ${CMAKE_BINARY_DIR} )
 
 # Update the test dependencies and excludes
 if(BUILD_COVERAGE)
-  psmrts_log_code_coverage(DEPENDENCY "obj_test_suite" EXCLUDES "${CMAKE_CURRENT_BINARY_DIR}/*")
+  get_target_property(obj_test_sources obj_test_suite SOURCES)
+  psmrts_log_code_coverage(DEPENDENCY "obj_test_suite" EXCLUDES "${obj_test_sources}")
 endif(BUILD_COVERAGE)

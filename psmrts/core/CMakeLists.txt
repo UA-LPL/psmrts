@@ -1,6 +1,21 @@
 # Add sources current directory to include path
-target_sources( psmrts PUBLIC PsmrtsProduct.hpp )
-target_include_directories( psmrts INTERFACE ${CMAKE_CURRENT_SOURCE_DIR} )
+target_sources( psmrts PUBLIC PsmrtsMeshData.hpp
+                              PsmrtsStridingBuffer.hpp
+                              ProductParameter.hpp
+                              PsmrtsParameters.hpp
+                              PsmrtsTracerModel.hpp
+                              ProductProcessDispatch.hpp
+                              PsmrtsPriorityTracer.hpp
+                              PsmrtsUtilities.hpp
+                              ProductRequest.hpp
+                              PsmrtsProduct.hpp
+                              PsmrtsVector3.hpp
+                              ProductSpecification.hpp
+                              PsmrtsRayTrace.hpp
+                              PsmrtsBuffer.hpp
+                              PsmrtsRequest.hpp
+                              PsmrtsBufferData.hpp
+                              PsmrtsShapeTracerAdapter.hpp )
 
 # Only add if requested
 if(BUILD_TESTING)

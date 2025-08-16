@@ -3,7 +3,7 @@
 #include <string>
 #include <Eigen/Geometry>
 
-#include "psmrts_version.h"
+#include <psmrts/core/psmrts_version.h>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsBufferData.hpp>

@@ -9,14 +9,14 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <psmrts_version.h>
+#include <psmrts/core/psmrts_version.h>
 #include "psmrts_test_config.h"
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 
 // Ensure this is on for all tests!
 #define PSMRTS_BOUNDS_CHECK 1
-#include <PsmrtsBufferData.hpp>
+#include <psmrts/core/PsmrtsBufferData.hpp>
 
 /** Root path which is directory above ./build */
 inline std::string psmrts_rootpath( ) {
