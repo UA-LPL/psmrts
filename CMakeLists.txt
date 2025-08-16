@@ -103,7 +103,7 @@ if( BUILD_TESTING )
     include(CodeCoverage)
     append_coverage_compiler_flags()
 
-    # Try hard coding as it does seem to work without it.
+    # Try hard coding coverage flags as it does not seem to work without it.
     target_compile_options(psmrts INTERFACE -coverage)
     target_link_options(psmrts INTERFACE -coverage)
 
