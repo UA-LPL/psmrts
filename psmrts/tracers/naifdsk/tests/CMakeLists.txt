@@ -32,5 +32,6 @@ catch_discover_tests( naif_test_suite WORKING_DIRECTORY ${CMAKE_BINARY_DIR} )
 # Update the test dependencies and excludes
 if(BUILD_COVERAGE)
   get_target_property(naif_test_sources naif_test_suite SOURCES)
+  list(TRANSFORM naif_test_sources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/" )
   psmrts_log_code_coverage(DEPENDENCY "naif_test_suite" EXCLUDES "${naif_test_sources}")
 endif(BUILD_COVERAGE)

@@ -33,6 +33,14 @@ add_test( NAME capi_cmocka_test_suite COMMAND capi_cmocka_test_suite WORKING_DIR
 if(BUILD_COVERAGE)
   get_target_property(capi_test_sources   capi_test_suite SOURCES)
   get_target_property(cmocka_test_sources capi_cmocka_test_suite SOURCES)
+
+  list(TRANSFORM capi_test_sources   PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/" )
+  list(TRANSFORM cmocka_test_sources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/" )
+
   psmrts_log_code_coverage(DEPENDENCY "capi_test_suite"        EXCLUDES "${capi_test_sources}")
   psmrts_log_code_coverage(DEPENDENCY "capi_cmocka_test_suite" EXCLUDES "${cmocka_test_sources}")
+
+  # Some additional sources in PSMRTS C API sources
+  psmrts_log_code_coverage(EXCLUDES "capi/apps/psmrts_capi_features.cpp")
+
 endif(BUILD_COVERAGE)

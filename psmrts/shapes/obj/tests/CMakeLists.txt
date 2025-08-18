@@ -24,5 +24,6 @@ catch_discover_tests( obj_test_suite WORKING_DIRECTORY ${CMAKE_BINARY_DIR} )
 # Update the test dependencies and excludes
 if(BUILD_COVERAGE)
   get_target_property(obj_test_sources obj_test_suite SOURCES)
+  list(TRANSFORM obj_test_sources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/" )
   psmrts_log_code_coverage(DEPENDENCY "obj_test_suite" EXCLUDES "${obj_test_sources}")
 endif(BUILD_COVERAGE)

@@ -22,5 +22,6 @@ catch_discover_tests( ply_test_suite WORKING_DIRECTORY ${CMAKE_BINARY_DIR} )
 # Update the test dependencies and excludes
 if(BUILD_COVERAGE)
   get_target_property(ply_test_sources ply_test_suite SOURCES)
+  list(TRANSFORM ply_test_sources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/" )
   psmrts_log_code_coverage(DEPENDENCY "ply_test_suite" EXCLUDES "${ply_test_sources}")
 endif(BUILD_COVERAGE)

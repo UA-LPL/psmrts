@@ -15,6 +15,11 @@ option( BUILD_EXTRAS     "Add PSMRTS tools extras"     OFF )
 option( BUILD_CAPI       "Build PSMRTS C API"           ON )
 option( BUILD_CAPI_APPS  "Build PMSRTS C API and APPS"  ON )
 
+if(BUILD_CAPI_APPS)
+  # Ensure we build the complete C API
+  set(BUILD_CAPI ON)
+endif(BUILD_CAPI_APPS)
+
 if(BUILD_COVERAGE)
     set(BUILD_TESTING ON)
     # Initialize configs to build up coverage targets
@@ -104,30 +109,32 @@ if( BUILD_TESTING )
     append_coverage_compiler_flags()
 
     # Try hard coding coverage flags as it does not seem to work without it.
-    target_compile_options(psmrts INTERFACE -coverage)
-    target_link_options(psmrts INTERFACE -coverage)
+    target_compile_options(psmrts INTERFACE -g0 -coverage)
+    target_link_options(psmrts    INTERFACE -g0 -coverage)
 
     if(BUILD_CAPI)
-      target_compile_options(psmrts_c INTERFACE -coverage)
-      target_link_options(psmrts_c INTERFACE -coverage)
+      target_compile_options(psmrts_c INTERFACE -g0 -coverage)
+      target_link_options(psmrts_c    INTERFACE -g0 -coverage)
     endif(BUILD_CAPI)   
 
     # Exclude any instances of VCPKG
-    psmrts_log_code_coverage(EXCLUDES "build/vcpkg_installed/*;vcpkg_installed/*")
+    psmrts_log_code_coverage(EXCLUDES "${CMAKE_BINARY_DIR}/vcpkg_installed/*")
+    psmrts_log_code_coverage(EXCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg_installed/*")
+    psmrts_log_code_coverage(EXCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/*")
     get_property(psmrts_cc_depends  GLOBAL PROPERTY PSMRTS_COVERAGE_DEPENDENCIES )
     get_property(psmrts_cc_excludes GLOBAL PROPERTY PSMRTS_COVERAGE_EXCLUDES )
 
     if(CODE_COVERAGE_VERBOSE)
       message("CC_Dependencies: ${psmrts_cc_depends}")
       message("CC_Exclusions:   ${psmrts_cc_excludes}")
-      message("CC_BaseDir:      ${PROJECT_BINARY_DIR}")
+      message("CC_BaseDir:      ${PSMRTS_SOURCE_DIR}/psmrts")
     endif(CODE_COVERAGE_VERBOSE)
 
     setup_target_for_coverage_gcovr_html(
       NAME coverage
       EXECUTABLE ctest --schedule-random
       DEPENDENCIES   "${psmrts_cc_depends}"
-      BASE_DIRECTORY "${PROJECT_BINARY_DIR}"
+      BASE_DIRECTORY "${PSMRTS_SOURCE_DIR}/psmrts"
       EXCLUDE        "${psmrts_cc_excludes}" 
     )
   endif(BUILD_COVERAGE)
