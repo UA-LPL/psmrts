@@ -6,7 +6,7 @@ set( CMAKE_CXX_STANDARD_REQUIRED True )
 set( CMAKE_C_STANDARD 17 )
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-include(psmrts_log_code_coverage)
+include(psmrts_register_code_coverage)
 
 # Add option to build tests and tools
 option( BUILD_TESTING    "Add PSMRTS unit tests"       OFF )
@@ -23,7 +23,7 @@ endif(BUILD_CAPI_APPS)
 if(BUILD_COVERAGE)
     set(BUILD_TESTING ON)
     # Initialize configs to build up coverage targets
-    psmrts_log_code_coverage(DEPENDENCY  EXCLUDES  )
+    psmrts_register_code_coverage(DEPENDENCY  EXCLUDES  )
 endif(BUILD_COVERAGE)
 
 if(BUILD_TESTING)
@@ -118,9 +118,9 @@ if( BUILD_TESTING )
     endif(BUILD_CAPI)   
 
     # Exclude any instances of VCPKG
-    psmrts_log_code_coverage(EXCLUDES "${CMAKE_BINARY_DIR}/vcpkg_installed/*")
-    psmrts_log_code_coverage(EXCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg_installed/*")
-    psmrts_log_code_coverage(EXCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/*")
+    psmrts_register_code_coverage(EXCLUDES "${CMAKE_BINARY_DIR}/vcpkg_installed/*")
+    psmrts_register_code_coverage(EXCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg_installed/*")
+    psmrts_register_code_coverage(EXCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/*")
     get_property(psmrts_cc_depends  GLOBAL PROPERTY PSMRTS_COVERAGE_DEPENDENCIES )
     get_property(psmrts_cc_excludes GLOBAL PROPERTY PSMRTS_COVERAGE_EXCLUDES )
 

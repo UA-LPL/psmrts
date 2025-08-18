@@ -24,5 +24,5 @@ catch_discover_tests( ellipsoid_test_suite WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 if(BUILD_COVERAGE)
   get_target_property(ellipsoid_test_sources ellipsoid_test_suite SOURCES)
   list(TRANSFORM ellipsoid_test_sources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/" )
-  psmrts_log_code_coverage(DEPENDENCY "ellipsoid_test_suite" EXCLUDES "${ellipsoid_test_sources}")
+  psmrts_register_code_coverage(DEPENDENCY "ellipsoid_test_suite" EXCLUDES "${ellipsoid_test_sources}")
 endif(BUILD_COVERAGE)
