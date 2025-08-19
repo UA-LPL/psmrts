@@ -242,11 +242,15 @@ namespace naif {
                              const Eigen::Vector3d &lookdir,
                              const DskSegment &segment, 
                              psmrts::PsmrtsRayTrace &ray ) const {
+        return ( this->ray_trace( segment, ray.reset( observer, lookdir) ) );
+      }
+
+      inline bool ray_trace( const DskSegment &segment, 
+                             psmrts::PsmrtsRayTrace &ray ) const {                              
 
         // Lock up NAIF file I/O for thread safety ( >=c++17 )
         std::scoped_lock mylocker( this->mutex() );
 
-        ray.reset( observer, lookdir );
         psmrts::PsmrtsRayTrace::RayTraceDatum &datum_r = ray.datum();
         datum_r.m_segment  = segment.id();
 
@@ -282,12 +286,16 @@ namespace naif {
        * @return true 
        * @return false 
        */
-      virtual bool ray_trace( const Eigen::Vector3d &observer, 
+      inline bool ray_trace( const Eigen::Vector3d &observer, 
                               const Eigen::Vector3d &lookdir,
                               psmrts::PsmrtsRayTrace &ray ) const {
+        return( this->ray_trace( ray.reset( observer, lookdir) ) );
+      }
+
+      inline bool ray_trace( psmrts::PsmrtsRayTrace &ray ) const {
         m_tracker++;
         for ( auto const &segment : segments() ) {
-          bool has_hit = this->ray_trace( observer, lookdir, segment, ray );
+          bool has_hit = this->ray_trace( segment, ray );
           if ( true == has_hit ) {
             return ( has_hit );
           }
@@ -296,6 +304,7 @@ namespace naif {
         // No intercept found in any segment
         return ( false );
       }
+
 
     /**
        * @brief Get the facet for the specified plateid and segment
@@ -307,8 +316,8 @@ namespace naif {
        * @return true 
        * @return false 
        */
-      virtual bool get_facet( const psmrts::PsmrtsRayTrace &ray,
-                              psmrts::PsmrtsRayTrace::FacetDatum &facet ) const {
+      inline bool get_facet( const psmrts::PsmrtsRayTrace &ray,
+                             psmrts::PsmrtsRayTrace::FacetDatum &facet ) const {
                 
         // Sanity check validity of raytrace
         facet.m_has_facet = false;

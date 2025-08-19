@@ -61,6 +61,10 @@ namespace psmrts {
 
           /** Generalized initialization */
           ray_trace_datum() { init( ); }
+          ray_trace_datum(const Eigen::Vector3d &observer, 
+                          const Eigen::Vector3d &lookdir) { 
+            this->reset( observer, lookdir ); 
+          }
           ~ray_trace_datum() { } 
 
           /** Returns true ray contains an intercept on the shape */
@@ -104,10 +108,8 @@ namespace psmrts {
       // Constructors
       PsmrtsRayTrace() : m_trace_datum() { }
       PsmrtsRayTrace( const Eigen::Vector3d &observer, 
-                      const Eigen::Vector3d &lookdir ) : 
-                m_trace_datum() { 
-        m_trace_datum.m_observer = observer;
-        m_trace_datum.m_lookdir  = lookdir;
+                      const Eigen::Vector3d &lookdir )  { 
+        this->reset( observer, lookdir );
       }
       PsmrtsRayTrace(const RayTraceDatum &ray_t ) : m_trace_datum( ray_t ) { }
 
@@ -238,15 +240,26 @@ namespace psmrts {
       }
 
       /** Resets/clears the last result and sets to default state */
-      inline void reset( ) {
+      inline PsmrtsRayTrace &reset( ) {
         datum().reset( );
+        return ( *this );
       }
 
       /** Resets/clears the last result and sets to observer state */
-      inline void reset( const Eigen::Vector3d &observer, 
-                         const Eigen::Vector3d &lookdir ) {
+      inline PsmrtsRayTrace &reset( const Eigen::Vector3d &observer, 
+                                    const Eigen::Vector3d &lookdir ) {
         datum().reset( observer, lookdir );
+        return ( *this );
       }
+
+      /** Sets observer/lookdir whilst preserving facet/hit state */
+      inline PsmrtsRayTrace &set_observer_state( const Eigen::Vector3d &observer, 
+                                                 const Eigen::Vector3d &lookdir ) {
+        datum().m_observer = observer;
+        datum().m_lookdir = lookdir;
+        return ( *this );
+      }
+
 
       /** Ensures look direction value is not null or zero, returns false/throws error if case of either condition */
       inline bool validate_lookdir( const bool throwOnError = true ) const {

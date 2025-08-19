@@ -84,8 +84,8 @@ namespace psmrts  {
        * @return false   If no ray trace intercept was found
        */
       inline bool ray_trace( const double *observer, 
-                      const double *lookdir,
-                      double *xyz, double *normal ) const {
+                             const double *lookdir,
+                             double *xyz, double *normal ) const {
 
         SpiceBoolean found;
         (void) surfpt_c( observer, lookdir,

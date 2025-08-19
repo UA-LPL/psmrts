@@ -96,12 +96,17 @@ namespace psmrts  {
        * @return false   If no ray trace intercept was found
        */
       inline bool ray_trace( const Eigen::Vector3d &observer,
-                              const Eigen::Vector3d &lookdir,
-                              PsmrtsRayTrace &ray ) const {
+                             const Eigen::Vector3d &lookdir,
+                             PsmrtsRayTrace &ray ) const {
         // this->local_tracker()++;
-        return ( m_model.ray_trace( observer, lookdir, ray ) );
+        return ( this->ray_trace( ray.reset( observer, lookdir) ) );
       }
 
+      inline bool ray_trace( PsmrtsRayTrace &ray ) const {
+        // this->local_tracker()++;
+        return ( m_model.ray_trace(  ray ) );
+      }
+            
       /**
        * @brief Get the facet object at the ray intersection
        * 
@@ -113,18 +118,7 @@ namespace psmrts  {
                               PsmrtsRayTrace::FacetDatum &facet ) const {
         return ( m_model.get_facet( ray, facet ) );
       }
-#if 0
 
-      /** Clone a copy of this shape tracer model */
-      virtual PsmrtsTracerModel *clone() const {
-        return ( new NaifDskTracerModel( m_model ) );
-      }
-
-      /** Return an ellipsoid tracer for the shape */
-      virtual PsmrtsTracerModel *ellipsoid() const {
-        return ( new EllipsoidTracerModel( m_model.radii() ) );
-      }
-#endif    
       /** Returns a new DSK tracer model using target surface ID */
       inline NaifDskTracerModel *tracer_from_id( const int surfaceId ) const {
         if ( nullptr != m_model.get_segment_with_id( surfaceId ) ) {

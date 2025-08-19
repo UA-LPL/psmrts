@@ -162,7 +162,7 @@ namespace psmrts  {
       }
 
       /**
-       * @brief Bullet Virtual Ray Trace Method
+       * @brief Bullet Ray Trace Method
        * 
        * Deriving classes must implement this method as is specified for 
        * shape models.
@@ -182,9 +182,14 @@ namespace psmrts  {
                               const Eigen::Vector3d &lookdir,
                               PsmrtsRayTrace &ray ) const {
         // this->local_tracker()++;
-        return ( m_model.ray_trace( observer, lookdir, ray ) );
+        return ( this->ray_trace( ray.reset( observer, lookdir ) ) );
       }
       
+      inline bool ray_trace( PsmrtsRayTrace &ray ) const {
+        // Let the model do it!
+        return ( m_model.ray_trace( ray ) );
+      }
+            
       static inline ProductSpecification product_specifications() {
         char text[] = R"(
         {
