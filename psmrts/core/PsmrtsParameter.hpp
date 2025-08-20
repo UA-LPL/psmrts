@@ -1,5 +1,4 @@
-#ifndef PsmrtsParameter_hpp
-#define PsmrtsParameter_hpp
+#pragma once
 
 #include <type_traits>
 #include <iterator>
@@ -30,16 +29,16 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
   class PsmrtsParameter {
     public:
       /*** Default is micrometer precision */
-      inline static const double Precision_d = 9;
-      using DataTypes = std::variant<
-                                      bool,
+      inline static const size_t DigitsPrecision = 9;
+      inline static const double DoubleTolerance = 1.0e-9;
+      using DataTypes = std::variant< bool,
                                       int, 
                                       double,
                                       std::string, 
                                       std::vector<int>,
                                       std::vector<double>,
                                       std::vector<std::string>,
-                                      ordered_json>;
+                                      ordered_json >;
       using DataEnums = enum {
                               PsmrtsBoolean,
                               PsmrtsInteger,
@@ -58,6 +57,8 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
                                 m_name( psmrts_tolower(name) ), m_data( i_data ), m_enum( PsmrtsInteger ) { }
       explicit PsmrtsParameter( const std::string &name, const double d_data ) : 
                                 m_name( psmrts_tolower(name) ), m_data( d_data ), m_enum( PsmrtsDouble ) { }
+      explicit PsmrtsParameter( const std::string &name, const char *s_text ) : 
+                                m_name( psmrts_tolower(name) ), m_data( std::string(s_text) ), m_enum( PsmrtsString ) { }                                  
       explicit PsmrtsParameter( const std::string &name, const std::string &s_data ) : 
                                 m_name( psmrts_tolower(name) ), m_data( s_data ), m_enum( PsmrtsString ) { }  
       explicit PsmrtsParameter( const std::string &name, const std::initializer_list<int> &i_array ) : 
@@ -84,6 +85,11 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
         return ( m_name );
       }
 
+      /** Returns the enumerated type as stored in the variant */
+      inline DataEnums type() const {
+        return ( m_enum );
+      }
+
       /** Returns size of the Parameters */
       inline size_t size() const {
         const auto visitor = overload{
@@ -97,6 +103,27 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
 
           return ( std::visit(visitor, m_data) );
         }
+
+      /**
+       * @brief Variant Visitor interface
+       * 
+       * Developers can call this with their own containers and conversions
+       * methods for each of the types contained in the PsmrtsParamter data
+       * set. This is required - to provide an operator for every type in
+       * the PsmrtsParameter::DataTypes variant. 
+       * 
+       * See the DoubleVisitor, IntegerVisitor and StringVisitor visitor
+       * functors below.
+       * 
+       * @tparam T       A visitor functor or overload lambda function set 
+       *                   to PsmrtsParametet
+       * @param visitor 
+       */
+      template <typename T>
+        inline void get_to( T &visitor ) const {
+          std::visit( visitor, m_data );
+        }
+
 
       inline std::string to_string() const {
         return ( std::visit( [&] ( auto &&datum ) -> std::string { 
@@ -115,53 +142,58 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
       }
 
 
-    protected:
-      inline std::string to_string( const int i_data ) const {
+      // Static API to use for consistent covnversions. See visitor
+      // functors below.
+
+      inline static std::string to_string( const bool b_data ) {
+         return( ( b_data ? "true" : "false" ) );
+      }
+
+      inline static std::string to_string( const int i_data ) {
         return ( std::to_string( i_data ) );
       }
 
-      inline std::string to_string( const double d_data, 
-                                    const size_t ndigits = Precision_d ) const {
+      inline static std::string to_string( const double d_data, 
+                                           const size_t ndigits = PsmrtsParameter::DigitsPrecision )  {
 
         if ( isnull( d_data ) ) return ( "null" );
 
         // For all other cases
         std::ostringstream out;
-        out.precision(ndigits);
-        out << std::fixed << d_data;
+        out << std::fixed << std::setprecision(ndigits) << d_data;
         return ( out.str() );        
       }
       
       /** Convert a integer vector to string */
-      inline std::string to_string( const std::vector<int> i_array,
-                                    const std::tuple<std::string,std::string> &enclosures= { "[", "]" } ) const {
+      inline static std::string to_string( const std::vector<int> i_array,
+                                           const std::tuple<std::string,std::string> &enclosures= { "[", "]" } ) {
 
         std::string s_array = std::get<0>( enclosures );
 
         std::string comma = "";
         for ( const auto i : i_array ) {
-          s_array += ( psmrts_concate( comma, this->to_string( i ) ) );
+          s_array += ( psmrts_concate( comma, PsmrtsParameter::to_string( i ) ) );
           comma = ",";
         }
         return ( psmrts_concate( s_array, std::get<1>( enclosures ) ) );        
       } 
       
-      inline std::string to_string( const std::vector<double> d_array,
-                                    const std::tuple<std::string,std::string> &enclosures= { "[", "]" }, 
-                                    const size_t ndigits = Precision_d ) const {
+      inline static std::string to_string( const std::vector<double> d_array,
+                                           const std::tuple<std::string,std::string> &enclosures= { "[", "]" }, 
+                                           const size_t ndigits = DigitsPrecision ) {
 
         std::string s_array =  std::get<0>( enclosures );
 
         std::string comma = "";
         for ( const auto d : d_array ) {
-          s_array += ( psmrts_concate( comma, this->to_string( d, ndigits ) ) );
+          s_array += ( psmrts_concate( comma, PsmrtsParameter::to_string( d, ndigits ) ) );
           comma = ",";
         }
         return ( psmrts_concate( s_array,  std::get<1>( enclosures ) ) );        
       } 
 
-      inline std::string to_string( const std::vector<std::string> s_array,
-                                    const std::tuple<std::string,std::string> &enclosures= { "[", "]" } ) const {
+      inline static std::string to_string( const std::vector<std::string> s_array,
+                                           const std::tuple<std::string,std::string> &enclosures= { "[", "]" } ) {
 
         std::string s_out = std::get<0>( enclosures );
 
@@ -173,7 +205,7 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
         return ( psmrts_concate( s_out, std::get<1>( enclosures ) ) );        
       } 
 
-      inline std::string to_string( const ordered_json &j_data ) const {
+      inline static std::string to_string( const ordered_json &j_data ) {
         return ( j_data.dump() );        
       } 
       
@@ -190,5 +222,262 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
       DataEnums   m_enum;
   };      
 
+  
+
+/** Defines a double value visitor with common conversions */
+  class DoubleVisitor {
+    public:
+      DoubleVisitor() : m_name("double"), m_doubles{}, m_default( psmrts::null()  ) { }
+      DoubleVisitor(const double default_value ) : 
+                     m_name("double"), 
+                     m_doubles{},
+                     m_default( default_value ) { }
+      DoubleVisitor(const std::string &name, const int default_value = psmrts::null() ) : 
+                     m_name(name), m_doubles{}, m_default( default_value ) { }
+      virtual ~DoubleVisitor() { }
+
+
+      inline void operator()( const bool b ) {
+        m_doubles.push_back( ( b ? 1.0 : 0.0 ) );
+      }
+
+      inline void operator()( const int i )  {
+        m_doubles.push_back( i );
+      }    
+
+      inline void operator()( const double d ) {
+        m_doubles.push_back( d );
+      }
+
+      inline void operator()( const std::string &s ) {
+        if ( !this->convert_and_add( s )  ) {
+          // Do something!
+        }
+      }    
+
+      inline void operator()( const std::vector<int> &i_array ) {
+        m_doubles.insert(m_doubles.end(), i_array.begin(), i_array.end() );
+      }
+
+
+      inline void operator()( const std::vector<double> &d_array ) {
+        m_doubles.insert(m_doubles.end(), d_array.begin(), d_array.end() );
+      }
+      
+      inline void operator()( const std::vector<std::string> &s_array ) {
+        for ( auto const &s : s_array ) { 
+          if ( !this->convert_and_add( s )  ) {
+            // Do something!
+          }
+        }
+      }      
+
+      inline void operator()( const ordered_json &j_data ) {
+        return;
+      }
+      
+
+      inline const std::string name() const {
+        return ( m_name);
+      }
+
+      inline size_t size() const {
+        return ( m_doubles.size() );
+      }
+
+      inline double get( const int nth = 0 ) const {
+        if ( this->size() <= nth ) return ( m_default );
+        return ( m_doubles[nth] );
+      }
+
+      inline const std::vector<double> &array( ) const {
+        return ( m_doubles );
+      }
+
+      inline const double *data( ) const {
+        if ( this->size() == 0 ) return ( nullptr );
+        return ( m_doubles.data() );
+      }      
+
+      inline void set_name( const std::string &name) {
+        m_name = name;
+      }
+
+      std::string                m_name;
+      PsmrtsParameter::DataEnums m_type;
+      std::vector<double>        m_doubles;
+      double                     m_default;
+
+      inline bool convert_and_add( const std::string &s ) {
+        try {
+          double d = std::stod( s );
+          m_doubles.push_back( d );
+          return ( true );
+        }
+        catch ( ... ) {
+          // noop
+        }
+        return ( false );
+      }
+  };  
+
+  
+/** Defines an integer value visitor with common conversions */
+  class IntegerVisitor {
+    public:
+      IntegerVisitor() : m_name("integer"), m_integers{}, m_default( 0 ) { }
+      IntegerVisitor(const int default_value ) : 
+                     m_name("integer"), 
+                     m_integers{},
+                     m_default( default_value ) { }
+      IntegerVisitor(const std::string &name, const int default_value = 0 ) : 
+                     m_name(name), m_integers{}, m_default( default_value ) { }
+      virtual ~IntegerVisitor() { }
+
+
+      inline void operator()( const bool b ) {
+        m_integers.push_back( ( b ? 1 : 0 ) );
+      }
+
+      inline void operator()( const int i )  {
+        m_integers.push_back( i );
+      }          
+
+      inline void operator()( const double d ) {
+        m_integers.push_back( d );
+      }
+
+      inline void operator()( const std::string &s ) {
+      }    
+
+      inline void operator()( const std::vector<double> d_array ) {
+        m_integers.insert(m_integers.end(), d_array.begin(), d_array.end() );
+      }
+
+      inline void operator()( const std::vector<int> i_array ) {
+        m_integers.insert(m_integers.end(), i_array.begin(), i_array.end() );
+      }
+
+      
+      inline void operator()( const std::vector<std::string> &s_array ) {
+      }      
+
+      inline void operator()( const ordered_json &j_data ) {
+        return;
+      }
+      
+      
+      inline const std::string name() const {
+        return ( m_name);
+      }
+
+      inline size_t size() const {
+        return ( m_integers.size() );
+      }
+
+      inline int get( const int nth = 0 ) const {
+        if ( this->size() <= nth ) return ( m_default );
+        return ( m_integers[nth] );
+      }
+
+      inline const std::vector<int> &array( ) const {
+        return ( m_integers );
+      }
+
+      inline const int *data( ) const {
+        if ( this->size() == 0 ) return ( nullptr );
+        return ( m_integers.data() );
+      }      
+
+      inline void set_name( const std::string &name) {
+        m_name = name;
+      }
+
+
+      std::string                m_name;
+      PsmrtsParameter::DataEnums m_type;
+      std::vector<int>           m_integers;
+      int                        m_default;
+  };  
+
+/** Defines an integer value visitor with common conversions */
+  class StringVisitor {
+    public:
+      inline static const size_t DigitsPrecision = PsmrtsParameter::DigitsPrecision;
+
+      StringVisitor() : m_name("string"), m_strings{}, m_default( "" ) { }
+      StringVisitor(const std::string &name, const std::string default_value = "" ) : 
+                     m_name(name), m_strings{}, m_default( default_value ) { }
+      virtual ~StringVisitor() { }
+
+      inline void operator()(const bool b ) {
+        m_strings.push_back( PsmrtsParameter::to_string( b) );
+      }
+
+      inline void operator()( const int i )  {
+        m_strings.push_back( PsmrtsParameter::to_string( i ) );
+      }    
+
+      inline void operator()( const double d ) {
+        m_strings.push_back( PsmrtsParameter::to_string( d ) );
+      }
+
+      inline void operator()( const std::string &s ) {
+        m_strings.push_back( s );
+      }    
+
+      inline void operator()( const std::vector<int> i_array ) {
+        for (const auto &i_value : i_array ) {
+          m_strings.push_back( PsmrtsParameter::to_string( i_value ) );
+        }
+      }
+
+      inline void operator()( const std::vector<double> &d_array ) {
+        for ( auto const &d_value : d_array ) {
+          m_strings.push_back( PsmrtsParameter::to_string( d_value ) );
+        }
+      }
+      
+      inline void operator()( const std::vector<std::string> &s_array ) {
+        m_strings.insert( m_strings.end(), s_array.begin(), s_array.end() );
+      }      
+      
+      inline void operator()( const ordered_json &j_data ) {
+        m_strings.push_back( j_data.dump() );
+      }
+      
+
+      inline const std::string name() const {
+        return ( m_name);
+      }
+
+      inline size_t size() const {
+        return ( m_strings.size() );
+      }
+
+      inline const std::string &get( const int nth = 0 ) const {
+        if ( this->size() <= nth ) return ( m_default );
+        return ( m_strings[nth] );
+      }
+
+      inline const std::vector<std::string> &array( ) const {
+        return ( m_strings );
+      }
+
+      inline const std::string *data( ) const {
+        if ( this->size() == 0 ) return ( nullptr );
+        return ( m_strings.data() );
+      }      
+
+      inline void set_name( const std::string &name) {
+        m_name = name;
+      }
+
+      std::string                m_name;
+      PsmrtsParameter::DataEnums m_type;
+      std::vector<std::string>   m_strings;
+      std::string                m_default;
+  };  
+
+
 } // namespace psmrts
-#endif
