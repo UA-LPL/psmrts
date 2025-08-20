@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 
+#include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 
 namespace psmrts::algorithms  {
@@ -25,10 +26,6 @@ namespace psmrts::algorithms  {
    */
 
 
-  /** Concatenate two strings into one convenience fuction */
-  inline std::string concate_s(const std::string &s1, const std::string &s2 ) {
-    return ( s1 + s2 );
-  }
 
   /* @brief Tracer Ray Trace Processor
   * 
@@ -50,7 +47,7 @@ namespace psmrts::algorithms  {
         return ( tracer.ray_trace( trace.trace() ) );
       }
       catch ( const std::exception &e ) {
-        trace.add_error( std::runtime_error( concate_s("*** process_basic_trace() error: ", e.what() ) ) );
+        trace.add_error( std::runtime_error( psmrts_concate("*** process_basic_trace() error: ", e.what() ) ) );
         return ( false );
       }
 
@@ -83,7 +80,7 @@ namespace psmrts::algorithms  {
           }
         }
         catch ( const std::exception &e ) {
-          trace.add_error( std::runtime_error( concate_s("*** process_basic_trace_array() error: ", e.what() ) ) );
+          trace.add_error( std::runtime_error( psmrts_concate("*** process_basic_trace_array() error: ", e.what() ) ) );
         }
       }
       
@@ -111,7 +108,7 @@ namespace psmrts::algorithms  {
         return ( tracer.get_facet( facet.trace(), facet.facet() ) );
       }
       catch ( const std::exception &e ) {
-        facet.add_error( std::runtime_error( concate_s("*** process_basic_facet() error: ", e.what() ) ) );
+        facet.add_error( std::runtime_error( psmrts_concate("*** process_basic_facet() error: ", e.what() ) ) );
       }      
       return ( false );
     }
@@ -141,7 +138,7 @@ namespace psmrts::algorithms  {
         }
       }
       catch ( const std::exception &e ) {
-        trace_p.add_error( std::runtime_error( concate_s("*** process_basic_photometric_trace() error: ", e.what() ) ) );
+        trace_p.add_error( std::runtime_error( psmrts_concate("*** process_basic_photometric_trace() error: ", e.what() ) ) );
       }  
       return ( false );
     }
@@ -172,7 +169,7 @@ namespace psmrts::algorithms  {
         }
         }
         catch ( const std::exception &e ) {
-          trace.add_error( std::runtime_error( concate_s("*** process_basic_photometric_trace_array() error: ", e.what() ) ) );
+          trace.add_error( std::runtime_error( psmrts_concate("*** process_basic_photometric_trace_array() error: ", e.what() ) ) );
         }
       }
       
