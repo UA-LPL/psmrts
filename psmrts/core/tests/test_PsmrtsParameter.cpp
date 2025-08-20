@@ -71,4 +71,8 @@ TEST_CASE ( "PsmrtsParameter Parameter Tests", "[parameter][json]") {
   CHECK( iv.to_string() == "2" );
   CHECK( iv.size() == 1 );
 
+  psmrts::PsmrtsParameter s_array("strings", {"one","two","three"} );
+  CHECK( s_array.size() == 3 );
+  CHECK( s_array.to_string() == R"(["one","two","three"])" );
+
 }

@@ -7,20 +7,16 @@
 #include <vector>
 #include <fstream>
 #include <variant>
+#include <tuple>
 #include <initializer_list>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsJson.hpp>
+
 namespace psmrts {
 
-  // Some traits for determining vectors.
-  template <typename C> struct is_vector : std::false_type {};    
-  template <typename T,typename A> struct is_vector< std::vector<T,A> > : std::true_type {};    
-  template <typename C> inline constexpr bool is_vector_v = is_vector<C>::value;
-
 // helper type for the visitor
-template<class... Ts>
-struct overload : Ts... { using Ts::operator()...; };
+template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
 template<typename...Func> overload(Func...) -> overload<Func...>;
 
   /**
@@ -33,6 +29,7 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
    */
   class PsmrtsParameter {
     public:
+      /*** Default is micrometer precision */
       inline static const double Precision_d = 9;
       using DataTypes = std::variant<
                                       bool,
@@ -64,11 +61,19 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
       explicit PsmrtsParameter( const std::string &name, const std::string &s_data ) : 
                                 m_name( psmrts_tolower(name) ), m_data( s_data ), m_enum( PsmrtsString ) { }  
       explicit PsmrtsParameter( const std::string &name, const std::initializer_list<int> &i_array ) : 
-                       m_name( psmrts_tolower(name) ), m_data( std::vector<int> (i_array)), m_enum( PsmrtsIntegerArray ) { }
+                                m_name( psmrts_tolower(name) ), m_data( std::vector<int> (i_array)), m_enum( PsmrtsIntegerArray ) { }
       explicit PsmrtsParameter( const std::string &name, const std::initializer_list<double> &d_array ) : 
-                       m_name( psmrts_tolower(name) ), m_data( std::vector<double> (d_array) ), m_enum( PsmrtsIntegerArray ) { }
+                                m_name( psmrts_tolower(name) ), m_data( std::vector<double> (d_array) ), m_enum( PsmrtsDoubleArray ) { }
       explicit PsmrtsParameter( const std::string &name, const std::initializer_list<std::string> &s_array ) : 
-                       m_name( psmrts_tolower(name) ), m_data( std::vector<std::string> (s_array) ), m_enum( PsmrtsStringArray ) { }
+                                m_name( psmrts_tolower(name) ), m_data( std::vector<std::string> (s_array) ), m_enum( PsmrtsStringArray ) { }
+      explicit PsmrtsParameter( const std::string &name, const Eigen::Vector3d &d_v ) : 
+                                m_name( psmrts_tolower(name) ), 
+                                m_data( std::vector<double> (d_v.data(), d_v.data()+3) ), 
+                                m_enum( PsmrtsDoubleArray ) { }
+      explicit PsmrtsParameter( const std::string &name, const Eigen::Vector3i &i_v ) : 
+                                m_name( psmrts_tolower(name) ), 
+                                m_data( std::vector<int> (i_v.data(), i_v.data()+3) ), 
+                                m_enum( PsmrtsIntegerArray ) { }                                                                
       explicit PsmrtsParameter( const std::string &name, const ordered_json &j_data ) : 
                                 m_name(psmrts_tolower(name) ), m_data( j_data ), m_enum( PsmrtsJsonObject ) { }
       virtual ~PsmrtsParameter() { }
@@ -128,41 +133,44 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
       }
       
       /** Convert a integer vector to string */
-      inline std::string to_string( const std::vector<int> i_array ) const {
+      inline std::string to_string( const std::vector<int> i_array,
+                                    const std::tuple<std::string,std::string> &enclosures= { "[", "]" } ) const {
 
-        std::string s_array = "[";
+        std::string s_array = std::get<0>( enclosures );
 
         std::string comma = "";
         for ( const auto i : i_array ) {
           s_array += ( psmrts_concate( comma, this->to_string( i ) ) );
           comma = ",";
         }
-        return ( psmrts_concate( s_array, "]" ) );        
+        return ( psmrts_concate( s_array, std::get<1>( enclosures ) ) );        
       } 
       
-      inline std::string to_string( const std::vector<double> d_array, 
+      inline std::string to_string( const std::vector<double> d_array,
+                                    const std::tuple<std::string,std::string> &enclosures= { "[", "]" }, 
                                     const size_t ndigits = Precision_d ) const {
 
-        std::string s_array = "[";
+        std::string s_array =  std::get<0>( enclosures );
 
         std::string comma = "";
         for ( const auto d : d_array ) {
           s_array += ( psmrts_concate( comma, this->to_string( d, ndigits ) ) );
           comma = ",";
         }
-        return ( psmrts_concate( s_array, "]" ) );        
+        return ( psmrts_concate( s_array,  std::get<1>( enclosures ) ) );        
       } 
 
-      inline std::string to_string( const std::vector<std::string> s_array ) const {
+      inline std::string to_string( const std::vector<std::string> s_array,
+                                    const std::tuple<std::string,std::string> &enclosures= { "[", "]" } ) const {
 
-        std::string s_out = "[";
+        std::string s_out = std::get<0>( enclosures );
 
         std::string comma = "";
         for ( const auto s : s_array ) {
           s_out += ( psmrts_concate( comma, "\"" + s + "\"") );
           comma = ",";
         }
-        return ( psmrts_concate( s_out, "]" ) );        
+        return ( psmrts_concate( s_out, std::get<1>( enclosures ) ) );        
       } 
 
       inline std::string to_string( const ordered_json &j_data ) const {
