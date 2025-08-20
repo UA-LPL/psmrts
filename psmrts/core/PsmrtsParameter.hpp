@@ -63,12 +63,12 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
                                 m_name( psmrts_tolower(name) ), m_data( d_data ), m_enum( PsmrtsDouble ) { }
       explicit PsmrtsParameter( const std::string &name, const std::string &s_data ) : 
                                 m_name( psmrts_tolower(name) ), m_data( s_data ), m_enum( PsmrtsString ) { }  
-      PsmrtsParameter( const std::string &name, const std::vector<int> &i_array ) : 
-                       m_name( psmrts_tolower(name) ), m_data( i_array ), m_enum( PsmrtsIntegerArray ) { }
-      PsmrtsParameter( const std::string &name, const std::vector<double> &d_array ) : 
-                       m_name( psmrts_tolower(name) ), m_data( d_array ), m_enum( PsmrtsIntegerArray ) { }
-      PsmrtsParameter( const std::string &name, const std::vector<std::string> &s_array ) : 
-                       m_name( psmrts_tolower(name) ), m_data( s_array ), m_enum( PsmrtsStringArray ) { }
+      explicit PsmrtsParameter( const std::string &name, const std::initializer_list<int> &i_array ) : 
+                       m_name( psmrts_tolower(name) ), m_data( std::vector<int> (i_array)), m_enum( PsmrtsIntegerArray ) { }
+      explicit PsmrtsParameter( const std::string &name, const std::initializer_list<double> &d_array ) : 
+                       m_name( psmrts_tolower(name) ), m_data( std::vector<double> (d_array) ), m_enum( PsmrtsIntegerArray ) { }
+      explicit PsmrtsParameter( const std::string &name, const std::initializer_list<std::string> &s_array ) : 
+                       m_name( psmrts_tolower(name) ), m_data( std::vector<std::string> (s_array) ), m_enum( PsmrtsStringArray ) { }
       explicit PsmrtsParameter( const std::string &name, const ordered_json &j_data ) : 
                                 m_name(psmrts_tolower(name) ), m_data( j_data ), m_enum( PsmrtsJsonObject ) { }
       virtual ~PsmrtsParameter() { }

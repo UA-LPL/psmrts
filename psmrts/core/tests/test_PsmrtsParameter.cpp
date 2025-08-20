@@ -57,7 +57,7 @@ TEST_CASE ( "PsmrtsParameter JSON Util Tests", "[parameter][json][basics]") {
 
 
 TEST_CASE ( "PsmrtsParameter Parameter Tests", "[parameter][json]") {
-  psmrts::PsmrtsParameter v_parm( "radii", std::vector<double> ({ 1.0, 2.0, 3.0 }) );
+  psmrts::PsmrtsParameter v_parm( "radii", { 1.0, 2.0, 3.0 } );
   CHECK( v_parm.size() == 3 );
 
   std::vector<double> v_ds = { 1.0, 2.0, 3.0 };
