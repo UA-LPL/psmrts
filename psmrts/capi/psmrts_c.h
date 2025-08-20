@@ -203,8 +203,11 @@ extern PSMRTS_Tracer *psmrts_create_ellipsoid_v( const PSMRTS_Vector3d *radii,
                                                  const char *name );
 extern PSMRTS_Tracer *psmrts_create_bullet( const char *objfile );
 extern PSMRTS_Tracer *psmrts_create_naifdsk( const char *dskfile ); // to be tested
-
 extern PSMRTS_BOOL psmrts_tracer_valid( const PSMRTS_Tracer *trace );
+
+/*============ PSMRTS Facet functions ===================*/
+extern PSMRTS_BOOL psmrts_get_facet( PSMRTS_RayTrace *ray, const PSMRTS_Tracer *tracer,
+                                     PSMRTS_Facet *facet );
 
 /*============ PSMRTS memory free functions =============*/
 extern void psmrts_free_ray( PSMRTS_RayTrace *trace );
