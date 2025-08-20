@@ -5,15 +5,14 @@
 #include <exception>
 #include <iostream>
 
-#include <psmrts/core/PsmrtsParameters.hpp>
+#include <psmrts/core/PsmrtsJson.hpp>
 #include <psmrts/core/PsmrtsUtilities.hpp>
-
-// using namespace psmrts::json_utils;
+#include <psmrts/core/PsmrtsParameter.hpp>
 
 #include <string>
 #include <vector>
 
-TEST_CASE ( "PsmrtsParameters JSON Util Tests", "[parameters][json][basics]") {
+TEST_CASE ( "PsmrtsParameter JSON Util Tests", "[parameter][json][basics]") {
 
   std::vector<double> vd3( { 1.0, 2.0, 3.0 } );
   json j_vd3 =  vd3;
@@ -56,24 +55,20 @@ TEST_CASE ( "PsmrtsParameters JSON Util Tests", "[parameters][json][basics]") {
 
 }
 
-TEST_CASE ( "PsmrtsParameters Parameter Tests", "[parameters][json]") {
-  psmrts::PsmrtsParameters v_parms( "psmrts" );
 
-  CHECK( v_parms.contains( "name" ) );
-  CHECK( v_parms.get_string_parameter( "name" )  == "psmrts");
-
-  v_parms.add_parameter( "one_i", 1 );
-  v_parms.add_parameter( "two_d", 2.0 );
-  v_parms.add_parameter( "three_s", "three" );
+TEST_CASE ( "PsmrtsParameter Parameter Tests", "[parameter][json]") {
+  psmrts::PsmrtsParameter v_parm( "radii", std::vector<double> ({ 1.0, 2.0, 3.0 }) );
+  CHECK( v_parm.size() == 3 );
 
   std::vector<double> v_ds = { 1.0, 2.0, 3.0 };
-  v_parms.add_parameter( "double_d", v_ds );
+  psmrts::PsmrtsParameter v_radii( "radii", v_ds );
+  CHECK( v_radii.size() == 3 );
 
-  std::string config_s = "{\"name\":\"psmrts\",\"one_i\":1,\"two_d\":2.0,\"three_s\":\"three\",\"double_d\":[1.0,2.0,3.0]}";
-  CHECK( v_parms.config( ) == config_s );
+  CHECK( v_radii.to_string( ) == v_parm.to_string() );
+  CHECK( v_radii.to_json( )   == v_parm.to_json() );
 
-  std::string config_p = "{\"parameters\":{\"name\":\"psmrts\",\"one_i\":1,\"two_d\":2.0,\"three_s\":\"three\",\"double_d\":[1.0,2.0,3.0]}}";
-  CHECK( v_parms.config( "parameters") == config_p );
-
+  psmrts::PsmrtsParameter iv("integer", 2);
+  CHECK( iv.to_string() == "2" );
+  CHECK( iv.size() == 1 );
 
 }

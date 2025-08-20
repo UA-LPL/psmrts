@@ -7,7 +7,6 @@
 #include <exception>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
-#include <psmrts/core/PsmrtsParameters.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 
 namespace psmrts { 

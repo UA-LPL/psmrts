@@ -9,7 +9,6 @@
 #include <exception>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
-#include <psmrts/core/PsmrtsParameters.hpp>
 
 namespace psmrts { 
 

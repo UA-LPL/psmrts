@@ -4,8 +4,9 @@
 #include <memory>
 #include <iostream>
 
-#include <psmrts/core/ProductParameter.hpp>
 #include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsJson.hpp>
+#include <psmrts/core/ProductParameter.hpp>
 
 TEST_CASE( "ProductParameter Constructor / Base Function Tests", "[product][parameter][base]") {
     psmrts::ProductParameter p_param;

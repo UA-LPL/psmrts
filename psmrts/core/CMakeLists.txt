@@ -2,7 +2,7 @@
 target_sources( psmrts PUBLIC PsmrtsMeshData.hpp
                               PsmrtsStridingBuffer.hpp
                               ProductParameter.hpp
-                              PsmrtsParameters.hpp
+                              PsmrtsParameter.hpp
                               PsmrtsTracerModel.hpp
                               ProductProcessDispatch.hpp
                               PsmrtsPriorityTracer.hpp

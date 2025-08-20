@@ -1,257 +1,185 @@
-#ifndef PsmrtsParameters_hpp
-#define PsmrtsParameters_hpp
+#ifndef PsmrtsParameter_hpp
+#define PsmrtsParameter_hpp
 
+#include <type_traits>
 #include <iterator>
 #include <string>
 #include <vector>
-#include <iostream>
 #include <fstream>
-#include <memory>
+#include <variant>
+#include <initializer_list>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
-
-
-/// This section adds a JSON translation for Eigen::Quaterniond. In order
-/// for some of this to work as "json j_qd = Eigen::Quaterniond();", the
-/// two methods, to_json() and from_json(), must exist in the same
-/// namespace the type is defined. Some namespaces may not allow that.
-/// See https://json.nlohmann.me/features/arbitrary_types/#simplify-your-life-with-macros.
-#define INCLUDE_EIGEN_JSON_TYPES 1
-#if defined(INCLUDE_EIGEN_JSON_TYPES)
-namespace Eigen {
-
-  /** Assign an Eigen::Quaterniond to a JSON object */
-  inline void to_json( json &j, const Eigen::Quaterniond &q )  {
-    j = { { "w", q.w() }, { "x", q.x() }, { "y", q.y() }, { "z", q.z() } };
-  }
-
-  /** Translate a JSON object to an Eigen::Quaterniond  */
-  inline void from_json( const json &j, Eigen::Quaterniond &q )  {
-    q = Eigen::Quaterniond( { j["w"], j["x"], j["y"], j["z"] } );
-  }    
-
-  /** Translate an Eigen::Vector3d to JSON array */
-  inline void to_json( json &j, const Eigen::Vector3d &v )  {
-    j = json::array( { v[0], v[1], v[2] } );
-  }
-
-  /** Translate an Eigen::Vector3i to JSON array */
-  inline void to_json( json &j, const Eigen::Vector3i &v )  {
-    j = json::array( { v[0], v[1], v[2] } );
-  }
-
-  /** Translate a JSON object to an Eigen::Quaterniond  */
-  inline void from_json( json &j, Eigen::Vector3d &v) {
-    auto j_v = j.template get<std::vector<double>>();
-    v = Eigen::Vector3d( j_v.data() );
-  }    
-
-  /** Translate a JSON object to an Eigen::Quaterniond  */
-  inline void from_json( json &j, Eigen::Vector3i &v)  {
-    auto j_v = j.template get<std::vector<int>>();
-    v = Eigen::Vector3i( j_v.data() );
-  }
-  
-}  // namespace Eigen
-#endif
-
-
-// In this psmrts namespace section below add any translations needed. This
-// can occur for any type in the declaration within the namespace
+#include <psmrts/core/PsmrtsJson.hpp>
 namespace psmrts {
 
-  ////  JSON I/O API
-  namespace json_utils { 
+  // Some traits for determining vectors.
+  template <typename C> struct is_vector : std::false_type {};    
+  template <typename T,typename A> struct is_vector< std::vector<T,A> > : std::true_type {};    
+  template <typename C> inline constexpr bool is_vector_v = is_vector<C>::value;
 
+// helper type for the visitor
+template<class... Ts>
+struct overload : Ts... { using Ts::operator()...; };
+template<typename...Func> overload(Func...) -> overload<Func...>;
 
-    /** Declare a single constant for database  */
-    inline std::string null( ) {
-      return ( std::string("null") );
-    }
-
-    /** Declare a single constant for database  */
-    inline json json_null( ) {
-      return ( json() );
-    }
-
-    /** Declare a single constant for database  */
-    inline std::string json_bool( const bool &t_or_f ) {
-      if ( true == t_or_f ) return ( std::string( "true" ) );
-      return ( std::string( "false" ) );
-    }
-
-    /** Load a JSON string from a string */
-    inline ordered_json parse_json_string( const std::string &jsonstring,
-                                            const bool ignore_comments = false ) {
-
-      // JSON API defaults. Callers can choose to parser through comments
-      const json::parser_callback_t callback = nullptr;
-      const bool allow_exceptions = true;
-      return ( json::parse( jsonstring, callback, allow_exceptions, ignore_comments ) );
-    }
-
-    /** Load a JSON string from a string */
-    inline std::string dump_json_string( const ordered_json &j_data,
-                                          const int j_indent = 2 ) {
-      return ( j_data.dump( j_indent ) );
-    }
-
-    /** Load a JSON file */
-    inline ordered_json read_json_file( const std::string &filename,
-                                        const bool ignore_comments = false ) {
-
-      // JSON API defaults. Callers can choose to parser through comments
-      const json::parser_callback_t callback = nullptr;
-      const bool allow_exceptions = true;
-
-      json parsedjson;
-      try {
-        std::ifstream inputstream(filename);
-        parsedjson = json::parse( inputstream, callback, allow_exceptions, ignore_comments );
-      }
-      catch ( const json::parse_error &e ) {
-        std::string msg = std::string( e.what() ) + " in file " + filename;
-        throw std::runtime_error( msg );
-      }
-
-      return ( parsedjson );
-    }
-    
-    /**
-     * @brief Creates a JSON file from ordered_json object data
-     * 
-     * Converts provided JSON data to a JSON file, with string name
-     * identifier, and default 2nd-level indentation.
-     * 
-     * An indentation level of 0 will only insert newlines, -1 provides the most compact
-     * representation. https://json.nlohmann.me/api/basic_json/dump/
-     * 
-     * @param j_data      Provided JSON data
-     * @param fname       File name identifier
-     * @param j_indent    Level of indentation
-     */
-    inline void write_json_file( const ordered_json &j_data, 
-                                  const std::string &fname,
-                                  const int j_indent = 2 ) {
-
-      std::ofstream jfile ( fname );
-      if ( !jfile ) {
-        std::string msg = "PsmrtsParameters::write_json_file - Failed to create label file " + fname;
-        throw std::runtime_error( msg );
-      }
-
-      jfile << dump_json_string( j_data, j_indent ) << std::endl;
-      return;
-    }
-  }
   /**
-   * @brief Manage arbitrary data in JSON objects
+   * @brief Manage configuration keywords with limited data type support
    * 
    * The JSON keys are required to be lower case. This is enforced in the
    * get/add methods. 
    *
    * @author 2024-07-04 Kris J. Becker, UA Original Version
    */
-  class PsmrtsParameters {
+  class PsmrtsParameter {
     public:
-      PsmrtsParameters() : m_json() { }
-      explicit PsmrtsParameters( const char *name ) : m_json( { {"name", name } } )  { }
-      explicit PsmrtsParameters( const std::string &name ) : m_json( { {"name", name } } )  { }
-      explicit PsmrtsParameters( const ordered_json &config ) : m_json( config )  { }
-      virtual ~PsmrtsParameters() { }
+      inline static const double Precision_d = 9;
+      using DataTypes = std::variant<
+                                      bool,
+                                      int, 
+                                      double,
+                                      std::string, 
+                                      std::vector<int>,
+                                      std::vector<double>,
+                                      std::vector<std::string>,
+                                      ordered_json>;
+      using DataEnums = enum {
+                              PsmrtsBoolean,
+                              PsmrtsInteger,
+                              PsmrtsDouble,
+                              PsmrtsString,
+                              PsmrtsIntegerArray,
+                              PsmrtsDoubleArray,
+                              PsmrtsStringArray,
+                              PsmrtsJsonObject
+                            };
+
+      PsmrtsParameter() : m_name( "false" ), m_data( false ), m_enum( PsmrtsBoolean ) { }
+      explicit PsmrtsParameter( const std::string &name, const bool b_data ) : 
+                                m_name( psmrts_tolower(name)), m_data( b_data ), m_enum( PsmrtsBoolean ) { }
+      explicit PsmrtsParameter( const std::string &name, const int i_data ) : 
+                                m_name( psmrts_tolower(name) ), m_data( i_data ), m_enum( PsmrtsInteger ) { }
+      explicit PsmrtsParameter( const std::string &name, const double d_data ) : 
+                                m_name( psmrts_tolower(name) ), m_data( d_data ), m_enum( PsmrtsDouble ) { }
+      explicit PsmrtsParameter( const std::string &name, const std::string &s_data ) : 
+                                m_name( psmrts_tolower(name) ), m_data( s_data ), m_enum( PsmrtsString ) { }  
+      PsmrtsParameter( const std::string &name, const std::vector<int> &i_array ) : 
+                       m_name( psmrts_tolower(name) ), m_data( i_array ), m_enum( PsmrtsIntegerArray ) { }
+      PsmrtsParameter( const std::string &name, const std::vector<double> &d_array ) : 
+                       m_name( psmrts_tolower(name) ), m_data( d_array ), m_enum( PsmrtsIntegerArray ) { }
+      PsmrtsParameter( const std::string &name, const std::vector<std::string> &s_array ) : 
+                       m_name( psmrts_tolower(name) ), m_data( s_array ), m_enum( PsmrtsStringArray ) { }
+      explicit PsmrtsParameter( const std::string &name, const ordered_json &j_data ) : 
+                                m_name(psmrts_tolower(name) ), m_data( j_data ), m_enum( PsmrtsJsonObject ) { }
+      virtual ~PsmrtsParameter() { }
+
+
+      /** Returns the name of the parameter */
+      inline const std::string &name() const {
+        return ( m_name );
+      }
 
       /** Returns size of the Parameters */
-      inline int size() const {
-        return ( m_json.size() );
+      inline size_t size() const {
+        const auto visitor = overload{
+                  [](const std::string &s) { return ( s.size() ); },            
+                  [](const std::vector<int> &i_array) { return (i_array.size() ); },
+                  [](const std::vector<double> &d_array) { return (d_array.size() ); },
+                  [](const std::vector<std::string> &s_array) { return (s_array.size() ); },
+                  [](const ordered_json &j) { return ( j.size() );  },
+                  [](auto &&args) { return ( size_t(1) );  }
+              };
+
+          return ( std::visit(visitor, m_data) );
+        }
+
+      inline std::string to_string() const {
+        return ( std::visit( [&] ( auto &&datum ) -> std::string { 
+          json j = datum;
+          return ( j.dump() ); 
+        }, m_data ) );
       }
 
-      /** Returns boolean confirmation if target key is in Parameters */
-      inline bool contains( const std::string &key ) const {
-        return ( m_json.contains( psmrts_tolower( key ) ) );
+      /* Convert the keyword and value to JSON */
+      inline ordered_json to_json() const {
+        return ( std::visit( [&] ( auto &&datum ) -> ordered_json {
+          ordered_json json_t;
+          json_t[this->name()] = datum;
+          return ( json_t );
+        }, m_data ) );
       }
 
-      /** Return reference to parameters */
-      inline const ordered_json &parameters( ) const {
-        return ( m_json );
+
+    protected:
+      inline std::string to_string( const int i_data ) const {
+        return ( std::to_string( i_data ) );
       }
 
-      /** Returns string version of key if it exists in Parameters */
-      inline std::string get_string_parameter( const std::string &key, 
-                                               const std::string &value_d = "" ) const {
-        std::string s_t = value_d;
-        if ( this->contains( key ) ) {
-          s_t = m_json[psmrts_tolower(key)].get<std::string>();
-        }
+      inline std::string to_string( const double d_data, 
+                                    const size_t ndigits = Precision_d ) const {
 
-        return ( s_t );
+        if ( isnull( d_data ) ) return ( "null" );
+
+        // For all other cases
+        std::ostringstream out;
+        out.precision(ndigits);
+        out << std::fixed << d_data;
+        return ( out.str() );        
       }
+      
+      /** Convert a integer vector to string */
+      inline std::string to_string( const std::vector<int> i_array ) const {
 
-      /** Returns double value of key if it exists in Parameters */
-      inline double get_double_parameter( const std::string &key, 
-                                               const double &value_d = std::nan("null") ) const {
-        double d_t = value_d;
-        if ( this->contains( key ) ) {
-          d_t = m_json[psmrts_tolower(key)].get<double>();
+        std::string s_array = "[";
+
+        std::string comma = "";
+        for ( const auto i : i_array ) {
+          s_array += ( psmrts_concate( comma, this->to_string( i ) ) );
+          comma = ",";
+        }
+        return ( psmrts_concate( s_array, "]" ) );        
+      } 
+      
+      inline std::string to_string( const std::vector<double> d_array, 
+                                    const size_t ndigits = Precision_d ) const {
+
+        std::string s_array = "[";
+
+        std::string comma = "";
+        for ( const auto d : d_array ) {
+          s_array += ( psmrts_concate( comma, this->to_string( d, ndigits ) ) );
+          comma = ",";
+        }
+        return ( psmrts_concate( s_array, "]" ) );        
+      } 
+
+      inline std::string to_string( const std::vector<std::string> s_array ) const {
+
+        std::string s_out = "[";
+
+        std::string comma = "";
+        for ( const auto s : s_array ) {
+          s_out += ( psmrts_concate( comma, "\"" + s + "\"") );
+          comma = ",";
+        }
+        return ( psmrts_concate( s_out, "]" ) );        
+      } 
+
+      inline std::string to_string( const ordered_json &j_data ) const {
+        return ( j_data.dump() );        
+      } 
+      
+      /** Convert the rest of the elements to string */
+      template <typename T>
+        std::string to_string( const T &data ) const {
+          return ( std::to_string ( data ) );
         }
 
-        return ( d_t );
-      }
-
-      /** Returns integer value of key if it exists in Parameters */
-      inline int get_int_parameter( const std::string &key, 
-                                            const int &value_d = 0 ) const {
-        int d_t = value_d;
-        if ( this->contains( key ) ) {
-          d_t = m_json[psmrts_tolower(key)].get<int>();
-        }
-
-        return ( d_t );
-      }
-
-      template <class T>
-        T get_parameter( const std::string &key ) const {
-          std::string key_t = psmrts_tolower( key );
-          if ( m_json.contains(  key_t ) ) {
-            return ( m_json.at( key_t ).template get<T>() );
-          }
-
-          // Not found - error!
-          return ( json() );
-        }
-
-      template <class T>
-        T get_parameter( const std::string &key, const T &value_def ) const {
-          std::string key_t = psmrts_tolower( key );
-          if ( m_json.contains(  key_t ) ) {
-            return ( m_json.at( key_t ).get<T>() );
-          }
-
-          // Not found - return the default
-          return ( value_def );
-        }
-
-      template <class T>
-        void add_parameter( const std::string &key, const T &value ) {
-          std::string key_t = psmrts_tolower( key );
-          m_json[key_t] = value;
-          return;
-        }
-
-        /** Get config parameters while optionally inserting into a named object */
-        inline std::string config( const std::string &objname = "",
-                                   const int indent = -1 ) const {
-          if ( !objname.empty() ) { 
-            ordered_json jobj;
-            jobj[objname] =  m_json;
-            return ( json_utils::dump_json_string( jobj, indent ) );
-          }
-
-          // Otherwise return just the parameter object
-          return ( json_utils::dump_json_string( m_json, indent ) );
-        }
 
     private:
-      ordered_json m_json;
+      std::string m_name;
+      DataTypes   m_data;
+      DataEnums   m_enum;
   };      
 
 } // namespace psmrts
