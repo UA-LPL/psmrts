@@ -204,7 +204,7 @@ extern PSMRTS_Tracer *psmrts_create_ellipsoid( const double a_radius_km,
 extern PSMRTS_Tracer *psmrts_create_ellipsoid_v( const PSMRTS_Vector3d *radii,
                                                  const char *name );
 extern PSMRTS_Tracer *psmrts_create_bullet( const char *objfile );
-extern PSMRTS_Tracer *psmrts_create_naifdsk( const char *dskfile ); // to be tested
+extern PSMRTS_Tracer *psmrts_create_naifdsk( const char *dskfile );
 extern PSMRTS_BOOL psmrts_tracer_valid( const PSMRTS_Tracer *trace );
 
 /*============ PSMRTS Facet functions ===================*/

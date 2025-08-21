@@ -167,6 +167,8 @@ TEST_CASE("Bullet-DSK Comparison Test", "[bullet][dsk][raytrace]") {
 
     CHECK( dsk.get_facet(dsk_spt, dsk_facet) == true );
 
+    CHECK( bt_facet.m_plateid == dsk_facet.m_plateid );
+
     CHECK( bt_facet.m_indexes == dsk_facet.m_indexes );
   
     CHECK_THAT ( bt_facet.m_vector1[0], Catch::Matchers::WithinAbs( dsk_facet.m_vector1[0], tolerance ));
@@ -200,6 +202,7 @@ TEST_CASE("Bullet-DSK Comparison Test", "[bullet][dsk][raytrace]") {
         CHECK( dsk.get_facet(ray, dsk_facet) == true );
 
         auto bt_facet = bt_data.get_facet( ray.plateid() );
+        CHECK ( bt_facet.m_plateid == dsk_facet.m_plateid );
         CHECK ( bt_facet.m_indexes == dsk_facet.m_indexes );
         CHECK ( bt_facet.m_vector1 == dsk_facet.m_vector1 );
         CHECK ( bt_facet.m_vector2 == dsk_facet.m_vector2 );

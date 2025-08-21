@@ -497,12 +497,10 @@ TEST_CASE_METHOD ( bulletTraceFixture, "PSMRTS C API - NAIF vs Bullet", "[capi][
     CHECK( psmrts_get_facet( dsk_ray, dskTracer, &dsk_facet ) == PSMRTS_TRUE );
     CHECK( facet.m_has_facet == dsk_facet.m_has_facet );
 
-    CHECK( facet.m_plateid == facet.m_plateid );
-    CHECK( facet.m_segment == facet.m_segment );
-
-    CHECK( facet.m_indexes.i == facet.m_indexes.i );
-    CHECK( facet.m_indexes.j == facet.m_indexes.j );
-    CHECK( facet.m_indexes.k == facet.m_indexes.k );
+    CHECK( facet.m_plateid == dsk_facet.m_plateid );
+    CHECK( facet.m_indexes.i == dsk_facet.m_indexes.i );
+    CHECK( facet.m_indexes.j == dsk_facet.m_indexes.j );
+    CHECK( facet.m_indexes.k == dsk_facet.m_indexes.k );
 
     CHECK_THAT( facet.m_vector1.x,
                Catch::Matchers::WithinAbs( dsk_facet.m_vector1.x, tolerance ) );
