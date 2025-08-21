@@ -64,12 +64,13 @@ TEST_CASE ( "PsmrtsParameter Parameter Tests", "[parameter][json]") {
   psmrts::PsmrtsParameter v_radii( "radii", v_ds );
   CHECK( v_radii.size() == 3 );
 
-  psmrts::StringVisitor double_c( v_radii.name() );
-  v_radii.get_to( double_c );
-  CHECK( double_c.size() == 1 );
+  psmrts::StringVisitor double_c( v_radii );
+  CHECK( double_c.size() == 3 );
   CHECK( double_c.name() == "radii" );
-  CHECK( double_c.get(0) == R"([1.0,2.0,3.0])" );
-  CHECK( double_c.get(1) == "" );
+  CHECK( double_c.type() == psmrts::PsmrtsParameter::PsmrtsDoubleArray );
+  CHECK( double_c.get(0) == "1.000000000" );
+  CHECK( double_c.get(1) == "2.000000000" );
+  CHECK( double_c.get(2) == "3.000000000" );
 
   CHECK( v_radii.to_string( ) == v_parm.to_string() );
   CHECK( v_radii.to_json( )   == v_parm.to_json() );

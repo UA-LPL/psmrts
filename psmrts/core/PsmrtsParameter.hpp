@@ -14,7 +14,8 @@
 
 namespace psmrts {
 
-// helper type for the visitor
+// Overload helper type for the PsmrtsParameter visitor. See the size()
+// method for how this can be used.
 template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
 template<typename...Func> overload(Func...) -> overload<Func...>;
 
@@ -60,12 +61,18 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
       explicit PsmrtsParameter( const std::string &name, const char *s_text ) : 
                                 m_name( psmrts_tolower(name) ), m_data( std::string(s_text) ), m_enum( PsmrtsString ) { }                                  
       explicit PsmrtsParameter( const std::string &name, const std::string &s_data ) : 
-                                m_name( psmrts_tolower(name) ), m_data( s_data ), m_enum( PsmrtsString ) { }  
+                                m_name( psmrts_tolower(name) ), m_data( s_data ), m_enum( PsmrtsString ) { }
       explicit PsmrtsParameter( const std::string &name, const std::initializer_list<int> &i_array ) : 
+                                m_name( psmrts_tolower(name) ), m_data( std::vector<int> (i_array.begin(), i_array.end())), m_enum( PsmrtsIntegerArray ) { }                                
+      explicit PsmrtsParameter( const std::string &name, const std::vector<int> &i_array ) : 
                                 m_name( psmrts_tolower(name) ), m_data( std::vector<int> (i_array)), m_enum( PsmrtsIntegerArray ) { }
       explicit PsmrtsParameter( const std::string &name, const std::initializer_list<double> &d_array ) : 
+                                m_name( psmrts_tolower(name) ), m_data( std::vector<double> (d_array.begin(), d_array.end()) ), m_enum( PsmrtsDoubleArray ) { }                                
+      explicit PsmrtsParameter( const std::string &name, const std::vector<double> &d_array ) : 
                                 m_name( psmrts_tolower(name) ), m_data( std::vector<double> (d_array) ), m_enum( PsmrtsDoubleArray ) { }
       explicit PsmrtsParameter( const std::string &name, const std::initializer_list<std::string> &s_array ) : 
+                                m_name( psmrts_tolower(name) ), m_data( std::vector<std::string> (s_array.begin(), s_array.end()) ), m_enum( PsmrtsStringArray ) { }                                
+      explicit PsmrtsParameter( const std::string &name, const std::vector<std::string> &s_array ) : 
                                 m_name( psmrts_tolower(name) ), m_data( std::vector<std::string> (s_array) ), m_enum( PsmrtsStringArray ) { }
       explicit PsmrtsParameter( const std::string &name, const Eigen::Vector3d &d_v ) : 
                                 m_name( psmrts_tolower(name) ), 
@@ -76,7 +83,9 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
                                 m_data( std::vector<int> (i_v.data(), i_v.data()+3) ), 
                                 m_enum( PsmrtsIntegerArray ) { }                                                                
       explicit PsmrtsParameter( const std::string &name, const ordered_json &j_data ) : 
-                                m_name(psmrts_tolower(name) ), m_data( j_data ), m_enum( PsmrtsJsonObject ) { }
+                                m_name(psmrts_tolower(name) ), m_data( j_data ), m_enum( PsmrtsJsonObject ) {
+        std::cout << "Constructing DataTypes::json." << std::endl;
+      }
       virtual ~PsmrtsParameter() { }
 
 
@@ -92,13 +101,14 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
 
       /** Returns size of the Parameters */
       inline size_t size() const {
+        // Run an overloaded visitor with default behavior
         const auto visitor = overload{
                   [](const std::string &s) { return ( s.size() ); },            
                   [](const std::vector<int> &i_array) { return (i_array.size() ); },
                   [](const std::vector<double> &d_array) { return (d_array.size() ); },
                   [](const std::vector<std::string> &s_array) { return (s_array.size() ); },
                   [](const ordered_json &j) { return ( j.size() );  },
-                  [](auto &&args) { return ( size_t(1) );  }
+                  [](auto &&args) { return ( size_t(1) ); } // Default lambda for all other types
               };
 
           return ( std::visit(visitor, m_data) );
@@ -232,8 +242,16 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
                      m_name("double"), 
                      m_doubles{},
                      m_default( default_value ) { }
-      DoubleVisitor(const std::string &name, const int default_value = psmrts::null() ) : 
+      DoubleVisitor(const std::string &name, const double default_value = psmrts::null() ) : 
                      m_name(name), m_doubles{}, m_default( default_value ) { }
+      DoubleVisitor( const PsmrtsParameter &parameter,
+                     const double default_value = psmrts::null()) : 
+                     m_name( parameter.name() ), 
+                     m_doubles{}, 
+                     m_default( default_value ) {
+        m_type = parameter.type();
+        parameter.get_to( *this );
+      }                     
       virtual ~DoubleVisitor() { }
 
 
@@ -280,6 +298,11 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
       inline const std::string name() const {
         return ( m_name);
       }
+
+      inline PsmrtsParameter::DataEnums type() const {
+        return ( m_type );
+      }
+
 
       inline size_t size() const {
         return ( m_doubles.size() );
@@ -332,6 +355,14 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
                      m_default( default_value ) { }
       IntegerVisitor(const std::string &name, const int default_value = 0 ) : 
                      m_name(name), m_integers{}, m_default( default_value ) { }
+      IntegerVisitor( const PsmrtsParameter &parameter,
+                      const int default_value = 0 ) : 
+                      m_name( parameter.name() ), 
+                      m_integers{}, 
+                      m_default( default_value ) {
+        m_type = parameter.type();
+        parameter.get_to( *this );
+      }                     
       virtual ~IntegerVisitor() { }
 
 
@@ -358,8 +389,8 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
         m_integers.insert(m_integers.end(), i_array.begin(), i_array.end() );
       }
 
-      
       inline void operator()( const std::vector<std::string> &s_array ) {
+        return;
       }      
 
       inline void operator()( const ordered_json &j_data ) {
@@ -369,6 +400,10 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
       
       inline const std::string name() const {
         return ( m_name);
+      }
+
+      inline PsmrtsParameter::DataEnums type() const {
+        return ( m_type );
       }
 
       inline size_t size() const {
@@ -408,6 +443,15 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
       StringVisitor() : m_name("string"), m_strings{}, m_default( "" ) { }
       StringVisitor(const std::string &name, const std::string default_value = "" ) : 
                      m_name(name), m_strings{}, m_default( default_value ) { }
+      StringVisitor( const PsmrtsParameter &parameter,
+                     const std::string default_value = "" ) : 
+                     m_name( parameter.name() ), 
+                     m_strings{}, 
+                     m_default( default_value ) {
+        m_type = parameter.type();
+        parameter.get_to( *this );
+      }
+      
       virtual ~StringVisitor() { }
 
       inline void operator()(const bool b ) {
@@ -443,12 +487,17 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
       }      
       
       inline void operator()( const ordered_json &j_data ) {
+        std::cout << "Running DataTypes::json-> string" << std::endl;
         m_strings.push_back( j_data.dump() );
       }
       
 
       inline const std::string name() const {
         return ( m_name);
+      }
+
+      inline PsmrtsParameter::DataEnums type() const {
+        return ( m_type );
       }
 
       inline size_t size() const {
