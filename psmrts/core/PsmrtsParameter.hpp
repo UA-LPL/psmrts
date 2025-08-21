@@ -84,7 +84,6 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
                                 m_enum( PsmrtsIntegerArray ) { }                                                                
       explicit PsmrtsParameter( const std::string &name, const ordered_json &j_data ) : 
                                 m_name(psmrts_tolower(name) ), m_data( j_data ), m_enum( PsmrtsJsonObject ) {
-        std::cout << "Constructing DataTypes::json." << std::endl;
       }
       virtual ~PsmrtsParameter() { }
 
