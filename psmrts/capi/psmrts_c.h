@@ -73,6 +73,8 @@ typedef union {
 /* Facet data structure contains the elements defining a single facet */
 typedef struct psmrts_facet {
   PSMRTS_BOOL     m_has_facet;
+  int             m_plateid;  //! 0-based plate id/index of intercepted facet
+  int             m_segment;  //! Segment (DSK)/identifier of shape source
   PSMRTS_Vector3i m_indexes;
   PSMRTS_Vector3d m_vector1;
   PSMRTS_Vector3d m_vector2;
@@ -202,9 +204,12 @@ extern PSMRTS_Tracer *psmrts_create_ellipsoid( const double a_radius_km,
 extern PSMRTS_Tracer *psmrts_create_ellipsoid_v( const PSMRTS_Vector3d *radii,
                                                  const char *name );
 extern PSMRTS_Tracer *psmrts_create_bullet( const char *objfile );
-extern PSMRTS_Tracer *psmrts_create_naifdsk( const char *dskfile ); // to be tested
-
+extern PSMRTS_Tracer *psmrts_create_naifdsk( const char *dskfile );
 extern PSMRTS_BOOL psmrts_tracer_valid( const PSMRTS_Tracer *trace );
+
+/*============ PSMRTS Facet functions ===================*/
+extern PSMRTS_BOOL psmrts_get_facet( PSMRTS_RayTrace *ray, const PSMRTS_Tracer *tracer,
+                                     PSMRTS_Facet *facet );
 
 /*============ PSMRTS memory free functions =============*/
 extern void psmrts_free_ray( PSMRTS_RayTrace *trace );

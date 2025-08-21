@@ -191,6 +191,10 @@ TEST_CASE( "Bullet Tracer Test - Ray Trace / Values", "[bullet][tracer][values]"
     CHECK_THAT( facet_xyz[1], Catch::Matchers::WithinAbs( xyz[1], tolerance_km));
     CHECK_THAT( facet_xyz[2], Catch::Matchers::WithinAbs( xyz[2], tolerance_km));
 
+    // verify facet and trace segment and plate ids are identical
+    CHECK( prq_facet.facet().m_segment == prq_ray.trace().segment_number() );
+    CHECK( prq_facet.facet().m_plateid == prq_ray.trace().plateid() );
+
     // get plate id, segment id (may always be 0 in bullet)
     CHECK( prq_facet.trace().segment_number() == 0 );
     CHECK( prq_facet.trace().plateid()        == 30 ); 

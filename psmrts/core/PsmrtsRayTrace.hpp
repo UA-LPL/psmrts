@@ -23,9 +23,11 @@ namespace psmrts {
     public:
 
 
-      /** Facet data struture contains the elements defining a single facet */
+      /** Facet data structure contains the elements defining a single facet */
       typedef struct facet_datum {
         facet_datum( ) : m_has_facet( false ),
+                         m_plateid( -1 ),
+                         m_segment( -1 ),
                          m_indexes( { -1, -1, -1 } ),
                          m_vector1( { 0.0, 0.0, 0.0 } ),
                          m_vector2( { 0.0, 0.0, 0.0 } ),
@@ -38,6 +40,8 @@ namespace psmrts {
         }
                        
         bool            m_has_facet;
+        int             m_plateid;  //! 0-based plate id/index of intercepted facet
+        int             m_segment;  //! Segment (DSK)/identifier of shape source
         Eigen::Vector3i m_indexes;
         Eigen::Vector3d m_vector1;
         Eigen::Vector3d m_vector2;
@@ -56,8 +60,8 @@ namespace psmrts {
           Eigen::Vector3d m_xyz;      //! XYZ coordinate in shape model of intersection
           Eigen::Vector3d m_normal;   //! Surface normal at surface intercept
 
-          int             m_plateid;  //! 1-baed plate id/index of facet intercepted
-          int             m_segment;  //! Segement (DSK)/identifier of shape source
+          int             m_plateid;  //! 0-based plate id/index of intercepted facet
+          int             m_segment;  //! Segment (DSK)/identifier of shape source
 
           /** Generalized initialization */
           ray_trace_datum() { init( ); }
@@ -104,8 +108,7 @@ namespace psmrts {
       // Constructors
       PsmrtsRayTrace() : m_trace_datum() { }
       PsmrtsRayTrace( const Eigen::Vector3d &observer, 
-                      const Eigen::Vector3d &lookdir ) : 
-                m_trace_datum() { 
+                      const Eigen::Vector3d &lookdir ) : m_trace_datum() { 
         m_trace_datum.m_observer = observer;
         m_trace_datum.m_lookdir  = lookdir;
       }

@@ -35,28 +35,107 @@ using PSMRTS_PhotometricTraceArray = psmrts::PRQPhotometricTraceArray;
 #include "psmrts_c.h"
 
 /**
- * @brief vector_to_eigen - Converts a PSMRTS_Vector3d to an Eigen Vector3d.
+ * @brief vector_to_eigen_d - Converts a PSMRTS_Vector3d of doubles to an
+ *                            Eigen Vector3d.
  *
- * This function converts an input PSMRTS_Vector3d to an Eigen Vector3d..
+ * This function converts an input PSMRTS_Vector3d of doubles to an
+ * Eigen Vector3d.
  *
- * @param v3d PSMRTS_Vector3d.
+ * @param v3d PSMRTS_Vector3d of doubles.
  * @return Eigen::Vector3d converted from PSMRTS_Vector3d.
  */
-inline Eigen::Vector3d vector_to_eigen( const PSMRTS_Vector3d &v3d ) {
+inline Eigen::Vector3d vector_to_eigen_d( const PSMRTS_Vector3d &v3d ) {
   return ( Eigen::Vector3d( { v3d.a, v3d.b, v3d.c } ) );
 }
 
 /**
- * @brief eigen_to_vector - Converts an Eigen Vector3d to a PSMRTS_Vector3d.
+ * @brief eigen_to_vector_d - Converts an Eigen Vector3d of doubles to a
+ *                            PSMRTS_Vector3d.
  *
- * This function converts an input PSMRTS_Vector3d to an Eigen Vector3d.
+ * This function converts an input PSMRTS_Vector3d of doubles to an
+ * Eigen Vector3d.
  *
- * @param v Eigen::Vector3d
+ * @param v Eigen::Vector3d of doubles.
  * @return PSMRTS_Vector3d converted from Eigen::Vector3d.
  */
-inline PSMRTS_Vector3d eigen_to_vector( const Eigen::Vector3d &v ) {
+inline PSMRTS_Vector3d eigen_to_vector_d( const Eigen::Vector3d &v ) {
   PSMRTS_Vector3d v3d = { v[0], v[1], v[2] };
   return ( v3d );
+}
+
+/**
+ * @brief vector_to_eigen_i - Converts a PSMRTS_Vector3i of integers to an
+ *                            Eigen Vector3i.
+ *
+ * This function converts an input PSMRTS_Vector3i of integers to an
+ * Eigen Vector3i.
+ *
+ * @param v3i PSMRTS_Vector3i of integers.
+ * @return Eigen::Vector3i converted from PSMRTS_Vector3i.
+ */
+inline Eigen::Vector3i vector_to_eigen_i( const PSMRTS_Vector3i &v3i ) {
+  return ( Eigen::Vector3i( { v3i.i, v3i.j, v3i.k } ) );
+}
+
+/**
+ * @brief eigen_to_vector_i - Converts an Eigen Vector3i of integers to a
+ *                            PSMRTS_Vector3d.
+ *
+ * This function converts an input PSMRTS_Vector3i of integers to an
+ * Eigen Vector3d.
+ *
+ * @param v Eigen::Vector3i
+ * @return PSMRTS_Vector3i converted from Eigen::Vector3i.
+ */
+inline PSMRTS_Vector3i eigen_to_vector_i( const Eigen::Vector3i &v ) {
+  PSMRTS_Vector3i v3i = { v[0], v[1], v[2] };
+  return ( v3i );
+}
+
+/**
+ * @brief psmrts_facet_to_capi - Converts psmrts::PRQFacet to a c api facet.
+ *
+ * This function converts an input psmrts::PRQFacet to a c api facet structure.
+ *
+ * @param prq_facet psmrts::PRQFacet.
+ * @return PSMRTS_Facet C api facet converted from psmrts::PRQFacet.
+ */
+inline PSMRTS_Facet psmrts_facet_to_capi( const psmrts::PRQFacet &prq_facet ) {
+  PSMRTS_Facet facet;
+
+  facet.m_has_facet = prq_facet.m_facet.m_has_facet;
+  facet.m_plateid   = prq_facet.m_facet.m_plateid;
+  facet.m_segment   = prq_facet.m_facet.m_segment;
+  facet.m_indexes   = eigen_to_vector_i( prq_facet.m_facet.m_indexes );
+  facet.m_vector1   = eigen_to_vector_d( prq_facet.m_facet.m_vector1 );
+  facet.m_vector2   = eigen_to_vector_d( prq_facet.m_facet.m_vector2 );
+  facet.m_vector3   = eigen_to_vector_d( prq_facet.m_facet.m_vector3 );
+  facet.m_normal    = eigen_to_vector_d( prq_facet.m_facet.m_normal );
+
+  return ( facet );
+}
+
+/**
+ * @brief capi_facet_to_psmrts - Converts a c api facet to a psmrts::PRQFacet.
+ *
+ * This function converts an input c api facet to a psmrts::PRQFacet.
+ *
+ * @param facet C api facet.
+ * @return psmrts::PRQFacet converted from c api facet.
+ */
+inline psmrts::PRQFacet capi_facet_to_psmrts( const PSMRTS_Facet &facet ) {
+  psmrts::PRQFacet prq_facet;
+
+  prq_facet.m_facet.m_has_facet = facet.m_has_facet;
+  prq_facet.m_facet.m_plateid = facet.m_plateid;
+  prq_facet.m_facet.m_segment = facet.m_segment;
+  prq_facet.m_facet.m_indexes   = vector_to_eigen_i( facet.m_indexes );
+  prq_facet.m_facet.m_vector1   = vector_to_eigen_d( facet.m_vector1 );
+  prq_facet.m_facet.m_vector2   = vector_to_eigen_d( facet.m_vector2 );
+  prq_facet.m_facet.m_vector3   = vector_to_eigen_d( facet.m_vector3 );
+  prq_facet.m_facet.m_normal    = vector_to_eigen_d( facet.m_normal );
+
+  return ( prq_facet );
 }
 
 /**
@@ -66,7 +145,7 @@ inline PSMRTS_Vector3d eigen_to_vector( const Eigen::Vector3d &v ) {
  * This function evaluates the given bool type and returns PSMRTS_TRUE or
  * PSMRTS_FALSE.
  *
- * @param b bool orginating from C++ to agnosting PSMRTS type
+ * @param b bool originating from C++ to agnostic PSMRTS type
  * @return Values of input PSMRTS_BOOL namely, PSMRTS_TRUE or PSMRTS_FALSE.
  */
 inline PSMRTS_BOOL evaluate( const bool b ) {
@@ -223,6 +302,23 @@ double psmrts_length( const PSMRTS_Vector3d *v ) {
 }
 
 /**
+ * @brief psmrts_vector3i - Creates a PSMRTS 3d integer vector object from input
+ *                          coordinates.
+ *
+ * Given input integer coordinates, this function creates and returns a PSMRTS_Vector3i.
+ *
+ * @param v1 coordinate 1.
+ * @param v2 coordinate 2.
+ * @param v3 coordinate 3.
+ * @return PSMRTS_Vector3i Integer vector constructed with input coordinates.
+ */
+PSMRTS_Vector3i psmrts_vector3i( const int v1, const int v2, const int v3 ) {
+
+  PSMRTS_Vector3i v3i = { v1, v2, v3 };
+  return ( v3i );
+}
+
+/**
  * @brief psmrts_create_ray - Creates a PSMRTS ray trace object
  * 
  * Given vectors describing observer position and look direction, this
@@ -244,8 +340,8 @@ double psmrts_length( const PSMRTS_Vector3d *v ) {
 PSMRTS_RayTrace *psmrts_create_ray( const PSMRTS_Vector3d *observer,
                                     const PSMRTS_Vector3d *lookdir ) {
 
-  return ( new PSMRTS_RayTrace( vector_to_eigen( *observer ),
-                                vector_to_eigen( *lookdir ) ) );
+  return ( new PSMRTS_RayTrace( vector_to_eigen_d( *observer ),
+                                vector_to_eigen_d( *lookdir ) ) );
 }
 
 /**
@@ -273,8 +369,8 @@ PSMRTS_RayTrace *psmrts_ray_set_observation( const PSMRTS_Vector3d *observer,
 
   assert( trace != nullptr && "psmrts_ray_trace::PSMRTS_RayTrace is null" );
 
-  *trace = PSMRTS_RayTrace( vector_to_eigen( *observer ),
-                            vector_to_eigen( *lookdir ) );
+  *trace = PSMRTS_RayTrace( vector_to_eigen_d( *observer ),
+                            vector_to_eigen_d( *lookdir ) );
 
   return ( trace );
 }
@@ -312,7 +408,7 @@ PSMRTS_RayTrace *psmrts_ray_trace( PSMRTS_RayTrace *ray,
  * The observer position is a vector from the shape origin to its body-fixed
  * position relative to the target body origin.
  *
- * The lookdir is converted to unit vector and eminates from the observer
+ * The lookdir is converted to unit vector and emanates from the observer
  * location toward the target body.
  *
  * It is the responsibility of the caller to check for valid pointer return. It
@@ -345,7 +441,7 @@ PSMRTS_RayTrace *psmrts_ray_trace_v( const PSMRTS_Vector3d *observer,
  * @return PSMRTS_Vector3d defining observer position associated with input ray.
  */
 PSMRTS_Vector3d psmrts_ray_observer( const PSMRTS_RayTrace *ray ) {
-  return ( eigen_to_vector( ray->trace().observer() ) );
+  return ( eigen_to_vector_d( ray->trace().observer() ) );
 }
 
 /**
@@ -359,7 +455,7 @@ PSMRTS_Vector3d psmrts_ray_observer( const PSMRTS_RayTrace *ray ) {
  * @return PSMRTS_Vector3d defining look direction associated with input ray.
  */
 PSMRTS_Vector3d psmrts_ray_lookdir( const PSMRTS_RayTrace *ray ) {
-  return ( eigen_to_vector( ray->trace().lookdir() ) );
+  return ( eigen_to_vector_d( ray->trace().lookdir() ) );
 }
 
 /**
@@ -388,7 +484,7 @@ PSMRTS_BOOL psmrts_ray_has_hit( const PSMRTS_RayTrace *ray ) {
  *                         body origin.
  */
 PSMRTS_Vector3d psmrts_ray_xyz( const PSMRTS_RayTrace *ray ) {
-  return ( eigen_to_vector( ray->trace().xyz() ) );
+  return ( eigen_to_vector_d( ray->trace().xyz() ) );
 }
 
 /**
@@ -402,7 +498,7 @@ PSMRTS_Vector3d psmrts_ray_xyz( const PSMRTS_RayTrace *ray ) {
  * @return PSMRTS_Vector3d Vector along the ray look direction to the surface.
  */
 PSMRTS_Vector3d psmrts_ray_raypt( const PSMRTS_RayTrace *ray ) {
-  return ( eigen_to_vector( ray->trace().raypt() ) );
+  return ( eigen_to_vector_d( ray->trace().raypt() ) );
 }
 
 /**
@@ -416,7 +512,7 @@ PSMRTS_Vector3d psmrts_ray_raypt( const PSMRTS_RayTrace *ray ) {
  * @return PSMRTS_Vector3d Normal vector at surface intercept, if it exists.
  */
 PSMRTS_Vector3d psmrts_ray_normal( const PSMRTS_RayTrace *ray ) {
-  return ( eigen_to_vector( ray->trace().normal() ) );
+  return ( eigen_to_vector_d( ray->trace().normal() ) );
 }
 
 /**
@@ -480,8 +576,8 @@ double psmrts_ray2ray_distance( const PSMRTS_RayTrace *ray1,
 double psmrts_separation_angle_radians( const PSMRTS_Vector3d *v1,
                                         const PSMRTS_Vector3d *v2 ) {
 
-  return ( psmrts::PsmrtsRayTrace::separation_angle( vector_to_eigen( *v1 ),
-                                                     vector_to_eigen( *v2 ) ) );
+  return ( psmrts::PsmrtsRayTrace::separation_angle( vector_to_eigen_d( *v1 ),
+                                                     vector_to_eigen_d( *v2 ) ) );
 }
 
 /**
@@ -619,8 +715,6 @@ extern PSMRTS_BOOL psmrts_trace_array_trace( PSMRTS_TraceArray *tracearray,
  */
 void psmrts_trace_array_clear(PSMRTS_TraceArray *tracearray) {
   tracearray->clear();
-
-  // now
 }
 
 /**
@@ -676,9 +770,9 @@ PSMRTS_PhotometricRayTrace *psmrts_create_photometric_ray( const PSMRTS_Vector3d
                                                            const PSMRTS_Vector3d *lookdir,
                                                            const PSMRTS_Vector3d *sunpos) {
 
-  return ( new psmrts::PRQPhotometricTrace( vector_to_eigen( *observer ),
-                                            vector_to_eigen( *lookdir ),
-                                            vector_to_eigen( *sunpos ) ) );
+  return ( new psmrts::PRQPhotometricTrace( vector_to_eigen_d( *observer ),
+                                            vector_to_eigen_d( *lookdir ),
+                                            vector_to_eigen_d( *sunpos ) ) );
 }
 
 /**
@@ -709,9 +803,9 @@ PSMRTS_PhotometricRayTrace *psmrts_photometric_ray_set_observation( const PSMRTS
 
   assert( phototrace != nullptr && "psmrts_ray_trace::PSMRTS_PhotometricRayTrace is null" );
 
-  *phototrace = PSMRTS_PhotometricRayTrace( vector_to_eigen( *observer ),
-                                            vector_to_eigen( *lookdir ),
-                                            vector_to_eigen( *sunpos ) );
+  *phototrace = PSMRTS_PhotometricRayTrace( vector_to_eigen_d( *observer ),
+                                            vector_to_eigen_d( *lookdir ),
+                                            vector_to_eigen_d( *sunpos ) );
 
   return ( phototrace );
 }
@@ -909,7 +1003,7 @@ const PSMRTS_PhotometricRayTrace *psmrts_photometric_trace_array_get_trace( cons
 }
 
 /**
- * @brief psmrts_lonlatrad_to_xyz - Converts vector in longitude, latitude,
+ * @brief psmrts_lonlatrad_to_xyz_d - Converts vector in longitude, latitude,
  *        radius coordinates to xyz.
  *
  * Given an PSMRTS_Vector3d in longitude, latitude, radius coordinates, this
@@ -925,11 +1019,11 @@ const PSMRTS_PhotometricRayTrace *psmrts_photometric_trace_array_get_trace( cons
  */
 PSMRTS_Vector3d psmrts_lonlatrad_to_xyz_d( const PSMRTS_Vector3d *v ) {
 
-  return ( eigen_to_vector( psmrts::lonlatrad_to_xyz_d( vector_to_eigen(*v) ) ) );
+  return ( eigen_to_vector_d( psmrts::lonlatrad_to_xyz_d( vector_to_eigen_d(*v) ) ) );
 }
 
 /**
- * @brief psmrts_xyz_to_lonlatrad - Converts vector in xyz coordinates to
+ * @brief psmrts_xyz_to_lonlatrad_d - Converts vector in xyz coordinates to
  *        longitude, latitude, radius coordinates.
  *
  * Given an PSMRTS_Vector3d in xyz coordinates, this function converts it to
@@ -941,7 +1035,7 @@ PSMRTS_Vector3d psmrts_lonlatrad_to_xyz_d( const PSMRTS_Vector3d *v ) {
  */
 PSMRTS_Vector3d psmrts_xyz_to_lonlatrad_d( const PSMRTS_Vector3d *v ) {
 
-  return ( eigen_to_vector( psmrts::xyz_to_lonlatrad_d( vector_to_eigen( *v ) ) ) );
+  return ( eigen_to_vector_d( psmrts::xyz_to_lonlatrad_d( vector_to_eigen_d( *v ) ) ) );
 }
 
 /**
@@ -1092,7 +1186,7 @@ PSMRTS_Tracer *psmrts_create_ellipsoid( const double a_radius_km,
 PSMRTS_Tracer *psmrts_create_ellipsoid_v( const PSMRTS_Vector3d *radii,
                                           const char *name ) {
 
-  return ( new PSMRTS_Tracer( psmrts::PsmrtsTracer::ellipsoid( vector_to_eigen(*radii),
+  return ( new PSMRTS_Tracer( psmrts::PsmrtsTracer::ellipsoid( vector_to_eigen_d(*radii),
                                                                name ) ) );
 }
 
@@ -1123,8 +1217,40 @@ PSMRTS_Tracer *psmrts_create_bullet( const char *objfile ) {
  * @return Pointer to the resulting PSMRTS_Tracer object.
  */
 PSMRTS_Tracer *psmrts_create_naifdsk( const char *dskfile ) {
-
   return ( new PSMRTS_Tracer( psmrts::PsmrtsTracer::naifdsk( dskfile ) ) );
+}
+
+/**
+ * @brief psmrts_get_facet - Creates and processes a psmrts::PRQFacet.
+ *
+ * Given PSMRTS_Tracer, PSMRTS_RayTrace, and PSMRTS_Facet objects, the tracer is used to
+ * process the psmrts::PRQFacet. The PRQFacet data is copied to a PSMRTS_Facet structure
+ * and returned.
+ *
+ * The input ray is required to have a valid observer and look direction. It is
+ * the responsibility of the caller to check for valid pointer return.
+ *
+ * @param ray PSMRTS_RayTrace pointer.
+ * @param tracer PSMRTS_Tracer pointer.
+ * @param facet PSMRTS_Facet pointer.
+ * @return PSMRTS_BOOL TRUE/FALSE, success of facet processing.
+ */
+PSMRTS_BOOL psmrts_get_facet( PSMRTS_RayTrace *ray, const PSMRTS_Tracer *tracer,
+                              PSMRTS_Facet *facet ) {
+
+  assert( ray != nullptr && "psmrts_ray_trace::PSMRTS_RayTrace is null" );
+  assert( tracer != nullptr && "psmrts_tracer::PSMRTS_Tracer is null" );
+
+  // construct PRQFacet with PsmrtsRayTrace from PSMRTS_RayTrace argument
+  psmrts::PRQFacet prqFacet( ray->trace() );
+
+  // process facet
+  PSMRTS_BOOL b = ( tracer->process( prqFacet ) ? PSMRTS_TRUE : PSMRTS_FALSE);
+
+  // copy PRQFacet data to PSMRTS_FACET
+  *facet = psmrts_facet_to_capi( prqFacet );
+
+  return ( b );
 }
 
 /**
