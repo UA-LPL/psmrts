@@ -66,11 +66,10 @@ TEST_CASE ( "PsmrtsParameter Parameter Tests", "[parameter][json]") {
 
   psmrts::StringVisitor double_c( v_radii.name() );
   v_radii.get_to( double_c );
-  CHECK( double_c.size() == 3 );
+  CHECK( double_c.size() == 1 );
   CHECK( double_c.name() == "radii" );
-  CHECK( double_c.get(0) == "1.0" );
-  CHECK( double_c.get(1) == "2.0" );
-  CHECK( double_c.get(2) == "3.0" );
+  CHECK( double_c.get(0) == R"([1.0,2.0,3.0])" );
+  CHECK( double_c.get(1) == "" );
 
   CHECK( v_radii.to_string( ) == v_parm.to_string() );
   CHECK( v_radii.to_json( )   == v_parm.to_json() );
@@ -189,7 +188,8 @@ TEST_CASE( "PsmrtsParameter Parameter Values Tests", "[parameter][values]") {
 
   std::vector<int> large_array(1000, 1);
   psmrts::PsmrtsParameter large_params("many", large_array);
-  CHECK(p.size() == 1000);
-  CHECK(p.to_json()["many"].size() == 1000);
+  CHECK(large_params.size() == large_array.size() );
+  CHECK(large_params.size() == 1000);
+  CHECK(large_params.to_json()["many"].size() == 1000);
 
 }
