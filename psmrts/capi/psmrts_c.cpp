@@ -104,6 +104,8 @@ inline PSMRTS_Facet psmrts_facet_to_capi( const psmrts::PRQFacet &prq_facet ) {
   PSMRTS_Facet facet;
 
   facet.m_has_facet = prq_facet.m_facet.m_has_facet;
+  facet.m_plateid   = prq_facet.m_facet.m_plateid;
+  facet.m_segment   = prq_facet.m_facet.m_segment;
   facet.m_indexes   = eigen_to_vector_i( prq_facet.m_facet.m_indexes );
   facet.m_vector1   = eigen_to_vector_d( prq_facet.m_facet.m_vector1 );
   facet.m_vector2   = eigen_to_vector_d( prq_facet.m_facet.m_vector2 );
@@ -125,6 +127,8 @@ inline psmrts::PRQFacet capi_facet_to_psmrts( const PSMRTS_Facet &facet ) {
   psmrts::PRQFacet prq_facet;
 
   prq_facet.m_facet.m_has_facet = facet.m_has_facet;
+  prq_facet.m_facet.m_plateid = facet.m_plateid;
+  prq_facet.m_facet.m_segment = facet.m_segment;
   prq_facet.m_facet.m_indexes   = vector_to_eigen_i( facet.m_indexes );
   prq_facet.m_facet.m_vector1   = vector_to_eigen_d( facet.m_vector1 );
   prq_facet.m_facet.m_vector2   = vector_to_eigen_d( facet.m_vector2 );
@@ -1241,7 +1245,7 @@ PSMRTS_BOOL psmrts_get_facet( PSMRTS_RayTrace *ray, const PSMRTS_Tracer *tracer,
   psmrts::PRQFacet prqFacet( ray->trace() );
 
   // process facet
-  PSMRTS_BOOL b = tracer->process( prqFacet );
+  PSMRTS_BOOL b = ( tracer->process( prqFacet ) ? PSMRTS_TRUE : PSMRTS_FALSE);
 
   // copy PRQFacet data to PSMRTS_FACET
   *facet = psmrts_facet_to_capi( prqFacet );

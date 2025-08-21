@@ -327,7 +327,11 @@ namespace naif {
             (void) dskp02_c( kernel().handle(), segment->dladsc_ptr(),
                              ray.plateid()+1, 1, &n, ( SpiceInt (*)[3] ) ( indexes ) );
             check_naif_errors();
-            
+
+            // set plateid and segment in facet
+            facet.m_plateid = ray.plateid();
+            facet.m_segment = ray.segment_number();
+
             // Converting back to 0-based for return
             facet.m_indexes = { indexes[0]-1, indexes[1]-1, indexes[2]-1 };
 

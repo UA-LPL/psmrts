@@ -73,6 +73,8 @@ typedef union {
 /* Facet data structure contains the elements defining a single facet */
 typedef struct psmrts_facet {
   PSMRTS_BOOL     m_has_facet;
+  int             m_plateid;  //! 0-based plate id/index of intercepted facet
+  int             m_segment;  //! Segment (DSK)/identifier of shape source
   PSMRTS_Vector3i m_indexes;
   PSMRTS_Vector3d m_vector1;
   PSMRTS_Vector3d m_vector2;

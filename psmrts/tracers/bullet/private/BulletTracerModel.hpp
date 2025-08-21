@@ -97,7 +97,7 @@ namespace psmrts::bullet {
         facet.m_has_facet = false;
 
         if ( ray.hasHit() && m_bullet_model.mesh().isValid() ) {
-          facet = m_bullet_model.mesh().get_facet( ray.plateid() );
+          facet = m_bullet_model.mesh().get_facet( ray.plateid(), ray.segment_number() );
         }
 
         return ( facet.isValid() );
