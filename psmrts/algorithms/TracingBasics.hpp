@@ -168,8 +168,8 @@ namespace psmrts::algorithms  {
       for ( auto &trace : tracelist.traces() ) {
         try { 
           if ( process_basic_photometric_trace( tracer, trace ) ) {
-          n_good++;
-        }
+            n_good++;
+          }
         }
         catch ( const std::exception &e ) {
           trace.add_error( std::runtime_error( psmrts_concate("*** process_basic_photometric_trace_array() error: ", e.what() ) ) );
