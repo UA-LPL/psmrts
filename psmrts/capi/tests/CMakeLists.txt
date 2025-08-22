@@ -42,5 +42,6 @@ if(BUILD_COVERAGE)
 
   # Some additional sources in PSMRTS C API sources
   psmrts_register_code_coverage(EXCLUDES "capi/apps/psmrts_capi_features.cpp")
+  psmrts_register_code_coverage(EXCLUDES "capi/apps/psmrts_capi_c_features.c")
 
 endif(BUILD_COVERAGE)

@@ -3,9 +3,10 @@
 
 #include <string>
 
-#include "private/NaifDskTracerModel.hpp"
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/algorithms/TracingBasics.hpp>
+#include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
 
 namespace psmrts  {
   /**
@@ -14,7 +15,6 @@ namespace psmrts  {
    * 
    */
   class NaifDskTracer {
-
     public:
       NaifDskTracer( ) {  }
       NaifDskTracer( const naif::DskKernelModel &dsktracer ) : 
@@ -38,9 +38,7 @@ namespace psmrts  {
        * @return false  If no ray trace intercept was found
        */
       inline bool process ( PRQRayTrace &trace ) const {
-        Eigen::Vector3d observer ( trace.trace().observer() );
-        Eigen::Vector3d lookdir ( trace.trace().lookdir() );
-        return ( this->ray_trace( observer, lookdir, trace.trace() ) );
+        return ( algorithms::process_basic_trace( m_model, trace ) );
       }
 
       /**
@@ -60,14 +58,7 @@ namespace psmrts  {
        * @return false    If no trace intercepts were found
        */
       inline bool process ( PRQRayTraceArray &tracelist ) const {
-        size_t n_good = 0;
-        for ( auto &trace : tracelist.traces() ) {
-          if ( this->process( trace ) ) {
-            n_good++;
-          }
-        }
-        
-        return ( n_good > 0 );
+        return ( algorithms::process_basic_trace_array( m_model, tracelist ) );
       }
 
       /**
@@ -86,7 +77,7 @@ namespace psmrts  {
        * @return false  If process fails to find facet/intercept
        */
       inline bool process( PRQFacet &facet ) const {
-         return ( m_model.get_facet( facet.trace(), facet.facet() ) );
+        return ( algorithms::process_basic_facet( m_model, facet ) );
       }
 
       /**
@@ -105,13 +96,7 @@ namespace psmrts  {
        * @return false  If either does not intercept the shape
        */
       inline bool process( PRQPhotometricTrace &trace_p ) const {
-        if ( this->process( trace_p.observer() ) ) {
-          if ( trace_p.compute_sun_lookdir() ) {
-            return ( this->process( trace_p.sunpos() ) );
-          }
-        }
-
-        return ( false );
+        return ( algorithms::process_basic_photometric_trace( m_model, trace_p ) );
       }
 
        /**
@@ -130,15 +115,8 @@ namespace psmrts  {
        * @return true     If at least one of the traces intercepts the shape
        * @return false    If no appropriate trace intercepts were found
        */
-       inline bool process ( PRQPhotometricTraceArray &tracelist ) const {
-        size_t n_good = 0;
-        for ( auto &trace : tracelist.traces() ) {
-          if ( this->process( trace ) ) {
-            n_good++;
-          }
-        }
-        
-        return ( n_good > 0 );
+       inline bool process( PRQPhotometricTraceArray &tracelist ) const {
+        return ( algorithms::process_basic_photometric_trace_array( m_model, tracelist ) );
       }
 
        /**
@@ -162,7 +140,7 @@ namespace psmrts  {
       }
 
       /**
-       * @brief NAIF Dsk Virtual Ray Trace Method
+       * @brief NAIF NaifDsk Ray Trace Method
        * 
        * Deriving classes must implement this method as is specified for 
        * shape models.
@@ -182,9 +160,14 @@ namespace psmrts  {
                               const Eigen::Vector3d &lookdir,
                               PsmrtsRayTrace &ray ) const {
         // this->local_tracker()++;
-        return ( m_model.ray_trace( observer, lookdir, ray ) );
+        return ( this->ray_trace( ray.reset( observer, lookdir ) ) );
       }
-  
+      
+      inline bool ray_trace( PsmrtsRayTrace &ray ) const {
+        // this->local_tracker()++;
+        return ( m_model.ray_trace( ray ) );
+      } 
+      
       /** Report all remaining features not available - e.g., PRQFacet not relevant to Ellipsoid format */
       PSMRTS_PROCESS_CATCHALL( "NaifDskTracer" )
 
@@ -223,8 +206,8 @@ namespace psmrts  {
         return ( ProductSpecification( "naifdsk", "tracer", "shapetracer", json_utils::parse_json_string( text )));
       }
 
-      NaifDskTracerModel m_model;
-
+    private:
+      naif::DskKernelModel m_model;
 
   };
 

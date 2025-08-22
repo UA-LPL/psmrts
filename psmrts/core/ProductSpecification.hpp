@@ -4,12 +4,11 @@
 
 #include <string>
 #include <memory>
-#include <deque>
 #include <vector>
 #include <variant>
 #include <exception>
 
-#include <psmrts/core/PsmrtsParameters.hpp>
+#include <psmrts/core/PsmrtsJson.hpp>
 #include <psmrts/core/ProductParameter.hpp>
 #include <psmrts/core/ProductRequest.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
@@ -28,7 +27,7 @@ namespace psmrts {
    */
   class ProductSpecification {
     public:
-      using ProductParameterList = std::deque<ProductParameter>;
+      using ProductParameterList = std::vector<ProductParameter>;
 
       ProductSpecification( )  {
         initialize( "null", "", "" );

@@ -134,15 +134,17 @@ namespace psmrts::bullet {
       inline bool ray_trace( const Eigen::Vector3d &observer, 
                              const Eigen::Vector3d &lookdir,
                              PsmrtsRayTrace &ray ) const {
+        return ( this->ray_trace( ray.reset( observer, lookdir ) ) );
+      }
 
-
-        Eigen::Vector3d t_lookdir = observer + ( lookdir.normalized()  * ( observer.norm() * 2.0 ) );
-
-        btVector3 b_observer = PsmrtsBulletClosestRayCallback::toBtVector( observer );
+      inline bool ray_trace( PsmrtsRayTrace &ray ) const {
+                              
+        Eigen::Vector3d t_lookdir = ray.observer() + ( ray.lookdir().normalized()  * ( ray.observer().norm() * 2.0 ) );
+        btVector3 b_observer = PsmrtsBulletClosestRayCallback::toBtVector( ray.observer() );
         btVector3 b_lookdir  = PsmrtsBulletClosestRayCallback::toBtVector( t_lookdir );
 
         PsmrtsBulletClosestRayCallback results(b_observer, b_lookdir );
-        (void) bullet_ray_trace( observer, t_lookdir, results );
+        (void) bullet_ray_trace( ray.observer(), t_lookdir, results );
         return ( extract_ray_trace_results( results, ray ) );
       }
 

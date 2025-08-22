@@ -3,6 +3,7 @@
 
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/algorithms/TracingBasics.hpp>
 #include "private/EllipsoidTracerModel.hpp"
 
 namespace psmrts  {
@@ -33,6 +34,12 @@ namespace psmrts  {
 
     public:
      EllipsoidTracer( ) : m_model( 1.0, 1.0, 1.0 ) {  }
+     EllipsoidTracer( const double radius,
+                      const std::string &source = "sphere") :
+                      m_model( radius, radius, radius, source) { }
+     EllipsoidTracer( const double a, const double c,
+                      const std::string &source = "spheroid") :                      
+                      m_model( a, a, c, source) { }     
      EllipsoidTracer( const double a, const double b, const double c,
                       const std::string &source = "ellipsoid") :
                       m_model( a, b, c, source) { }     
@@ -57,10 +64,7 @@ namespace psmrts  {
        * @return false  If no ray trace intercept was found
        */
       inline bool process ( PRQRayTrace &trace ) const {
-        trace.trace().validate_lookdir();
-        Eigen::Vector3d observer( trace.trace().observer() );
-        Eigen::Vector3d lookdir( trace.trace().lookdir() );
-        return (this->ray_trace( observer, lookdir, trace.trace() ) );
+        return ( psmrts::algorithms::process_basic_trace( *this, trace ) );
       }
 
       /**
@@ -80,14 +84,7 @@ namespace psmrts  {
        * @return false    If no trace intercepts were found
        */
       inline bool process ( PRQRayTraceArray &tracelist ) const {
-        size_t n_good = 0;
-        for ( auto &trace : tracelist.traces() ) {
-          if ( this->process( trace ) ) {
-            n_good++;
-          }
-        }
-        
-        return ( n_good > 0 );
+        return ( psmrts::algorithms::process_basic_trace_array( *this, tracelist ) );
       }
 
 
@@ -108,13 +105,7 @@ namespace psmrts  {
        * @return false  If either does not intercept the shape
        */
       inline bool process( PRQPhotometricTrace &trace_p ) const {
-        if ( this->process( trace_p.observer() ) ) {
-          if ( trace_p.compute_sun_lookdir() ) {
-            return ( this->process( trace_p.sunpos() ) );
-          }
-        }
-
-        return ( false );
+        return ( psmrts::algorithms::process_basic_photometric_trace(*this, trace_p ) );
       }
 
       /**
@@ -134,14 +125,7 @@ namespace psmrts  {
        * @return false    If no appropriate trace intercepts were found
        */
       inline bool process ( PRQPhotometricTraceArray &tracelist ) const {
-        size_t n_good = 0;
-        for ( auto &trace : tracelist.traces() ) {
-          if ( this->process( trace ) ) {
-            n_good++;
-          }
-        }
-        
-        return ( n_good > 0 );
+        return ( psmrts::algorithms::process_basic_photometric_trace_array( *this, tracelist ) );
       }
 
       /**
@@ -192,10 +176,14 @@ namespace psmrts  {
                              PsmrtsRayTrace &ray ) const {
 
         // reset observer and lookdir with incoming arguments
-        ray.reset( observer,lookdir );
+        return ( this->ray_trace( ray.reset( observer, lookdir ) ) );
+      }
+
+      inline bool ray_trace( PsmrtsRayTrace &ray ) const {
 
         // Let the model do it!
-        ray.datum().m_hit = m_model.ray_trace( observer.data(), lookdir.data(), 
+        ray.datum().m_hit = m_model.ray_trace( ray.observer().data(), 
+                                               ray.lookdir().data(), 
                                                ray.datum().m_xyz.data(), 
                                                ray.datum().m_normal.data() );
         return ( ray.hasHit() );

@@ -4,12 +4,10 @@
 
 #include <string>
 #include <memory>
-#include <deque>
 #include <vector>
 #include <exception>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
-#include <psmrts/core/PsmrtsParameters.hpp>
 
 namespace psmrts { 
 

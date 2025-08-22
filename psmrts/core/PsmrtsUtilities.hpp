@@ -321,27 +321,31 @@ namespace psmrts {
     return ( s_t );
   }
 
-    /** Remove leading white space */
-    inline std::string psmrts_ltrim( const std::string &s ) {
-      std::string strim = s;
-      auto bad_c =  std::find_if( strim.begin(), strim.end(), []( const char ch ) -> bool { return !std::isspace<char>(ch , std::locale::classic() ) ; } );
-      strim.erase( strim.begin(), bad_c );
-      return ( strim );
-    }
-  
-    /** Remove trailing white space */
-    inline std::string psmrts_rtrim( const std::string &s ) {
-      std::string strim = s;
-      auto bad_c =  std::find_if( strim.rbegin(), strim.rend(), []( const char ch ) -> bool { return !std::isspace<char>(ch , std::locale::classic() ) ; } );
-      strim.erase( bad_c.base(), strim.end() );
-      return ( strim );
-    }
-  
-  /** Remove leading and trailing white space */
-    inline std::string psmrts_trim( const std::string &s ) {
-      return ( psmrts_ltrim( psmrts_rtrim( s ) ) );
-    }
+  /** Remove leading white space */
+  inline std::string psmrts_ltrim( const std::string &s ) {
+    std::string strim = s;
+    auto bad_c =  std::find_if( strim.begin(), strim.end(), []( const char ch ) -> bool { return !std::isspace<char>(ch , std::locale::classic() ) ; } );
+    strim.erase( strim.begin(), bad_c );
+    return ( strim );
+  }
 
+  /** Remove trailing white space */
+  inline std::string psmrts_rtrim( const std::string &s ) {
+    std::string strim = s;
+    auto bad_c =  std::find_if( strim.rbegin(), strim.rend(), []( const char ch ) -> bool { return !std::isspace<char>(ch , std::locale::classic() ) ; } );
+    strim.erase( bad_c.base(), strim.end() );
+    return ( strim );
+  }
+
+  /** Remove leading and trailing white space */
+  inline std::string psmrts_trim( const std::string &s ) {
+    return ( psmrts_ltrim( psmrts_rtrim( s ) ) );
+  }
+
+  /** Concatenate two strings into one w/convenience fuction */
+  inline std::string psmrts_concate(const std::string &s1, const std::string &s2 ) {
+    return ( s1 + s2 );
+  }
     
   /**
    * @brief tokenization of an Ellipsoid string of a/b/c values

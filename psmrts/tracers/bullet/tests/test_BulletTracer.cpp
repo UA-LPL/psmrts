@@ -50,7 +50,7 @@ TEST_CASE ( "Bullet Tracer - Default Constructor", "[default][bullet][tracer]" )
     CHECK_NOTHROW( features.clear_errors() );
 
     psmrts::PRQPhotometricTrace photoTrace;
-    CHECK_THROWS( b_tracer.process( photoTrace ) ); 
+    CHECK( b_tracer.process( photoTrace )          == false ); 
     CHECK( photoTrace.isValid()                    == false );
     CHECK( photoTrace.observer_trace().hasHit()    == false );
     CHECK( photoTrace.sun_trace().hasHit()         == false );
@@ -74,7 +74,7 @@ TEST_CASE ( "Bullet Tracer - Default Constructor", "[default][bullet][tracer]" )
 
     CHECK( pt_array.size() == 2 );
 
-    CHECK_THROWS( b_tracer.process( pt_array ) ); 
+    CHECK( b_tracer.process( pt_array ) == false ); 
     
     // Photometric Array List Default
     std::vector<psmrts::PRQPhotometricTrace> pt_list;
@@ -85,7 +85,7 @@ TEST_CASE ( "Bullet Tracer - Default Constructor", "[default][bullet][tracer]" )
     CHECK( pt_array2.size() == 2 );
     CHECK( pt_array2.traces().empty() == false );
 
-    CHECK_THROWS( b_tracer.process( pt_array2 ) ); 
+    CHECK( b_tracer.process( pt_array2 ) == false ); 
 
     // Ray Trace Array Default
     psmrts::PRQRayTraceArray rt_array;
@@ -102,7 +102,7 @@ TEST_CASE ( "Bullet Tracer - Default Constructor", "[default][bullet][tracer]" )
 
     CHECK( rt_array.size() == 2 );
 
-    CHECK_THROWS( b_tracer.process( rt_array ) ); 
+    CHECK( b_tracer.process( rt_array )  == false ); 
 
     // Ray Trace Array List Default
     std::vector<psmrts::PRQRayTrace> rt_list;
@@ -113,7 +113,7 @@ TEST_CASE ( "Bullet Tracer - Default Constructor", "[default][bullet][tracer]" )
     CHECK( rt_array2.size() == 2 );
     CHECK( rt_array2.traces().empty() == false  );
 
-    CHECK_THROWS( b_tracer.process( rt_array2 ) ); 
+    CHECK( b_tracer.process( rt_array2 ) == false ); 
 }
 
 TEST_CASE( "Bullet Tracer Test - Ray Trace / Values", "[bullet][tracer][values]" ) {
@@ -550,7 +550,7 @@ TEST_CASE( "Bullet Tracer Photometric Array Test", "[bullet][tracer][photometric
 
     Eigen::Vector3d lookdir_s3 = prq_ray3.trace().xyz() - sun_pos3;
     psmrts::PRQRayTrace prq_sun3(sun_pos3, lookdir_s3 );
-    CHECK_THROWS( b_tracer.process( prq_sun3 ) );
+    CHECK( b_tracer.process( prq_sun3 ) == false);
     CHECK( prq_sun3.trace().hasHit()    == false );
 
     psmrts::PRQPhotometricTrace prq_photo3( observer3, lookdir3, sun_pos3 );

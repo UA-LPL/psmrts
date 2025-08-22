@@ -2,8 +2,7 @@
 target_sources( psmrts PUBLIC PsmrtsMeshData.hpp
                               PsmrtsStridingBuffer.hpp
                               ProductParameter.hpp
-                              PsmrtsParameters.hpp
-                              PsmrtsTracerModel.hpp
+                              PsmrtsParameter.hpp
                               ProductProcessDispatch.hpp
                               PsmrtsPriorityTracer.hpp
                               PsmrtsUtilities.hpp
@@ -14,8 +13,7 @@ target_sources( psmrts PUBLIC PsmrtsMeshData.hpp
                               PsmrtsRayTrace.hpp
                               PsmrtsBuffer.hpp
                               PsmrtsRequest.hpp
-                              PsmrtsBufferData.hpp
-                              PsmrtsShapeTracerAdapter.hpp )
+                              PsmrtsBufferData.hpp )
 
 # Only add if requested
 if(BUILD_TESTING)

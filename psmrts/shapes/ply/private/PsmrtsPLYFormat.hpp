@@ -18,7 +18,6 @@
 #include <psmrts/core/PsmrtsBuffer.hpp>
 #include <psmrts/core/PsmrtsVector3.hpp>
 #include <psmrts/core/PsmrtsMeshData.hpp>
-#include <psmrts/core/PsmrtsParameters.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
 
 #include <miniply.h>

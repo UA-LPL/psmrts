@@ -18,8 +18,6 @@ namespace psmrts::bullet {
    * 
    * This class provides the PSMRST tracer model for Bullet tracers.
    * 
-   * @see PsmrtsTracerModel.hpp
-   * 
    */
   class BulletTracerModel  {
     public:
@@ -80,8 +78,14 @@ namespace psmrts::bullet {
                               const Eigen::Vector3d &lookdir,
                               PsmrtsRayTrace &ray ) const {
         // this->local_tracker()++;
-        return ( m_bullet_model.ray_trace( observer, lookdir, ray ) );
+        return ( this->ray_trace( ray.reset( observer, lookdir ) ) );
       }
+
+      inline bool ray_trace( PsmrtsRayTrace &ray ) const {
+        // this->local_tracker()++;
+        return ( m_bullet_model.ray_trace( ray ) );
+      }
+
 
       /**
        * @brief Get the facet object at the ray intersection
@@ -91,7 +95,7 @@ namespace psmrts::bullet {
        * @return false 
        */
       inline bool get_facet( const PsmrtsRayTrace &ray,
-                              PsmrtsRayTrace::FacetDatum &facet ) const {
+                             PsmrtsRayTrace::FacetDatum &facet ) const {
 
        // Sanity check validity of raytrace
         facet.m_has_facet = false;

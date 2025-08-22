@@ -7,7 +7,6 @@
 #include <exception>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
-#include <psmrts/core/PsmrtsParameters.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 
 namespace psmrts { 
@@ -359,14 +358,11 @@ namespace psmrts {
 
 class PRQRayTraceArray : public PsmrtsRequest {
     public:
-      using PRQRayTraceList = std::deque<PRQRayTrace>;
+      using PRQRayTraceList = std::vector<PRQRayTrace>;
 
     /** default constructable */
       PRQRayTraceArray() : PsmrtsRequest( "PRQRayTraceArray" ),
                            m_traces( ) { }
-      PRQRayTraceArray( const std::vector<PRQRayTrace> &traces ) : 
-                        PsmrtsRequest( "PRQRayTraceArray" ),
-                        m_traces( traces.begin(), traces.end() ) { }
       PRQRayTraceArray( const PRQRayTraceList &traces ) : 
                         PsmrtsRequest( "PRQRayTraceArray" ),
                         m_traces( traces ) { }                                                     
@@ -394,7 +390,7 @@ class PRQRayTraceArray : public PsmrtsRequest {
       }
 
       inline void clear() {
-        m_traces.clear();    // calls std::deque::clear()
+        m_traces.clear();    // calls std::vector::clear()
         reset();             // this resets tracker/timer
       }
 
@@ -513,14 +509,11 @@ class PRQRayTraceArray : public PsmrtsRequest {
 
 class PRQPhotometricTraceArray : public PsmrtsRequest {
     public:
-      using PRQPhotometricTraceList = std::deque<PRQPhotometricTrace>;
+      using PRQPhotometricTraceList = std::vector<PRQPhotometricTrace>;
 
     /** default constructable */
       PRQPhotometricTraceArray() : PsmrtsRequest( "PRQPhotometricTraceArray" ),
                            m_traces( ) { }
-      PRQPhotometricTraceArray( const std::vector<PRQPhotometricTrace> &traces ) : 
-                                PsmrtsRequest( "PRQPhotometricTraceArray" ),
-                                m_traces( traces.begin(), traces.end() ) { }                              
       PRQPhotometricTraceArray( const PRQPhotometricTraceList &traces ) : 
                         PsmrtsRequest( "PRQPhotometricTraceArray" ),
                         m_traces( traces ) { }                                 
@@ -549,7 +542,7 @@ class PRQPhotometricTraceArray : public PsmrtsRequest {
       }
 
       inline void clear() {
-        m_traces.clear();    // calls std::deque::clear()
+        m_traces.clear();    // calls std::vector::clear()
         reset();             // this resets tracker/timer
       }
 
@@ -581,6 +574,9 @@ class PRQPhotometricTraceArray : public PsmrtsRequest {
     /** default constructable */
       PRQFacet() : PsmrtsRequest( "PRQFacet" ),
                                  m_trace( ) { }
+      PRQFacet( const PRQRayTrace &ray ) : 
+                   PsmrtsRequest( "PRQFacet" ),
+                   m_trace( ray ) { }                                 
       PRQFacet( const PsmrtsRayTrace &observer_and_lookdir ) : 
                    PsmrtsRequest( "PRQFacet" ),
                    m_trace( observer_and_lookdir ) { }

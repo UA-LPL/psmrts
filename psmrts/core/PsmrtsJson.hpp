@@ -1,5 +1,4 @@
-#ifndef PsmrtsParameters_hpp
-#define PsmrtsParameters_hpp
+#pragma once
 
 #include <iterator>
 #include <string>
@@ -136,123 +135,13 @@ namespace psmrts {
 
       std::ofstream jfile ( fname );
       if ( !jfile ) {
-        std::string msg = "PsmrtsParameters::write_json_file - Failed to create label file " + fname;
+        std::string msg = "PsmrtsParameter::write_json_file - Failed to create label file " + fname;
         throw std::runtime_error( msg );
       }
 
       jfile << dump_json_string( j_data, j_indent ) << std::endl;
       return;
     }
-  }
-  /**
-   * @brief Manage arbitrary data in JSON objects
-   * 
-   * The JSON keys are required to be lower case. This is enforced in the
-   * get/add methods. 
-   *
-   * @author 2024-07-04 Kris J. Becker, UA Original Version
-   */
-  class PsmrtsParameters {
-    public:
-      PsmrtsParameters() : m_json() { }
-      explicit PsmrtsParameters( const char *name ) : m_json( { {"name", name } } )  { }
-      explicit PsmrtsParameters( const std::string &name ) : m_json( { {"name", name } } )  { }
-      explicit PsmrtsParameters( const ordered_json &config ) : m_json( config )  { }
-      virtual ~PsmrtsParameters() { }
-
-      /** Returns size of the Parameters */
-      inline int size() const {
-        return ( m_json.size() );
-      }
-
-      /** Returns boolean confirmation if target key is in Parameters */
-      inline bool contains( const std::string &key ) const {
-        return ( m_json.contains( psmrts_tolower( key ) ) );
-      }
-
-      /** Return reference to parameters */
-      inline const ordered_json &parameters( ) const {
-        return ( m_json );
-      }
-
-      /** Returns string version of key if it exists in Parameters */
-      inline std::string get_string_parameter( const std::string &key, 
-                                               const std::string &value_d = "" ) const {
-        std::string s_t = value_d;
-        if ( this->contains( key ) ) {
-          s_t = m_json[psmrts_tolower(key)].get<std::string>();
-        }
-
-        return ( s_t );
-      }
-
-      /** Returns double value of key if it exists in Parameters */
-      inline double get_double_parameter( const std::string &key, 
-                                               const double &value_d = std::nan("null") ) const {
-        double d_t = value_d;
-        if ( this->contains( key ) ) {
-          d_t = m_json[psmrts_tolower(key)].get<double>();
-        }
-
-        return ( d_t );
-      }
-
-      /** Returns integer value of key if it exists in Parameters */
-      inline int get_int_parameter( const std::string &key, 
-                                            const int &value_d = 0 ) const {
-        int d_t = value_d;
-        if ( this->contains( key ) ) {
-          d_t = m_json[psmrts_tolower(key)].get<int>();
-        }
-
-        return ( d_t );
-      }
-
-      template <class T>
-        T get_parameter( const std::string &key ) const {
-          std::string key_t = psmrts_tolower( key );
-          if ( m_json.contains(  key_t ) ) {
-            return ( m_json.at( key_t ).template get<T>() );
-          }
-
-          // Not found - error!
-          return ( json() );
-        }
-
-      template <class T>
-        T get_parameter( const std::string &key, const T &value_def ) const {
-          std::string key_t = psmrts_tolower( key );
-          if ( m_json.contains(  key_t ) ) {
-            return ( m_json.at( key_t ).get<T>() );
-          }
-
-          // Not found - return the default
-          return ( value_def );
-        }
-
-      template <class T>
-        void add_parameter( const std::string &key, const T &value ) {
-          std::string key_t = psmrts_tolower( key );
-          m_json[key_t] = value;
-          return;
-        }
-
-        /** Get config parameters while optionally inserting into a named object */
-        inline std::string config( const std::string &objname = "",
-                                   const int indent = -1 ) const {
-          if ( !objname.empty() ) { 
-            ordered_json jobj;
-            jobj[objname] =  m_json;
-            return ( json_utils::dump_json_string( jobj, indent ) );
-          }
-
-          // Otherwise return just the parameter object
-          return ( json_utils::dump_json_string( m_json, indent ) );
-        }
-
-    private:
-      ordered_json m_json;
-  };      
+  } // namespace json_utils
 
 } // namespace psmrts
-#endif

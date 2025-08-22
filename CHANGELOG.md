@@ -35,6 +35,26 @@ release.
 ## TODO
 - See [TODO](TODO.md)
 
+## [0.3.2] 2025-08-22
+- Removed/merged obsolete, redundant files/classes/tests to clean up system. 
+```
+	deleted:    psmrts/core/PsmrtsShapeTracerAdapter.hpp
+	deleted:    psmrts/core/PsmrtsTracerModel.hpp
+	deleted:    psmrts/core/tests/test_PsmrtsShapeTracerAdapter.cpp
+	deleted:    psmrts/tracers/naifdsk/private/NaifDskTracerModel.hpp
+	deleted:    psmrts/tracers/naifdsk/private/NaifEllipsoidShape.hpp
+	deleted:    psmrts/tracers/naifdsk/tests/test_NaifDskTracerModel.cpp
+	deleted:    psmrts/tracers/naifdsk/tests/test_NaifEllipsoidShape.cpp
+	deleted:    psmrts/tracers/naifdsk/tests/test_NaifPsmrtsPriorityTracer.cpp
+	deleted:    psmrts/tracers/naifdsk/tests/test_NaifShapeTracerAdapter.cpp
+	deleted:    psmrts/tracers/naifdsk/tests/test_PsmrtsPriorityTracer.cpp
+	deleted:    psmrts/tracers/naifdsk/tests/test_PsmrtsRayTrace.cpp
+	deleted:    psmrts/tracers/naifdsk/tests/test_PsmrtsShapeTracerAdapter.cpp
+```
+- Added the `psmrts/algorithms` directory. Created the TracingBasics.hpp file containing generic ray tracing processes. Using these algorithms will remove/minimize the burden of maintaining common process methods.
+- Reworked the PsmrtsParameter.hpp (formerly PsmrtsParameters.hpp) to support PSMRTS intrinsic types for user/dev parameterization support.
+- Made progress on the priority tracer.
+
 ## [0.3.1] 2025-08-21
 - Added facet functionality to PSMRTS C API with supporting methods, tests, and documentation. Also added plate id and segment to C API Facet structure with updated conversion methods and tests.
 
