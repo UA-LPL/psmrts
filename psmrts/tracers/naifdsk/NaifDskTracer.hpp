@@ -3,10 +3,10 @@
 
 #include <string>
 
-#include "private/NaifDskTracerModel.hpp"
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
 #include <psmrts/algorithms/TracingBasics.hpp>
+#include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
 
 namespace psmrts  {
   /**
@@ -15,7 +15,6 @@ namespace psmrts  {
    * 
    */
   class NaifDskTracer {
-
     public:
       NaifDskTracer( ) {  }
       NaifDskTracer( const naif::DskKernelModel &dsktracer ) : 
@@ -207,8 +206,8 @@ namespace psmrts  {
         return ( ProductSpecification( "naifdsk", "tracer", "shapetracer", json_utils::parse_json_string( text )));
       }
 
-      NaifDskTracerModel m_model;
-
+    private:
+      naif::DskKernelModel m_model;
 
   };
 

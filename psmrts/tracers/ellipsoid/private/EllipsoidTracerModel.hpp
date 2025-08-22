@@ -51,7 +51,22 @@ namespace psmrts  {
       inline const std::string &name() const {
         return ( m_name );
       }
+      
+      /** Returns value of a */
+      const double &a() const {
+        return ( m_radii[0] );
+      }
 
+      /** Returns value of b */
+      const double &b() const {
+        return ( m_radii[1] );
+      }
+
+      /** Returns value of c */
+      const double &c() const {
+        return ( m_radii[2] );
+      }
+      
       inline double maximum_radius() const {
         return ( std::max( std::max( m_radii[0], m_radii[1]), m_radii[2] ) );
       }

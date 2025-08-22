@@ -6,6 +6,7 @@
 #include "private/PsmrtsBulletWorldModel.hpp"
 #include "private/BulletTracerModel.hpp"
 #include <psmrts/core/PsmrtsRequest.hpp>
+#include <psmrts/algorithms/TracingBasics.hpp>
 
 namespace psmrts  {
   /**
@@ -35,10 +36,7 @@ namespace psmrts  {
        * @return false  If no ray trace intercept was found
        */
       inline bool process ( PRQRayTrace &trace ) const {
-        trace.trace().validate_lookdir();
-        Eigen::Vector3d observer ( trace.trace().observer() );
-        Eigen::Vector3d lookdir ( trace.trace().lookdir() );
-        return ( this->ray_trace( observer, lookdir, trace.trace() ) );
+        return ( algorithms::process_basic_trace( m_model, trace ) );
       }
 
       /**
@@ -58,14 +56,7 @@ namespace psmrts  {
        * @return false    If no trace intercepts were found
        */
       inline bool process ( PRQRayTraceArray &tracelist ) const {
-        size_t n_good = 0;
-        for ( auto &trace : tracelist.traces() ) {
-          if ( this->process( trace ) ) {
-            n_good++;
-          }
-        }
-        
-        return ( n_good > 0 );
+        return ( algorithms::process_basic_trace_array( m_model, tracelist ) );
       }
 
       /**
@@ -84,7 +75,7 @@ namespace psmrts  {
        * @return false  If process fails to find facet/intercept
        */
       inline bool process( PRQFacet &facet ) const {
-         return ( m_model.get_facet( facet.trace(), facet.facet() ) );
+        return ( algorithms::process_basic_facet( m_model, facet ) );
       }
 
       /**
@@ -103,13 +94,7 @@ namespace psmrts  {
        * @return false  If either does not intercept the shape
        */
       inline bool process( PRQPhotometricTrace &trace_p ) const {
-        if ( this->process( trace_p.observer() ) ) {
-          if ( trace_p.compute_sun_lookdir() ) {
-            return ( this->process( trace_p.sunpos() ) );
-          }
-        }
-
-        return ( false );
+        return ( algorithms::process_basic_photometric_trace( m_model, trace_p ) );
       }
 
       /**
@@ -129,14 +114,7 @@ namespace psmrts  {
        * @return false    If no appropriate trace intercepts were found
        */
       inline bool process ( PRQPhotometricTraceArray &tracelist ) const {
-        size_t n_good = 0;
-        for ( auto &trace : tracelist.traces() ) {
-          if ( this->process( trace ) ) {
-            n_good++;
-          }
-        }
-        
-        return ( n_good > 0 );
+        return ( algorithms::process_basic_photometric_trace_array( m_model, tracelist ) );
       }
 
       /**

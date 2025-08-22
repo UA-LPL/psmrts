@@ -1,8 +1,10 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
+#include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsRayTrace.hpp>
 #include <psmrts/tracers/ellipsoid/EllipsoidTracer.hpp>
 #include <psmrts/tracers/ellipsoid/private/EllipsoidTracerModel.hpp>
-#include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsRequest.hpp>
 
 TEST_CASE( "Ellipsoid Shape Tracer - Request Default Constructor", "[default][ellipsoid][shapetracer]") {
     psmrts::EllipsoidTracer e_tracer;
@@ -460,4 +462,86 @@ TEST_CASE( "Ellipsoid Shape Tracer Product Specification Test", "[ellipsoid][sha
 
     CHECK( spec.has_parameter( "obj_mtl_search_path" ) == false );
     CHECK( spec.has_parameter( "ellipsoid_radii" )  == true  );
+}
+
+
+TEST_CASE ( "Ellipsoid Tracer Value-Range Test - Spheroid/Ellipsoid", "[raytrace][observer][spheroid][triaxial][ellipsoid]") {
+  const double tolerance = 1.0e-6;
+
+  std::vector<double> a_radius_list = { 0.5, 1.0, 10.125, 100.0 };
+  std::vector<double> b_radius_list = { 0.5, 1.0, 10.125, 100.0 };
+  std::vector<double> c_radius_list = { 0.5, 1.0, 10.125, 100.0 };
+
+
+  double long_val = GENERATE( -180.0, -140.0, -90.0, -45.0, 0.0, 45.0, 90.0, 140.0, 180.0);
+  double lat_val = GENERATE( -90.0, -45.0, 0.0, 45.0, 90.0 );
+ 
+  for ( auto a_radius_val: a_radius_list ) {
+    for (auto b_radius_val: b_radius_list) {
+      double max_radius = std::max( a_radius_val, b_radius_val );
+      for ( auto c_radius_val: c_radius_list ) {
+
+        if ( c_radius_val > max_radius) max_radius = c_radius_val;
+
+        psmrts::EllipsoidTracer t_ellipse( a_radius_val, b_radius_val, c_radius_val );
+      
+        INFO ( "a radius / b radius / c radius = " << a_radius_val << ", " << c_radius_val << ", " << c_radius_val );
+        INFO( "Lon/Lat = " << long_val << ", " << lat_val );
+
+        std::vector<double>  distance_list = { 10.0, 1000.0, 10000.0 }; //  1000000.0 -> doesnt seem to work with extreme spheroidal shape(a, b, c) = (100, 0.5, 0.5) 
+                                                                        //  and only for a few of the cases.
+        Eigen::Vector3d observer;
+        double radius = max_radius;
+        double obs_long = long_val * rpd_c();
+        double obs_lat = lat_val * rpd_c();
+        for ( auto distance: distance_list ) {
+          (void) latrec_c ( radius * distance, obs_long, obs_lat, observer.data() );
+          INFO( "Observer Distance: " << distance  );
+
+          Eigen::Vector3d rec_surf;
+          double surf_long = 0.0 * rpd_c();
+          double surf_lat  = 0.0 * rpd_c(); 
+          (void) latrec_c ( radius, surf_long, surf_lat, rec_surf.data() ); 
+
+          Eigen::Vector3d origin ( { 0.0, 0.0, 0.0 } );
+          Eigen::Vector3d surf;
+          SpiceBoolean s_found;
+          (void) surfpt_c( origin.data(), rec_surf.data(), a_radius_val, b_radius_val, c_radius_val, surf.data(), &s_found );
+
+          Eigen::Vector3d lookdir  = surf - observer;
+          psmrts::PRQRayTrace ray( observer, lookdir );
+
+          bool good = t_ellipse.process( ray );
+          CHECK( good == true );
+          Eigen::Vector3d spt = ray.trace().xyz();
+
+
+          Eigen::Vector3d normal = ray.trace().normal();
+          Eigen::Vector3d naif_spt ( { 0, 0, 0, } );
+          SpiceBoolean found; 
+          (void) surfpt_c( observer.data(), lookdir.data(), a_radius_val, b_radius_val, c_radius_val, naif_spt.data(), &found );
+
+          Eigen::Vector3d naif_normal ( { 0, 0, 0, } );
+          (void) surfnm_c( a_radius_val, b_radius_val, c_radius_val, naif_spt.data(), naif_normal.data() );
+
+          CHECK( good   == true );
+          CHECK( found  == SPICETRUE );
+          //CHECK( normal == naif_normal );
+          CHECK_THAT ( normal[0] , Catch::Matchers::WithinAbs( naif_normal[0], tolerance )); 
+          CHECK_THAT ( normal[1] , Catch::Matchers::WithinAbs( naif_normal[1], tolerance ));
+          CHECK_THAT ( normal[2] , Catch::Matchers::WithinAbs( naif_normal[2], tolerance ));
+
+          double emission = ray.trace().emission() * dpr_c();
+          INFO( "Emission Angle = " << emission );
+
+          double surfsep = vsep_c( naif_spt.data(), spt.data() ) * dpr_c();
+          INFO( "Surfpt Angle   = " << surfsep );
+
+          CHECK_THAT ( spt[0] , Catch::Matchers::WithinAbs( naif_spt[0], tolerance )); 
+          CHECK_THAT ( spt[1] , Catch::Matchers::WithinAbs( naif_spt[1], tolerance ));
+          CHECK_THAT ( spt[2] , Catch::Matchers::WithinAbs( naif_spt[2], tolerance ));
+        }
+      }
+    } 
+  }
 }

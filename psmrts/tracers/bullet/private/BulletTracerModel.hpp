@@ -18,8 +18,6 @@ namespace psmrts::bullet {
    * 
    * This class provides the PSMRST tracer model for Bullet tracers.
    * 
-   * @see PsmrtsTracerModel.hpp
-   * 
    */
   class BulletTracerModel  {
     public:

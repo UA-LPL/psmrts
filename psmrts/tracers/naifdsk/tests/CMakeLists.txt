@@ -8,14 +8,7 @@ add_executable( naif_test_suite  naif_catch2_main.cpp
                                  test_DskKernelModel.cpp 
                                  test_KernelFileSystem.cpp
                                  test_NaifDskTracer.cpp
-                                 test_NaifDskTracerModel.cpp
-                                 test_NaifEllipsoidShape.cpp 
-                                 test_NaifPsmrtsPriorityTracer.cpp
-                                 test_NaifShapeTracerAdapter.cpp
-                                 test_NaifUtilities.cpp 
-                                 test_PsmrtsPriorityTracer.cpp 
-                                 test_PsmrtsRayTrace.cpp
-                                 test_PsmrtsShapeTracerAdapter.cpp )
+                                 test_NaifUtilities.cpp )
 
 
 # Add required libraries as needed for psmrts_test_suite

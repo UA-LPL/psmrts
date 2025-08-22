@@ -34,6 +34,12 @@ namespace psmrts  {
 
     public:
      EllipsoidTracer( ) : m_model( 1.0, 1.0, 1.0 ) {  }
+     EllipsoidTracer( const double radius,
+                      const std::string &source = "sphere") :
+                      m_model( radius, radius, radius, source) { }
+     EllipsoidTracer( const double a, const double c,
+                      const std::string &source = "spheroid") :                      
+                      m_model( a, a, c, source) { }     
      EllipsoidTracer( const double a, const double b, const double c,
                       const std::string &source = "ellipsoid") :
                       m_model( a, b, c, source) { }     

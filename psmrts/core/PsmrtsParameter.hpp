@@ -23,7 +23,8 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
    * @brief Manage configuration keywords with limited data type support
    * 
    * The JSON keys are required to be lower case. This is enforced in the
-   * get/add methods. 
+   * get/add methods. A series of configuration methods are provided
+   * as static methods to be used for formatting needs PSRMTS-wide.
    *
    * @author 2024-07-04 Kris J. Becker, UA Original Version
    */
@@ -126,7 +127,8 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
        * 
        * @tparam T       A visitor functor or overload lambda function set 
        *                   to PsmrtsParametet
-       * @param visitor 
+       * @param visitor One of DoubleVisitor, IntegerVisitor, StringVisitor
+       *                  or a compatible functor object/overload lambdas
        */
       template <typename T>
         inline void get_to( T &visitor ) const {
@@ -233,7 +235,15 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
 
   
 
-/** Defines a double value visitor with common conversions */
+  /**
+   * @brief DoubleVisitor is a class that extracts double from PsmrtsParameter
+   * 
+   * This functor object will extract, converting if necessary, any of the
+   * stored intrinsic types. This must be maintained alongside any changes
+   * made to PsmrtsParameter, paticular any new types added or removed.
+   * 
+   * @author 2025-08-21 Kris J Becker
+   */
   class DoubleVisitor {
     public:
       DoubleVisitor() : m_name("double"), m_doubles{}, m_default( psmrts::null()  ) { }
@@ -344,7 +354,15 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
   };  
 
   
-/** Defines an integer value visitor with common conversions */
+  /**
+   * @brief IntegerVisitor is a class that extracts integers from PsmrtsParameter
+   * 
+   * This functor object will extract, converting if necessary, any of the
+   * stored intrinsic types. This must be maintained alongside any changes
+   * made to PsmrtsParameter, paticular any new types added or removed.
+   * 
+   * @author 2025-08-21 Kris J Becker
+   */
   class IntegerVisitor {
     public:
       IntegerVisitor() : m_name("integer"), m_integers{}, m_default( 0 ) { }
@@ -434,7 +452,15 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
       int                        m_default;
   };  
 
-/** Defines an integer value visitor with common conversions */
+  /**
+   * @brief StringVisitor is a class that extracts strings from PsmrtsParameter
+   * 
+   * This functor object will extract, converting if necessary, any of the
+   * stored intrinsic types. This must be maintained alongside any changes
+   * made to PsmrtsParameter, paticular any new types added or removed.
+   * 
+   * @author 2025-08-21 Kris J Becker
+   */
   class StringVisitor {
     public:
       inline static const size_t DigitsPrecision = PsmrtsParameter::DigitsPrecision;
@@ -486,7 +512,6 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
       }      
       
       inline void operator()( const ordered_json &j_data ) {
-        std::cout << "Running DataTypes::json-> string" << std::endl;
         m_strings.push_back( j_data.dump() );
       }
       

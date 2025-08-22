@@ -580,6 +580,9 @@ class PRQPhotometricTraceArray : public PsmrtsRequest {
     /** default constructable */
       PRQFacet() : PsmrtsRequest( "PRQFacet" ),
                                  m_trace( ) { }
+      PRQFacet( const PRQRayTrace &ray ) : 
+                   PsmrtsRequest( "PRQFacet" ),
+                   m_trace( ray ) { }                                 
       PRQFacet( const PsmrtsRayTrace &observer_and_lookdir ) : 
                    PsmrtsRequest( "PRQFacet" ),
                    m_trace( observer_and_lookdir ) { }
