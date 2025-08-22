@@ -2,9 +2,9 @@
 #ifndef ProductRequest_hpp
 #define ProductRequest_hpp
 
-#include <string>
 #include <memory>
-#include <deque>
+#include <string>
+#include <vector>
 #include <exception>
 
 #include <psmrts/core/ProductParameter.hpp>

@@ -4,7 +4,6 @@
 
 #include <string>
 #include <memory>
-#include <deque>
 #include <vector>
 #include <exception>
 
