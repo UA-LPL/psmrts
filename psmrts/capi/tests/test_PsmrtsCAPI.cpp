@@ -156,6 +156,7 @@ TEST_CASE ( "PSMRTS C API - Vector3D", "[capi][c++][Vector3D]" ) {
  * 12. psmrts_length:                       Get vector length.
  * 13. psmrts_ray_intercept_radius:         Get target body radius @surface intercept.
  * 14. psmrts_ray_set_observation:          Reset ray with different observer and/or look direction.
+ * 15. psmrts_get_facet:                    Get facet.
  *
  */
 TEST_CASE_METHOD ( bulletTraceFixture, "PSMRTS C API - One Trace", "[capi][c++][OneTrace]" ) {
@@ -229,7 +230,6 @@ TEST_CASE_METHOD ( bulletTraceFixture, "PSMRTS C API - One Trace", "[capi][c++][
   CHECK_THAT( raypt.z, Catch::Matchers::WithinAbs( -2157.834396, tolerance ) );
 
   // Validate normal vector at updated ray surface intercept.
-  // NOTE: interesting that this doesn't change, have we hit the same facet?
   normal = psmrts_ray_normal( ray );
   CHECK_THAT( normal.x, Catch::Matchers::WithinAbs( 0.000000, tolerance ) );
   CHECK_THAT( normal.y, Catch::Matchers::WithinAbs( 0.525731, tolerance ) );
@@ -248,6 +248,43 @@ TEST_CASE_METHOD ( bulletTraceFixture, "PSMRTS C API - One Trace", "[capi][c++][
   // Validate target body radius at updated ray surface intercept.
   CHECK_THAT( psmrts_ray_intercept_radius( ray ),
               Catch::Matchers::WithinAbs( 0.257187, tolerance ) );
+
+  // Validate facet
+  PSMRTS_Facet facet;
+  CHECK( psmrts_get_facet( ray, bulletTracer, &facet ) == PSMRTS_TRUE );
+  CHECK( facet.m_has_facet == PSMRTS_TRUE );
+
+  CHECK( facet.m_plateid == 30 );
+  CHECK( facet.m_segment == 0 );
+
+  CHECK( facet.m_indexes.i == 11 );
+  CHECK( facet.m_indexes.j == 14 );
+  CHECK( facet.m_indexes.k == 5 );
+
+  CHECK_THAT( facet.m_vector1.x,
+              Catch::Matchers::WithinAbs( 0.101004, tolerance ) );
+  CHECK_THAT( facet.m_vector1.y,
+              Catch::Matchers::WithinAbs( 0.000000, tolerance ) );
+  CHECK_THAT( facet.m_vector1.z,
+              Catch::Matchers::WithinAbs( 0.264431, tolerance ) );
+  CHECK_THAT( facet.m_vector2.x,
+              Catch::Matchers::WithinAbs( 0.163428, tolerance ) );
+  CHECK_THAT( facet.m_vector2.y,
+              Catch::Matchers::WithinAbs( 0.163428, tolerance ) );
+  CHECK_THAT( facet.m_vector2.z,
+              Catch::Matchers::WithinAbs( 0.163428, tolerance ) );
+  CHECK_THAT( facet.m_vector3.x,
+              Catch::Matchers::WithinAbs( 0.000000, tolerance ) );
+  CHECK_THAT( facet.m_vector3.y,
+              Catch::Matchers::WithinAbs( 0.2644315, tolerance ) );
+  CHECK_THAT( facet.m_vector3.z,
+              Catch::Matchers::WithinAbs( 0.101004, tolerance ) );
+  CHECK_THAT( facet.m_normal.x,
+              Catch::Matchers::WithinAbs( 0.000000, tolerance ) );
+  CHECK_THAT( facet.m_normal.y,
+              Catch::Matchers::WithinAbs( 0.525731, tolerance ) );
+  CHECK_THAT( facet.m_normal.z,
+              Catch::Matchers::WithinAbs( 0.850651, tolerance ) );
 }
 
 /**
@@ -267,7 +304,7 @@ TEST_CASE_METHOD ( bulletTraceFixture, "PSMRTS C API - One Trace", "[capi][c++][
  *  9. psmrts_incidence:                Compute incidence angle (radians) between 2 rays.
  * 10. psmrts_phase:                    Compute phase angle (radians) between 2 rays.
  * 11. psmrts_emission:                 Compute emission angle of ray.
- *
+ * 12. psmrts_get_facet:                Get facet.
  */
 TEST_CASE_METHOD ( bulletTraceFixture,  "PSMRTS C API - Two Traces", "[capi][c++][TwoTraces]" ) {
 
@@ -283,8 +320,7 @@ TEST_CASE_METHOD ( bulletTraceFixture,  "PSMRTS C API - Two Traces", "[capi][c++
   PSMRTS_Vector3d lookdir2 = psmrts_negate( &observer2 );
 
   // create PSMRTS_RayTrace with observer2, lookdir2 vectors and tracer and run trace
-  PSMRTS_RayTrace *ray2 =
-      psmrts_ray_trace_v( &observer2, &lookdir2, bulletTracer );
+  PSMRTS_RayTrace *ray2 = psmrts_ray_trace_v( &observer2, &lookdir2, bulletTracer );
 
   // confirm ray2 tracer has a hit on input mesh
   CHECK( psmrts_ray_has_hit( ray2 ) == PSMRTS_TRUE );
@@ -312,8 +348,184 @@ TEST_CASE_METHOD ( bulletTraceFixture,  "PSMRTS C API - Two Traces", "[capi][c++
   CHECK_THAT( psmrts_emission( ray2 ),
               Catch::Matchers::WithinAbs( 0.506161, tolerance ) );
 
+  // Validate facet1 values
+  PSMRTS_Facet facet1;
+  CHECK( psmrts_get_facet( ray, bulletTracer, &facet1 ) == PSMRTS_TRUE );
+  CHECK( facet1.m_has_facet == PSMRTS_TRUE );
+
+  CHECK( facet1.m_plateid == 30 );
+  CHECK( facet1.m_segment == 0 );
+
+  CHECK( facet1.m_indexes.i == 11 );
+  CHECK( facet1.m_indexes.j == 14 );
+  CHECK( facet1.m_indexes.k == 5 );
+
+  CHECK_THAT( facet1.m_vector1.x,
+              Catch::Matchers::WithinAbs( 0.101004, tolerance ) );
+  CHECK_THAT( facet1.m_vector1.y,
+              Catch::Matchers::WithinAbs( 0.000000, tolerance ) );
+  CHECK_THAT( facet1.m_vector1.z,
+              Catch::Matchers::WithinAbs( 0.264431, tolerance ) );
+  CHECK_THAT( facet1.m_vector2.x,
+              Catch::Matchers::WithinAbs( 0.163428, tolerance ) );
+  CHECK_THAT( facet1.m_vector2.y,
+              Catch::Matchers::WithinAbs( 0.163428, tolerance ) );
+  CHECK_THAT( facet1.m_vector2.z,
+              Catch::Matchers::WithinAbs( 0.163428, tolerance ) );
+  CHECK_THAT( facet1.m_vector3.x,
+              Catch::Matchers::WithinAbs( 0.000000, tolerance ) );
+  CHECK_THAT( facet1.m_vector3.y,
+              Catch::Matchers::WithinAbs( 0.2644315, tolerance ) );
+  CHECK_THAT( facet1.m_vector3.z,
+              Catch::Matchers::WithinAbs( 0.101004, tolerance ) );
+  CHECK_THAT( facet1.m_normal.x,
+              Catch::Matchers::WithinAbs( 0.000000, tolerance ) );
+  CHECK_THAT( facet1.m_normal.y,
+              Catch::Matchers::WithinAbs( 0.525731, tolerance ) );
+  CHECK_THAT( facet1.m_normal.z,
+              Catch::Matchers::WithinAbs( 0.850651, tolerance ) );
+
+  // Verify facets from both traces are identical
+  PSMRTS_Facet facet2;
+  CHECK( psmrts_get_facet( ray2, bulletTracer, &facet2 ) == PSMRTS_TRUE );
+  CHECK( facet2.m_has_facet == facet1.m_has_facet );
+
+  CHECK( facet2.m_plateid == facet1.m_plateid );
+  CHECK( facet2.m_segment == facet1.m_segment );
+
+  CHECK( facet2.m_indexes.i == facet1.m_indexes.i );
+  CHECK( facet2.m_indexes.j == facet1.m_indexes.j );
+  CHECK( facet2.m_indexes.k == facet1.m_indexes.k );
+
+  CHECK( facet2.m_vector1.x == facet1.m_vector1.x );
+  CHECK( facet2.m_vector1.y == facet1.m_vector1.y );
+  CHECK( facet2.m_vector1.z == facet1.m_vector1.z );
+
+  CHECK( facet2.m_vector2.x == facet1.m_vector2.x );
+  CHECK( facet2.m_vector2.y == facet1.m_vector2.y );
+  CHECK( facet2.m_vector2.z == facet1.m_vector2.z );
+
+  CHECK( facet2.m_vector3.x == facet1.m_vector3.x );
+  CHECK( facet2.m_vector3.y == facet1.m_vector3.y );
+  CHECK( facet2.m_vector3.z == facet1.m_vector3.z );
+
+  CHECK( facet2.m_normal.x == facet1.m_normal.x );
+  CHECK( facet2.m_normal.y == facet1.m_normal.y );
+  CHECK( facet2.m_normal.z == facet1.m_normal.z );
+
   // free memory allocated for ray2
   psmrts_free_ray( ray2 );
+}
+
+/**
+ * @brief Compares Bullet and DSK PSMRTS_RayTrace functionality.
+ *
+ * This test derives from the 'bulletTraceFixture' at the top of this file. A naif dsk tracer
+ * is created from a "bds" file equivalent to the "obj" file used to create a bullet tracer.
+ * Pertinet values from both are compared, showing that that they are identical (as they should
+ * be).
+ *
+ */
+TEST_CASE_METHOD ( bulletTraceFixture, "PSMRTS C API - NAIF vs Bullet", "[capi][c++][NAIFvsBullet]" ) {
+
+    // bulletTraceFixture setup code has already been executed.
+
+    // create naif tracer from bds file, identical to corresponding obj file used for bullet
+    std::string dskfile = psmrts_shapes_path( "dsk/data/bennu_20facets.bds" );
+    PSMRTS_Tracer *dskTracer = psmrts_create_naifdsk( dskfile.c_str() );
+
+    // validate tracer
+    CHECK( psmrts_tracer_valid( dskTracer ) == PSMRTS_TRUE );
+
+    PSMRTS_RayTrace *dsk_ray = psmrts_create_ray( &observer, &lookdir );
+
+    // run trace with dsk_ray and dskTracer
+    dsk_ray = psmrts_ray_trace( dsk_ray, dskTracer );
+
+    // confirm tracer has a hit on input mesh
+    CHECK( psmrts_ray_has_hit( dsk_ray ) == PSMRTS_TRUE );
+
+    // Verify bullet & naif surface intercepts are identical
+    PSMRTS_Vector3d xyz     = psmrts_ray_xyz( ray );
+    PSMRTS_Vector3d dsk_xyz = psmrts_ray_xyz( dsk_ray );
+    CHECK_THAT( xyz.x, Catch::Matchers::WithinAbs( dsk_xyz.x, tolerance ) );
+    CHECK_THAT( xyz.y, Catch::Matchers::WithinAbs( dsk_xyz.y, tolerance ) );
+    CHECK_THAT( xyz.z, Catch::Matchers::WithinAbs( dsk_xyz.z, tolerance ) );
+
+    PSMRTS_Vector3d llr = psmrts_xyz_to_lonlatrad_d( &xyz );
+    PSMRTS_Vector3d dsk_llr = psmrts_xyz_to_lonlatrad_d( &dsk_xyz );
+    CHECK_THAT( llr.longitude, Catch::Matchers::WithinAbs( dsk_llr.longitude, tolerance ) );
+    CHECK_THAT( llr.latitude, Catch::Matchers::WithinAbs( dsk_llr.latitude, tolerance ) );
+    CHECK_THAT( llr.radius, Catch::Matchers::WithinAbs( dsk_llr.radius, tolerance ) );
+
+    // Verify bullet & naif vectors along PSMRTS_RayTrace look direction to surface
+    // are identical
+    PSMRTS_Vector3d raypt = psmrts_ray_raypt( ray );
+    PSMRTS_Vector3d dsk_raypt = psmrts_ray_raypt( dsk_ray );
+    CHECK_THAT( raypt.x, Catch::Matchers::WithinAbs( dsk_raypt.x, tolerance ) );
+    CHECK_THAT( raypt.y, Catch::Matchers::WithinAbs( dsk_raypt.y, tolerance ) );
+    CHECK_THAT( raypt.z, Catch::Matchers::WithinAbs( dsk_raypt.z, tolerance ) );
+
+    // Verify bullet & naif normals at PSMRTS_RayTrace surface intercept are identical
+    PSMRTS_Vector3d normal = psmrts_ray_normal( ray );
+    PSMRTS_Vector3d dsk_normal = psmrts_ray_normal( dsk_ray );
+    CHECK_THAT( normal.x, Catch::Matchers::WithinAbs( dsk_normal.x, tolerance ) );
+    CHECK_THAT( normal.y, Catch::Matchers::WithinAbs( dsk_normal.y, tolerance ) );
+    CHECK_THAT( normal.z, Catch::Matchers::WithinAbs( dsk_normal.z, tolerance ) );
+
+    // Verify bullet & naif slant distances to PSMRTS_RayTrace surface intercepts
+    // are identical
+    CHECK_THAT( psmrts_ray_intercept_slant_distance( ray ),
+               Catch::Matchers::WithinAbs( psmrts_ray_intercept_slant_distance( dsk_ray ),
+                                           tolerance ) );
+
+    // Verify bullet & naif look direction vector to surface are identical
+    // Note this should be identical to the slant distance above as the
+    // observation is defined as nadir-looking.
+    CHECK_THAT( psmrts_length( &raypt ),
+                Catch::Matchers::WithinAbs( psmrts_length( &dsk_raypt ), tolerance ) );
+
+    // Verify bullet & naif target body radii at surface intercepts are identical
+    CHECK_THAT( psmrts_ray_intercept_radius( ray ),
+                Catch::Matchers::WithinAbs( psmrts_ray_intercept_radius( dsk_ray ),
+                                            tolerance ) );
+
+
+    // Verify bullet & naif facets are identical
+    PSMRTS_Facet facet, dsk_facet;
+    CHECK( psmrts_get_facet( ray, bulletTracer, &facet ) == PSMRTS_TRUE );
+    CHECK( psmrts_get_facet( dsk_ray, dskTracer, &dsk_facet ) == PSMRTS_TRUE );
+    CHECK( facet.m_has_facet == dsk_facet.m_has_facet );
+
+    CHECK( facet.m_plateid == dsk_facet.m_plateid );
+    CHECK( facet.m_indexes.i == dsk_facet.m_indexes.i );
+    CHECK( facet.m_indexes.j == dsk_facet.m_indexes.j );
+    CHECK( facet.m_indexes.k == dsk_facet.m_indexes.k );
+
+    CHECK_THAT( facet.m_vector1.x,
+               Catch::Matchers::WithinAbs( dsk_facet.m_vector1.x, tolerance ) );
+    CHECK_THAT( facet.m_vector1.y,
+               Catch::Matchers::WithinAbs( dsk_facet.m_vector1.y, tolerance ) );
+    CHECK_THAT( facet.m_vector1.z,
+               Catch::Matchers::WithinAbs( dsk_facet.m_vector1.z, tolerance ) );
+    CHECK_THAT( facet.m_vector2.x,
+               Catch::Matchers::WithinAbs( dsk_facet.m_vector2.x, tolerance ) );
+    CHECK_THAT( facet.m_vector2.y,
+               Catch::Matchers::WithinAbs( dsk_facet.m_vector2.y, tolerance ) );
+    CHECK_THAT( facet.m_vector2.z,
+               Catch::Matchers::WithinAbs( dsk_facet.m_vector2.z, tolerance ) );
+    CHECK_THAT( facet.m_vector3.x,
+               Catch::Matchers::WithinAbs( dsk_facet.m_vector3.x, tolerance ) );
+    CHECK_THAT( facet.m_vector3.y,
+               Catch::Matchers::WithinAbs( dsk_facet.m_vector3.y, tolerance ) );
+    CHECK_THAT( facet.m_vector3.z,
+               Catch::Matchers::WithinAbs( dsk_facet.m_vector3.z, tolerance ) );
+    CHECK_THAT( facet.m_normal.x,
+               Catch::Matchers::WithinAbs( dsk_facet.m_normal.x, tolerance ) );
+    CHECK_THAT( facet.m_normal.y,
+               Catch::Matchers::WithinAbs( dsk_facet.m_normal.y, tolerance ) );
+    CHECK_THAT( facet.m_normal.z,
+               Catch::Matchers::WithinAbs( dsk_facet.m_normal.z, tolerance ) );
 }
 
 /**
@@ -734,13 +946,12 @@ TEST_CASE( "PSMRTS C API - Sphere Shape Tracer Test", "[capi][c++][sphere][shape
   CHECK_THAT( psmrts_ray_intercept_radius( trace_45_45_10 ),
               Catch::Matchers::WithinAbs( psmrts_ray_intercept_radius( trace_45_50_02 ), tolerance_km ) );
 
-  // TBD: add facet functionality, e.g.
-  // psmrts::PRQFacet prq_facet( prq_ray.trace() );
-  // CHECK( prq_facet.isValid()                == true ); // Returns ray validity?
-  // CHECK( e_tracer.process( prq_facet )      == false );
-  // CHECK( prq_facet.trace().segment_number() == -1 );
-  // CHECK( prq_facet.trace().plateid()        == -1 );
-  // etc
+  // Verify no facet for sphere traces
+  PSMRTS_Facet facet;
+  CHECK( psmrts_get_facet( trace_45_50_02, sphere_tracer, &facet ) == PSMRTS_FALSE );
+  CHECK( facet.m_has_facet == PSMRTS_FALSE );
+  CHECK( psmrts_get_facet( trace_45_45_10, sphere_tracer, &facet ) == PSMRTS_FALSE );
+  CHECK( facet.m_has_facet == PSMRTS_FALSE );
 
   // free memory
   psmrts_free_tracer( sphere_tracer );
@@ -831,13 +1042,12 @@ TEST_CASE( "PSMRTS C API - Spheroid Shape Tracer Test", "[capi][c++][spheroid][s
               Catch::Matchers::WithinAbs( psmrts_ray_intercept_radius( trace_45_50_02 ),
                                           tolerance_km ) );
 
-  // TBD: add facet functionality
-  // psmrts::PRQFacet prq_facet( prq_ray.trace() );
-  // CHECK( prq_facet.isValid()                == true ); // Returns ray validity?
-  // CHECK( e_tracer.process( prq_facet )      == false );
-  // CHECK( prq_facet.trace().segment_number() == -1 );
-  // CHECK( prq_facet.trace().plateid()        == -1 );
-  // etc
+  // Verify no facet for spheroid traces
+  PSMRTS_Facet facet;
+  CHECK( psmrts_get_facet( trace_45_50_02, spheroid_tracer, &facet ) == PSMRTS_FALSE );
+  CHECK( facet.m_has_facet == PSMRTS_FALSE );
+  CHECK( psmrts_get_facet( trace_45_45_10, spheroid_tracer, &facet ) == PSMRTS_FALSE );
+  CHECK( facet.m_has_facet == PSMRTS_FALSE );
 
   // free memory
   psmrts_free_tracer( spheroid_tracer );
@@ -927,13 +1137,12 @@ TEST_CASE( "PSMRTS C API - Ellipsoid Shape Tracer Test", "[capi][c++][ellipsoid]
   CHECK_THAT( psmrts_ray_intercept_radius( trace_45_45_10 ),
               Catch::Matchers::WithinAbs( psmrts_ray_intercept_radius( trace_45_50_02 ), tolerance_km ) );
 
-  // TBD: add facet functionality
-  // psmrts::PRQFacet prq_facet( prq_ray.trace() );
-  // CHECK( prq_facet.isValid()                == true ); // Returns ray validity?
-  // CHECK( e_tracer.process( prq_facet )      == false );
-  // CHECK( prq_facet.trace().segment_number() == -1 );
-  // CHECK( prq_facet.trace().plateid()        == -1 );
-  // etc
+  // Verify no facet for ellipsoid traces
+  PSMRTS_Facet facet;
+  CHECK( psmrts_get_facet( trace_45_50_02, e_tracer, &facet ) == PSMRTS_FALSE );
+  CHECK( facet.m_has_facet == PSMRTS_FALSE );
+  CHECK( psmrts_get_facet( trace_45_45_10, e_tracer, &facet ) == PSMRTS_FALSE );
+  CHECK( facet.m_has_facet == PSMRTS_FALSE );
 
   // free memory
   psmrts_free_tracer( e_tracer );
@@ -975,7 +1184,7 @@ TEST_CASE( "PSMRTS C API - Ellipsoid V Shape Tracer Test", "[capi][c++][ellipsoi
   PSMRTS_Vector3d look_45_50_02 = psmrts_negate( &observer_45_50_02 );
   PSMRTS_RayTrace *trace_45_50_02 = psmrts_create_ray( &observer_45_50_02, &look_45_50_02 );
 
-  // run trace_45_50_02 with e_tracer
+  // run trace_45_50_02 with ev_tracer
   trace_45_50_02 = psmrts_ray_trace( trace_45_50_02, ev_tracer );
 
   // verify trace hits the ellipsoid
@@ -998,7 +1207,7 @@ TEST_CASE( "PSMRTS C API - Ellipsoid V Shape Tracer Test", "[capi][c++][ellipsoi
   PSMRTS_Vector3d look_45_45_10 = psmrts_subtract( &intercept_45_50_02_xyz, &observer_45_45_10 );
   PSMRTS_RayTrace *trace_45_45_10 = psmrts_create_ray( &observer_45_45_10, &look_45_45_10 );
 
-  // run trace_45_45_10 with e_tracer
+  // run trace_45_45_10 with ev_tracer
     trace_45_45_10 = psmrts_ray_trace( trace_45_45_10, ev_tracer );
 
   // verify trace hits the ellipsoid
@@ -1026,16 +1235,16 @@ TEST_CASE( "PSMRTS C API - Ellipsoid V Shape Tracer Test", "[capi][c++][ellipsoi
               Catch::Matchers::WithinAbs( psmrts_ray_intercept_radius( trace_45_50_02 ),
                                           tolerance_km ) );
 
-    // TBD: add facet functionality
-    // psmrts::PRQFacet prq_facet( prq_ray.trace() );
-    // CHECK( prq_facet.isValid()                == true ); // Returns ray validity?
-    // CHECK( e_tracer.process( prq_facet )      == false );
-    // CHECK( prq_facet.trace().segment_number() == -1 );
-    // CHECK( prq_facet.trace().plateid()        == -1 );
-    // etc
+  // Verify no facet for ellipsoidv traces
+  PSMRTS_Facet facet;
+  CHECK( psmrts_get_facet( trace_45_50_02, ev_tracer, &facet ) == PSMRTS_FALSE );
+  CHECK( facet.m_has_facet == PSMRTS_FALSE );
+  CHECK( psmrts_get_facet( trace_45_45_10, ev_tracer, &facet ) == PSMRTS_FALSE );
+  CHECK( facet.m_has_facet == PSMRTS_FALSE );
 
-    // free memory
-    psmrts_free_tracer( ev_tracer );
-    psmrts_free_ray( trace_45_50_02 );
-    psmrts_free_ray( trace_45_45_10 );
+  // free memory
+  psmrts_free_tracer( ev_tracer );
+  psmrts_free_ray( trace_45_50_02 );
+  psmrts_free_ray( trace_45_45_10 );
 }
+

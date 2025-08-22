@@ -35,7 +35,11 @@ release.
 ## TODO
 - See [TODO](TODO.md)
 
+## [0.3.1] 2025-08-21
+- Added facet functionality to PSMRTS C API with supporting methods, tests, and documentation. Also added plate id and segment to C API Facet structure with updated conversion methods and tests.
+
 ## [0.3.0] 2025-08-15
+- Added facet functionality to C API with tests and documentation.
 - Major restructure of PSMRTS directory hierarchy and CMake implementation to simplify future development/maintenance. Includes necessary modifications to include paths, scripts, and tests to ensure successful building, testing, and code coverage across all platforms (Linux, OSX, Windows, etc.).
 - PSMRTS version updated to [0.3.0] in CHANGELOG.md, CMakeLists.txt, and cmocka_test.c files.
 

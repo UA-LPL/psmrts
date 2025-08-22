@@ -193,7 +193,7 @@ namespace psmrts {
       }
 
       /** Returns the nth facet of the mesh */
-      inline FacetDatum get_facet( const int nth ) const {
+      inline FacetDatum get_facet( const int nth, const int segmentid = -1 ) const {
           FacetDatum mf;
 
           const bool ThrowIfInvalid = false;
@@ -201,6 +201,8 @@ namespace psmrts {
             auto vndx = m_indexes( nth );
 
             mf.m_indexes = vndx;
+            mf.m_plateid = nth;
+            mf.m_segment = segmentid;
             mf.m_vector1 = this->get_vector( vndx[0] );
             mf.m_vector2 = this->get_vector( vndx[1] );
             mf.m_vector3 = this->get_vector( vndx[2] );

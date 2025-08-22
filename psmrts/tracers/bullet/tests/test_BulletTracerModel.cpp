@@ -54,6 +54,9 @@ TEST_CASE( "Bullet Tracer Model - Ray Trace / Values Test", "[default][bullet][t
 
     CHECK( b_model.get_facet(ray, facet) == true );
 
+    CHECK( facet.m_plateid == ray.plateid() );
+    CHECK( facet.m_segment == ray.segment_number() );
+
     CHECK( facet.isValid() == true );
     CHECK( facet.m_indexes == Eigen::Vector3i { 12, 11, 5 } );
 
