@@ -65,10 +65,9 @@ For Linux systems, these code coverage utilities are typically installed, howeve
 For Mac platforms, these utilities are typically not available and need to be installed. You could use [homebrew](https://formulae.brew.sh/formula/gcovr) to install the gcovr/gcov/lcov utilities. I use Minconda to install these utilities on the Mac. You must first install [Miniconda](https://docs.anaconda.com/free/miniconda/miniconda-install/) and then run **conda install gcovr lcov**. You can then run the CMake build to activate code coverage using the `-c` switch while in the conda environment using the following commands:
 
 ```
-./make_psmrts.sh -t -c
-cd build
-make coverage
-open ./coverage/index.html.
+./make_psmrts.sh -t -c -d -j4
+cmake --build build --target coverage
+open ./build/coverage/index.html
 ```
 
 The [Doxygen](https://www.doxygen.nl/index.html) configuration file, Doxyfile, is located in the docs directory. To access the documentation enter the following commands:
@@ -102,17 +101,17 @@ Enabling gcovr / lcov for any builds requires the addition of `-c` and `-d` in t
 ./make_psmrts.sh -t -c -d
 ```
 
-To prompt creation of the Coverage report, user must be in the resulting build directory with the `cd build` command and enter the commands below:
+To prompt creation of the Coverage report, enter the commands below:
 
 ```
-make coverage
-open ./coverage/index.html
+cmake --build build --target coverage
+open ./build/coverage/index.html
 ```
 
 Linux users may need to rely on alternative open commands, depending on personal browser settings, such as: 
 
 ```
-firefox ./coverage/index.html
+firefox ./build/coverage/index.html
 ```
 
 Be advised that at the time of these directions, attempting to run multiple ctests with code changes saved between them results in unavoidable errors. Once a correction has been made and saved, you must remove the build directory and rerun the make_psmrts.sh command before another ctest - commands shown below: 
