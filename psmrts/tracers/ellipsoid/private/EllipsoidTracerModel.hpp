@@ -11,7 +11,7 @@
 
 namespace psmrts  {
   /**
-   * @brief Private class implemeting ellipsiud tracing
+   * @brief Private class implemeting ellipsoid tracing
    * 
    * This private class provides a generic interface to ray tracing systems
    * that can be used in the PSMRTS system. These method function declarations
@@ -27,6 +27,20 @@ namespace psmrts  {
         m_radii[2] = 0.0;
         m_name = "ellipsoid";
      }
+     EllipsoidTracerModel( const double radius,
+                           const std::string &source = "sphere") { 
+        m_radii[0] = radius;
+        m_radii[1] = radius;
+        m_radii[2] = radius;
+        m_name = source;
+     } 
+     EllipsoidTracerModel( const double a, const double c,
+                           const std::string &source = "spheroid") { 
+        m_radii[0] = a;
+        m_radii[1] = a;
+        m_radii[2] = c;
+        m_name = source;
+     }           
      EllipsoidTracerModel( const double a, const double b, const double c,
                            const std::string &source = "ellipsoid") { 
         m_radii[0] = a;
@@ -47,7 +61,6 @@ namespace psmrts  {
 
       virtual ~EllipsoidTracerModel() { }
 
-
       inline const std::string &name() const {
         return ( m_name );
       }
@@ -67,14 +80,15 @@ namespace psmrts  {
         return ( m_radii[2] );
       }
       
+      /** Return the maximum radius of the ellipsoid */
       inline double maximum_radius() const {
         return ( std::max( std::max( m_radii[0], m_radii[1]), m_radii[2] ) );
       }
 
+      /** Return the minimum radius of the ellipsoid  */
       inline double minimum_radius() const {
         return ( std::min( std::min( m_radii[0], m_radii[1]), m_radii[2] ) );
       }
-
 
       /**
        * @brief Ray Trace method for Ellipsoid Shape - PsmrtsRayTrace Result

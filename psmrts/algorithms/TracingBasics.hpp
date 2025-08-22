@@ -21,13 +21,16 @@ namespace psmrts::algorithms  {
    * Essentually, if there is any questions as to whether a tracer has the
    * process() functionality, users should call the general process( PRQ )
    * of the form rather than these functions or an error will ensue.
+   * 
+   * The compiler will let you know, rather rudely, if your tracer does
+   * not satisfy these requirements. 
    *
    * @author 2025-08-19 Kris J Becker
    */
 
 
 
-  /* @brief Tracer Ray Trace Processor
+  /* @brief Basic Ray Trace Processor
   * 
   * This function accepts a PRQRayTrace, which is instantiated with 
   * values necessary for a Ray Trace (observer, look direction), 
@@ -55,7 +58,7 @@ namespace psmrts::algorithms  {
   }
 
   /**
-   * @brief Tracer  Ray Trace Array Processor
+   * @brief Basic Ray Trace Array/List Processor
    * 
    * This method accepts a PRQRayTraceArray, which represents
    * multiple PRQRayTraces in an array object, runs each trace,
@@ -88,7 +91,7 @@ namespace psmrts::algorithms  {
     }
 
   /**
-   * @brief Tracer Facet Processor
+   * @brief Basic Facet Processor
    * 
    * This method accepts a PRQFacet, usually instantiated with a ray
    * trace, and processes it - storing the facet associated with the 
@@ -114,7 +117,7 @@ namespace psmrts::algorithms  {
     }
 
   /**
-   * @brief Tracer Photometric Trace Processor
+   * @brief Basic Photometric Ray Trace Processor
    * 
    * This method accepts a PRQPhotometricTrace, which is instantiated with 
    * values necessary for a Photometric Trace (observer, look direction,
@@ -144,7 +147,7 @@ namespace psmrts::algorithms  {
     }
 
   /**
-   * @brief Bullet Photometric Trace Array Processor
+   * @brief Basic Photometric Trace Array Processor
    * 
    * This method accepts a PRQPhotomericTraceArray, which represents
    * multiple PRQPhotometricTraces in an array object, runs each trace,
