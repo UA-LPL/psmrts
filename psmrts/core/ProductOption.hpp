@@ -14,7 +14,7 @@
 
 namespace psmrts {
 
-// Overload helper type for the PsmrtsParameter visitor. See the size()
+// Overload helper type for the ProductOption visitor. See the size()
 // method for how this can be used.
 template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
 template<typename...Func> overload(Func...) -> overload<Func...>;
@@ -28,7 +28,7 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
    *
    * @author 2024-07-04 Kris J. Becker, UA Original Version
    */
-  class PsmrtsParameter {
+  class ProductOption {
     public:
       /*** Default is micrometer precision */
       inline static const size_t DigitsPrecision = 9;
@@ -52,41 +52,65 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
                               PsmrtsJsonObject
                             };
 
-      PsmrtsParameter() : m_name( "false" ), m_data( false ), m_enum( PsmrtsBoolean ) { }
-      explicit PsmrtsParameter( const std::string &name, const bool b_data ) : 
-                                m_name( psmrts_tolower(name)), m_data( b_data ), m_enum( PsmrtsBoolean ) { }
-      explicit PsmrtsParameter( const std::string &name, const int i_data ) : 
-                                m_name( psmrts_tolower(name) ), m_data( i_data ), m_enum( PsmrtsInteger ) { }
-      explicit PsmrtsParameter( const std::string &name, const double d_data ) : 
-                                m_name( psmrts_tolower(name) ), m_data( d_data ), m_enum( PsmrtsDouble ) { }
-      explicit PsmrtsParameter( const std::string &name, const char *s_text ) : 
-                                m_name( psmrts_tolower(name) ), m_data( std::string(s_text) ), m_enum( PsmrtsString ) { }                                  
-      explicit PsmrtsParameter( const std::string &name, const std::string &s_data ) : 
-                                m_name( psmrts_tolower(name) ), m_data( s_data ), m_enum( PsmrtsString ) { }
-      explicit PsmrtsParameter( const std::string &name, const std::initializer_list<int> &i_array ) : 
-                                m_name( psmrts_tolower(name) ), m_data( std::vector<int> (i_array.begin(), i_array.end())), m_enum( PsmrtsIntegerArray ) { }                                
-      explicit PsmrtsParameter( const std::string &name, const std::vector<int> &i_array ) : 
-                                m_name( psmrts_tolower(name) ), m_data( std::vector<int> (i_array)), m_enum( PsmrtsIntegerArray ) { }
-      explicit PsmrtsParameter( const std::string &name, const std::initializer_list<double> &d_array ) : 
-                                m_name( psmrts_tolower(name) ), m_data( std::vector<double> (d_array.begin(), d_array.end()) ), m_enum( PsmrtsDoubleArray ) { }                                
-      explicit PsmrtsParameter( const std::string &name, const std::vector<double> &d_array ) : 
-                                m_name( psmrts_tolower(name) ), m_data( std::vector<double> (d_array) ), m_enum( PsmrtsDoubleArray ) { }
-      explicit PsmrtsParameter( const std::string &name, const std::initializer_list<std::string> &s_array ) : 
-                                m_name( psmrts_tolower(name) ), m_data( std::vector<std::string> (s_array.begin(), s_array.end()) ), m_enum( PsmrtsStringArray ) { }                                
-      explicit PsmrtsParameter( const std::string &name, const std::vector<std::string> &s_array ) : 
-                                m_name( psmrts_tolower(name) ), m_data( std::vector<std::string> (s_array) ), m_enum( PsmrtsStringArray ) { }
-      explicit PsmrtsParameter( const std::string &name, const Eigen::Vector3d &d_v ) : 
-                                m_name( psmrts_tolower(name) ), 
-                                m_data( std::vector<double> (d_v.data(), d_v.data()+3) ), 
-                                m_enum( PsmrtsDoubleArray ) { }
-      explicit PsmrtsParameter( const std::string &name, const Eigen::Vector3i &i_v ) : 
-                                m_name( psmrts_tolower(name) ), 
-                                m_data( std::vector<int> (i_v.data(), i_v.data()+3) ), 
-                                m_enum( PsmrtsIntegerArray ) { }                                                                
-      explicit PsmrtsParameter( const std::string &name, const ordered_json &j_data ) : 
-                                m_name(psmrts_tolower(name) ), m_data( j_data ), m_enum( PsmrtsJsonObject ) {
+      ProductOption() : m_name( "false" ), m_data( false ), m_enum( PsmrtsBoolean ) { }
+      explicit ProductOption( const std::string &name, const bool b_data ) : 
+                              m_name( psmrts_tolower(name)), 
+                              m_data( b_data ), 
+                              m_enum( PsmrtsBoolean ) { }
+      explicit ProductOption( const std::string &name, const int i_data ) : 
+                              m_name( psmrts_tolower(name) ), 
+                              m_data( i_data ), 
+                              m_enum( PsmrtsInteger ) { }
+      explicit ProductOption( const std::string &name, const double d_data ) : 
+                              m_name( psmrts_tolower(name) ), 
+                              m_data( d_data ), 
+                              m_enum( PsmrtsDouble ) { }
+      explicit ProductOption( const std::string &name, const char *s_text ) : 
+                              m_name( psmrts_tolower(name) ), 
+                              m_data( std::string(s_text) ), 
+                              m_enum( PsmrtsString ) { }                                  
+      explicit ProductOption( const std::string &name, const std::string &s_data ) : 
+                              m_name( psmrts_tolower(name) ), 
+                              m_data( s_data ), 
+                              m_enum( PsmrtsString ) { }
+      explicit ProductOption( const std::string &name, const std::initializer_list<int> &i_array ) : 
+                              m_name( psmrts_tolower(name) ), 
+                              m_data( std::vector<int> (i_array.begin(), i_array.end())), 
+                              m_enum( PsmrtsIntegerArray ) { }                                
+      explicit ProductOption( const std::string &name, const std::vector<int> &i_array ) : 
+                              m_name( psmrts_tolower(name) ), 
+                              m_data( std::vector<int> (i_array)),
+                              m_enum( PsmrtsIntegerArray ) { }
+      explicit ProductOption( const std::string &name, const std::initializer_list<double> &d_array ) : 
+                              m_name( psmrts_tolower(name) ),
+                              m_data( std::vector<double> (d_array.begin(), d_array.end()) ),
+                              m_enum( PsmrtsDoubleArray ) { }                                
+      explicit ProductOption( const std::string &name, const std::vector<double> &d_array ) : 
+                              m_name( psmrts_tolower(name) ),
+                              m_data( std::vector<double> (d_array) ),
+                              m_enum( PsmrtsDoubleArray ) { }
+      explicit ProductOption( const std::string &name, const std::initializer_list<std::string> &s_array ) : 
+                              m_name( psmrts_tolower(name) ),
+                              m_data( std::vector<std::string> (s_array.begin(), s_array.end()) ),
+                              m_enum( PsmrtsStringArray ) { }                                
+      explicit ProductOption( const std::string &name, const std::vector<std::string> &s_array ) : 
+                              m_name( psmrts_tolower(name) ), 
+                              m_data( std::vector<std::string> (s_array) ),
+                              m_enum( PsmrtsStringArray ) { }
+      explicit ProductOption( const std::string &name, const Eigen::Vector3d &d_v ) : 
+                              m_name( psmrts_tolower(name) ), 
+                              m_data( std::vector<double> (d_v.data(), d_v.data()+3) ), 
+                              m_enum( PsmrtsDoubleArray ) { }
+      explicit ProductOption( const std::string &name, const Eigen::Vector3i &i_v ) : 
+                              m_name( psmrts_tolower(name) ), 
+                              m_data( std::vector<int> (i_v.data(), i_v.data()+3) ), 
+                              m_enum( PsmrtsIntegerArray ) { }                                                                
+      explicit ProductOption( const std::string &name, const ordered_json &j_data ) : 
+                              m_name(psmrts_tolower(name) ),
+                              m_data( j_data ),
+                              m_enum( PsmrtsJsonObject ) {
       }
-      virtual ~PsmrtsParameter() { }
+      virtual ~ProductOption() { }
 
 
       /** Returns the name of the parameter */
@@ -120,7 +144,7 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
        * Developers can call this with their own containers and conversions
        * methods for each of the types contained in the PsmrtsParamter data
        * set. This is required - to provide an operator for every type in
-       * the PsmrtsParameter::DataTypes variant. 
+       * the ProductOption::DataTypes variant. 
        * 
        * See the DoubleVisitor, IntegerVisitor and StringVisitor visitor
        * functors below.
@@ -165,7 +189,7 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
       }
 
       inline static std::string to_string( const double d_data, 
-                                           const size_t ndigits = PsmrtsParameter::DigitsPrecision )  {
+                                           const size_t ndigits = ProductOption::DigitsPrecision )  {
 
         if ( isnull( d_data ) ) return ( "null" );
 
@@ -183,7 +207,7 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
 
         std::string comma = "";
         for ( const auto i : i_array ) {
-          s_array += ( psmrts_concate( comma, PsmrtsParameter::to_string( i ) ) );
+          s_array += ( psmrts_concate( comma, ProductOption::to_string( i ) ) );
           comma = ",";
         }
         return ( psmrts_concate( s_array, std::get<1>( enclosures ) ) );        
@@ -197,7 +221,7 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
 
         std::string comma = "";
         for ( const auto d : d_array ) {
-          s_array += ( psmrts_concate( comma, PsmrtsParameter::to_string( d, ndigits ) ) );
+          s_array += ( psmrts_concate( comma, ProductOption::to_string( d, ndigits ) ) );
           comma = ",";
         }
         return ( psmrts_concate( s_array,  std::get<1>( enclosures ) ) );        
@@ -236,11 +260,11 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
   
 
   /**
-   * @brief DoubleVisitor is a class that extracts double from PsmrtsParameter
+   * @brief DoubleVisitor is a class that extracts double from ProductOption
    * 
    * This functor object will extract, converting if necessary, any of the
    * stored intrinsic types. This must be maintained alongside any changes
-   * made to PsmrtsParameter, paticular any new types added or removed.
+   * made to ProductOption, paticular any new types added or removed.
    * 
    * @author 2025-08-21 Kris J Becker
    */
@@ -253,7 +277,7 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
                      m_default( default_value ) { }
       DoubleVisitor(const std::string &name, const double default_value = psmrts::null() ) : 
                      m_name(name), m_doubles{}, m_default( default_value ) { }
-      DoubleVisitor( const PsmrtsParameter &parameter,
+      DoubleVisitor( const ProductOption &parameter,
                      const double default_value = psmrts::null()) : 
                      m_name( parameter.name() ), 
                      m_doubles{}, 
@@ -308,7 +332,7 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
         return ( m_name);
       }
 
-      inline PsmrtsParameter::DataEnums type() const {
+      inline ProductOption::DataEnums type() const {
         return ( m_type );
       }
 
@@ -336,7 +360,7 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
       }
 
       std::string                m_name;
-      PsmrtsParameter::DataEnums m_type;
+      ProductOption::DataEnums m_type;
       std::vector<double>        m_doubles;
       double                     m_default;
 
@@ -355,11 +379,11 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
 
   
   /**
-   * @brief IntegerVisitor is a class that extracts integers from PsmrtsParameter
+   * @brief IntegerVisitor is a class that extracts integers from ProductOption
    * 
    * This functor object will extract, converting if necessary, any of the
    * stored intrinsic types. This must be maintained alongside any changes
-   * made to PsmrtsParameter, paticular any new types added or removed.
+   * made to ProductOption, paticular any new types added or removed.
    * 
    * @author 2025-08-21 Kris J Becker
    */
@@ -372,7 +396,7 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
                      m_default( default_value ) { }
       IntegerVisitor(const std::string &name, const int default_value = 0 ) : 
                      m_name(name), m_integers{}, m_default( default_value ) { }
-      IntegerVisitor( const PsmrtsParameter &parameter,
+      IntegerVisitor( const ProductOption &parameter,
                       const int default_value = 0 ) : 
                       m_name( parameter.name() ), 
                       m_integers{}, 
@@ -419,7 +443,7 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
         return ( m_name);
       }
 
-      inline PsmrtsParameter::DataEnums type() const {
+      inline ProductOption::DataEnums type() const {
         return ( m_type );
       }
 
@@ -447,28 +471,28 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
 
 
       std::string                m_name;
-      PsmrtsParameter::DataEnums m_type;
+      ProductOption::DataEnums m_type;
       std::vector<int>           m_integers;
       int                        m_default;
   };  
 
   /**
-   * @brief StringVisitor is a class that extracts strings from PsmrtsParameter
+   * @brief StringVisitor is a class that extracts strings from ProductOption
    * 
    * This functor object will extract, converting if necessary, any of the
    * stored intrinsic types. This must be maintained alongside any changes
-   * made to PsmrtsParameter, paticular any new types added or removed.
+   * made to ProductOption, paticular any new types added or removed.
    * 
    * @author 2025-08-21 Kris J Becker
    */
   class StringVisitor {
     public:
-      inline static const size_t DigitsPrecision = PsmrtsParameter::DigitsPrecision;
+      inline static const size_t DigitsPrecision = ProductOption::DigitsPrecision;
 
       StringVisitor() : m_name("string"), m_strings{}, m_default( "" ) { }
       StringVisitor(const std::string &name, const std::string default_value = "" ) : 
                      m_name(name), m_strings{}, m_default( default_value ) { }
-      StringVisitor( const PsmrtsParameter &parameter,
+      StringVisitor( const ProductOption &parameter,
                      const std::string default_value = "" ) : 
                      m_name( parameter.name() ), 
                      m_strings{}, 
@@ -480,15 +504,15 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
       virtual ~StringVisitor() { }
 
       inline void operator()(const bool b ) {
-        m_strings.push_back( PsmrtsParameter::to_string( b) );
+        m_strings.push_back( ProductOption::to_string( b) );
       }
 
       inline void operator()( const int i )  {
-        m_strings.push_back( PsmrtsParameter::to_string( i ) );
+        m_strings.push_back( ProductOption::to_string( i ) );
       }    
 
       inline void operator()( const double d ) {
-        m_strings.push_back( PsmrtsParameter::to_string( d ) );
+        m_strings.push_back( ProductOption::to_string( d ) );
       }
 
       inline void operator()( const std::string &s ) {
@@ -497,13 +521,13 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
 
       inline void operator()( const std::vector<int> i_array ) {
         for (const auto &i_value : i_array ) {
-          m_strings.push_back( PsmrtsParameter::to_string( i_value ) );
+          m_strings.push_back( ProductOption::to_string( i_value ) );
         }
       }
 
       inline void operator()( const std::vector<double> &d_array ) {
         for ( auto const &d_value : d_array ) {
-          m_strings.push_back( PsmrtsParameter::to_string( d_value ) );
+          m_strings.push_back( ProductOption::to_string( d_value ) );
         }
       }
       
@@ -520,7 +544,7 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
         return ( m_name);
       }
 
-      inline PsmrtsParameter::DataEnums type() const {
+      inline ProductOption::DataEnums type() const {
         return ( m_type );
       }
 
@@ -547,7 +571,7 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
       }
 
       std::string                m_name;
-      PsmrtsParameter::DataEnums m_type;
+      ProductOption::DataEnums m_type;
       std::vector<std::string>   m_strings;
       std::string                m_default;
   };  

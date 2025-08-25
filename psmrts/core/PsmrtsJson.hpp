@@ -135,7 +135,7 @@ namespace psmrts {
 
       std::ofstream jfile ( fname );
       if ( !jfile ) {
-        std::string msg = "PsmrtsParameter::write_json_file - Failed to create label file " + fname;
+        std::string msg = "psmrts::write_json_file - Failed to create label file " + fname;
         throw std::runtime_error( msg );
       }
 
