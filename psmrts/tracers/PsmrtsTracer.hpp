@@ -8,6 +8,8 @@
 #include <Eigen/Geometry>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsProduct.hpp>
+#include <psmrts/core/PsmrtsCache.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/ProductProcessDispatch.hpp>
@@ -20,12 +22,14 @@
 
 namespace psmrts {
 
-  class PsmrtsTracer : public ProductProcessDispatch< MissingProcessRequestHandler, EllipsoidTracer, BulletTracer, NaifDskTracer> {
+  class PsmrtsTracer : public ProductProcessDispatch< MissingProcessRequestHandler, EllipsoidTracer, BulletTracer, NaifDskTracer>, 
+                       public PsmrtsProduct {
     public:
       using Tracer = ProductProcessDispatch::ProductType;
+      using UIDType = PsmrtsUID::UIDType;
 
-      PsmrtsTracer( )  {  }
-      PsmrtsTracer( const Tracer &tracer ) : ProductProcessDispatch( tracer ) {  }
+      PsmrtsTracer( ) : PsmrtsProduct("tracer") {  }
+      PsmrtsTracer( const Tracer &tracer ) : ProductProcessDispatch( tracer ), PsmrtsProduct("tracer") {  }
       virtual ~PsmrtsTracer() { }
 
       inline static PsmrtsTracer sphere( const double radius_km, const std::string &name="sphere" ) {
@@ -77,6 +81,13 @@ namespace psmrts {
       inline static PsmrtsTracer naifdsk( const std::string &dskfile ) {
         return ( PsmrtsTracer( NaifDskTracer( dskfile ) ) ); 
       }
+
+      inline bool isValid() const {
+        return ( !std::holds_alternative<MissingProcessRequestHandler>( m_product ) );
+      }
+
+    private:
+      inline static PsmrtsCache<UIDType, PsmrtsTracer> m_cache{};
 
     };
 

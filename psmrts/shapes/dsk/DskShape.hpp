@@ -3,17 +3,18 @@
 
 #include <string>
 
+#include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/shapes/dsk/private/PsmrtsDSKFormat.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
 
 namespace psmrts {
-    class DskShape {
+    class DskShape : public PsmrtsProduct {
      public:
-      DskShape( ) { }
+      DskShape( ) : PsmrtsProduct("dsk", "shape"), m_model() { }
       DskShape( const psmrts::PsmrtsDSKFormat &dsk_t ) :
-                         m_model( dsk_t ) { }
-        virtual ~DskShape() { } 
+                PsmrtsProduct("dsk", "shape"), m_model( dsk_t ) { }
+      virtual ~DskShape() { } 
      
 
      inline bool process( PRQFeatures &features ) const {
