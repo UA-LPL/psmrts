@@ -5,7 +5,7 @@
 #include <string.h>
 #include <cmocka.h>
 
-#include "psmrts_c.h" 
+#include <psmrts/capi/psmrts_c.h> 
 
 const double tolerance = 1e-12;
 

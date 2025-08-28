@@ -7,7 +7,6 @@ add_library( psmrts_c STATIC psmrts_c.cpp
                              psmrts_c.h)
 target_include_directories(psmrts_c PUBLIC 
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>
 )
 target_link_libraries( psmrts_c PRIVATE psmrts::psmrts )
