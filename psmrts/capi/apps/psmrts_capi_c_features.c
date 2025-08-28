@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <psmrts_c.h>
+#include <psmrts/capi/psmrts_c.h>
 
 int main( int argc, char *argv[] ) {
 

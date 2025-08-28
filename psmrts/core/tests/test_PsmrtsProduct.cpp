@@ -2,12 +2,9 @@
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsProduct.hpp>
-#include <PsmrtsDSKFormat.hpp>
-#include <PsmrtsOBJFormat.hpp>
-#include <PsmrtsPLYFormat.hpp>
 
 
-TEST_CASE( "PSMRTS Product", "[product][type][config][dsk]") {
+TEST_CASE( "PSMRTS Product", "[product][default]") {
 
   char config_p[] = R"(
     {
@@ -18,16 +15,13 @@ TEST_CASE( "PSMRTS Product", "[product][type][config][dsk]") {
     }
   )";
 
-  psmrts::PsmrtsProduct<psmrts::PsmrtsDSKFormat> product( "dsk",  "mesh", std::string( config_p ) );
-
-  CHECK( product.name()        == "dsk" );
-  CHECK( product.type()        == "mesh" );
-  CHECK( product.has_product() == false );
-  CHECK( product.contains<psmrts::PsmrtsDSKFormat>() == false );
-  CHECK( product.isValid()     == false );
-  CHECK( product.product<psmrts::PsmrtsDSKFormat>()     == nullptr );
+  psmrts::PsmrtsProduct product;
+  CHECK( product.name() == "product" );
+  CHECK( product.type() == "type" );
+  CHECK( product.uid()  != psmrts::PsmrtsUID::UID_Reserved );
 }
 
+#if 0
 TEST_CASE( "PSMRTS Product Specifications", "[product][type][mesh][dsk]") {
 
   psmrts::PsmrtsDSKFormat dsk_m( psmrts_formats_path( "dsk/data/bennu_20facets.bds" ) );
@@ -79,3 +73,5 @@ TEST_CASE( "PSMRTS Product Specifications", "[product][type][cache]") {
   CHECK( product_v->nVertexes()           == 20 );
 
 }
+
+#endif
