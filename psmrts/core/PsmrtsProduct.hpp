@@ -24,7 +24,7 @@ namespace psmrts {
       using UIDType = PsmrtsUID::UIDType;
 
       PsmrtsProduct( ) : m_tracker(), m_name("product"), m_type("type"), 
-                         m_product_id( PsmrtsUID::UID_Reserved ) { }
+                         m_product_id( PsmrtsUID::get_uid() ) { }
       PsmrtsProduct( const std::string &pname ):
                      m_tracker(), m_name( pname ), m_type( "product" ),      
                      m_product_id( PsmrtsUID::get_uid() ) { }
@@ -32,11 +32,6 @@ namespace psmrts {
                      const std::string &ptype ):
                      m_tracker(), m_name( pname ), m_type( ptype ),
                      m_product_id( PsmrtsUID::get_uid() ) { }
-      PsmrtsProduct( const std::string &pname, 
-                     const std::string &ptype,
-                     const UIDType uid /* = PsmrtsUID::UID_Reserved */) :
-                     m_tracker(), m_name( pname ), m_type( ptype ),
-                     m_product_id( PsmrtsUID::UID_Reserved ) { }
 
       virtual ~PsmrtsProduct() { }
 
