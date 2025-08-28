@@ -1,7 +1,7 @@
 # Add sources current directory to include path
 target_sources( psmrts PUBLIC PsmrtsMeshData.hpp
                               PsmrtsStridingBuffer.hpp
-                              ProductParameter.hpp
+                              ProductFeature.hpp
                               ProductOption.hpp
                               ProductProcessDispatch.hpp
                               PsmrtsPriorityTracer.hpp

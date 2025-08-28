@@ -4,9 +4,9 @@
 #include <string>
 
 #include <psmrts/core/PsmrtsProduct.hpp>
-#include <psmrts/shapes/dsk/private/PsmrtsDSKFormat.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/shapes/dsk/private/PsmrtsDSKFormat.hpp>
 
 namespace psmrts {
     class DskShape : public PsmrtsProduct {
@@ -34,7 +34,7 @@ namespace psmrts {
                 "type": "system",
                 "aliases": [ "DSK", "bds", "BDS" ]
             },
-            "parameters": [
+            "features": [
                 {
                     "name": "dsk_string",
                     "type": "string",

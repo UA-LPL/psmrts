@@ -43,7 +43,7 @@ namespace psmrts {
                     "type": "system",
                     "aliases": [ "PLY" ]
                 },
-                "parameters": [
+                "features": [
                     {
                         "name": "ply_file",
                         "type": "file",

@@ -5,8 +5,8 @@ find_package( Catch2 CONFIG REQUIRED )
 
 # Build all-in-one renderer test application
 add_executable( psmrts_test_suite  psmrts_catch2_main.cpp
+                                   test_ProductFeature.cpp
                                    test_ProductOption.cpp
-                                   test_ProductParameter.cpp
                                    test_ProductSpecification.cpp
                                    test_PsmrtsBuffer.cpp 
                                    test_PsmrtsBufferData.cpp
