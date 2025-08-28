@@ -5,9 +5,9 @@
 #include <iostream>
 #include <string>
 
-#include <psmrts/core/ProductSpecification.hpp>
-#include <psmrts/core/ProductParameter.hpp>
 #include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/ProductFeature.hpp>
+#include <psmrts/core/ProductSpecification.hpp>
 
 
 TEST_CASE ( "ProductSpecification Constructor / Base Function Test", "[product][specification][constructor][base]") {
@@ -16,8 +16,8 @@ TEST_CASE ( "ProductSpecification Constructor / Base Function Test", "[product][
     CHECK( product1.name() == "null" );
     CHECK( product1.type() == ""     );
     
-    // No constructor to create based on ProductParameter, seemingly must use json
-    psmrts::ProductParameter prodspecs( product1.json_specs() );
+    // No constructor to create based on ProductFeature, seemingly must use json
+    psmrts::ProductFeature prodspecs( product1.json_specs() );
 
     ordered_json result;
     result["name"] = "null";
@@ -40,7 +40,7 @@ TEST_CASE( "ProductSpecification Values Test", "[product][specification][values]
     CHECK( product1.name() == "A" );
     CHECK( product1.type() == "B" );
 
-    psmrts::ProductParameter prod1specs( product1.json_specs() );
+    psmrts::ProductFeature prod1specs( product1.json_specs() );
 
     ordered_json result;
     result["name"] = "A";
@@ -60,7 +60,7 @@ TEST_CASE( "ProductSpecification Values Test", "[product][specification][values]
         "extra": "not_needed",
         "status": "required",
         "optional": ["extra"],
-        "parameters": [
+        "features": [
             {
               "name": "obj_file",
               "type": "file",
@@ -75,7 +75,7 @@ TEST_CASE( "ProductSpecification Values Test", "[product][specification][values]
     options = psmrts::json_utils::parse_json_string(reqText);
 
     psmrts::ProductSpecification product2("C", "D", options);
-    psmrts::ProductParameter prod2specs( product2.json_specs() );
+    psmrts::ProductFeature prod2specs( product2.json_specs() );
 
     CHECK( product2.name()                 == "C"  );
     CHECK( product2.type()                 == "D"  );

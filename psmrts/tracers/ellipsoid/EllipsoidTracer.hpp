@@ -201,7 +201,7 @@ namespace psmrts  {
             "type": "system",
             "aliases": ["shapetracer"]
           },
-          "parameters": [
+          "features": [
             {
               "name": "ellipsoid_radii",
               "type": "list[double]",

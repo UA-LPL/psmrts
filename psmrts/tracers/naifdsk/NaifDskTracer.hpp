@@ -183,7 +183,7 @@ namespace psmrts  {
             "type": "system",
             "aliases": ["shapetracer"]
           },
-          "parameters": [
+          "features": [
             {
               "name": "naif_dsk_kernel_paths",
               "type": "list[string]",

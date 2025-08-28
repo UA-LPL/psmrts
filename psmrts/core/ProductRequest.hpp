@@ -7,7 +7,7 @@
 #include <vector>
 #include <exception>
 
-#include <psmrts/core/ProductParameter.hpp>
+#include <psmrts/core/ProductFeature.hpp>
 
 namespace psmrts { 
 
@@ -23,7 +23,7 @@ namespace psmrts {
    */
   class ProductRequest {
     public:
-      using ProductParameterList = std::vector<ProductParameter>;
+      using ProductFeatureList = std::vector<ProductFeature>;
 
       ProductRequest( ) : m_request_j(), m_parameters{} { }
 
@@ -34,7 +34,7 @@ namespace psmrts {
       }
       */
 
-      ProductRequest( const std::vector<ProductParameter> &parameters ) :
+      ProductRequest( const std::vector<ProductFeature> &parameters ) :
                       m_request_j(), m_parameters{} { 
         // Unbind them all to the JSON struct...
 
@@ -48,21 +48,21 @@ namespace psmrts {
       }
 
       /**
-      inline void add_parameter( const ProductParameter &parm ) { 
+      inline void add_parameter( const ProductFeature &parm ) { 
 
       }
 
-      inline ProductParameter &get_parameter( const std::string &parm ) {       
+      inline ProductFeature &get_parameter( const std::string &parm ) {       
       
       }
 
-      inline int parse_parameters( const ordered_json, ProductParameterList &plist ) {
+      inline int parse_parameters( const ordered_json, ProductFeatureList &plist ) {
 
       }
       */
     protected:
       ordered_json         m_request_j;
-      ProductParameterList m_parameters;
+      ProductFeatureList   m_parameters;
 
   };
 

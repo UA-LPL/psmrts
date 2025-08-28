@@ -70,7 +70,7 @@ namespace psmrts  {
             "type": "system",
             "aliases": [ "OBJ" ]
           },
-          "parameters": [
+          "features": [
             {
               "name": "obj_file",
               "type": "file",

@@ -408,7 +408,7 @@ namespace psmrts {
         try {
 
           if ( params.has_parameter( "obj_file" ) ) {
-            ProductParameter objfile = params.get_parameter("obj_file");
+            ProductFeature objfile = params.get_parameter("obj_file");
             std::string mtlopt("");
             if ( params.has_parameter( "obj_mtl_search_path" ) ) {
               mtlopt = params.get_parameter("obj_mtl_search_path").value( "obj_mtl_search_path", mtlopt );
