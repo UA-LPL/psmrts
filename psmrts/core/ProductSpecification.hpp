@@ -10,7 +10,7 @@
 
 #include <psmrts/core/PsmrtsJson.hpp>
 #include <psmrts/core/ProductFeature.hpp>
-#include <psmrts/core/ProductRequest.hpp>
+#include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 
 
@@ -145,7 +145,7 @@ namespace psmrts {
       }
 
       /** Checks if a user/dev request can be satisfies by this product spec 
-      inline bool satisfies( const ProductRequest &request ) const {
+      inline bool satisfies( const ProductConfiguration &config ) const {
 
       }
       */
