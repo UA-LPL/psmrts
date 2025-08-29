@@ -13,6 +13,7 @@ add_executable( psmrts_test_suite  psmrts_catch2_main.cpp
                                    test_PsmrtsBufferData.cpp
                                    test_PsmrtsMeshData.cpp
                                    test_PsmrtsPriorityTracer.cpp
+                                   test_PsmrtsProduct.cpp
                                    test_PsmrtsRayTrace.cpp
                                    test_PsmrtsRequest.cpp
                                    test_PsmrtsShapeTracer.cpp

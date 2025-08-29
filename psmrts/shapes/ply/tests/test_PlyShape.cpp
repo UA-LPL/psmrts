@@ -20,3 +20,18 @@ TEST_CASE( "PLY SHAPE - Default Test", "[ply][shape][specification]") {
     CHECK( spec.has_parameter( "ply_file" )          == true );
     CHECK( spec.has_parameter( "ply_data_type" )       == true );
 }
+
+TEST_CASE( "PSMRTS Product PLY Specification Test", "[product][type][mesh][ply]") {
+    std::string plyfile = psmrts_shapes_path( "ply/data/Bennu_Radar.ply"  );
+    psmrts::PlyShape ply_m( plyfile );
+  
+    CHECK( ply_m.name() == "ply" );
+    CHECK( ply_m.type() == "shape" );
+    CHECK( ply_m.uid()  > psmrts::PsmrtsUID::UID_Reserved );
+    
+    psmrts::PsmrtsMeshData mesh_d = ply_m.get_mesh( );
+    CHECK( mesh_d.nfacets()        == 2692 );
+    CHECK( mesh_d.nvectors()       == 1348 );
+    CHECK( mesh_d.vector_type()    == psmrts::PsmrtsMeshData::PsmrtsDouble );
+    CHECK( mesh_d.isVectorDouble() == true );
+}

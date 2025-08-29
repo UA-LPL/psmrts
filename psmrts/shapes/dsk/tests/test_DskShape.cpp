@@ -23,3 +23,19 @@ TEST_CASE( "DSK SHAPE - Default Test", "[dsk][shape][specification]") {
     CHECK( spec.has_parameter( "dsk_segment_index" )   == true );
 
 }
+
+
+TEST_CASE( "PSMRTS Product DSK Specification Test", "[product][type][mesh][dsk]") {
+    std::string dskfile = psmrts_shapes_path( "dsk/data/bennu_20facets.bds" );
+    psmrts::DskShape dsk_m( dskfile );
+  
+    CHECK( dsk_m.name() == "dsk" );
+    CHECK( dsk_m.type() == "shape" );
+    CHECK( dsk_m.uid()  > psmrts::PsmrtsUID::UID_Reserved );
+    
+    psmrts::PsmrtsMeshData mesh_d = dsk_m.get_mesh( );
+    CHECK( mesh_d.nfacets()        == 36 );
+    CHECK( mesh_d.nvectors()       == 20 );
+    CHECK( mesh_d.vector_type()    == psmrts::PsmrtsMeshData::PsmrtsDouble );
+    CHECK( mesh_d.isVectorDouble() == true );
+}

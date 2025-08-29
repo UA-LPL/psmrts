@@ -5,17 +5,21 @@
 
 #include <psmrts/shapes/ply/private/PsmrtsPLYFormat.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
+#include <psmrts/core/PsmrtsProduct.hpp>
+#include <psmrts/core/ProductSpecification.hpp>
 
 namespace psmrts {
     /**
      * @brief PLY format mesh process class
      * 
      */
-    class PlyShape {
+    class PlyShape : public PsmrtsProduct {
         public:
-         PlyShape() {}
+         PlyShape() : PsmrtsProduct("ply", "shape"), m_model(), m_mesh() { }
          PlyShape( const psmrts::PsmrtsPLYFormat &ply_t ) :
-                            m_model( ply_t ) { }
+                      PsmrtsProduct("ply", "shape"), m_model( ply_t ), m_mesh( ply_t.get_mesh() ) { }
+         PlyShape( const std::string &ply_file ) : 
+                      PsmrtsProduct("ply", "shape"), m_model( ply_file ), m_mesh( m_model.get_mesh() ) { }
          virtual ~PlyShape() { }
          
          /**
@@ -66,10 +70,15 @@ namespace psmrts {
             return ( ProductSpecification( "ply", "mesh", "shape", json_utils::parse_json_string(text)));
          }
 
+         inline const PsmrtsMeshData &get_mesh() const {
+            return m_mesh;
+         }
+
          PSMRTS_PROCESS_CATCHALL( "PlyShape" )
 
         protected:
          psmrts::PsmrtsPLYFormat m_model;
+         psmrts::PsmrtsMeshData m_mesh;
     };
 
 } // namespace psmrts

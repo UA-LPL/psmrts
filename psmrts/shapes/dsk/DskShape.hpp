@@ -11,9 +11,11 @@
 namespace psmrts {
     class DskShape : public PsmrtsProduct {
      public:
-      DskShape( ) : PsmrtsProduct("dsk", "shape"), m_model() { }
+      DskShape( ) : PsmrtsProduct("dsk", "shape"), m_model(), m_mesh() { }
       DskShape( const psmrts::PsmrtsDSKFormat &dsk_t ) :
-                PsmrtsProduct("dsk", "shape"), m_model( dsk_t ) { }
+                PsmrtsProduct("dsk", "shape"), m_model( dsk_t ), m_mesh( dsk_t.get_mesh() ) { }
+      DskShape( const std::string &dsk_file ) :
+                PsmrtsProduct("dsk", "shape"), m_model( dsk_file ), m_mesh( m_model.get_mesh() ) { }
       virtual ~DskShape() { } 
      
 
@@ -71,8 +73,13 @@ namespace psmrts {
         return ( ProductSpecification( "dsk", "mesh", "shape", json_utils::parse_json_string( text ) ) );
      }
 
+     inline const PsmrtsMeshData &get_mesh() const {
+        return m_mesh; 
+     }
+
      protected:
        psmrts::PsmrtsDSKFormat m_model;
+       psmrts::PsmrtsMeshData m_mesh;
     };
 }
 

@@ -13,6 +13,7 @@
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 #include <psmrts/core/ProductProcessDispatch.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
+#include <psmrts/core/ProductOption.hpp>
 
 #include <psmrts/shapes/dsk/DskShape.hpp>
 #include <psmrts/shapes/obj/ObjShape.hpp>
@@ -35,6 +36,16 @@ namespace psmrts {
         return ( !std::holds_alternative<MissingProcessRequestHandler>( m_product ) );
       }
 
+      inline const PsmrtsMeshData get_mesh() const {
+        inline static const PsmrtsMeshData empty_mesh;
+        const auto visitor = overload{
+          [](const DskShape &dsk) { return ( dsk.get_mesh() ); },            
+          [](const ObjShape &obj) { return ( obj.get_mesh() ); },            
+          [](const PlyShape &ply) { return ( ply.get_mesh() ); },            
+          [](auto &&args) { return ( empty_mesh ); } // Default lambda for all other types
+        };
+        return std::visit(visitor, m_product);
+      }
 
     private:
       inline static PsmrtsCache<UIDType, PsmrtsShape> m_cache{};
