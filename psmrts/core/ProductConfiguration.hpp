@@ -1,6 +1,6 @@
 #pragma once
-#ifndef ProductRequest_hpp
-#define ProductRequest_hpp
+#ifndef ProductConfiguration_hpp
+#define ProductConfiguration_hpp
 
 #include <memory>
 #include <string>
@@ -21,26 +21,26 @@ namespace psmrts {
    * @author Kris J. Becker, University of Arizona
    * @history 2025-05-29 Kris J. Becker - Original Version
    */
-  class ProductRequest {
+  class ProductConfiguration {
     public:
       using ProductFeatureList = std::vector<ProductFeature>;
 
-      ProductRequest( ) : m_request_j(), m_parameters{} { }
+      ProductConfiguration( ) : m_request_j(), m_parameters{} { }
 
       /** 
-      ProductRequest( const ordered_json &request ) {
+      ProductConfiguration( const ordered_json &request ) {
         m_request_j = request;
         (void) parse_parameters( request, m_parameters );
       }
       */
 
-      ProductRequest( const std::vector<ProductFeature> &parameters ) :
+      ProductConfiguration( const std::vector<ProductFeature> &parameters ) :
                       m_request_j(), m_parameters{} { 
         // Unbind them all to the JSON struct...
 
       }
 
-      virtual ~ProductRequest() = default;
+      virtual ~ProductConfiguration() = default;
 
 
       inline size_t size() const {
