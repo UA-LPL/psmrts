@@ -35,6 +35,22 @@ release.
 ## TODO
 - See [TODO](TODO.md)
 
+## [0.3.3] 2025-09-02
+- Renamed PsmrtsParameter to PsmrtsOption as it better fits is usage.
+- Rename ProductParameter to ProductFeature to better apply to its usage.
+- Rename ProductRequest to ProductConfiguration to better apply to its usage. Add initial implemenation.
+- Implemented PsmrtsCache for generic caching of products and other containers.
+- Added PsmrtsProduct as the base class of all products and integrated them into PSMRTS product classes.
+- Fix C API include issues by using the full path.
+- Add PsmrtsUID class to provide unique object IDs for all PSMRTS products in PsmrtsUtilities.hpp.
+- Added test_PsmrtsProduct.cpp to CMake file, added get_mesh() visitor function to PsmrtsShape, adjusted shape files to include mesh getters, and created tests for the related shapes changes.
+- Remove CMAKE_CATCH_DISCOVER_TESTS_DISCOVERY_MODE from CMakeLists.txt files. The Catch2 directive CMAKE_CATCH_DISCOVER_TESTS_DISCOVERY_MODE was used for some of the Catch2 CMakeList.txt files but not all. Note that this can be set at the command line if needed.
+- Freeze VCPKG version baseline due to compliation issues with recent changes in the Eigen port.
+- Updated documentation for various methods and files.
+- Update CHANGELOG.md
+
+
+
 ## [0.3.2] 2025-08-22
 - Removed/merged obsolete, redundant files/classes/tests to clean up system. 
 ```

@@ -17,7 +17,6 @@ include( CTest )
 include( Catch )
 
 # Run ctest and all catch2 tests in the build directory!
-set(CMAKE_CATCH_DISCOVER_TESTS_DISCOVERY_MODE PRE_TEST)
 catch_discover_tests( dsk_test_suite WORKING_DIRECTORY ${CMAKE_BINARY_DIR} )
 
 # Update the test dependencies and excludes

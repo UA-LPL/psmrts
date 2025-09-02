@@ -37,7 +37,7 @@ namespace psmrts {
       }
 
       inline const PsmrtsMeshData get_mesh() const {
-        inline static const PsmrtsMeshData empty_mesh;
+        inline static const PsmrtsMeshData empty_mesh{};
         const auto visitor = overload{
           [](const DskShape &dsk) { return ( dsk.get_mesh() ); },            
           [](const ObjShape &obj) { return ( obj.get_mesh() ); },            
