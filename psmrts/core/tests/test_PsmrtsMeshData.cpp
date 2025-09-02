@@ -80,7 +80,6 @@ TEST_CASE( "PsmrtsMeshData Double Test", "[mesh][data][double]") {
 
     CHECK( my_mesh.minimum_radius() == 3.74165738677394133 );
     CHECK( my_mesh.maximum_radius() == 517.88512239684973792 );
-
 }
 
 TEST_CASE( "PsmrtsMeshData Float Test", "[mesh][data][float]") {
@@ -116,7 +115,7 @@ TEST_CASE( "PsmrtsMeshData Float Test", "[mesh][data][float]") {
     CHECK( my_mesh.isVectorDouble() == false );
     CHECK( my_mesh.nfacets()        == 10 );
     CHECK( my_mesh.get_index(0)     == v_index(0) );
-    
+        
     // for floats, must use following workaround
     const psmrts::PsmrtsVector3f &f_vertex = my_mesh.vectors().float_vectors();
     CHECK( f_vertex(0) == v_vertex(0) ); 

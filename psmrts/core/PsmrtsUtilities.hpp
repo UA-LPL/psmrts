@@ -302,6 +302,54 @@ namespace psmrts {
     return ( a.cross( b ).normalized() );
   }
 
+  /**
+   * @brief facet_surface_area - Computes surface area of facet given three
+   *                             Eigen::Vector3ds defining the facet vertices.
+   *
+   * Given three Eigen::Vector3ds defining facet vertices, this function computes
+   * the facet surface area.
+   *
+   * @param a Eigen::Vector3d representing a facet vertex.
+   * @param b Eigen::Vector3d representing a facet vertex.
+   * @param c Eigen::Vector3d representing a facet vertex.
+   * @return double Computed facet surface area.
+   *
+   * TODO: ERROR CHECKING?
+   */
+  inline double facet_surface_area( const Eigen::Vector3d &a,
+                                    const Eigen::Vector3d &b,
+                                    const Eigen::Vector3d &c ) {
+
+    // Calculate vectors for two sides of the triangle
+    Eigen::Vector3d ab = b - a;
+    Eigen::Vector3d ac = c - a;
+
+    // facet (i.e. triangle) area is half the magnitude of the cross product
+    double surface_area = 0.5 * ab.cross( ac ).norm();
+
+    return ( surface_area );
+  }
+
+  /**
+   * @brief facet_volume - Given three Eigen::Vector3ds representing a facet's vertices,
+   *                       this function computes the signed facet volume.
+   *
+   * Given three Eigen::Vector3ds representing a facet's vertices, this function
+   * computes the facet volume.
+   *
+   * @param a Eigen::Vector3d facet vertex.
+   * @param b Eigen::Vector3d facet vertex.
+   * @param c Eigen::Vector3d facet vertex.
+   * @return double Computed facet volume.
+   *
+   * TODO: ERROR CHECKING?
+   */
+  inline double facet_volume( const Eigen::Vector3d &a,
+                              const Eigen::Vector3d &b,
+                              const Eigen::Vector3d &c ) {
+
+    return ( ( a.cross( b ).dot( c ) ) / 6.0 );
+  }
 
 ////---> String utlitities
   /** Returns string completely converted to lower case */

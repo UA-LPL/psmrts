@@ -259,7 +259,7 @@ TEST_CASE_METHOD ( bulletTraceFixture, "PSMRTS C API - One Trace", "[capi][c++][
 
   CHECK( facet.m_indexes.i == 11 );
   CHECK( facet.m_indexes.j == 14 );
-  CHECK( facet.m_indexes.k == 5 );
+  CHECK( facet.m_indexes.k == 5 );  
 
   CHECK_THAT( facet.m_vector1.x,
               Catch::Matchers::WithinAbs( 0.101004, tolerance ) );
@@ -276,7 +276,7 @@ TEST_CASE_METHOD ( bulletTraceFixture, "PSMRTS C API - One Trace", "[capi][c++][
   CHECK_THAT( facet.m_vector3.x,
               Catch::Matchers::WithinAbs( 0.000000, tolerance ) );
   CHECK_THAT( facet.m_vector3.y,
-              Catch::Matchers::WithinAbs( 0.2644315, tolerance ) );
+              Catch::Matchers::WithinAbs( 0.264432, tolerance ) );
   CHECK_THAT( facet.m_vector3.z,
               Catch::Matchers::WithinAbs( 0.101004, tolerance ) );
   CHECK_THAT( facet.m_normal.x,
@@ -285,6 +285,10 @@ TEST_CASE_METHOD ( bulletTraceFixture, "PSMRTS C API - One Trace", "[capi][c++][
               Catch::Matchers::WithinAbs( 0.525731, tolerance ) );
   CHECK_THAT( facet.m_normal.z,
               Catch::Matchers::WithinAbs( 0.850651, tolerance ) );
+  CHECK_THAT( psmrts_facet_surface_area( &facet ),
+              Catch::Matchers::WithinAbs( 0.019405, tolerance ) );
+  CHECK_THAT( psmrts_facet_volume( &facet ),
+              Catch::Matchers::WithinAbs( 0.001455, tolerance ) );
 }
 
 /**
@@ -1247,4 +1251,5 @@ TEST_CASE( "PSMRTS C API - Ellipsoid V Shape Tracer Test", "[capi][c++][ellipsoi
   psmrts_free_ray( trace_45_50_02 );
   psmrts_free_ray( trace_45_45_10 );
 }
+
 

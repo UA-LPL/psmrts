@@ -1,5 +1,6 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
+#include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 #include <thread>
@@ -340,6 +341,83 @@ TEST_CASE( "PSMRTS Latitudinal to Rectangular Coordinate Conversion Test", "[uti
     CHECK_THAT( llr_d[1], Catch::Matchers::WithinAbs(  45.0, tolerance )); // lat
     CHECK_THAT( llr_d[2], Catch::Matchers::WithinAbs(   1.0, tolerance )); // rad
 }
+
+ /**
+ * @brief Tests PSMRTS utility for the computation of the surface area and
+ *        volume of a mesh facet as defined by three 3 Eigen::Vector3ds.
+ *
+ * This test exercises the PSMRTS utility functions facet_surface_area and
+ * facet_volume.
+ *
+ */
+ TEST_CASE( "PSMRTS Facet Geometry Test", "[utilities][facet][geometry]") {
+   const double tolerance = 1.0e-6;
+
+   psmrts::PRQFacet facet1;
+
+   facet1.m_facet.m_has_facet = true;
+   facet1.m_facet.m_plateid = 30;
+   facet1.m_facet.m_segment = 0;
+   facet1.m_facet.m_indexes[0] = 11;
+   facet1.m_facet.m_indexes[1] = 14;
+   facet1.m_facet.m_indexes[2] = 5;
+
+   facet1.m_facet.m_vector1[0] = 0.101004;
+   facet1.m_facet.m_vector1[1] = 0.0;
+   facet1.m_facet.m_vector1[2] = 0.264431;
+
+   facet1.m_facet.m_vector2[0] = 0.163428;
+   facet1.m_facet.m_vector2[1] = 0.163428;
+   facet1.m_facet.m_vector2[2] = 0.163428;
+
+   facet1.m_facet.m_vector3[0] = 0.0;
+   facet1.m_facet.m_vector3[1] = 0.264432;
+   facet1.m_facet.m_vector3[2] = 0.101004;
+
+   CHECK_THAT( psmrts::facet_surface_area( facet1.m_facet.m_vector1,
+                                           facet1.m_facet.m_vector2,
+                                           facet1.m_facet.m_vector3 ),
+               Catch::Matchers::WithinAbs( 0.019405, tolerance ) );
+
+   CHECK_THAT( psmrts::facet_volume( facet1.m_facet.m_vector1,
+                                     facet1.m_facet.m_vector2,
+                                     facet1.m_facet.m_vector3 ),
+              Catch::Matchers::WithinAbs( 0.001455, tolerance ) );
+
+   // now create the same facet, but reverse the vertex winding order, which
+   // should negate the resulting volume
+
+   psmrts::PRQFacet facet2;
+
+   facet2.m_facet.m_has_facet = true;
+   facet2.m_facet.m_plateid = 30;
+   facet2.m_facet.m_segment = 0;
+   facet2.m_facet.m_indexes[0] = 11;
+   facet2.m_facet.m_indexes[1] = 14;
+   facet2.m_facet.m_indexes[2] = 5;
+
+   facet2.m_facet.m_vector1[0] = 0.0;
+   facet2.m_facet.m_vector1[1] = 0.264432;
+   facet2.m_facet.m_vector1[2] = 0.101004;
+
+   facet2.m_facet.m_vector2[0] = 0.163428;
+   facet2.m_facet.m_vector2[1] = 0.163428;
+   facet2.m_facet.m_vector2[2] = 0.163428;
+
+   facet2.m_facet.m_vector3[0] = 0.101004;
+   facet2.m_facet.m_vector3[1] = 0.0;
+   facet2.m_facet.m_vector3[2] = 0.264431;
+
+   CHECK_THAT( psmrts::facet_surface_area( facet2.m_facet.m_vector1,
+                                           facet2.m_facet.m_vector2,
+                                           facet2.m_facet.m_vector3 ),
+               Catch::Matchers::WithinAbs( 0.019405, tolerance ) );
+
+   CHECK_THAT( psmrts::facet_volume( facet2.m_facet.m_vector1,
+                                     facet2.m_facet.m_vector2,
+                                     facet2.m_facet.m_vector3 ),
+               Catch::Matchers::WithinAbs( -0.001455, tolerance ) );
+ }
 
 /*
 No longer relevant?

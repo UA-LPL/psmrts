@@ -26,6 +26,8 @@ TEST_CASE( "DSK SHAPE - Default Test", "[dsk][shape][specification]") {
 
 
 TEST_CASE( "PSMRTS Product DSK Specification Test", "[product][type][mesh][dsk]") {
+    double tolerance = 1.0e-6;
+
     std::string dskfile = psmrts_shapes_path( "dsk/data/bennu_20facets.bds" );
     psmrts::DskShape dsk_m( dskfile );
   
@@ -38,4 +40,9 @@ TEST_CASE( "PSMRTS Product DSK Specification Test", "[product][type][mesh][dsk]"
     CHECK( mesh_d.nvectors()       == 20 );
     CHECK( mesh_d.vector_type()    == psmrts::PsmrtsMeshData::PsmrtsDouble );
     CHECK( mesh_d.isVectorDouble() == true );
+
+    CHECK_THAT( mesh_d.mesh_surface_area(),
+                Catch::Matchers::WithinAbs( 0.842492, tolerance ) );
+    CHECK_THAT( mesh_d.mesh_volume(),
+                Catch::Matchers::WithinAbs( 0.063170, tolerance ) );
 }
