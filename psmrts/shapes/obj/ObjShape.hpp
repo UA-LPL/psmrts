@@ -5,6 +5,8 @@
 
 #include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
+#include <psmrts/core/PsmrtsProduct.hpp>
+#include <psmrts/core/ProductSpecification.hpp>
 
 namespace psmrts  {
   /**
@@ -12,11 +14,13 @@ namespace psmrts  {
    * 
    * 
    */
-  class ObjShape {
+  class ObjShape : public PsmrtsProduct {
     public:
-     ObjShape( ) {  }
+     ObjShape( ) : PsmrtsProduct("obj", "shape"), m_model(), m_mesh() { }
      ObjShape( const psmrts::PsmrtsOBJFormat &obj_t ) :
-                        m_model( obj_t ) { }
+               PsmrtsProduct("obj", "shape"), m_model( obj_t ), m_mesh( obj_t.get_mesh() ) { }
+     ObjShape( const std::string &obj_file ) :
+               PsmrtsProduct("obj", "shape"), m_model( obj_file ), m_mesh( m_model.get_mesh() ) { }
       virtual ~ObjShape() { }
 
 
@@ -109,12 +113,17 @@ namespace psmrts  {
         return ( ProductSpecification( "obj", "mesh", "shape", json_utils::parse_json_string( text )));
       }      
 
+      inline const PsmrtsMeshData &get_mesh() const {
+        return m_mesh;
+      }
+
       /** Report all remaining features not available */
       PSMRTS_PROCESS_CATCHALL( "ObjShape" )
 
 
     protected:
       psmrts::PsmrtsOBJFormat m_model;
+      psmrts::PsmrtsMeshData m_mesh;
   };
 
 } // namespace psmrts

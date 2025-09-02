@@ -18,3 +18,18 @@ TEST_CASE( "OBJ SHAPE - Default Test", "[obj][shape][specification]") {
     CHECK( spec.optional().size()   == 3 );
     CHECK( spec.has_parameter( "obj_mtl_search_path" ) == true );
 }
+
+TEST_CASE( "PSMRTS Product OBJ Specification Test", "[product][type][mesh][obj]") {
+    std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
+    psmrts::ObjShape obj_m( objfile );
+  
+    CHECK( obj_m.name() == "obj" );
+    CHECK( obj_m.type() == "shape" );
+    CHECK( obj_m.uid()  > psmrts::PsmrtsUID::UID_Reserved );
+    
+    psmrts::PsmrtsMeshData mesh_d = obj_m.get_mesh( );
+    CHECK( mesh_d.nfacets()        == 36 );
+    CHECK( mesh_d.nvectors()       == 20 );
+    CHECK( mesh_d.vector_type()    == psmrts::PsmrtsMeshData::PsmrtsDouble );
+    CHECK( mesh_d.isVectorDouble() == true );
+}
