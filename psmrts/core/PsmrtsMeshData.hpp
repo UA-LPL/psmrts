@@ -185,30 +185,6 @@ namespace psmrts {
         return ( m_vectors( index ) );
       }
 
-      /** Returns the computed normal vector of the facet parameter */
-      inline Eigen::Vector3d facet_normal( const FacetDatum &facet ) const {
-
-        return ( psmrts::compute_normal( facet.m_vector1,
-                                         facet.m_vector2,
-                                         facet.m_vector3 ) );
-      }
-
-      /** Returns the computed surface area of input facet */
-      inline double facet_surface_area( const FacetDatum &facet ) const {
-
-        return ( psmrts::facet_surface_area( facet.m_vector1,
-                                             facet.m_vector2,
-                                             facet.m_vector3 ) );
-      }
-
-      /** Returns the computed volume of input facet */
-      inline double facet_volume( const FacetDatum &facet ) const {
-
-        return ( psmrts::facet_volume( facet.m_vector1,
-                                       facet.m_vector2,
-                                       facet.m_vector3 ) );
-      }
-
       /** Returns the nth facet of the mesh */
       inline FacetDatum get_facet( const int nth, const int segmentid = -1 ) const {
           FacetDatum mf;
@@ -223,7 +199,7 @@ namespace psmrts {
             mf.m_vector1 = this->get_vector( vndx[0] );
             mf.m_vector2 = this->get_vector( vndx[1] );
             mf.m_vector3 = this->get_vector( vndx[2] );
-            mf.m_normal  = facet_normal( mf );
+            mf.m_normal  = mf.compute_normal( );
             mf.m_has_facet = true;
           }
           return ( mf );
