@@ -36,9 +36,9 @@ release.
 - See [TODO](TODO.md)
 
 ## [0.3.4] 2025-09-02
-- Added facet surface_area and volume and mesh surface area, and volume functions to psmrts.cpp and defined PSMRTS_Shape opaque pointer to psmrts::PsmrtsShape instead of psmrts::PsmrtsMeshData.
+- Converted facet_datum struct to FacetDatum class in PsmrtsRayTrace.hpp.
+- Added facet surface_area and volume and mesh surface area, and volume functions to psmrts_c.cpp and defined PSMRTS_Shape opaque pointer to psmrts::PsmrtsShape instead of psmrts::PsmrtsMeshData.
 - Modified TEST_CASE_METHOD “PSMRTS C API - One Trace” in test_PsmrtsCAPI.cpp to check facet surface area and volume.
-- In PsmrtsMeshData.hpp modified facet_normal function to call psmrts::compute_normal utility function and added facet_surface_area and facet_volume functions.
 - In  PsmrtsUtilities.hpp added facet_surface_area and facet_volume functions.
 - Added TEST_CASE “PSMRTS Facet Geometry Test” to test_PsmrtsUtilities.cpp, testing facet surface area and volume.
 - In test_DskShape.cpp added checks to TEST_CASE(“PSMRTS Product DSK Specification Test” to test mesh_surface_area and mesh_volume.

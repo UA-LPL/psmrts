@@ -374,15 +374,11 @@ TEST_CASE( "PSMRTS Latitudinal to Rectangular Coordinate Conversion Test", "[uti
    facet1.m_facet.m_vector3[1] = 0.264432;
    facet1.m_facet.m_vector3[2] = 0.101004;
 
-   CHECK_THAT( psmrts::facet_surface_area( facet1.m_facet.m_vector1,
-                                           facet1.m_facet.m_vector2,
-                                           facet1.m_facet.m_vector3 ),
+   CHECK_THAT( facet1.facet().surface_area(),
                Catch::Matchers::WithinAbs( 0.019405, tolerance ) );
 
-   CHECK_THAT( psmrts::facet_volume( facet1.m_facet.m_vector1,
-                                     facet1.m_facet.m_vector2,
-                                     facet1.m_facet.m_vector3 ),
-              Catch::Matchers::WithinAbs( 0.001455, tolerance ) );
+   CHECK_THAT( facet1.facet().volume(),
+               Catch::Matchers::WithinAbs( 0.001455, tolerance ) );
 
    // now create the same facet, but reverse the vertex winding order, which
    // should negate the resulting volume
@@ -408,14 +404,10 @@ TEST_CASE( "PSMRTS Latitudinal to Rectangular Coordinate Conversion Test", "[uti
    facet2.m_facet.m_vector3[1] = 0.0;
    facet2.m_facet.m_vector3[2] = 0.264431;
 
-   CHECK_THAT( psmrts::facet_surface_area( facet2.m_facet.m_vector1,
-                                           facet2.m_facet.m_vector2,
-                                           facet2.m_facet.m_vector3 ),
+   CHECK_THAT( facet2.facet().surface_area(),
                Catch::Matchers::WithinAbs( 0.019405, tolerance ) );
 
-   CHECK_THAT( psmrts::facet_volume( facet2.m_facet.m_vector1,
-                                     facet2.m_facet.m_vector2,
-                                     facet2.m_facet.m_vector3 ),
+   CHECK_THAT( facet2.facet().volume(),
                Catch::Matchers::WithinAbs( -0.001455, tolerance ) );
  }
 

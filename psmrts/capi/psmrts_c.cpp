@@ -11,15 +11,9 @@
 #include <psmrts/core/PsmrtsMeshData.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 #include <psmrts/shapes/PsmrtsShape.hpp>
-#include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
-#include <psmrts/shapes/dsk/private/PsmrtsDSKFormat.hpp>
-#include <psmrts/shapes/ply/private/PsmrtsPLYFormat.hpp>
-#include <psmrts/tracers/ellipsoid/private/EllipsoidTracerModel.hpp>
-#include <psmrts/tracers/bullet/private/PsmrtsBulletWorldModel.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/PsmrtsPriorityTracer.hpp>
-#include <psmrts/tracers/PsmrtsTracer.hpp> 
-
+#include <psmrts/tracers/PsmrtsTracer.hpp>
 
 /*============ PSMRTS C API type definitions ============*/
 /* Must be defined before including psmrts_c.h */
@@ -1265,12 +1259,10 @@ PSMRTS_BOOL psmrts_get_facet( PSMRTS_RayTrace *ray, const PSMRTS_Tracer *tracer,
  */
 double psmrts_facet_surface_area( const PSMRTS_Facet *facet ) {
 
-  double surface_area =
-      psmrts::facet_surface_area( vector_to_eigen_d( facet->m_vector1 ),
-                                  vector_to_eigen_d( facet->m_vector2 ),
-                                  vector_to_eigen_d( facet->m_vector3 ) );
+  // convert PSMRTS_Facet to psmrts::PRQFacet
+  psmrts::PRQFacet prqfacet = capi_facet_to_psmrts( *facet );
 
-  return ( surface_area );
+  return ( prqfacet.facet().surface_area() );
 }
 
 /**
@@ -1291,12 +1283,10 @@ double psmrts_facet_surface_area( const PSMRTS_Facet *facet ) {
  */
 double psmrts_facet_volume( const PSMRTS_Facet *facet ) {
 
-  double volume =
-      psmrts::facet_volume( vector_to_eigen_d( facet->m_vector1 ),
-                            vector_to_eigen_d( facet->m_vector2 ),
-                            vector_to_eigen_d( facet->m_vector3 ) );
+  // convert PSMRTS_Facet to psmrts::PRQFacet
+  psmrts::PRQFacet prqfacet = capi_facet_to_psmrts( *facet );
 
-  return ( volume );
+  return ( prqfacet.facet().volume() );
 }
 
 /**

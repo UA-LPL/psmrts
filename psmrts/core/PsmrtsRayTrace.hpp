@@ -53,14 +53,14 @@ namespace psmrts {
           }
 
           /** Returns the computed surface area of input facet */
-          inline double surface_area( ) const {
+          inline double surface_area() const {
             return ( psmrts::facet_surface_area( m_vector1,
                                                  m_vector2,
                                                  m_vector3 ) );
           }
 
           /** Returns the computed volume of input facet */
-          inline double volume( const FacetDatum &facet ) const {
+          inline double volume() const {
             return ( psmrts::facet_volume( m_vector1,
                                            m_vector2,
                                            m_vector3 ) );
