@@ -24,30 +24,58 @@ namespace psmrts {
 
 
       /** Facet data structure contains the elements defining a single facet */
-      typedef struct facet_datum {
-        facet_datum( ) : m_has_facet( false ),
-                         m_plateid( -1 ),
-                         m_segment( -1 ),
-                         m_indexes( { -1, -1, -1 } ),
-                         m_vector1( { 0.0, 0.0, 0.0 } ),
-                         m_vector2( { 0.0, 0.0, 0.0 } ),
-                         m_vector3( { 0.0, 0.0, 0.0 } ),
-                         m_normal(  { 0.0, 0.0, 0.0 } ) { }
-        ~facet_datum() { }
+      class FacetDatum {
+        public:
+          FacetDatum( ) : m_has_facet( false ),
+                          m_plateid( -1 ),
+                          m_segment( -1 ),
+                          m_indexes( { -1, -1, -1 } ),
+                          m_vector1( { 0.0, 0.0, 0.0 } ),
+                          m_vector2( { 0.0, 0.0, 0.0 } ),
+                          m_vector3( { 0.0, 0.0, 0.0 } ),
+                          m_normal(  { 0.0, 0.0, 0.0 } ) { }
+          virtual ~FacetDatum() { }
 
-        inline bool isValid() const {
-          return ( m_has_facet );
-        }
-                       
-        bool            m_has_facet;
-        int             m_plateid;  //! 0-based plate id/index of intercepted facet
-        int             m_segment;  //! Segment (DSK)/identifier of shape source
-        Eigen::Vector3i m_indexes;
-        Eigen::Vector3d m_vector1;
-        Eigen::Vector3d m_vector2;
-        Eigen::Vector3d m_vector3;
-        Eigen::Vector3d m_normal;
-      } FacetDatum;
+          inline bool isValid() const {
+            return ( m_has_facet );
+          }
+
+          /** Returns the pre-computed normal */
+          inline const Eigen::Vector3d &normal() const {
+            return ( m_normal );
+          }
+               
+          /** Computed the normal vector of the facet */          
+          inline Eigen::Vector3d compute_normal() const {
+            return ( psmrts::compute_normal( m_vector1,
+                                             m_vector2,
+                                             m_vector3 ) );
+          }
+
+          /** Returns the computed surface area of input facet */
+          inline double surface_area() const {
+            return ( psmrts::facet_surface_area( m_vector1,
+                                                 m_vector2,
+                                                 m_vector3 ) );
+          }
+
+          /** Returns the computed volume of input facet */
+          inline double volume() const {
+            return ( psmrts::facet_volume( m_vector1,
+                                           m_vector2,
+                                           m_vector3 ) );
+          }
+
+         
+          bool            m_has_facet;
+          int             m_plateid;  //! 0-based plate id/index of intercepted facet
+          int             m_segment;  //! Segment (DSK)/identifier of shape source
+          Eigen::Vector3i m_indexes;
+          Eigen::Vector3d m_vector1;
+          Eigen::Vector3d m_vector2;
+          Eigen::Vector3d m_vector3;
+          Eigen::Vector3d m_normal;
+      };
 
       /** Fundamental ray trace data structure for a trace result */
       typedef struct ray_trace_datum {

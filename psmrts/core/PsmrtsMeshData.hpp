@@ -185,13 +185,6 @@ namespace psmrts {
         return ( m_vectors( index ) );
       }
 
-      /** Returns the computed normal vector of the facet parameter */
-      inline static Eigen::Vector3d facet_normal( const FacetDatum &facet ) {
-        Eigen::Vector3d a = facet.m_vector2 - facet.m_vector1;
-        Eigen::Vector3d b = facet.m_vector3 - facet.m_vector1;
-        return ( a.cross( b ).normalized() );
-      }
-
       /** Returns the nth facet of the mesh */
       inline FacetDatum get_facet( const int nth, const int segmentid = -1 ) const {
           FacetDatum mf;
@@ -206,10 +199,50 @@ namespace psmrts {
             mf.m_vector1 = this->get_vector( vndx[0] );
             mf.m_vector2 = this->get_vector( vndx[1] );
             mf.m_vector3 = this->get_vector( vndx[2] );
-            mf.m_normal  = facet_normal( mf );
+            mf.m_normal  = mf.compute_normal( );
             mf.m_has_facet = true;
           }
           return ( mf );
+      }
+
+      /** Returns the computed surface area of the full mesh */
+      inline double mesh_surface_area() const {
+
+        const bool ThrowIfInvalid = false;
+        double mesh_surface_area = 0.0;
+        size_t numfacets = nfacets();
+
+        for ( size_t i = 0; i < numfacets; ++i ) {
+          if ( true == m_indexes.validate_index( i, ThrowIfInvalid ) ) {
+            auto vndx = m_indexes( i );
+
+            mesh_surface_area += psmrts::facet_surface_area( this->get_vector( vndx[0] ),
+                                                             this->get_vector( vndx[1] ),
+                                                             this->get_vector( vndx[2] ) );
+          }
+        }
+
+        return mesh_surface_area;
+      }
+
+      /** Returns the computed surface area of the full mesh */
+      inline double mesh_volume() const {
+
+        const bool ThrowIfInvalid = false;
+        double mesh_volume = 0.0;
+        size_t numfacets = nfacets();
+
+        for ( size_t i = 0; i < numfacets; ++i ) {
+          if ( true == m_indexes.validate_index( i, ThrowIfInvalid ) ) {
+            auto vndx = m_indexes( i );
+
+            mesh_volume += psmrts::facet_volume( this->get_vector( vndx[0] ),
+                                                 this->get_vector( vndx[1] ),
+                                                 this->get_vector( vndx[2] ) );
+          }
+        }
+
+        return mesh_volume;
       }
 
       /** Returns reference to the mesh's minimum axis */

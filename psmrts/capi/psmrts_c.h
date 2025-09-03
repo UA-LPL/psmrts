@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 #ifndef psmrts_c_h
 #define psmrts_c_h
 
@@ -56,7 +56,7 @@ typedef union {
     double longitude;
     double latitude;
     double radius;
-  };  
+  };
   double data[3];
 } PSMRTS_Vector3d;
 
@@ -210,6 +210,12 @@ extern PSMRTS_BOOL psmrts_tracer_valid( const PSMRTS_Tracer *trace );
 /*============ PSMRTS Facet functions ===================*/
 extern PSMRTS_BOOL psmrts_get_facet( PSMRTS_RayTrace *ray, const PSMRTS_Tracer *tracer,
                                      PSMRTS_Facet *facet );
+extern double psmrts_facet_surface_area( const PSMRTS_Facet *facet );
+extern double psmrts_facet_volume( const PSMRTS_Facet *facet );
+
+/*============ PSMRTS Shape (Mesh) functions ============*/
+extern double psmrts_mesh_surface_area( const PSMRTS_Shape *shape );
+extern double psmrts_mesh_volume( const PSMRTS_Shape *shape );
 
 /*============ PSMRTS memory free functions =============*/
 extern void psmrts_free_ray( PSMRTS_RayTrace *trace );

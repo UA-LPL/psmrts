@@ -35,6 +35,15 @@ release.
 ## TODO
 - See [TODO](TODO.md)
 
+## [0.3.4] 2025-09-02
+- Converted facet_datum struct to FacetDatum class in PsmrtsRayTrace.hpp.
+- Added facet surface_area and volume and mesh surface area, and volume functions to psmrts_c.cpp and defined PSMRTS_Shape opaque pointer to psmrts::PsmrtsShape instead of psmrts::PsmrtsMeshData.
+- Modified TEST_CASE_METHOD “PSMRTS C API - One Trace” in test_PsmrtsCAPI.cpp to check facet surface area and volume.
+- In  PsmrtsUtilities.hpp added facet_surface_area and facet_volume functions.
+- Added TEST_CASE “PSMRTS Facet Geometry Test” to test_PsmrtsUtilities.cpp, testing facet surface area and volume.
+- In test_DskShape.cpp added checks to TEST_CASE(“PSMRTS Product DSK Specification Test” to test mesh_surface_area and mesh_volume.
+- In test_ObjShape.cpp added checks to TEST_CASE(“PSMRTS Product Obj Specification Test” to test mesh_surface_area and mesh_volume.
+
 ## [0.3.3] 2025-09-02
 - Renamed PsmrtsParameter to PsmrtsOption as it better fits is usage.
 - Rename ProductParameter to ProductFeature to better apply to its usage.
@@ -48,8 +57,6 @@ release.
 - Freeze VCPKG version baseline due to compliation issues with recent changes in the Eigen port.
 - Updated documentation for various methods and files.
 - Update CHANGELOG.md
-
-
 
 ## [0.3.2] 2025-08-22
 - Removed/merged obsolete, redundant files/classes/tests to clean up system. 

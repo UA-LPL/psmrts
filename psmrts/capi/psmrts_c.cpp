@@ -10,22 +10,17 @@
 #include <psmrts/core/PsmrtsBuffer.hpp>
 #include <psmrts/core/PsmrtsMeshData.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
-#include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
-#include <psmrts/shapes/dsk/private/PsmrtsDSKFormat.hpp>
-#include <psmrts/shapes/ply/private/PsmrtsPLYFormat.hpp>
-#include <psmrts/tracers/ellipsoid/private/EllipsoidTracerModel.hpp>
-#include <psmrts/tracers/bullet/private/PsmrtsBulletWorldModel.hpp>
+#include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/PsmrtsPriorityTracer.hpp>
-#include <psmrts/tracers/PsmrtsTracer.hpp> 
-
+#include <psmrts/tracers/PsmrtsTracer.hpp>
 
 /*============ PSMRTS C API type definitions ============*/
 /* Must be defined before including psmrts_c.h */
 #define PSMRTS_POINTERS 1
 using PSMRTS_RayTrace              = psmrts::PRQRayTrace;
-using PSMRTS_Shape                 = psmrts::PsmrtsMeshData; // will be psmrts::PsmrtsShape
-using PSMRTS_Tracer                = psmrts::PsmrtsTracer; 
+using PSMRTS_Shape                 = psmrts::PsmrtsShape;
+using PSMRTS_Tracer                = psmrts::PsmrtsTracer;
 using PSMRTS_PriorityTracer        = psmrts::PsmrtsPriorityTracer;
 using PSMRTS_PhotometricRayTrace   = psmrts::PRQPhotometricTrace;
 using PSMRTS_TraceArray            = psmrts::PRQRayTraceArray;
@@ -1252,6 +1247,72 @@ PSMRTS_BOOL psmrts_get_facet( PSMRTS_RayTrace *ray, const PSMRTS_Tracer *tracer,
 
   return ( b );
 }
+
+/**
+ * @brief psmrts_facet_surface_area - Computes facet surface area.
+ *
+ * Given a PSMRTS_Facet, this function computes the facet surface area.
+ *
+ *
+ * @param facet PSMRTS_Facet pointer.
+ * @return double facet surface area.
+ */
+double psmrts_facet_surface_area( const PSMRTS_Facet *facet ) {
+
+  // convert PSMRTS_Facet to psmrts::PRQFacet
+  psmrts::PRQFacet prqfacet = capi_facet_to_psmrts( *facet );
+
+  return ( prqfacet.facet().surface_area() );
+}
+
+/**
+ * @brief psmrts_facet_volume - Computes facet volume.
+ *
+ * Given a PSMRTS_Facet, this function computes the facet volume which is actually the volume of the
+ * tetrahedron defined by the facet vertices and the origin (0,0,0). The resulting volume is signed
+ * positive if the facet normal faces outward and negative if it faces inward. The normal direction
+ * is defined by the winding order of the vertices. See for example ...
+ *
+ * <a href="http://chenlab.ece.cornell.edu/Publication/Cha/icip01_Cha.pdf">Cha Zhang and Tsuhan Chen,
+ * "Efficient Feature Extraction for 2D/3D Objects in Mesh Representation," Proceedings 2001 International
+ * Conference on Image Processing (Cat. No.01CH37205), Thessaloniki, Greece, 2001, pp. 935-938 vol.3,
+ * doi: 10.1109/ICIP.2001.958278.</a>
+ *
+ * @param facet PSMRTS_Facet pointer.
+ * @return double signed facet volume.
+ */
+double psmrts_facet_volume( const PSMRTS_Facet *facet ) {
+
+  // convert PSMRTS_Facet to psmrts::PRQFacet
+  psmrts::PRQFacet prqfacet = capi_facet_to_psmrts( *facet );
+
+  return ( prqfacet.facet().volume() );
+}
+
+/**
+ * @brief psmrts_mesh_surface_area - Computes shape surface area.
+ *
+ * Given a PSMRTS_Shape, this function computes the total mesh surface area.
+ *
+ * @param shape PSMRTS_Shape pointer.
+ * @return double Shape surface area.
+ */
+extern double psmrts_mesh_surface_area( const PSMRTS_Shape *shape ) {
+  return (shape->get_mesh().mesh_surface_area());
+}
+
+/**
+ * @brief psmrts_mesh_volume - Computes shape volume.
+ *
+ * Given a PSMRTS_Shape, this function computes the total mesh volume.
+ *
+ * @param shape PSMRTS_Shape pointer.
+ * @return double Shape volume.
+ */
+extern double psmrts_mesh_volume( const PSMRTS_Shape *shape ) {
+  return (shape->get_mesh().mesh_volume());
+}
+
 
 /**
  * @brief psmrts_tracer_valid - Validates PSMRTS_Tracer.

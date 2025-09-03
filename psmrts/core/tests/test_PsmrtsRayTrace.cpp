@@ -34,7 +34,7 @@ TEST_CASE( "PsmrtsRayTrace Default Test", "[ray][trace][default]") {
 }
 
 TEST_CASE( "PsmrtsRayTrace Facet Test", "[ray][trace][facet][default]") {
-  psmrts::PsmrtsRayTrace::facet_datum d_facet;
+  psmrts::PsmrtsRayTrace::FacetDatum d_facet;
   CHECK( d_facet.isValid() == false ); 
   CHECK( d_facet.m_indexes == Eigen::Vector3i { -1, -1, -1 } );
   CHECK( d_facet.m_vector1 == Eigen::Vector3d { 0.0, 0.0, 0.0 } );
