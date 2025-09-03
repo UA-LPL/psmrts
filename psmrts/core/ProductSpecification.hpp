@@ -9,8 +9,8 @@
 #include <exception>
 
 #include <psmrts/core/PsmrtsJson.hpp>
-#include <psmrts/core/ProductParameter.hpp>
-#include <psmrts/core/ProductRequest.hpp>
+#include <psmrts/core/ProductFeature.hpp>
+#include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 
 
@@ -27,7 +27,7 @@ namespace psmrts {
    */
   class ProductSpecification {
     public:
-      using ProductParameterList = std::vector<ProductParameter>;
+      using ProductFeatureList = std::vector<ProductFeature>;
 
       ProductSpecification( )  {
         initialize( "null", "", "" );
@@ -65,8 +65,8 @@ namespace psmrts {
         return ( m_type);
       }      
 
-      inline ProductParameter specs( ) const {
-        return ( ProductParameter( m_specs ) );
+      inline ProductFeature specs( ) const {
+        return ( ProductFeature( m_specs ) );
       }
 
       inline const ordered_json &json_specs() const {
@@ -77,7 +77,7 @@ namespace psmrts {
         return ( m_parameters.size() );
       }
 
-      inline const ProductParameterList &parameters() const {
+      inline const ProductFeatureList &parameters() const {
         return ( m_parameters );
       }
 
@@ -96,7 +96,7 @@ namespace psmrts {
         return ( false );
       }
 
-      inline const ProductParameter &get_parameter( const std::string &name ) const {
+      inline const ProductFeature &get_parameter( const std::string &name ) const {
         for ( auto &parm_t : this->parameters() ) {
           if ( parm_t.name() == name ) return ( parm_t );
         }
@@ -105,16 +105,16 @@ namespace psmrts {
         throw std::runtime_error( "*** ProductSpecification::get_parameter(" + name + ") - named parameter does not exist!" );
       }
      
-      inline ProductParameter driver() const {
+      inline ProductFeature driver() const {
         if ( this->specs().contains( "driver" ) ) {
-          return ( ProductParameter( this->specs().value<ordered_json>( "driver" ) ) );
+          return ( ProductFeature( this->specs().value<ordered_json>( "driver" ) ) );
         }
-        return ( ProductParameter( "driver" ) );
+        return ( ProductFeature( "driver" ) );
       }
       
       inline std::vector<std::string> required() const {
         std::vector<std::string> result;
-        ProductParameterList param_specs = this->parameters();
+        ProductFeatureList param_specs = this->parameters();
         if (param_specs.size() > 0 ) {
           for ( const auto &param : param_specs ) {
             if ( param.is_required() ) {
@@ -130,7 +130,7 @@ namespace psmrts {
       
       inline std::vector<std::string> optional() const {
         std::vector<std::string> result;
-        ProductParameterList param_specs = this->parameters();
+        ProductFeatureList param_specs = this->parameters();
         if (param_specs.size() > 0 ) {
           for ( const auto &param : param_specs ) {
             if ( !param.is_required() ) {
@@ -145,7 +145,7 @@ namespace psmrts {
       }
 
       /** Checks if a user/dev request can be satisfies by this product spec 
-      inline bool satisfies( const ProductRequest &request ) const {
+      inline bool satisfies( const ProductConfiguration &config ) const {
 
       }
       */
@@ -164,7 +164,7 @@ namespace psmrts {
 
         for ( auto const &parm_t : this->parameters() ) {
           try {
-           ProductParameter other_parm_t = this->get_parameter( parm_t.name() );
+           ProductFeature other_parm_t = this->get_parameter( parm_t.name() );
             if ( !parm_t.validate( other_parm_t ) ) {
               spec_errors_t.add_error( std::runtime_error( spec_errors_t.name() + " - parameter " + 
                                                             parm_t.name() + " does not exist in other" ) );
@@ -197,18 +197,18 @@ namespace psmrts {
       std::string          m_product;
       std::string          m_type;
       ordered_json         m_specs;
-      ProductParameterList m_parameters;
+      ProductFeatureList m_parameters;
 
 
       /** Parse/internalize the contents of the JSON struct */
-      inline ProductParameterList get_parameter_set() const {
-        ProductParameterList parms;
+      inline ProductFeatureList get_parameter_set() const {
+        ProductFeatureList parms;
 
-        if ( m_specs.contains( "parameters" ) ) {
-          ordered_json parms_t = m_specs["parameters"];
+        if ( m_specs.contains( "features" ) ) {
+          ordered_json parms_t = m_specs["features"];
           if ( ( parms_t.is_array() && ( parms_t.size() > 0 ) ) ) {
             for ( auto const & [key, j_parm_t ] : parms_t.items() ) {
-              parms.push_back( ProductParameter( j_parm_t ) );
+              parms.push_back( ProductFeature( j_parm_t ) );
             }
           }
         }

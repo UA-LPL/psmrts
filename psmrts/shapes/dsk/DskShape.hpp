@@ -3,17 +3,20 @@
 
 #include <string>
 
-#include <psmrts/shapes/dsk/private/PsmrtsDSKFormat.hpp>
+#include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/shapes/dsk/private/PsmrtsDSKFormat.hpp>
 
 namespace psmrts {
-    class DskShape {
+    class DskShape : public PsmrtsProduct {
      public:
-      DskShape( ) { }
+      DskShape( ) : PsmrtsProduct("dsk", "shape"), m_model(), m_mesh() { }
       DskShape( const psmrts::PsmrtsDSKFormat &dsk_t ) :
-                         m_model( dsk_t ) { }
-        virtual ~DskShape() { } 
+                PsmrtsProduct("dsk", "shape"), m_model( dsk_t ), m_mesh( dsk_t.get_mesh() ) { }
+      DskShape( const std::string &dsk_file ) :
+                PsmrtsProduct("dsk", "shape"), m_model( dsk_file ), m_mesh( m_model.get_mesh() ) { }
+      virtual ~DskShape() { } 
      
 
      inline bool process( PRQFeatures &features ) const {
@@ -33,7 +36,7 @@ namespace psmrts {
                 "type": "system",
                 "aliases": [ "DSK", "bds", "BDS" ]
             },
-            "parameters": [
+            "features": [
                 {
                     "name": "dsk_string",
                     "type": "string",
@@ -70,8 +73,13 @@ namespace psmrts {
         return ( ProductSpecification( "dsk", "mesh", "shape", json_utils::parse_json_string( text ) ) );
      }
 
+     inline const PsmrtsMeshData &get_mesh() const {
+        return m_mesh; 
+     }
+
      protected:
        psmrts::PsmrtsDSKFormat m_model;
+       psmrts::PsmrtsMeshData m_mesh;
     };
 }
 

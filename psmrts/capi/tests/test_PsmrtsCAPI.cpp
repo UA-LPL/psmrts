@@ -1,5 +1,5 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
-#include "psmrts_c.h"
+#include <psmrts/capi/psmrts_c.h>
 
 #include <string>
 

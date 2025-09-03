@@ -6,16 +6,16 @@
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsJson.hpp>
-#include <psmrts/core/ProductParameter.hpp>
+#include <psmrts/core/ProductFeature.hpp>
 
-TEST_CASE( "ProductParameter Constructor / Base Function Tests", "[product][parameter][base]") {
-    psmrts::ProductParameter p_param;
+TEST_CASE( "ProductFeature Constructor / Base Function Tests", "[product][feature][base]") {
+    psmrts::ProductFeature p_param;
 
     CHECK( p_param.size()                 == 0 );
     CHECK( p_param.contains( "required" ) == false );
     CHECK( p_param.name()                 == "" );
     CHECK( p_param.type()                 == "string" );
-    CHECK( p_param.description()          == "parameter" );
+    CHECK( p_param.description()          == "feature" );
     CHECK( p_param.status()               == "required" );
     CHECK( p_param.keywords()             == std::vector<std::string> {} );
     CHECK( p_param.aliases()              == std::vector<std::string> {} );
@@ -32,14 +32,14 @@ TEST_CASE( "ProductParameter Constructor / Base Function Tests", "[product][para
      psmrts::json_utils::parse_json_string("[{\"op\":\"replace\",\"path\":\"\",\"value\":{\"name\":\"default\",\"type\":\"constructor\"}}]") );
 }
 
-TEST_CASE( "ProductParameter Values Test", "[product][parameter][values]") {
+TEST_CASE( "ProductFeature Values Test", "[product][feature][values]") {
     char vals[] = R"({
         "type": "test_type",
         "description": "values to test",
         "status": "required",
         "aliases": ["test", "test_data"]
     })";
-    psmrts::ProductParameter p_param1( "name", "test_name", psmrts::json_utils::parse_json_string(vals));
+    psmrts::ProductFeature p_param1( "name", "test_name", psmrts::json_utils::parse_json_string(vals));
 
     CHECK( p_param1.size()                           == 5 );
     CHECK( p_param1.contains("description")          == true );
@@ -86,12 +86,12 @@ TEST_CASE( "ProductParameter Values Test", "[product][parameter][values]") {
         "file_suffixes": ["txt", "TXT"],
         "bad_key": "error"
     })";
-    psmrts::ProductParameter p_param2( "name", "test", psmrts::json_utils::parse_json_string(vals2));
+    psmrts::ProductFeature p_param2( "name", "test", psmrts::json_utils::parse_json_string(vals2));
 
     CHECK( p_param2.size()                           == 7 );
     CHECK( p_param2.contains("unrelated_key")        == false );
     CHECK( p_param2.contains("description")          == false );
-    CHECK( p_param2.description()                    == "parameter");
+    CHECK( p_param2.description()                    == "feature");
     CHECK( p_param2.value("status", std::string("")) == "optional" );
 
     CHECK_NOTHROW( p_param2.add_key("default", "string")); 
@@ -101,7 +101,7 @@ TEST_CASE( "ProductParameter Values Test", "[product][parameter][values]") {
 
     CHECK( p_param2.name()          == "test" );
     CHECK( p_param2.type()          == "test_type" );
-    CHECK( p_param2.description()   == "parameter" );
+    CHECK( p_param2.description()   == "feature" );
     CHECK( p_param2.status()        == "optional" );
     CHECK( p_param2.keywords()      == std::vector<std::string>{"aliases", "bad_key", "default", "file_suffixes", "name", "status", "type"} );
     CHECK( p_param2.aliases()       == std::vector<std::string>{"test_name", "test_data"} );
@@ -113,7 +113,7 @@ TEST_CASE( "ProductParameter Values Test", "[product][parameter][values]") {
     CHECK( p_param2.isa_alias( "bad_alias" ) == false );
 }
 
-TEST_CASE( "ProductParamater Validate Test", "[product][parameter][validate]") {
+TEST_CASE( "ProductParamater Validate Test", "[product][feature][validate]") {
     char vals1[] = R"({
         "name": "obj_file",
         "type": "test",
@@ -122,7 +122,7 @@ TEST_CASE( "ProductParamater Validate Test", "[product][parameter][validate]") {
         "aliases": ["file", "obj_mesh", "mesh_file"],
         "file_suffixes": [ "obj", "OBJ" ]
     })";
-    psmrts::ProductParameter param1( psmrts::json_utils::parse_json_string( vals1 ) );
+    psmrts::ProductFeature param1( psmrts::json_utils::parse_json_string( vals1 ) );
 
     CHECK( param1.size()                   == 6 );
     CHECK( param1.contains( "name" )       == true );
@@ -146,7 +146,7 @@ TEST_CASE( "ProductParamater Validate Test", "[product][parameter][validate]") {
         "file_suffixes": [ "obj", "OBJ" ],
         "file": "test_file.obj"
     })";
-    psmrts::ProductParameter param2( psmrts::json_utils::parse_json_string( vals2 ) );
+    psmrts::ProductFeature param2( psmrts::json_utils::parse_json_string( vals2 ) );
     
     CHECK( param1.validate( param2 ) == true ); 
 
@@ -154,7 +154,7 @@ TEST_CASE( "ProductParamater Validate Test", "[product][parameter][validate]") {
     CHECK( psmrts::psmrts_file_extension( "test_file.obj" ) == "obj" );   
 }
 
-TEST_CASE( "ProductParameter Validate File Test", "[product][parameter][file]") {
+TEST_CASE( "ProductFeature Validate File Test", "[product][feature][file]") {
     char vals1[] = R"({
         "name": "obj_file",
         "type": "file",
@@ -163,7 +163,7 @@ TEST_CASE( "ProductParameter Validate File Test", "[product][parameter][file]") 
         "aliases": ["file", "obj_mesh", "mesh_file"],
         "file_suffixes": [ "obj", "OBJ" ]
     })";
-    psmrts::ProductParameter param( psmrts::json_utils::parse_json_string( vals1 ) );
+    psmrts::ProductFeature param( psmrts::json_utils::parse_json_string( vals1 ) );
 
     // Check that extension matches a suffix
     char vals2[] = R"({
@@ -172,7 +172,7 @@ TEST_CASE( "ProductParameter Validate File Test", "[product][parameter][file]") 
         "status": "required",
         "obj_file": "test_file.obj"
     })";
-    psmrts::ProductParameter check1( psmrts::json_utils::parse_json_string( vals2 ) );
+    psmrts::ProductFeature check1( psmrts::json_utils::parse_json_string( vals2 ) );
     REQUIRE( psmrts::psmrts_file_extension( check1.specs()[check1.name()] ) == "obj" );
     CHECK( param.validate( check1 ) == true );
 
@@ -183,12 +183,12 @@ TEST_CASE( "ProductParameter Validate File Test", "[product][parameter][file]") 
         "status": "required",
         "obj_file": "bad_file.ply"
     })";
-    psmrts::ProductParameter check2( psmrts::json_utils::parse_json_string( bad_val ) );
+    psmrts::ProductFeature check2( psmrts::json_utils::parse_json_string( bad_val ) );
     REQUIRE( psmrts::psmrts_file_extension( check2.specs()[check2.name()] ) != "obj" );
     CHECK( param.validate( check2 ) == false );
 }
 
-TEST_CASE( "ProductParameter Validate Alias Test", "[product][parameter][alias]") {
+TEST_CASE( "ProductFeature Validate Alias Test", "[product][feature][alias]") {
     char vals[] = R"({
         "name": "obj_file",
         "type": "other",
@@ -197,14 +197,14 @@ TEST_CASE( "ProductParameter Validate Alias Test", "[product][parameter][alias]"
         "aliases": ["file", "obj_mesh", "mesh_file"],
         "file_suffixes": [ "obj", "OBJ" ]
     })";
-    psmrts::ProductParameter param( psmrts::json_utils::parse_json_string( vals ) );
+    psmrts::ProductFeature param( psmrts::json_utils::parse_json_string( vals ) );
 
     char vals1[] = R"({
         "name": "obj_mesh",
         "type": "other",
         "status": "required"
     })";
-    psmrts::ProductParameter check1( psmrts::json_utils::parse_json_string( vals1 ) );
+    psmrts::ProductFeature check1( psmrts::json_utils::parse_json_string( vals1 ) );
     CHECK( param.validate( check1 ) == true );
 
     char vals2[] = R"({
@@ -212,7 +212,7 @@ TEST_CASE( "ProductParameter Validate Alias Test", "[product][parameter][alias]"
         "type": "other",
         "status": "required"
     })";
-    psmrts::ProductParameter check2( psmrts::json_utils::parse_json_string( vals2 ) );
+    psmrts::ProductFeature check2( psmrts::json_utils::parse_json_string( vals2 ) );
     CHECK( param.validate( check2 ) == false );
 
 
@@ -225,19 +225,19 @@ TEST_CASE( "ProductParameter Validate Alias Test", "[product][parameter][alias]"
         "aliases": ["mesh_file"],
         "file_suffixes": [ "obj", "OBJ" ]
     })";
-    psmrts::ProductParameter param2( psmrts::json_utils::parse_json_string( vals3 ) );
+    psmrts::ProductFeature param2( psmrts::json_utils::parse_json_string( vals3 ) );
 
     char vals4[] = R"({
         "name": "mesh_file",
         "type": "other",
         "status": "required"
     })";
-    psmrts::ProductParameter check3( psmrts::json_utils::parse_json_string( vals4 ) );
+    psmrts::ProductFeature check3( psmrts::json_utils::parse_json_string( vals4 ) );
 
     CHECK( param2.validate(check3) == true ); 
 }
 
-TEST_CASE( "ProductParameter Vaidate String Test", "[product][parameter][string]") {
+TEST_CASE( "ProductFeature Vaidate String Test", "[product][feature][string]") {
     char vals[] = R"({
         "name": "obj_string",
         "type": "string",
@@ -246,7 +246,7 @@ TEST_CASE( "ProductParameter Vaidate String Test", "[product][parameter][string]
         "aliases": ["obj_mesh_string"],
         "obj_string": ["test_value"]
     })";
-    psmrts::ProductParameter param( psmrts::json_utils::parse_json_string(vals) );
+    psmrts::ProductFeature param( psmrts::json_utils::parse_json_string(vals) );
 
     char vals1[] = R"({
         "name": "obj_string",
@@ -254,7 +254,7 @@ TEST_CASE( "ProductParameter Vaidate String Test", "[product][parameter][string]
         "status": "optional",
         "obj_string": "test_value"
     })";
-    psmrts::ProductParameter check1( psmrts::json_utils::parse_json_string( vals1 ) );
+    psmrts::ProductFeature check1( psmrts::json_utils::parse_json_string( vals1 ) );
 
     CHECK( param.validate( check1 ) == true );
 
@@ -264,7 +264,7 @@ TEST_CASE( "ProductParameter Vaidate String Test", "[product][parameter][string]
         "status": "optional",
         "obj_string": "bad_value"
     })";
-    psmrts::ProductParameter check2( psmrts::json_utils::parse_json_string( bad_vals ) );
+    psmrts::ProductFeature check2( psmrts::json_utils::parse_json_string( bad_vals ) );
 
     CHECK( param.validate( check2 ) == false );
 
@@ -273,21 +273,21 @@ TEST_CASE( "ProductParameter Vaidate String Test", "[product][parameter][string]
         "type": "string",
         "status": "optional"
     })";
-    psmrts::ProductParameter check3( psmrts::json_utils::parse_json_string( bad_vals ) );
+    psmrts::ProductFeature check3( psmrts::json_utils::parse_json_string( bad_vals ) );
 
     CHECK( param.validate( check3 ) == false );
 }
 
 
-TEST_CASE( "ProductParameter From PVL Test", "[product][parameter][pvl]") {
+TEST_CASE( "ProductFeature From PVL Test", "[product][feature][pvl]") {
     std::string empty = "";
-    // Parameters require a name..
-    REQUIRE_THROWS( psmrts::ProductParameter::from_pvl( empty ) );
+    // Features require a name..
+    REQUIRE_THROWS( psmrts::ProductFeature::from_pvl( empty ) );
     
     std::string test = "name=pvl;type=string;status=required;";
 
-    REQUIRE_NOTHROW( psmrts::ProductParameter::from_pvl( test ) );
-    psmrts::ProductParameter param = psmrts::ProductParameter::from_pvl( test );
+    REQUIRE_NOTHROW( psmrts::ProductFeature::from_pvl( test ) );
+    psmrts::ProductFeature param = psmrts::ProductFeature::from_pvl( test );
 
     CHECK( param.name()   == "pvl" );
     CHECK( param.type()   == "string" );
@@ -295,22 +295,22 @@ TEST_CASE( "ProductParameter From PVL Test", "[product][parameter][pvl]") {
 
     const char *c_test = "name=pvl;type=string;status=optional";
 
-    REQUIRE_NOTHROW( psmrts::ProductParameter::from_pvl( c_test ) );
-    psmrts::ProductParameter c_param = psmrts::ProductParameter::from_pvl( c_test );
+    REQUIRE_NOTHROW( psmrts::ProductFeature::from_pvl( c_test ) );
+    psmrts::ProductFeature c_param = psmrts::ProductFeature::from_pvl( c_test );
 
     CHECK( c_param.name()   == "pvl" );
     CHECK( c_param.type()   == "string" );
     CHECK( c_param.status() == "optional" );
 
     std::string newline = "name=pvl\ntype=string\nstatus=optional\n";
-    psmrts::ProductParameter n_param = psmrts::ProductParameter::from_pvl( newline );
+    psmrts::ProductFeature n_param = psmrts::ProductFeature::from_pvl( newline );
 
     CHECK( n_param.name()   == "pvl" );
     CHECK( n_param.type()   == "string" );
     CHECK( n_param.status() == "optional" );
 
     std::string mix = "name=both\ntype=string;status=required\n";
-    psmrts::ProductParameter m_param = psmrts::ProductParameter::from_pvl( mix );
+    psmrts::ProductFeature m_param = psmrts::ProductFeature::from_pvl( mix );
 
     CHECK( m_param.name()   == "both" );
     CHECK( m_param.type()   == "string");

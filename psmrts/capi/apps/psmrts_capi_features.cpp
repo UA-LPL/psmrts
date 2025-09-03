@@ -3,7 +3,7 @@
 #include <string>
 #include <cstring>
 
-#include <psmrts_c.h>
+#include <psmrts/capi/psmrts_c.h>
 
 /**
  * @brief Main function of the psmrts_capi_features application.

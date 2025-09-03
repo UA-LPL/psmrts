@@ -635,22 +635,22 @@ JSON string representations of product specifications are the recommended method
 
 Configurations are created using the following syntax. It constructs a product configuration request that creates a NAIF DSK shape tracer using a specific segment in a DSK BDS file.
 ```
-ProductConfiguration(  { ProductParameter( "tracer", "naifdsk"), 
-                         ProductParameter( "dsk_file", "g_00880mm_alt_ptm_0000n00000_v020.bds"), 
-                         ProductParameter( "dsk_surface_id", 20001) } ) );
+ProductConfiguration(  { ProductOption( "tracer", "naifdsk"), 
+                         ProductOption( "dsk_file", "g_00880mm_alt_ptm_0000n00000_v020.bds"), 
+                         ProductOption( "dsk_surface_id", 20001) } ) );
 ```
 
 Priority tracers are simply a vector of ProductConfigurations specified in priority order.
 ```
-using PriorityTracerConfig = std::deque<ProductConfiguration>;
+using PriorityTracerConfig = std::vector<ProductConfiguration>;
 PriorityTracerConfig ptlist = { 
                                 ProductConfiguration( { 
-                                                        ProductParameter( "tracer", "bullet"), 
-                                                        ProductParameter("obj_file", "l_00050mm_alt_ptm_5595n04217_v020.obj") 
+                                                        ProductOption( "tracer", "bullet"), 
+                                                        ProductOption("obj_file", "l_00050mm_alt_ptm_5595n04217_v020.obj") 
                                                       } ),
                                 ProductConfiguration( { 
-                                                        ProductParameter( "tracer", "ellipsoid"), 
-                                                        ProductParameter( "radii", { 0.283065,0.271215,0.249720 } ) 
+                                                        ProductOption( "tracer", "ellipsoid"), 
+                                                        ProductOption( "radii", { 0.283065,0.271215,0.249720 } ) 
                                                       } ) 
                               };
 ```                                                       

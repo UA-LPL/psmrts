@@ -32,7 +32,7 @@ using PSMRTS_TraceArray            = psmrts::PRQRayTraceArray;
 using PSMRTS_PhotometricTraceArray = psmrts::PRQPhotometricTraceArray;
 
 /* Include the PSMRTS C api include */
-#include "psmrts_c.h"
+#include <psmrts/capi/psmrts_c.h>
 
 /**
  * @brief vector_to_eigen_d - Converts a PSMRTS_Vector3d of doubles to an

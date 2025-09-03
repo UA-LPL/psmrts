@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include <psmrts_c.h>
+#include <psmrts/capi/psmrts_c.h>
 
 int main( int argc, char *argv[] ) {
 

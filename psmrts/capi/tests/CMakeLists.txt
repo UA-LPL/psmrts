@@ -14,7 +14,6 @@ target_link_libraries( capi_test_suite PRIVATE Catch2::Catch2WithMain )
 include ( CTest )
 include ( Catch )
 
-set(CMAKE_CATCH_DISCOVER_TESTS_DISCOVERY_MODE PRE_TEST)
 catch_discover_tests( capi_test_suite WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
 # ----- CMocka Testing Additions TEMP ------

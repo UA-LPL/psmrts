@@ -179,7 +179,7 @@ namespace psmrts  {
             "name": "bullet",
             "type": "system"
           },
-          "parameters": [
+          "features": [
             {
               "name": "bullet_optimize_bvh",
               "type": "bool",

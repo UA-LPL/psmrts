@@ -5,13 +5,15 @@ find_package( Catch2 CONFIG REQUIRED )
 
 # Build all-in-one renderer test application
 add_executable( psmrts_test_suite  psmrts_catch2_main.cpp
-                                   test_ProductParameter.cpp
+                                   test_ProductConfiguration.cpp
+                                   test_ProductFeature.cpp
+                                   test_ProductOption.cpp
                                    test_ProductSpecification.cpp
                                    test_PsmrtsBuffer.cpp 
                                    test_PsmrtsBufferData.cpp
                                    test_PsmrtsMeshData.cpp
-                                   test_PsmrtsParameter.cpp
                                    test_PsmrtsPriorityTracer.cpp
+                                   test_PsmrtsProduct.cpp
                                    test_PsmrtsRayTrace.cpp
                                    test_PsmrtsRequest.cpp
                                    test_PsmrtsShapeTracer.cpp
@@ -30,7 +32,6 @@ include( CTest )
 include( Catch )
 
 # Run ctest and all catch2 tests in the build directory!
-set(CMAKE_CATCH_DISCOVER_TESTS_DISCOVERY_MODE PRE_TEST)
 catch_discover_tests( psmrts_test_suite WORKING_DIRECTORY ${CMAKE_BINARY_DIR} )
 
 # Update the test dependencies and excludes

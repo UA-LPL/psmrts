@@ -309,7 +309,7 @@ namespace psmrts {
 
             try {
                 if ( params.has_parameter( "ply_file" ) ) {
-                    ProductParameter plyfile = params.get_parameter("ply_file");
+                    ProductFeature plyfile = params.get_parameter("ply_file");
                     return ( PsmrtsPLYFormat(  plyfile.value<std::string>( "ply_file" ) ).get_mesh() );
                 }
             }
