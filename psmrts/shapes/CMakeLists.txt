@@ -5,3 +5,6 @@ add_subdirectory( dsk )
 add_subdirectory( obj )
 add_subdirectory( ply )
 
+if(BUILD_TESTING)
+    add_subdirectory( tests )
+endif(BUILD_TESTING)

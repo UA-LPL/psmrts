@@ -20,6 +20,39 @@ TEST_CASE( "PLY FORMAT Asset Test - No File Default Constructor", "[format][ply]
     CHECK( ply.get_float_vectors().size()  == 0 );
     CHECK( ply.get_double_vectors().size() == 0 );
     CHECK( ply.get_indexes().size()        == 0 );
+
+    miniply::PLYPropertyType char_prop   = miniply::PLYPropertyType::Char;
+    miniply::PLYPropertyType uchar_prop  = miniply::PLYPropertyType::UChar;
+    miniply::PLYPropertyType short_prop  = miniply::PLYPropertyType::Short;
+    miniply::PLYPropertyType ushort_prop = miniply::PLYPropertyType::UShort;
+    miniply::PLYPropertyType int_prop    = miniply::PLYPropertyType::Int;
+    miniply::PLYPropertyType uint_prop   = miniply::PLYPropertyType::UInt;
+    miniply::PLYPropertyType double_prop = miniply::PLYPropertyType::Double;
+    miniply::PLYPropertyType no_prop     = static_cast<miniply::PLYPropertyType>(9);
+
+    CHECK( ply.property_type_string(char_prop)   == "char" );
+    CHECK( ply.property_type_size(char_prop)     == sizeof(char) );
+
+    CHECK( ply.property_type_string(uchar_prop)  == "uchar" );
+    CHECK( ply.property_type_size(uchar_prop)    == sizeof(unsigned char) );
+
+    CHECK( ply.property_type_string(short_prop)  == "short" );
+    CHECK( ply.property_type_size(short_prop)    == sizeof(short) );
+
+    CHECK( ply.property_type_string(ushort_prop) == "ushort" );
+    CHECK( ply.property_type_size(ushort_prop)   == sizeof(unsigned short) );
+
+    CHECK( ply.property_type_string(int_prop)    == "int" );
+    CHECK( ply.property_type_size(int_prop)      == sizeof(int) );
+
+    CHECK( ply.property_type_string(uint_prop)   == "uint" );
+    CHECK( ply.property_type_size(uint_prop)     == sizeof(unsigned int) );
+
+    CHECK( ply.property_type_string(double_prop) == "double" );
+    CHECK( ply.property_type_size(double_prop)   == sizeof(double) );
+
+    CHECK( ply.property_type_string(no_prop)     == "None" );
+    CHECK( ply.property_type_size(no_prop)       == 0 );
 }
 
 // Test Actual File Constructor for PsmrtsPLYFormat - Using Bennu PLY data
