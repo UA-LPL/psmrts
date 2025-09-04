@@ -5,7 +5,6 @@ target_sources( psmrts PUBLIC ProductConfiguration.hpp
                               ProductFeature.hpp
                               ProductOption.hpp
                               ProductProcessDispatch.hpp
-                              PsmrtsPriorityTracer.hpp
                               PsmrtsUtilities.hpp
                               PsmrtsProduct.hpp
                               PsmrtsVector3.hpp
