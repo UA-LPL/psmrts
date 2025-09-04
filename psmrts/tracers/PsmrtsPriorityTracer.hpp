@@ -9,18 +9,20 @@
 
 #include <Eigen/Geometry>
 #include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/tracers/PsmrtsTracer.hpp>
 
 namespace psmrts {
 
-  class PsmrtsPriorityTracer {
+  class PsmrtsPriorityTracer : public PsmrtsProduct {
     public:
+      using UIDType    = PsmrtsUID::UIDType;
       using TracerList = std::vector<PsmrtsTracer>;
-      PsmrtsPriorityTracer( ) { init(); }
+      PsmrtsPriorityTracer( ) : PsmrtsProduct("prioritytracer") { init(); }
       
-      PsmrtsPriorityTracer( const PsmrtsTracer &tracer ) { 
+      PsmrtsPriorityTracer( const PsmrtsTracer &tracer ) : PsmrtsProduct("prioritytracer") { 
         init();
         m_tracers.push_back( tracer );
       }
