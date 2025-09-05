@@ -5,7 +5,7 @@ find_package( Catch2 CONFIG REQUIRED )
 
 # Build all-in-one renderer test application
 add_executable( tracers_test_suite  tracers_catch2_main.cpp
-#                                   test_PsmrtsTracer.cpp
+                                   test_PsmrtsTracer.cpp
                                    test_PsmrtsPriorityTracer.cpp )
 
 

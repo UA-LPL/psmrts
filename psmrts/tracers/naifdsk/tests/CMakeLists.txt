@@ -5,7 +5,8 @@ find_package( Catch2 CONFIG REQUIRED )
 
 # Build all-in-one renderer test application
 add_executable( naif_test_suite  naif_catch2_main.cpp
-                                 test_DskKernelModel.cpp 
+                                 test_DskKernelModel.cpp
+                                 test_DskSegment.cpp 
                                  test_KernelFileSystem.cpp
                                  test_NaifDskTracer.cpp
                                  test_NaifUtilities.cpp )
