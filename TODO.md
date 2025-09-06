@@ -3,17 +3,26 @@
 
 ### Inventory/Caching, fullfilling product request
 - [ ] Develop PSMRTS inventory caching capability
-  - [ ] Initially support four basic types
-    - [ ] Shapes
-    - [ ] Tracers
-    - [ ] Priority Tracers
-    - [ ] Generalized Parameters
+  - [x] Initially support four basic types
+    - [x] Shapes
+    - [x] Tracers
+    - [x] Priority Tracers
+    - [x] Generalized Parameters
+    - [x] Each `type` needs the following methods (all go in PsmrtsInventory)
+      - [x] contains_`type`( UIDType product_id ) const;
+      - [x] find_`type`_by_id( UIDType product_id ) const;
+      - [x] find_`type`_by_config( PRQProductConfig &config );  - naming is TBD
+      - [x] remove_`type`( `type` &product_id );
+      - [x] remove_`type`( PsmrtsInventory &`type`_i );
+      - [x] add_`type`( `type` &product_id );
+      - [x] add_`type`( PsmrtsInventory &`type`_i );
 - [ ] Set up product factory with main inventory
   - [ ] I see this as a single static source of all PSMRTS product inventories
   - [ ] Use PsmrtsInventory to stage product building process and then send residual to Factory for persistent caching
   - [ ] Keeps static PSMRTS-wide primary inventory (other uses of PsmrtsInventory can fill product configs)
-  - [ ] Add caching/inventory requests for each type inventoried
-  - [ ] Supports local (non-static) inventories to house and transfer cache ownership
+  - [x] Add caching/inventory requests for each type inventoried
+  - [x] Supports local (non-static) inventories to house and transfer cache ownership
+- [ ] Finish PsmrtsTracer implementation  
 - [ ] Create product configuration with product options used to create/retrieve product (including product_id)
 - [ ] Modify PsmrtsSpecification to accept a ProductConfiguration/PRQ that contains user/dev options to construct one or more products
   - [ ] Track all resolved options (retain in each product as its config state)
@@ -29,9 +38,12 @@
 - [ ] Add Catch2 tests for DskSegment.hpp.
 - [ ] Add Catch2 tests for Bullet ray callback classes.
 - [ ] Add Catch2 tests PsmrtsTracer.hpp.
-- [ ] Add Catch2 tests PsmrtsShape.hpp.
-  - [ ] Create tests directory and CMakeLists.txt - see psmrts/tracers/.
+- [x] Add Catch2 tests PsmrtsShape.hpp.
+  - [x] Create tests directory and CMakeLists.txt - see psmrts/tracers/.
 - [ ] Add Catch2 tests PsmrtsProductDispatch.hpp.
+- [ ] Implement C API error handling
+- [ ] Implement char * strings transfers b/t C & C++ APIs
+- [ ] Add PRQShape, PRQTracer and PRQPriorityTracer classes for C API interfacing
 
 
 ### General Tasks

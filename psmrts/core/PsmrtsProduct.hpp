@@ -36,6 +36,10 @@ namespace psmrts {
       virtual ~PsmrtsProduct() { }
 
 
+      inline const PsmrtsProduct &product() const {
+        return ( *this );
+      }
+
       /** Returns the name of the product */
       inline const std::string &name() const {
         return ( m_name );
@@ -51,7 +55,7 @@ namespace psmrts {
         return ( m_product_id );
       }
       
-      /** Returns a timestamp since the product has been created */
+      /** Returns a distinct timestamp since the product has been created */
       inline PsmrtsThreadSafeCounter timestamp() const {
         return ( m_tracker.clone() );
       }

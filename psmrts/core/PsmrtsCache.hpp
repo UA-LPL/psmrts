@@ -2,6 +2,8 @@
 #define PsmrtsCache_hpp
 
 #include <string>
+#include <iostream>   
+#include <sstream>  
 #include <exception>
 #include <map>
 
@@ -33,7 +35,7 @@ namespace psmrts {
 
         /** Add a value to the cache - overwrites existing data */
         inline void add( const K &key, const T &value ) {
-          m_cache.insert( key, value );
+          m_cache.insert( { key, value } );
         }
 
         /** Remove the requested cache value by key */
@@ -60,7 +62,9 @@ namespace psmrts {
           }
           
           // Throw an error if not found
-          throw std::runtime_error("*** Error - PsmrtsCache cache key " + key + " not found!");
+          std::ostringstream mess_s;
+          mess_s << "*** Error - PsmrtsCache cache key " << key << " not found!";
+          throw std::runtime_error( mess_s.str() );
         }
 
         /** Return a key value if it exits otherwise returns the default value */

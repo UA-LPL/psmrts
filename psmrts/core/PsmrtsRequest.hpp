@@ -26,7 +26,7 @@ namespace psmrts {
       MissingProcessRequestHandler(const std::string &name ) : m_name ( name ) { }
       virtual ~MissingProcessRequestHandler() = default;
       
-      inline const std::string name() const {
+      inline const std::string &name() const {
         return ( m_name );
       }
 

@@ -127,7 +127,7 @@ namespace naif {
       }
 
       /** Return the name of the NAIF DSK kernel file */
-      inline std::string shapefile() const {
+      inline const std::string &shapefile() const {
         return ( kernel().m_kernel_file );
       }
 
