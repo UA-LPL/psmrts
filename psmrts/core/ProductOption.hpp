@@ -14,10 +14,10 @@
 
 namespace psmrts {
 
-// Overload helper type for the ProductOption visitor. See the size()
-// method for how this can be used.
-template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
-template<typename...Func> overload(Func...) -> overload<Func...>;
+  // Overload helper type for the ProductOption visitor. See the size()
+  // method for how this can be used.
+  template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
+  template<typename...Func> overload(Func...) -> overload<Func...>;
 
   /**
    * @brief Manage configuration keywords with limited data type support
@@ -26,13 +26,14 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
    * get/add methods. A series of configuration methods are provided
    * as static methods to be used for formatting needs PSRMTS-wide.
    *
-   * @author 2024-07-04 Kris J. Becker, UA Original Version
+   * @author 2025-07-04 Kris J. Becker, UA Original Version
    */
   class ProductOption {
     public:
       /*** Default is micrometer precision */
       inline static const size_t DigitsPrecision = 9;
       inline static const double DoubleTolerance = 1.0e-9;
+
       using DataTypes = std::variant< bool,
                                       int, 
                                       double,
@@ -115,6 +116,11 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
 
       /** Returns the name of the option */
       inline const std::string &name() const {
+        return ( m_name );
+      }
+
+      /** This is good for a UID but is a string instead */
+      inline const std::string &uid() const {
         return ( m_name );
       }
 
@@ -579,7 +585,7 @@ template<typename...Func> overload(Func...) -> overload<Func...>;
       }
 
       std::string                m_name;
-      ProductOption::DataEnums m_type;
+      ProductOption::DataEnums   m_type;
       std::vector<std::string>   m_strings;
       std::string                m_default;
   };  
