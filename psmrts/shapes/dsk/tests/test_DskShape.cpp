@@ -31,8 +31,8 @@ TEST_CASE( "PSMRTS Product DSK Specification Test", "[product][type][mesh][dsk]"
     std::string dskfile = psmrts_shapes_path( "dsk/data/bennu_20facets.bds" );
     psmrts::DskShape dsk_m( dskfile );
   
-    CHECK( dsk_m.name() == "dsk" );
-    CHECK( dsk_m.type() == "shape" );
+    CHECK( dsk_m.name() == dskfile );
+    CHECK( dsk_m.type() == "dsk" );
     CHECK( dsk_m.uid()  > psmrts::PsmrtsUID::UID_Reserved );
     
     psmrts::PsmrtsMeshData mesh_d = dsk_m.get_mesh( );

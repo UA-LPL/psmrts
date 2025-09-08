@@ -180,13 +180,12 @@ namespace psmrts  {
         char text[] = R"(
         {
           "name": "naifdsk",
-          "product": "shapetracer",
+          "product": "tracer",
           "type": "tracer",
           "description": "NAIF DSK ray tracing system specifications",
           "driver": {
             "name": "naifdsk",
-            "type": "system",
-            "aliases": ["shapetracer"]
+            "type": "system"
           },
           "features": [
             {

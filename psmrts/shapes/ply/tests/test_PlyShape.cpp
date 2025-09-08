@@ -25,8 +25,8 @@ TEST_CASE( "PSMRTS Product PLY Specification Test", "[product][type][mesh][ply]"
     std::string plyfile = psmrts_shapes_path( "ply/data/Bennu_Radar.ply"  );
     psmrts::PlyShape ply_m( plyfile );
   
-    CHECK( ply_m.name() == "ply" );
-    CHECK( ply_m.type() == "shape" );
+    CHECK( ply_m.name() == plyfile );
+    CHECK( ply_m.type() == "ply" );
     CHECK( ply_m.uid()  > psmrts::PsmrtsUID::UID_Reserved );
     
     psmrts::PsmrtsMeshData mesh_d = ply_m.get_mesh( );

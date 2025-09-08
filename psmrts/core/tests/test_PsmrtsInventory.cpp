@@ -40,7 +40,7 @@ TEST_CASE( "PSMRTS Inventory Basics", "[product][inventory][basics]") {
   CHECK( inventory.product().uid() != psmrts::PsmrtsUID::UID_Reserved );
 
   psmrts::PsmrtsInventory::TracerInventory::UIDType uid;
-  CHECK_NOTHROW( uid = inventory.tracers().add( psmrts::PsmrtsTracer::sphere( 10.0, "sphere") ) );
+  CHECK_NOTHROW( uid = inventory.tracers().add_product( psmrts::PsmrtsTracer::sphere( 10.0, "sphere") ) );
   CHECK( inventory.tracers().size()         == 1 );
 
   psmrts::PsmrtsTracer tracer_t;

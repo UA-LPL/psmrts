@@ -25,8 +25,8 @@ TEST_CASE( "PSMRTS Product OBJ Specification Test", "[product][type][mesh][obj]"
   std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
   psmrts::ObjShape obj_m( objfile );
   
-  CHECK( obj_m.name() == "obj" );
-  CHECK( obj_m.type() == "shape" );
+  CHECK( obj_m.name() == objfile );
+  CHECK( obj_m.type() == "obj" );
   CHECK( obj_m.uid()  > psmrts::PsmrtsUID::UID_Reserved );
     
   psmrts::PsmrtsMeshData mesh_d = obj_m.get_mesh( );

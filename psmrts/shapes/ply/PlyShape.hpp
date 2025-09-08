@@ -15,11 +15,15 @@ namespace psmrts {
      */
     class PlyShape : public PsmrtsProduct {
         public:
-         PlyShape() : PsmrtsProduct("ply", "shape"), m_model(), m_mesh() { }
+         PlyShape() : PsmrtsProduct( "none", "ply"), 
+                      m_model(), m_mesh() { }
          PlyShape( const psmrts::PsmrtsPLYFormat &ply_t ) :
-                      PsmrtsProduct("ply", "shape"), m_model( ply_t ), m_mesh( ply_t.get_mesh() ) { }
+                   PsmrtsProduct( ply_t.ply_source(), "ply" ), 
+                   m_model( ply_t ), m_mesh( ply_t.get_mesh() ) { }
          PlyShape( const std::string &ply_file ) : 
-                      PsmrtsProduct("ply", "shape"), m_model( ply_file ), m_mesh( m_model.get_mesh() ) { }
+                   PsmrtsProduct( ply_file, "ply"), 
+                   m_model( ply_file ),
+                   m_mesh( m_model.get_mesh() ) { }
          virtual ~PlyShape() { }
          
          /**

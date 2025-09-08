@@ -688,7 +688,6 @@ namespace psmrts {
           json_t["end_time"]        = to_localtime( timer_t.born_on_date() );
 
           return ( json_t );
-
         }
 
       protected:
@@ -739,6 +738,8 @@ namespace psmrts {
         }
 
       private:
+        PsmrtsUID()  = default;
+        ~PsmrtsUID() = default;
         inline static std::atomic<UIDType> m_uid{UID_Reserved};
     };
 

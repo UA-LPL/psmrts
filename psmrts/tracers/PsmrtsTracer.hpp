@@ -89,10 +89,7 @@ namespace psmrts {
         return ( !std::holds_alternative<MissingProcessRequestHandler>( m_product ) );
       }
 
-    private:
-      inline static PsmrtsCache<UIDType, PsmrtsTracer> m_cache{};
-
-    };
+  };
 
 } // namespace psmrts
 

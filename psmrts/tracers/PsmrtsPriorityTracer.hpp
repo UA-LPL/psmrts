@@ -12,14 +12,17 @@
 #include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
+#include <psmrts/core/ProductInventory.hpp>
 #include <psmrts/tracers/PsmrtsTracer.hpp>
 
 namespace psmrts {
 
   class PsmrtsPriorityTracer : public PsmrtsProduct {
     public:
-      using UIDType    = PsmrtsUID::UIDType;
-      using TracerList = std::vector<PsmrtsTracer>;
+      using UIDType         = PsmrtsUID::UIDType;
+      using TracerList      = std::vector<PsmrtsTracer>;
+      using TracerInventory = ProductInventory<UIDType, PsmrtsTracer>;
+
       PsmrtsPriorityTracer( ) : PsmrtsProduct("prioritytracer") { init(); }
       
       PsmrtsPriorityTracer( const PsmrtsTracer &tracer ) : PsmrtsProduct("prioritytracer") { 
@@ -52,7 +55,6 @@ namespace psmrts {
             return ( ray.isValid() );
           }
         }
-
         return ( false );
       }
 
@@ -137,10 +139,13 @@ namespace psmrts {
       }
       
     private:
-      TracerList    m_tracers;
+      TracerList      m_tracers;
+      TracerInventory m_inventory_t;
 
       inline void init( ) {
         m_tracers.clear();
+        m_inventory_t.clear();
+
       }
   };
 
