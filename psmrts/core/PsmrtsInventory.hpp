@@ -36,7 +36,7 @@ namespace psmrts {
         using TracerInventory         = ProductInventory<UIDType, PsmrtsTracer>;
         using PriorityTracerInventory = ProductInventory<UIDType, PsmrtsPriorityTracer>;
         using ParameterInventory      = ProductInventory<std::string, PsmrtsParameter, lowercase_key_id<std::string>>;
-        using EnvInventory            = ProductInventory<std::string, std::string>;
+        using EnvInventory            = ProductInventory<std::string, std::string, noop_key_id<std::string>>;
 
 
         PsmrtsInventory( ) : PsmrtsProduct( "product", "inventory" ) {
@@ -51,6 +51,13 @@ namespace psmrts {
 
         virtual ~PsmrtsInventory() { }
 
+        /** Returns the number of all products excluding parameters and envs */
+        inline size_t size() const {
+          size_t n_products = this->shapes().size() + 
+                              this->tracers().size() +
+                              this->prioritytracers().size();
+          return ( n_products );
+        }
 
         inline const ShapeInventory &shapes( ) const {
           return ( m_shapes );
@@ -92,6 +99,19 @@ namespace psmrts {
           return ( m_env );
         }        
 
+        /** Remove the requested cache value by key */
+        inline size_t merge( const PsmrtsInventory &other ) {
+          size_t n_merged = 0;
+          if ( this != &other ) {
+            n_merged += this->shapes().merge( other.shapes() );
+            n_merged += this->tracers().merge( other.tracers() );
+            n_merged += this->prioritytracers().merge( other.prioritytracers() );
+            n_merged += this->parameters().merge( other.parameters() );
+            n_merged += this->env().merge( other.env() );
+          }
+          return ( n_merged );
+        }
+                
         inline void remove( const UIDType &uid) {
           this->shapes().remove( uid );
           this->tracers().remove( uid );
