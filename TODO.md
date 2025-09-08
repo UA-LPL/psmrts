@@ -2,7 +2,7 @@
 ## PSMRTS TODO
 
 ### Inventory/Caching, fullfilling product request
-- [ ] Develop PSMRTS inventory caching capability
+- [x] Develop PSMRTS inventory caching capability
   - [x] Initially support four basic types
     - [x] Shapes
     - [x] Tracers
@@ -37,13 +37,15 @@
 - [ ] Retain product options, parameters and specs in the base class PsmrtsProduct
 - [x] Add Catch2 tests for DskSegment.hpp.
 - [ ] Add Catch2 tests for Bullet ray callback classes.
-- [ ] Add Catch2 tests PsmrtsTracer.hpp.
+- [x] Add Catch2 tests PsmrtsTracer.hpp.
 - [x] Add Catch2 tests PsmrtsShape.hpp.
   - [x] Create tests directory and CMakeLists.txt - see psmrts/tracers/.
 - [ ] Add Catch2 tests PsmrtsProductDispatch.hpp.
 - [ ] Implement C API error handling
 - [ ] Implement char * strings transfers b/t C & C++ APIs
 - [ ] Add PRQShape, PRQTracer and PRQPriorityTracer classes for C API interfacing
+- [ ] Move content of psmrts/core/tests/test_PsmrtsShapeTracer.cpp into psmrts/tracers/tests/test_PsmrtsTracer.cpp.
+  - [ ] Remove psmrts/core/tests/test_PsmrtsShapeTracer.cpp upon completion.
 
 
 ### General Tasks
