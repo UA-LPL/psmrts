@@ -38,10 +38,11 @@ namespace psmrts {
    * way will typically be optimized well by the compiler.
    * 
    * @tparam K std::string in this specialization
-   */  template <typename K = std::string> 
+   */  
+  template <typename K = std::string> 
     struct lowercase_key_id {
       inline K get_real_map_key( const K &key ) const {
-        return ( psmrts_tolower( key ));
+        return ( psmrts_tolower( key ) );
       }
     };    
 
@@ -88,16 +89,25 @@ namespace psmrts {
          * is required, you must remove the current one
          * with this->remove( product ).
          * 
+         * @param key      Cache key for product
          * @param product  Product to add to cache
          * @return UIDType Returns the unique cache ID
          *                   of the product
          */
-        inline UIDType add( const P &product ) {
+        inline bool add( const K &key, const P &product ) {
           // NEVER replace existing products
-          if ( !m_cache.contains( m_key_t.get_real_map_key( product.uid() ) ) ) {
-             m_cache.add( m_key_t.get_real_map_key( product.uid() ) , product );
+          if ( !m_cache.contains( m_key_t.get_real_map_key( key ) ) ) {
+             m_cache.add( m_key_t.get_real_map_key( key ), product );
+             return ( true );
           }
-          return ( m_key_t.get_real_map_key( product.uid() ) );
+          return ( false );
+        }
+
+        /** Add a PSMRTS product that has a required uid() method */
+        inline K add_product( const P &product ) {
+          auto const &key = product.uid();
+          this->add( key, product );
+          return ( key );
         }
 
         /**
@@ -108,10 +118,13 @@ namespace psmrts {
          * @param cache   Add the contents of this cache
          * @return size_t Number of products successfully added
          */
-        inline size_t merge( const CacheType &cache ) {
+        inline size_t merge( const ProductInventory &product ) {
           size_t n_merged = 0;
-          for ( auto const &p_it : m_cache ) {
-            if ( this->add( p_it->second ) == true ) n_merged++;
+          for ( auto const &p_it : product.cache() ) {
+            if ( !m_cache.contains( p_it.first ) ) {
+              m_cache.add( m_key_t.get_real_map_key( p_it.first ), p_it.second );
+              n_merged++;
+            }
           }
           return ( n_merged );
         }
@@ -125,14 +138,6 @@ namespace psmrts {
         inline const P &find_by_uid( const K &key ) const {
           return ( m_cache.find( m_key_t.get_real_map_key( key ) ) );
         }
-
-#if 0
-        /** Return the product that satisfies the product configuration */
-        inline bool find_by_config( PRQProductConfig &config_p ) const {
-          // Do the deep dive here
-          return ( config_p.isValid() );
-        }
-#endif
 
         /** Remove the product with K=key */
         inline void remove( const K &key ) {
@@ -168,8 +173,11 @@ namespace psmrts {
       private:
         CacheType   m_cache;  ///!  The product cache
         KeyToMapUID m_key_t;  ///!  Instance of map key translator
-        
     };
+
+    // Declare string type cache for case sensitive and insensitive map keys of strings
+    using LowerCaseKeyMap     = ProductInventory<std::string,std::string,lowercase_key_id<std::string>>;
+    using CaseSensitiveKeyMap = ProductInventory<std::string,std::string,noop_key_id<std::string>>;
 
 } // namespace psmrts
 
