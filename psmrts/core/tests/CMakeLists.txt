@@ -11,6 +11,7 @@ add_executable( psmrts_test_suite psmrts_catch2_main.cpp
                                   test_ProductSpecification.cpp
                                   test_PsmrtsBuffer.cpp
                                   test_PsmrtsBufferData.cpp
+                                  test_PsmrtsFactory.cpp
                                   test_PsmrtsInventory.cpp
                                   test_PsmrtsMeshData.cpp
                                   test_PsmrtsProduct.cpp
