@@ -32,6 +32,7 @@ TEST_CASE( "PSMRTS Inventory Default", "[product][inventory][default]") {
   CHECK( inventory.env().type()             == "env" );
 
 }
+
 TEST_CASE( "PSMRTS Inventory Basics", "[product][inventory][basics]") {
 
   psmrts::PsmrtsInventory inventory;
@@ -52,5 +53,13 @@ TEST_CASE( "PSMRTS Inventory Basics", "[product][inventory][basics]") {
 
   CHECK_NOTHROW( inventory.tracers().remove( tracer_t.product().uid() ) );
   CHECK( inventory.tracers().size() == 0 );
+
+}
+
+TEST_CASE( "PSMRTS Inventory Environment", "[product][inventory][env]") {
+
+  psmrts::PsmrtsInventory::EnvInventory env_t = psmrts::PsmrtsInventory::getenv( "keywords" );
+  CHECK( env_t.size( ) > 0 );
+  CHECK( env_t.contains( "PATH" ) == true );
 
 }

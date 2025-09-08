@@ -4,6 +4,15 @@
 
 #include <exception>
 #include <string>
+#include <cstdio>
+#include <tuple>
+
+// Setup for environment variable support
+#if defined(WIN32) || defined(_MSC_VER) || defined(__CYGWIN__)
+#include <windows.h>
+#else
+  extern char **environ;
+#endif
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsProduct.hpp>
@@ -97,8 +106,8 @@ namespace psmrts {
 
         inline EnvInventory &env( ) {
           return ( m_env );
-        }        
-
+        }
+        
         /** Remove the requested cache value by key */
         inline size_t merge( const PsmrtsInventory &other ) {
           size_t n_merged = 0;
@@ -141,12 +150,65 @@ namespace psmrts {
           m_env             = EnvInventory( this->product().name(), "env") ;
         }
 
+        inline const EnvInventory &load_and_merge_env() {
+          this->env().merge( PsmrtsInventory::getenv( this->product().name() ) );
+          return ( this->env() );
+        }
+
+        static inline EnvInventory getenv( const std::string &name_p ) {
+          return ( PsmrtsInventory::get_environment_variables( name_p ) );
+        }
+
       private:
         ShapeInventory           m_shapes;
         TracerInventory          m_tracers;
         PriorityTracerInventory  m_prioritytracers;
         ParameterInventory       m_parameters;
         EnvInventory             m_env;
+
+      static inline std::tuple<std::string,std::string> parse_env_string( const std::string &env_s ) {
+        size_t eq_pos = env_s.find( "=" );
+        if ( std::string::npos != eq_pos ) {
+          return ( std::make_tuple( env_s.substr(0, eq_pos), env_s.substr( eq_pos+1, std::string::npos ) ) );
+        }
+        else {
+          return ( std::make_tuple( env_s, std::string("") ) );
+        }
+      }
+
+              
+      /** Load all the environment variables */
+      static inline EnvInventory get_environment_variables( const std::string &name_p ) {
+          EnvInventory env_t( name_p, "env" );
+
+#if defined(WIN32) || defined(_MSC_VER) || defined(__CYGWIN__)
+          // **** Windows implementation *****/
+          LPCH envStrings = GetEnvironmentStrings();
+          if ( nullptr == envStrings ) {
+            return ( env_t );
+          }
+
+          LCPCH env = envStrings;
+          while ( *env != '\0' ) {
+            size_t slen = ;
+            auto [ key, value ] = PsmrtsInventory::parse_env_string( *env );            
+            env += ( strlen( env ) + 1 );
+          }
+          
+           FreeEnvironmentStrings(envStrings);           
+#else
+          // **** Linux implementation *****/
+          char **env = environ;
+          while ( *env != nullptr ) {
+            auto [ key, value ] = PsmrtsInventory::parse_env_string(  *env );
+            env_t.add( key, value );
+            env++;
+          }
+#endif
+
+          return ( env_t );
+        }
+
     };
 
 } // namespace psmrts
