@@ -54,8 +54,6 @@ namespace psmrts {
    * configured and maintained keyword parameter/options, shape, tracer and
    * priority tracer product system.
    * 
-
-   * 
    * @author Kris J. Becker, University of Arizona
    * @history 2025-09-03 Kris J. Becker  Original Version
    */
@@ -133,6 +131,17 @@ namespace psmrts {
         inline bool contains( const K &key ) const {
           return ( m_cache.contains( m_key_t.get_real_map_key( key ) ) );
         }
+
+        /** Return the product with K=key */
+        inline P &find( const K &key ) {
+          return ( m_cache.find( m_key_t.get_real_map_key( key ) ) );
+        }
+
+        /** Return the product with K=key */
+        inline const P &find( const K &key ) const {
+          return ( m_cache.find( m_key_t.get_real_map_key( key ) ) );
+        }
+
 
         /** Return the product with K=key */
         inline const P &find_by_uid( const K &key ) const {
