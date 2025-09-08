@@ -78,7 +78,7 @@ namespace psmrts {
         /** Find and return a reference to the specified key value */
         inline T &find( const K &key ) {
           std::scoped_lock mylocker( this->mutex() );
-          CacheMapConstIter it_c = m_cache.find( key );
+          CacheMapIter it_c = m_cache.find( key );
           if ( it_c != m_cache.end() ) {
             return ( it_c->second );
           }
