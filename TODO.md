@@ -17,9 +17,9 @@
       - [x] add_`type`( `type` &product_id );
       - [x] add_`type`( PsmrtsInventory &`type`_i );
 - [ ] Set up product factory with main inventory
-  - [ ] I see this as a single static source of all PSMRTS product inventories
-  - [ ] Use PsmrtsInventory to stage product building process and then send residual to Factory for persistent caching
-  - [ ] Keeps static PSMRTS-wide primary inventory (other uses of PsmrtsInventory can fill product configs)
+  - [x] I see this as a single static source of all PSMRTS product inventories
+  - [x] Use PsmrtsInventory to stage product building process and then send residual to Factory for persistent caching
+  - [x] Keeps static PSMRTS-wide primary inventory (other uses of PsmrtsInventory can fill product configs)
   - [x] Add caching/inventory requests for each type inventoried
   - [x] Supports local (non-static) inventories to house and transfer cache ownership
 - [ ] Finish PsmrtsTracer implementation  
@@ -35,7 +35,7 @@
 - [ ] Implement generic product specification/creation
 - [ ] Finish PsmrtsPriorityTracer classes and infrastructure.
 - [ ] Retain product options, parameters and specs in the base class PsmrtsProduct
-- [ ] Add Catch2 tests for DskSegment.hpp.
+- [x] Add Catch2 tests for DskSegment.hpp.
 - [ ] Add Catch2 tests for Bullet ray callback classes.
 - [ ] Add Catch2 tests PsmrtsTracer.hpp.
 - [x] Add Catch2 tests PsmrtsShape.hpp.
