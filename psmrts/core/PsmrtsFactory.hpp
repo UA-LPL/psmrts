@@ -50,6 +50,11 @@ namespace psmrts {
         return (this->inventory().contains( name ) );
       }
 
+      /** Returns list of all cached inventories by name/uid */
+      inline std::vector<std::string>  get_inventory_list( ) const {
+        return ( m_inventory.cache().keys() );
+      }      
+
       /** Looking for an inventory by name */
       inline PsmrtsInventory &find( const std::string &name ) {
         return (this->inventory().find( name ) );
@@ -126,6 +131,11 @@ namespace psmrts {
       /** Remove the requested cache value by key */
       inline size_t merge( const PsmrtsInventory &inventory ) {
         return ( this->merge( inventory, psmrts_inventory ) );
+      }
+
+      /** Remove a system inventory from the factory! */
+      inline void remove( const std::string &invname ) {
+        m_inventory.remove( invname );
       }
 
       inline static void liquidate( ) {
