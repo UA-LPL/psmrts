@@ -39,10 +39,13 @@ TEST_CASE( "PSMRTS Inventory Basics", "[product][inventory][basics]") {
   CHECK( inventory.product().name() == "product" );
   CHECK( inventory.product().type() == "inventory" );
   CHECK( inventory.product().uid() != psmrts::PsmrtsUID::UID_Reserved );
+  CHECK( inventory.tracers().cache().keys().size() == 0 );
 
   psmrts::PsmrtsInventory::TracerInventory::UIDType uid;
   CHECK_NOTHROW( uid = inventory.tracers().add_product( psmrts::PsmrtsTracer::sphere( 10.0, "sphere") ) );
-  CHECK( inventory.tracers().size()         == 1 );
+  CHECK( inventory.tracers().size()                == 1 );
+  CHECK( inventory.tracers().cache().keys().size() == 1 );
+  CHECK( inventory.tracers().cache().keys() == std::vector<psmrts::PsmrtsInventory::UIDType>( { uid } ) );
 
   psmrts::PsmrtsTracer tracer_t;
   CHECK_NOTHROW( tracer_t = inventory.tracers().find_by_uid( uid ) );
@@ -50,9 +53,11 @@ TEST_CASE( "PSMRTS Inventory Basics", "[product][inventory][basics]") {
   CHECK( tracer_t.name()           == "sphere" );
   CHECK( tracer_t.product().name() == "sphere" );
   CHECK( tracer_t.product().type() == "tracer" );
+  CHECK( inventory.tracers().cache().keys().size() == 1 );
 
   CHECK_NOTHROW( inventory.tracers().remove( tracer_t.product().uid() ) );
   CHECK( inventory.tracers().size() == 0 );
+  CHECK( inventory.tracers().cache().keys().size() == 0 );
 
 }
 
