@@ -108,7 +108,7 @@ namespace psmrts {
           return ( m_env );
         }
         
-        /** Remove the requested cache value by key */
+        /** Merge a PsmrtsInventory into another inventory */
         inline size_t merge( const PsmrtsInventory &other ) {
           size_t n_merged = 0;
           if ( this != &other ) {
