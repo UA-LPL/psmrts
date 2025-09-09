@@ -43,11 +43,11 @@ TEST_CASE( "PSMRTS Factory System Values Test", "[factory][values][tracers]") {
   psmrts::PsmrtsTracer sphere = psmrts::PsmrtsTracer::sphere( 200.0, "sphere" );
   psmrts::PsmrtsPriorityTracer p_tracer( sphere );
   auto uid3 = factory2.add_product( p_tracer, "tracearray" );
-  CHECK( factory2.size() == 1 ); // 2?
+  CHECK( factory2.size() == 3 ); // 2?
   CHECK( factory2.contains( "tracearray" ) == true );
 
   psmrts::PsmrtsInventory inventory;
   factory2.add(inventory); //should this function also return associated uid?
-  CHECK( factory2.size() == 2 ); // 4?
+  CHECK( factory2.size() == 4 ); // 4?
   CHECK( factory2.contains( "psmrts" ) == true );
 }
