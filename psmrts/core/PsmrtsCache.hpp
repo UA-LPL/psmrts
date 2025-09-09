@@ -6,6 +6,8 @@
 #include <sstream>  
 #include <exception>
 #include <map>
+#include <algorithm>
+#include <iterator>
 namespace psmrts {
 
   /**
@@ -140,6 +142,24 @@ namespace psmrts {
         inline void clear() {
           std::scoped_lock mylocker( this->mutex() );
           m_cache.clear();
+        }
+
+        inline std::vector<K> keys() const {
+          std::scoped_lock mylocker( this->mutex() );
+          std::vector<K> keys_m;
+          keys_m.reserve( m_cache.size() );
+          std::transform( m_cache.begin(), m_cache.end(), std::back_inserter( keys_m ), 
+                          []( const auto &kv_t) { return ( kv_t.first ); } );
+          return ( keys_m );
+        }
+
+        inline std::vector<T> values() const {
+          std::scoped_lock mylocker( this->mutex() );
+          std::vector<T> values_m;
+          values_m.reserve( m_cache.size() );
+          std::transform( m_cache.begin(), m_cache.end(), std::back_inserter( values_m ), 
+                          []( const auto &kv_t ) { return ( kv_t.second ); } );
+          return ( values_m );
         }
 
       protected:
