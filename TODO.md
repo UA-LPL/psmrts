@@ -16,7 +16,7 @@
       - [x] remove_`type`( PsmrtsInventory &`type`_i );
       - [x] add_`type`( `type` &product_id );
       - [x] add_`type`( PsmrtsInventory &`type`_i );
-- [ ] Set up product factory with main inventory
+- [x] Set up product factory with main inventory
   - [x] I see this as a single static source of all PSMRTS product inventories
   - [x] Use PsmrtsInventory to stage product building process and then send residual to Factory for persistent caching
   - [x] Keeps static PSMRTS-wide primary inventory (other uses of PsmrtsInventory can fill product configs)
@@ -30,7 +30,7 @@
   - [ ] Any remaining parameters must be retained for further product creation or detect invalid options (that remain)
 - [ ] Finish product registration process
   - [ ] Retains `driver` information and aids in product creation/management  
-- [ ] Add support for system-wide keyword cache to support `$tag` substitition (e.g., environment variables or ISIS `$mission` tags)
+- [x] Add support for system-wide keyword cache to support `$tag` substitition (e.g., environment variables or ISIS `$mission` tags)
 - [ ] Build product options parsing tools as algorithms
 - [ ] Implement generic product specification/creation
 - [ ] Finish PsmrtsPriorityTracer classes and infrastructure.
@@ -44,8 +44,8 @@
 - [ ] Implement C API error handling
 - [ ] Implement char * strings transfers b/t C & C++ APIs
 - [ ] Add PRQShape, PRQTracer and PRQPriorityTracer classes for C API interfacing
-- [ ] Move content of psmrts/core/tests/test_PsmrtsShapeTracer.cpp into psmrts/tracers/tests/test_PsmrtsTracer.cpp.
-  - [ ] Remove psmrts/core/tests/test_PsmrtsShapeTracer.cpp upon completion.
+- [x] Move content of psmrts/core/tests/test_PsmrtsShapeTracer.cpp into psmrts/tracers/tests/test_PsmrtsTracer.cpp.
+  - [x] Remove psmrts/core/tests/test_PsmrtsShapeTracer.cpp upon completion.
 
 
 ### General Tasks

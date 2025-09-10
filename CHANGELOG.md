@@ -35,6 +35,29 @@ release.
 ## TODO
 - See [TODO](TODO.md)
 
+## [0.3.5] 2025-09-10
+- Implement product/inventory/caching capabilities
+- Moved PsmrtsPriorityTracer.hpp to psmrts/tracers.
+- Implement PsmrtsInventory.hpp to house PSMRTS products.
+- Added CMake/Catch2/Test directories for shapes, added test_PsmrtsShape.cpp, and added to PLY format testing to improve coverage.
+- Added tests for DskSegment and PsmrtsTracer, adjusted related CMake files to include them.
+- Add ProductInventory and PsmrtsInventory
+  - ProductInventory.hpp - Provides cache of individual PSMRTS products.
+  - PsmrtsInventory.hpp  - Maintains caches for PSMRTS keyword/value parameters/options, shapes, tracers, prioritity tracers and “environment” variables.
+- Integrate ProductInventory and PsmrtsInventory classes
+- Clean up name designations of tracers where all are const references to the actual names of shape files or ellipsoids.
+- Set product names accordingly for tracers in constructors.
+- PsmrtsCache.hpp - Add thread-safety mutex and locking code.
+- ProductInventory.hpp - Implement add() and merge() methods.
+- ProductOption.hpp - Add special visitor overload templates and uid().
+- PsmrtsProduct.hpp - cleanup
+- PsmrtsUtilities.hpp - Privatize PsrmtsUID class to be uninstantiable.
+- DskShape.hpp, ObjShape.hpp, PlyShape.hpp, PsmrtsShape.hpp - Improve constructor configuration
+- PsmrtsPriorityTracer.hpp - Add ShapeTracer cache/inventory
+- Add PsmrtsFactory implementation and initial tests.
+- PsmrtsInventory.hpp - Add loading of environment variables on both Linux and Windows.
+- Update project version to 0.3.4 in CMakeLists.txt.
+
 ## [0.3.4] 2025-09-02
 - Converted facet_datum struct to FacetDatum class in PsmrtsRayTrace.hpp.
 - Added facet surface_area and volume and mesh surface area, and volume functions to psmrts_c.cpp and defined PSMRTS_Shape opaque pointer to psmrts::PsmrtsShape instead of psmrts::PsmrtsMeshData.
