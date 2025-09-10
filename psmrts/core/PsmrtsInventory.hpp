@@ -9,10 +9,12 @@
 
 // Setup for environment variable support
 #if defined(WIN32) || defined(_MSC_VER) || defined(__CYGWIN__)
+#define NOMINMAX
 #include <windows.h>
 #else
   extern char **environ;
 #endif
+#include <algorithm>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsProduct.hpp>
@@ -183,19 +185,23 @@ namespace psmrts {
 
 #if defined(WIN32) || defined(_MSC_VER) || defined(__CYGWIN__)
           // **** Windows implementation *****/
-          LPCH envStrings = GetEnvironmentStrings();
+          LPCH envStrings = GetEnvironmentStringsA();
           if ( nullptr == envStrings ) {
             return ( env_t );
           }
 
-          LCPCH env = envStrings;
+          LPCH env = envStrings;
           while ( *env != '\0' ) {
-            size_t slen = ;
-            auto [ key, value ] = PsmrtsInventory::parse_env_string( *env );            
-            env += ( strlen( env ) + 1 );
+            //size_t slen = ;
+            std::string env_entry(env);
+            auto [ key, value ] = PsmrtsInventory::parse_env_string( env_entry );            
+            //env += ( strlen( env ) + 1 );
+            env_t.add(key, value);
+
+            env += strlen(env) + 1;
           }
           
-           FreeEnvironmentStrings(envStrings);           
+           FreeEnvironmentStringsA(envStrings);           
 #else
           // **** Linux implementation *****/
           char **env = environ;
