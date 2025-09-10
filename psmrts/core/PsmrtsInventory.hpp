@@ -130,8 +130,12 @@ namespace psmrts {
         }
 
         /** Remove a keyword from the parameter set */
-        inline void remove( const std::string &uid) {
+        inline void remove_param( const std::string &uid) {
           this->parameters().remove( uid );
+        }
+
+        inline void remove_env( const std::string &env ) {
+          this->env().remove( env );
         }
 
         /** Clear everything out, liquidate */
@@ -192,10 +196,8 @@ namespace psmrts {
 
           LPCH env = envStrings;
           while ( *env != '\0' ) {
-            //size_t slen = ;
             std::string env_entry(env);
             auto [ key, value ] = PsmrtsInventory::parse_env_string( env_entry );            
-            //env += ( strlen( env ) + 1 );
             env_t.add(key, value);
 
             env += strlen(env) + 1;
