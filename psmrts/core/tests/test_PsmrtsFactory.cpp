@@ -42,7 +42,7 @@ TEST_CASE( "PSMRTS Factory System Values Test", "[factory][values][tracers]") {
 
   psmrts::PsmrtsFactory factory2;
   // Now check/compare factory with factory2 - they should have identical content!
-  
+
   psmrts::PsmrtsTracer sphere = psmrts::PsmrtsTracer::sphere( 200.0, "sphere" );
   psmrts::PsmrtsPriorityTracer p_tracer( sphere );
   auto uid3 = factory2.add_product( p_tracer, "tracearray" );
@@ -54,7 +54,9 @@ TEST_CASE( "PSMRTS Factory System Values Test", "[factory][values][tracers]") {
   CHECK( factory2.size() == 4 ); // 4?
   CHECK( factory2.contains( "psmrts" ) == true );
 
-  // DON'T FORGET THIS AFTER TESTING PsmrtsFactory
+  CHECK( factory.get_inventory_list() == std::vector<std::string>( { "dsk", "obj", "psmrts", "tracearray" } ) );
+
+  // DON'T FORGET THIS AFTER TESTING EVERY PsmrtsFactory!!!
   factory.liquidate();
 
 }
