@@ -25,6 +25,7 @@ namespace psmrts {
   template <typename K, typename T>
     class PsmrtsCache {
       public:
+        using UIDType           = K;  // Define the unique identifier of the map key
         using CacheMap          = std::map<K,T>;
         using CacheMapIter      = typename std::map<K,T>::iterator;
         using CacheMapConstIter = typename std::map<K,T>::const_iterator;

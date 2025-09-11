@@ -61,7 +61,7 @@ namespace psmrts {
     class ProductInventory : public PsmrtsProduct {
       public:
         using CacheType       = PsmrtsCache<K,P>;
-        using UIDType         = PsmrtsUID::UIDType;
+        using UIDType         = typename CacheType::UIDType; // == K
         using KeyToMapUID     = U;
 
         ProductInventory( ) : PsmrtsProduct( "product", "inventory" ),
