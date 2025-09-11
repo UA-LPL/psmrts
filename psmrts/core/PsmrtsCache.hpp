@@ -55,7 +55,7 @@ namespace psmrts {
         /** Add a value to the cache - overwrites existing data */
         inline void add( const K &key, const T &value ) {
           std::scoped_lock mylocker( this->mutex() );
-          m_cache.insert( { key, value } );
+          m_cache[key] = value;
         }
 
 

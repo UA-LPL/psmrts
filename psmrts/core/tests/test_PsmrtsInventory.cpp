@@ -66,5 +66,6 @@ TEST_CASE( "PSMRTS Inventory Environment", "[product][inventory][env]") {
   psmrts::PsmrtsInventory::EnvInventory env_t = psmrts::PsmrtsInventory::getenv( "keywords" );
   CHECK( env_t.size( ) > 0 );
   CHECK( env_t.contains( "PATH" ) == true );
+  CHECK( env_t.cache().values() ==  std::vector<std::string>( { } ));
 
 }
