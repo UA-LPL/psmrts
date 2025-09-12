@@ -10,10 +10,10 @@
 #include <psmrts/core/PsmrtsBuffer.hpp>
 #include <psmrts/core/PsmrtsMeshData.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
-#include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
-#include <psmrts/core/PsmrtsPriorityTracer.hpp>
+#include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/tracers/PsmrtsTracer.hpp>
+#include <psmrts/tracers/PsmrtsPriorityTracer.hpp>
 
 /*============ PSMRTS C API type definitions ============*/
 /* Must be defined before including psmrts_c.h */

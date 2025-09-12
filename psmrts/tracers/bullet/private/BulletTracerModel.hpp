@@ -33,7 +33,7 @@ namespace psmrts::bullet {
       }
 
       /** Name of the shape model source */
-      inline std::string shapefile() const {
+      inline const std::string &shapefile() const {
         return ( m_bullet_model.name() );
       }
 

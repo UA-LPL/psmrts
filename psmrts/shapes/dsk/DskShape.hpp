@@ -11,11 +11,15 @@
 namespace psmrts {
     class DskShape : public PsmrtsProduct {
      public:
-      DskShape( ) : PsmrtsProduct("dsk", "shape"), m_model(), m_mesh() { }
+      DskShape( ) : PsmrtsProduct("none", "dsk"), 
+                    m_model(), m_mesh() { }
       DskShape( const psmrts::PsmrtsDSKFormat &dsk_t ) :
-                PsmrtsProduct("dsk", "shape"), m_model( dsk_t ), m_mesh( dsk_t.get_mesh() ) { }
+                PsmrtsProduct(dsk_t.dsk_source(), "dsk"), 
+                m_model( dsk_t ), m_mesh( dsk_t.get_mesh() ) { }
       DskShape( const std::string &dsk_file ) :
-                PsmrtsProduct("dsk", "shape"), m_model( dsk_file ), m_mesh( m_model.get_mesh() ) { }
+                PsmrtsProduct( dsk_file, "dsk"), 
+                m_model( dsk_file ), 
+                m_mesh( m_model.get_mesh() ) { }
       virtual ~DskShape() { } 
      
 

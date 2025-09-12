@@ -16,11 +16,14 @@ namespace psmrts  {
    */
   class ObjShape : public PsmrtsProduct {
     public:
-     ObjShape( ) : PsmrtsProduct("obj", "shape"), m_model(), m_mesh() { }
+     ObjShape( ) : PsmrtsProduct( "none", "obj" ), 
+                   m_model(), m_mesh() { }
      ObjShape( const psmrts::PsmrtsOBJFormat &obj_t ) :
-               PsmrtsProduct("obj", "shape"), m_model( obj_t ), m_mesh( obj_t.get_mesh() ) { }
+               PsmrtsProduct( obj_t.obj_source(), "obj" ), 
+               m_model( obj_t ), m_mesh( obj_t.get_mesh() ) { }
      ObjShape( const std::string &obj_file ) :
-               PsmrtsProduct("obj", "shape"), m_model( obj_file ), m_mesh( m_model.get_mesh() ) { }
+               PsmrtsProduct( obj_file, "obj" ), 
+               m_model( obj_file ), m_mesh( m_model.get_mesh() ) { }
       virtual ~ObjShape() { }
 
 

@@ -7,6 +7,13 @@
 #include <vector>
 #include <exception>
 
+#if defined(WIN32) || defined(_MSC_VER) || defined(__CYGWIN__)
+#define NOMINMAX
+#include <windows.h>
+#endif
+
+#include <algorithm>
+
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/ProductOption.hpp>
 

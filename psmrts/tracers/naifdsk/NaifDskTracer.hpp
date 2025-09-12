@@ -23,6 +23,11 @@ namespace psmrts  {
                           m_model( dsk ) {  }
       virtual ~NaifDskTracer() { }
 
+      /** Return the name of the shape file */
+      inline const std::string &name() const {
+        return ( m_model.shapefile() );
+      }
+
       /**
        * @brief NAIF Dsk Ray Trace Processor
        * 
@@ -175,13 +180,12 @@ namespace psmrts  {
         char text[] = R"(
         {
           "name": "naifdsk",
-          "product": "shapetracer",
+          "product": "tracer",
           "type": "tracer",
           "description": "NAIF DSK ray tracing system specifications",
           "driver": {
             "name": "naifdsk",
-            "type": "system",
-            "aliases": ["shapetracer"]
+            "type": "system"
           },
           "features": [
             {

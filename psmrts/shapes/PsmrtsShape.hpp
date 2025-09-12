@@ -29,7 +29,9 @@ namespace psmrts {
       using UIDType = PsmrtsUID::UIDType;
 
       PsmrtsShape( ) : PsmrtsProduct("shape") {  }
-      PsmrtsShape( const Shape &shape ) : ProductProcessDispatch( shape ), PsmrtsProduct("shape") {  }
+      PsmrtsShape( const Shape &shape ) :
+                   ProductProcessDispatch( shape ), 
+                   PsmrtsProduct("shape") {  }
       virtual ~PsmrtsShape() { }
 
       inline bool isValid() const {
@@ -46,10 +48,6 @@ namespace psmrts {
         };
         return std::visit(visitor, m_product);
       }
-
-    private:
-      inline static PsmrtsCache<UIDType, PsmrtsShape> m_cache{};
-
   };
 } // namespace psmrts
 

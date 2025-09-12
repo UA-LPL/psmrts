@@ -21,6 +21,11 @@ namespace psmrts  {
                         m_model( bt_model ) { }
       virtual ~BulletTracer() { }
 
+      /** Return the name of the shape file */
+      inline const std::string &name() const {
+        return ( m_model.shapefile() );
+      }
+
       /**
        * @brief Bullet Ray Trace Processor
        * 

@@ -49,6 +49,11 @@ namespace psmrts  {
         
       virtual ~EllipsoidTracer() { }
 
+
+      inline const std::string &name() const {
+        return ( m_model.name() );
+      }
+
       /**
        * @brief Ellipsoid Ray Trace Processor
        * 

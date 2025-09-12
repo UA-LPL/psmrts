@@ -11,7 +11,7 @@
 #include <psmrts/tracers/ellipsoid/EllipsoidTracer.hpp>
 
 #include <psmrts/tracers/PsmrtsTracer.hpp>
-#include <psmrts/core/PsmrtsPriorityTracer.hpp>
+#include <psmrts/tracers/PsmrtsPriorityTracer.hpp>
 
 TEST_CASE("PsmrtsPriorityTracer Default Test", "[priority][tracer][default]") {
 

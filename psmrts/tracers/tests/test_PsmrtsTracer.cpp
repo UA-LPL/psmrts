@@ -1,13 +1,51 @@
+
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
+
 #include <psmrts/tracers/PsmrtsTracer.hpp>
+#include <psmrts/tracers/ellipsoid/EllipsoidTracer.hpp>
+#include <psmrts/tracers/bullet/BulletTracer.hpp>
+#include <psmrts/tracers/naifdsk/NaifDskTracer.hpp>
 
 #include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
 
+TEST_CASE("PsmrtsTracer Default / Validity Test", "[tracer][default]") {
+    psmrts::PsmrtsTracer tracer;
+    CHECK( tracer.isValid()      == false );
 
-TEST_CASE("PsmrtsTracer Default Test", "[tracer][default]") {
+    psmrts::PsmrtsTracer sphere = psmrts::PsmrtsTracer::sphere( 1.0 );
+    CHECK( sphere.isValid()      == true  );
+
+    psmrts::PsmrtsTracer spheroid = psmrts::PsmrtsTracer::spheroid( 1.0, 2.0 );
+    CHECK( spheroid.isValid()    == true  );
+
+    psmrts::PsmrtsTracer ellipsoid = psmrts::PsmrtsTracer::ellipsoid( 1.0, 2.0, 3.0 ); 
+    CHECK( ellipsoid.isValid()   == true  );
+
+    Eigen::Vector3d vec({123.0, 456.0, 789.0}); 
+    psmrts::PsmrtsTracer ellipsoid_v = psmrts::PsmrtsTracer::ellipsoid( vec );
+    CHECK( ellipsoid_v.isValid() == true  );
+
+    std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
+    std::string dskfile = psmrts_shapes_path( "dsk/data/bennu_20facets.bds" );
+    std::string plyfile = psmrts_shapes_path( "ply/data/Bennu_Radar.ply"    );
+
+    psmrts::PsmrtsTracer bullet_obj = psmrts::PsmrtsTracer::bullet( objfile );
+    CHECK( bullet_obj.isValid()  == true  );
+
+    psmrts::PsmrtsTracer bullet_dsk = psmrts::PsmrtsTracer::bullet( dskfile );
+    CHECK( bullet_dsk.isValid()  == true  );
+
+    psmrts::PsmrtsTracer bullet_ply = psmrts::PsmrtsTracer::bullet( plyfile );
+    CHECK( bullet_ply.isValid()  == true  );
+
+    psmrts::PsmrtsTracer naifdsk = psmrts::PsmrtsTracer::naifdsk( dskfile );
+    CHECK( naifdsk.isValid()     == true  );
+}
+
+TEST_CASE("PsmrtsTracer Values / Raytrace Test", "[tracer][raytrace][default]") {
     const double tolerance_r = 1.0E-13;
     CHECK( sizeof( psmrts::PsmrtsTracer::Tracer ) <= 768 );
 
@@ -28,13 +66,9 @@ TEST_CASE("PsmrtsTracer Default Test", "[tracer][default]") {
     CHECK( ray_t.process_status() == false );
     CHECK( ray_t.error_count()    == 0 );
 
-    // CHECK( ray_t.tracker().runtime_s()  == 0.0 );
-    // CHECK( ray_t.tracker().runtime_ms()  == 0.0 );
-    // CHECK( ray_t.tracker().runtime_ns()  == 0.1 );
     
     // Run a trace!
     bool status = tracer_t.process( ray_t );
-    // CHECK( ray_t.tracker().runtime_ns()  == 0.1 );
 
     CHECK( ray_t.run_count()      == 1 );
     CHECK( ray_t.was_invoked()    == true );
@@ -57,10 +91,9 @@ TEST_CASE("PsmrtsTracer Default Test", "[tracer][default]") {
     CHECK( facet_t.error_count()      == 1 );
     CHECK( facet_t.errors_to_string() == facet_t.errors_to_string() );
     CHECK_THROWS( facet_t.throw_errors() );
-
   }
 
-  TEST_CASE("PsmrtsTracer Default Test", "[tracer][bullet][naifdsk]") {
+  TEST_CASE("PsmrtsTracer Comparative Values / Multi-Tracer Test", "[tracer][bullet][naifdsk]") {
     const double tolerance_r = 1.0E-13;
 
     CHECK( sizeof( psmrts::PsmrtsTracer::Tracer ) <= 768 );
@@ -88,7 +121,6 @@ TEST_CASE("PsmrtsTracer Default Test", "[tracer][default]") {
 
     // Run a trace!
     bool status_b = bullet_t.process( ray_b );
-    // CHECK( ray_b.tracker().runtime_ns()  == 0.1 );
 
     CHECK( ray_b.run_count()      == 1 );
     CHECK( ray_b.process_status() == true );
@@ -135,5 +167,4 @@ TEST_CASE("PsmrtsTracer Default Test", "[tracer][default]") {
     CHECK(facet_d.facet().m_vector2 == facet_b.facet().m_vector2 );
     CHECK(facet_d.facet().m_vector3 == facet_b.facet().m_vector3 );
     CHECK(facet_d.facet().m_normal == facet_b.facet().m_normal );
-
   }

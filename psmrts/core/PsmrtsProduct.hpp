@@ -27,14 +27,17 @@ namespace psmrts {
                          m_product_id( PsmrtsUID::get_uid() ) { }
       PsmrtsProduct( const std::string &pname ):
                      m_tracker(), m_name( pname ), m_type( "product" ),      
-                     m_product_id( PsmrtsUID::get_uid() ) { }
+                     m_product_id( PsmrtsUID::get_uid() )  { }
       PsmrtsProduct( const std::string &pname, 
                      const std::string &ptype ):
                      m_tracker(), m_name( pname ), m_type( ptype ),
-                     m_product_id( PsmrtsUID::get_uid() ) { }
-
+                     m_product_id( PsmrtsUID::get_uid() )  { }
       virtual ~PsmrtsProduct() { }
 
+
+      inline const PsmrtsProduct &product() const {
+        return ( *this );
+      }
 
       /** Returns the name of the product */
       inline const std::string &name() const {
@@ -51,7 +54,7 @@ namespace psmrts {
         return ( m_product_id );
       }
       
-      /** Returns a timestamp since the product has been created */
+      /** Returns a distinct timestamp since the product has been created */
       inline PsmrtsThreadSafeCounter timestamp() const {
         return ( m_tracker.clone() );
       }
