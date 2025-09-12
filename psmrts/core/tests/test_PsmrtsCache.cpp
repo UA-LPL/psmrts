@@ -38,18 +38,17 @@ TEST_CASE( "PSMRTS Cache Default Test", "[cache][default]") {
     CHECK( values[2] == 3 );
     CHECK( values[3] == 4 ); 
 
-    std::vector<std::pair<std::string, int>> iterated;
-    for (auto it = cache.begin(); it != cache.end(); ++it) {
-        iterated.emplace_back(it->first, it->second);
+    std::vector<std::string> i_keys;
+    std::vector<int> i_values;
+    for (auto i = cache.begin(); i != cache.end(); i++) {
+        i_keys.push_back(i->first);
+        i_values.push_back(i->second);
     }
+    
+    CHECK( i_keys == std::vector<std::string>{"test", "test2", "test3", "test4"} );
+    CHECK( i_values == std::vector<int>{1, 20, 3, 4} );
+    
 
-#if 0    
-    REQUIRE(iterated.size() == 4);
-    CHECK(iterated[0] == std::make_pair("test", 1));
-    CHECK(iterated[1] == std::make_pair("test2", 20));
-    CHECK(iterated[2] == std::make_pair("test3", 3));
-    CHECK(iterated[3] == std::make_pair("test4", 4));
-#endif
     // Modify values through iterator
     for (auto it = cache.begin(); it != cache.end(); ++it) {
         it->second += 10;
@@ -60,21 +59,16 @@ TEST_CASE( "PSMRTS Cache Default Test", "[cache][default]") {
     CHECK(cache.find("test3") == 13);
     CHECK(cache.find("test4") == 14);
 
-
     const auto& const_cache = cache;
-    std::vector<std::pair<std::string, int>> const_iterated;
-    for (auto it = const_cache.begin(); it != const_cache.end(); ++it) {
-        const_iterated.emplace_back(it->first, it->second);
+    std::vector<std::string> c_keys;
+    std::vector<int> c_values;
+    for (auto j = const_cache.begin(); j != const_cache.end(); j++) {
+        c_keys.push_back(j->first);
+        c_values.push_back(j->second);
     }
 
-#if 0    
-
-    REQUIRE(const_iterated.size() == 4);
-    CHECK(const_iterated[0] == std::make_pair("test", 11));
-    CHECK(const_iterated[1] == std::make_pair("test2", 30));
-    CHECK(const_iterated[2] == std::make_pair("test3", 13));
-    CHECK(const_iterated[3] == std::make_pair("test4", 14));
-#endif
+    CHECK( c_keys == std::vector<std::string>{"test", "test2", "test3", "test4"} );
+    CHECK( c_values == std::vector<int>{11, 30, 13, 14} );
 
     std::vector<std::string> iter_keys;
     std::transform(cache.begin(), cache.end(), std::back_inserter(iter_keys),
