@@ -1,11 +1,6 @@
 #ifndef PsmrtsMeshData_hpp
 #define PsmrtsMeshData_hpp
 
-#include <string>
-#include <memory>
-#include <functional>
-#include <exception>
-
 #include <Eigen/Geometry>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>

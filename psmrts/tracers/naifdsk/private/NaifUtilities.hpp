@@ -2,15 +2,11 @@
 #define NaifUtilities_hpp
 
 #include <string>
-#include <iostream>
 
 #include <cspice/SpiceUsr.h>
 
 
 namespace naif {
-
-// #include <cspice/SpiceUsr.h>
-
 
   inline void setReturnMode( const std::string &u_retmode = "RETURN" ) {
 

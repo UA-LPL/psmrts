@@ -3,7 +3,6 @@
 #pragma once
 
 #include <exception>
-#include <string>
 #include <variant>
 
 #include <Eigen/Geometry>

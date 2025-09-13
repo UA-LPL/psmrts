@@ -1,7 +1,6 @@
 #ifndef PsmrtsShape_hpp
 #define PsmrtsShape_hpp
 
-#include <exception>
 #include <string>
 #include <variant>
 

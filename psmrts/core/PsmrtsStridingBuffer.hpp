@@ -3,7 +3,6 @@
 
 #include <cstddef>
 #include <string>
-#include <memory>
 #include <exception>
 #include <Eigen/Geometry>
 

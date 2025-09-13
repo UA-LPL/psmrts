@@ -3,8 +3,6 @@
 #define ProductConfiguration_hpp
 
 #include <string>
-#include <exception>
-#include <memory>
 #include <vector>
 #include <initializer_list>
 

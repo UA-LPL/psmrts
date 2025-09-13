@@ -3,9 +3,7 @@
 #define ProductSpecification_hpp
 
 #include <string>
-#include <memory>
 #include <vector>
-#include <variant>
 #include <exception>
 
 #include <psmrts/core/PsmrtsJson.hpp>
@@ -18,7 +16,7 @@ namespace psmrts {
 
 
   /**
-   * @brief Process/maintain product specfication data
+   * @brief Process/maintain product specification data
    * 
    * This class maintains the specifications for PMSRTS product.
    * 

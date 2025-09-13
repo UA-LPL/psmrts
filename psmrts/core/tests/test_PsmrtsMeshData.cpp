@@ -2,7 +2,6 @@
 
 #include <psmrts/core/PsmrtsMeshData.hpp>
 #include <Eigen/Geometry>
-#include <typeinfo>
 
 TEST_CASE( "PsmrtsMeshData Default Test", "[mesh][data][default]") {
     psmrts::PsmrtsMeshData my_mesh;

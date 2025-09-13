@@ -1,14 +1,9 @@
 #ifndef DskSegment_hpp
 #define DskSegment_hpp
 
-#include <exception>
 #include <string>
-#include <vector>
-#include <mutex>
 
 #include <Eigen/Geometry>
-#include "NaifUtilities.hpp"
-#include "KernelFileSystem.hpp"
 
 namespace naif {
 

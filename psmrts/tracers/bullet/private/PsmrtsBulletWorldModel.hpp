@@ -3,7 +3,6 @@
 
 #include <string>
 #include <memory>
-#include <exception>
 #include <mutex>
 
 #include <Eigen/Geometry>

@@ -11,8 +11,6 @@
 #include <chrono>
 #include <cmath>
 #include <ctime>
-#include <exception>
-#include <functional>
 #include <iterator>
 #include <limits>
 #include <locale>

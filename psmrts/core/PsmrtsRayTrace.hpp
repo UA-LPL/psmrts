@@ -2,8 +2,6 @@
 #define PsmrtsRayTrace_hpp
 
 #include <cmath>
-#include <string>
-#include <exception>
 #include <Eigen/Geometry>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>

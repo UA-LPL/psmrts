@@ -1,10 +1,7 @@
 #ifndef BulletTracerModel_hpp
 #define BulletTracerModel_hpp
 
-#include <exception>
 #include <string>
-#include <vector>
-#include <mutex>
 
 #include <Eigen/Geometry>
 #include <psmrts/core/PsmrtsUtilities.hpp>

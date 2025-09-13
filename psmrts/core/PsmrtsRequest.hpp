@@ -3,7 +3,6 @@
 #include <vector>
 #include <deque>
 #include <string>
-#include <memory>
 #include <exception>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
@@ -15,7 +14,7 @@ namespace psmrts {
    * @brief A specialized NOOP class process handler
    * 
    * This class is designed to be used as "no" product proxy. This is useful
-   * to use as a default varaint type for any product variant use as the
+   * to use as a default variant type for any product variant use as the
    * first element listed in the variant declaration. 
    * 
    * @see PsmrtsTracer.hpp for an example of this technique.

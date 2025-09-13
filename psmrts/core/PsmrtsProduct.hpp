@@ -2,7 +2,6 @@
 #define PsmrtsProduct_hpp
 #pragma once
 
-#include <exception>
 #include <string>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
