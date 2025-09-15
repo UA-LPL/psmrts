@@ -1,11 +1,9 @@
 #pragma once
 
-#include <iterator>
 #include <string>
 #include <vector>
 #include <iostream>
 #include <fstream>
-#include <memory>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 

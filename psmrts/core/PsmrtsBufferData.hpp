@@ -5,7 +5,6 @@
 #include <cstdint>
 #include <string>
 #include <memory>
-#include <exception>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 namespace psmrts {

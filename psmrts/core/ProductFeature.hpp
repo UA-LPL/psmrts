@@ -3,9 +3,7 @@
 #define ProductFeature_hpp
 
 #include <string>
-#include <memory>
 #include <vector>
-#include <exception>
 
 #if defined(WIN32) || defined(_MSC_VER) || defined(__CYGWIN__)
 #define NOMINMAX

@@ -1,11 +1,8 @@
 #ifndef PsmrtsPriorityTracer_hpp
 #define PsmrtsPriorityTracer_hpp
 
-#include <exception>
 #include <string>
 #include <vector>
-#include <memory>
-#include <mutex>
 
 #include <Eigen/Geometry>
 #include <psmrts/core/PsmrtsUtilities.hpp>

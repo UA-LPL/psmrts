@@ -3,7 +3,6 @@
 
 #include <cstddef>
 #include <string>
-#include <exception>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsBuffer.hpp>

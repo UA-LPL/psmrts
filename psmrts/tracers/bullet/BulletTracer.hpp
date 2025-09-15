@@ -105,7 +105,7 @@ namespace psmrts  {
       /**
        * @brief Bullet Photometric Trace Array Processor
        * 
-       * This method accepts a PRQPhotomericTraceArray, which represents
+       * This method accepts a PRQPhotometricTraceArray, which represents
        * multiple PRQPhotometricTraces in an array object, runs each trace,
        * and stores the results back into their associated PRQPhotometricTraces
        * in the array.

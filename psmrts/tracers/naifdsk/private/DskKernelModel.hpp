@@ -1,7 +1,6 @@
 #ifndef DskKernelModel_hpp
 #define DskKernelModel_hpp
 
-#include <exception>
 #include <string>
 #include <vector>
 #include <map>

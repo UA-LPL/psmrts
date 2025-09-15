@@ -1,17 +1,14 @@
 #ifndef EllipsoidTracerModel_hpp
 #define EllipsoidTracerModel_hpp
 
-#include <exception>
 #include <string>
-#include <vector>
-#include <mutex>
 
 #include <Eigen/Geometry>
 #include <cspice/SpiceUsr.h>
 
 namespace psmrts  {
   /**
-   * @brief Private class implemeting ellipsoid tracing
+   * @brief Private class implementing ellipsoid tracing
    * 
    * This private class provides a generic interface to ray tracing systems
    * that can be used in the PSMRTS system. These method function declarations

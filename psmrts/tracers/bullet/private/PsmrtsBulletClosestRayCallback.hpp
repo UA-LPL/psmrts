@@ -1,10 +1,6 @@
 #ifndef PsmrtsPsmrtsBulletClosestRayCallback_hpp
 #define PsmrtsPsmrtsBulletClosestRayCallback_hpp
 
-#include <string>
-#include <memory>
-#include <exception>
-
 #include <Eigen/Geometry>
 
 #include "BulletSystemModel.hpp"

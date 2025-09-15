@@ -35,6 +35,10 @@ release.
 ## TODO
 - See [TODO](TODO.md)
 
+## [0.3.6] 2025-09-15
+- Removed unnecessary #include's
+- Fixed small number of minor misspellings.
+
 ## [0.3.5] 2025-09-10
 - Implement product/inventory/caching capabilities
 - Moved PsmrtsPriorityTracer.hpp to psmrts/tracers.

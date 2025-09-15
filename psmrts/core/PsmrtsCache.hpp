@@ -2,9 +2,7 @@
 #define PsmrtsCache_hpp
 
 #include <string>
-#include <iostream>   
 #include <sstream>  
-#include <exception>
 #include <map>
 #include <algorithm>
 #include <iterator>

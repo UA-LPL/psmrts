@@ -15,7 +15,7 @@
 #include <psmrts/core/PsmrtsMeshData.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
 
-// See PsmrtsOBJImplementation.hpp for defining the tinyobj implemantion in your main
+// See PsmrtsOBJImplementation.hpp for defining the tinyobj implementation in your main
 #include "tiny_obj_loader.h"
 namespace psmrts {
   /**
@@ -96,7 +96,7 @@ namespace psmrts {
         return ( m_obj_reader->GetShapes().size() );
       }
 
-      /** Indexes are local to each shape into a largerer array */
+      /** Indexes are local to each shape into a larger array */
       inline size_t nIndexes( const size_t nthShape = 0 ) const {
         if ( nthShape >= nShapes() ) return ( 0 );
         return ( m_obj_reader->GetShapes()[nthShape].mesh.num_face_vertices.size() );
@@ -108,7 +108,7 @@ namespace psmrts {
         return ( count_facets() );
       }
 
-      /** A single buffer of verticies that are 0-based */
+      /** A single buffer of vertices that are 0-based */
       inline size_t nVertexes( ) const {
         if ( !this->isValid() ) return ( 0 );
         return ( m_obj_reader->GetAttrib().vertices.size() / 3 );
@@ -234,7 +234,7 @@ namespace psmrts {
        *   2) There is an error string in the ObjReader error variable
        *   
        * Warnings are also check and reported if a string is detected in
-       * the ObjReader warning varible.
+       * the ObjReader warning variable.
        * 
        * The caller can decide to throw errors or return true/false status.
        * 
@@ -243,7 +243,7 @@ namespace psmrts {
        *                        detected, otherwise returns status
        * @return true         For a valid state of the ObjReader object
        * @return false        Either an unallocated ObjReader or error
-       *                        has occured
+       *                        has occurred
        */
       inline bool check_obj_errors( const std::string &src_id_str = "*** PsmrtsOBJFormat::status",
                                     const bool throwOnError = true ) const {
