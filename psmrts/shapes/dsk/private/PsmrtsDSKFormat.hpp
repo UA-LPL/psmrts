@@ -2,9 +2,6 @@
 #define PsmrtsDSKFormat_hpp
 
 #include <string>
-#include <memory>
-#include <exception>
-#include <iostream>
 
 #include <Eigen/Geometry>
 #include <nlohmann/json.hpp>

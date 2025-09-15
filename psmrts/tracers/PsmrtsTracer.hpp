@@ -1,7 +1,6 @@
 #ifndef PsmrtsTracer_hpp
 #define PsmrtsTracer_hpp
 
-#include <exception>
 #include <string>
 #include <variant>
 

@@ -3,8 +3,6 @@
 #ifndef PsmrtsBulletAllHitsRayCallback_hpp
 #define PsmrtsBulletAllHitsRayCallback_hpp
 
-#include "PsmrtsBulletClosestRayCallback.hpp"
-
 #include <BulletCollision/NarrowPhaseCollision/btRaycastCallback.h>
 
 namespace psmrts::bullet {
