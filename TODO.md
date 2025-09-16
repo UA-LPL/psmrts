@@ -1,27 +1,9 @@
 
 ## PSMRTS TODO
 
-### Inventory/Caching, fullfilling product request
-- [x] Develop PSMRTS inventory caching capability
-  - [x] Initially support four basic types
-    - [x] Shapes
-    - [x] Tracers
-    - [x] Priority Tracers
-    - [x] Generalized Parameters
-    - [x] Each `type` needs the following methods (all go in PsmrtsInventory)
-      - [x] contains_`type`( UIDType product_id ) const;
-      - [x] find_`type`_by_id( UIDType product_id ) const;
-      - [x] find_`type`_by_config( PRQProductConfig &config );  - naming is TBD
-      - [x] remove_`type`( `type` &product_id );
-      - [x] remove_`type`( PsmrtsInventory &`type`_i );
-      - [x] add_`type`( `type` &product_id );
-      - [x] add_`type`( PsmrtsInventory &`type`_i );
-- [x] Set up product factory with main inventory
-  - [x] I see this as a single static source of all PSMRTS product inventories
-  - [x] Use PsmrtsInventory to stage product building process and then send residual to Factory for persistent caching
-  - [x] Keeps static PSMRTS-wide primary inventory (other uses of PsmrtsInventory can fill product configs)
-  - [x] Add caching/inventory requests for each type inventoried
-  - [x] Supports local (non-static) inventories to house and transfer cache ownership
+### Product Specs/Configs
+- [ ] Integrate Doxygen build in CMake system.
+- [ ] Add PRQShape, PRQTracer and PRQPriorityTracer classes for C API interfacing
 - [ ] Finish PsmrtsTracer implementation  
 - [ ] Create product configuration with product options used to create/retrieve product (including product_id)
 - [ ] Modify PsmrtsSpecification to accept a ProductConfiguration/PRQ that contains user/dev options to construct one or more products
@@ -29,27 +11,18 @@
   - [ ] Return remaining set of parameter/options from product creation in conjuction with feature/option processing above
   - [ ] Any remaining parameters must be retained for further product creation or detect invalid options (that remain)
 - [ ] Finish product registration process
-  - [ ] Retains `driver` information and aids in product creation/management  
-- [x] Add support for system-wide keyword cache to support `$tag` substitition (e.g., environment variables or ISIS `$mission` tags)
+  - [ ] Retains `driver` information and aids in product creation/management
 - [ ] Build product options parsing tools as algorithms
 - [ ] Implement generic product specification/creation
 - [ ] Finish PsmrtsPriorityTracer classes and infrastructure.
 - [ ] Retain product options, parameters and specs in the base class PsmrtsProduct
-- [x] Add Catch2 tests for DskSegment.hpp.
 - [ ] Add Catch2 tests for Bullet ray callback classes.
-- [x] Add Catch2 tests PsmrtsTracer.hpp.
-- [x] Add Catch2 tests PsmrtsShape.hpp.
-  - [x] Create tests directory and CMakeLists.txt - see psmrts/tracers/.
 - [ ] Add Catch2 tests PsmrtsProductDispatch.hpp.
 - [ ] Implement C API error handling
 - [ ] Implement char * strings transfers b/t C & C++ APIs
-- [ ] Add PRQShape, PRQTracer and PRQPriorityTracer classes for C API interfacing
-- [x] Move content of psmrts/core/tests/test_PsmrtsShapeTracer.cpp into psmrts/tracers/tests/test_PsmrtsTracer.cpp.
-  - [x] Remove psmrts/core/tests/test_PsmrtsShapeTracer.cpp upon completion.
 
 
 ### General Tasks
-
 - [ ] Support builds types of STATIC, SHARED and MODULE.
 - [ ] Develop export and packaging options.
 - [ ] Design/implement `psmrts_json` to replace our use/exposure of nlohmann::json in any of `PSMRTS`'s public APIs. This is essentail primarily because if developers should happen to use a different version of nlohmann:json (Anaconda's perhaps), then bad things will happen when they pass an _ordered_json_ object to PSMRTS. nlohmann::json is not ABI compatible from one release to the next. See also [VTKs reasoning](https://discourse.vtk.org/t/nlohmann-json-and-vtks-public-api/15131) on this.
