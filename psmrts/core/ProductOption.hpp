@@ -21,7 +21,7 @@ namespace psmrts {
    * 
    * The keys are required to be lower case. This is enforced in the
    * get/add methods. A series of configuration methods are provided
-   * as static methods to be used for formatting needs PSRMTS-wide.
+   * as static methods to be used for formatting needs PSMRTS-wide.
    *
    * @author 2025-07-04 Kris J. Becker, UA Original Version
    */
@@ -33,18 +33,22 @@ namespace psmrts {
 
       using DataTypes = std::variant< bool,
                                       int, 
+                                      size_t, 
                                       double,
                                       std::string, 
                                       std::vector<int>,
+                                      std::vector<size_t>,
                                       std::vector<double>,
                                       std::vector<std::string>,
                                       ordered_json >;
       using DataEnums = enum {
                               PsmrtsBoolean,
                               PsmrtsInteger,
+                              PsmrtsSizeT,
                               PsmrtsDouble,
                               PsmrtsString,
                               PsmrtsIntegerArray,
+                              PsmrtsSizeTArray,
                               PsmrtsDoubleArray,
                               PsmrtsStringArray,
                               PsmrtsJsonObject
@@ -59,6 +63,10 @@ namespace psmrts {
                               m_name( psmrts_tolower(name) ), 
                               m_data( i_data ), 
                               m_enum( PsmrtsInteger ) { }
+      explicit ProductOption( const std::string &name, const size_t i_data_t ) : 
+                              m_name( psmrts_tolower(name) ), 
+                              m_data( i_data_t ), 
+                              m_enum( PsmrtsSizeT ) { }                              
       explicit ProductOption( const std::string &name, const double d_data ) : 
                               m_name( psmrts_tolower(name) ), 
                               m_data( d_data ), 
@@ -79,6 +87,14 @@ namespace psmrts {
                               m_name( psmrts_tolower(name) ), 
                               m_data( std::vector<int> (i_array)),
                               m_enum( PsmrtsIntegerArray ) { }
+      explicit ProductOption( const std::string &name, const std::initializer_list<size_t> &i_array ) : 
+                              m_name( psmrts_tolower(name) ), 
+                              m_data( std::vector<size_t> (i_array.begin(), i_array.end())), 
+                              m_enum( PsmrtsSizeTArray ) { }                                
+      explicit ProductOption( const std::string &name, const std::vector<size_t> &i_array ) : 
+                              m_name( psmrts_tolower(name) ), 
+                              m_data( std::vector<size_t> (i_array)),
+                              m_enum( PsmrtsSizeTArray ) { }                              
       explicit ProductOption( const std::string &name, const std::initializer_list<double> &d_array ) : 
                               m_name( psmrts_tolower(name) ),
                               m_data( std::vector<double> (d_array.begin(), d_array.end()) ),
@@ -132,6 +148,7 @@ namespace psmrts {
         const auto visitor = overload{
                   [](const std::string &s) { return ( s.size() ); },            
                   [](const std::vector<int> &i_array) { return (i_array.size() ); },
+                  [](const std::vector<size_t> &i_t_array) { return (i_t_array.size() ); },
                   [](const std::vector<double> &d_array) { return (d_array.size() ); },
                   [](const std::vector<std::string> &s_array) { return (s_array.size() ); },
                   [](const ordered_json &j) { return ( j.size() );  },
@@ -195,6 +212,11 @@ namespace psmrts {
         return ( std::to_string( i_data ) );
       }
 
+      /** Convert size_t data to a string using std::to_string() */
+      inline static std::string to_string( const size_t i_data ) {
+        return ( std::to_string( i_data ) );
+      } 
+           
       /** Convert double data to a string with fixed digit representation */
       inline static std::string to_string( const double d_data, 
                                            const size_t ndigits = ProductOption::DigitsPrecision )  {
@@ -220,6 +242,20 @@ namespace psmrts {
         }
         return ( psmrts_concate( s_array, std::get<1>( enclosures ) ) );        
       } 
+
+      /** Convert a integer vector to string */
+      inline static std::string to_string( const std::vector<size_t> i_array,
+                                           const std::tuple<std::string,std::string> &enclosures= { "[", "]" } ) {
+
+        std::string s_array = std::get<0>( enclosures );
+
+        std::string comma = "";
+        for ( const auto i : i_array ) {
+          s_array += ( psmrts_concate( comma, ProductOption::to_string( i ) ) );
+          comma = ",";
+        }
+        return ( psmrts_concate( s_array, std::get<1>( enclosures ) ) );        
+      }      
       
       /** Convert double array to string array with optional array enclousures and precision */
       inline static std::string to_string( const std::vector<double> d_array,
@@ -307,6 +343,11 @@ namespace psmrts {
         m_doubles.push_back( i );
       }    
 
+      inline void operator()( const size_t i )  {
+        m_doubles.push_back( i );
+      }    
+
+
       inline void operator()( const double d ) {
         m_doubles.push_back( d );
       }
@@ -321,6 +362,9 @@ namespace psmrts {
         m_doubles.insert(m_doubles.end(), i_array.begin(), i_array.end() );
       }
 
+      inline void operator()( const std::vector<size_t> &i_array ) {
+        m_doubles.insert(m_doubles.end(), i_array.begin(), i_array.end() );
+      }
 
       inline void operator()( const std::vector<double> &d_array ) {
         m_doubles.insert(m_doubles.end(), d_array.begin(), d_array.end() );
@@ -426,6 +470,10 @@ namespace psmrts {
         m_integers.push_back( i );
       }          
 
+      inline void operator()( const size_t i )  {
+        m_integers.push_back( i );
+      }
+
       inline void operator()( const double d ) {
         m_integers.push_back( d );
       }
@@ -438,6 +486,10 @@ namespace psmrts {
       }
 
       inline void operator()( const std::vector<int> i_array ) {
+        m_integers.insert(m_integers.end(), i_array.begin(), i_array.end() );
+      }
+
+      inline void operator()( const std::vector<size_t> i_array ) {
         m_integers.insert(m_integers.end(), i_array.begin(), i_array.end() );
       }
 
@@ -520,7 +572,11 @@ namespace psmrts {
 
       inline void operator()( const int i )  {
         m_strings.push_back( ProductOption::to_string( i ) );
-      }    
+      }
+
+      inline void operator()( const size_t i )  {
+        m_strings.push_back( ProductOption::to_string( i ) );
+      }          
 
       inline void operator()( const double d ) {
         m_strings.push_back( ProductOption::to_string( d ) );
@@ -531,6 +587,12 @@ namespace psmrts {
       }    
 
       inline void operator()( const std::vector<int> i_array ) {
+        for (const auto &i_value : i_array ) {
+          m_strings.push_back( ProductOption::to_string( i_value ) );
+        }
+      }
+
+      inline void operator()( const std::vector<size_t> i_array ) {
         for (const auto &i_value : i_array ) {
           m_strings.push_back( ProductOption::to_string( i_value ) );
         }

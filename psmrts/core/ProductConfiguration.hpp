@@ -97,6 +97,9 @@ namespace psmrts {
   };
 
 
+  // Temporary? definition of ProductMetaData
+  using ProductMetaData = ProductConfiguration;
+
 } // namespace psmrts
 
 #endif

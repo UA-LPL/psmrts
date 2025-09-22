@@ -233,7 +233,17 @@ namespace psmrts {
             return;
         }
 
-        
+        inline ProductMetaData get_metadata( ) {
+          ProductMetaData meta( "ply" );
+          meta.add( ProductOption( "ply_file", this->ply_source() ) );
+          meta.add( ProductOption( "ply_file_type", m_file_type ) );
+          meta.add( ProductOption( "ply_data_type", m_data_type ) );
+          meta.add( ProductOption( "ply_vertices", (int) this->nVertexes() ) );
+          meta.add( ProductOption( "ply_facets", (int) this->nIndexes() ) );
+          return ( meta );
+        }        
+
+    
         /**
          * @brief String output helper for miniply property types
          * 
@@ -321,34 +331,6 @@ namespace psmrts {
             std::string msg = std::string( "PsmrtsPLYFormat::create() invalid product request configuration" );
             throw std::runtime_error( msg );
         }
-
-#if 0
-        /**
-         * @brief returns true if the input product json contains the same
-         * values as the object
-         * 
-         * @param params ProductSpecification PLY config
-         * @return true  if params has same values as object
-         * @return false if params is empty or has different values
-         */
-        inline bool compare(const ProductSpecification &params) {
-            if (params.name() != m_config.name() || params.type() != m_config.type()) {
-                return false;
-              }
-        
-              ordered_json options = m_config.specs().parameters();
-              ordered_json p_options = params.specs().parameters();
-              for (auto aspect : options.items()) {
-                if (!p_options.contains(aspect.key())) {
-                  return false;
-                }
-                if(p_options.at(aspect.key()) != aspect.value()) {
-                  return false;
-                }
-              }
-              return true;
-        }
-#endif
 
         /** Returns the header json information
         inline const json &config() const {

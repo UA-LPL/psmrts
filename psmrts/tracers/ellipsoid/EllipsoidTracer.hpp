@@ -2,6 +2,7 @@
 #include <string>
 
 #include <psmrts/core/PsmrtsRequest.hpp>
+#include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
 #include <psmrts/algorithms/TracingBasics.hpp>
 #include "private/EllipsoidTracerModel.hpp"
@@ -45,10 +46,55 @@ namespace psmrts  {
                       m_model( a, b, c, source) { }     
      EllipsoidTracer( const Eigen::Vector3d &radii,
                       const std::string &source = "ellipsoid" ) : 
-                      m_model( radii.data(), source) { }   
+                      m_model( radii.data(), source) { }
+     EllipsoidTracer( const ProductConfiguration &config_p,
+                      const std::string &source = "ellipsoid" ) : 
+                      m_model() { }                         
         
       virtual ~EllipsoidTracer() { }
 
+      static inline bool process( PRQProduct &config_p ) {
+        ProductConfiguration pc_t = config_p.config();
+        ProductSpecification specs_t = EllipsoidTracer::product_specifications();
+
+        // Check for explicit specs for a support tracer type
+        ProductOption tracer_t( specs_t.product(), specs_t.name() );
+        if ( pc_t.contains( "tracer" ) ) {
+          ProductOption tracer_e = pc_t.find( "tracer" );
+          if ( tracer_t.to_string() != tracer_e.to_string() ) {
+            return ( false );
+          }
+        }
+
+        // Check for all required options
+        ProductConfiguration matched_t( pc_t.name() );
+        for ( auto const &name_p : specs_t.required() ) {
+          if ( !pc_t.contains( name_p ) ) {
+            std::string mess = "*** EllipsoidTracer required key " + name_p + " not in configuration!";
+            config_p.add_error( std::runtime_error( mess ) );
+            return ( false );
+          }
+          matched_t.add( pc_t.find( name_p ) );
+        }
+
+        // Check if any optional ones are found
+        for ( auto const &name_p : specs_t.optional() ) {
+          if ( pc_t.contains( name_p ) ) {
+            matched_t.add( pc_t.find( name_p ) );
+          }
+        }
+
+        // If we reach here, instantiate and add to PRQ
+        try {
+          config_p.add_tracer( EllipsoidTracer( matched_t ) );
+          
+        }
+        catch ( const std::exception &e ) {
+           std::string mess = "*** EllipsoidTracer failed with configuration specs = " + matched_t.to_json();
+           config_p.add_error( std::runtime_error( mess ) );
+           return ( false );
+        }
+      }
 
       inline const std::string &name() const {
         return ( m_model.name() );
@@ -232,7 +278,8 @@ namespace psmrts  {
       PSMRTS_PROCESS_CATCHALL( "EllipsoidTracer" )
 
     private:
-      EllipsoidTracerModel m_model;   
+      EllipsoidTracerModel m_model;
+      ProductConfiguration m_configured; 
   };
 
 } // namespace psmrts
