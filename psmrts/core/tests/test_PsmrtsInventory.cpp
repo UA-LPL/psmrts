@@ -7,6 +7,8 @@
 TEST_CASE( "PSMRTS Inventory Default", "[product][inventory][default]") {
 
   psmrts::PsmrtsInventory inventory;
+  CHECK( sizeof( psmrts::PsmrtsInventory ) == 1144 );
+
   CHECK( inventory.product().name() == "product" );
   CHECK( inventory.product().type() == "inventory" );
   CHECK( inventory.product().uid() != psmrts::PsmrtsUID::UID_Reserved );

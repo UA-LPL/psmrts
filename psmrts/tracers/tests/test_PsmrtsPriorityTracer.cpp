@@ -18,6 +18,8 @@ TEST_CASE("PsmrtsPriorityTracer Default Test", "[priority][tracer][default]") {
   psmrts::PsmrtsPriorityTracer test_tracer;
   std::vector<std::string> myString;
 
+  CHECK( sizeof( psmrts::PsmrtsPriorityTracer ) == 336 );
+  
   CHECK( test_tracer.isValid()                == false );
   CHECK( test_tracer.size()                   == 0 );
 }

@@ -20,6 +20,7 @@ TEST_CASE("PsmrtsShape Default Test", "[shape][default]") {
     psmrts::PsmrtsMeshData test_data = test_shape.get_mesh();
     CHECK( test_data.nvectors() == 0 );
     CHECK( test_data.nfacets()  == 0 );
+    CHECK( sizeof( psmrts::PsmrtsShape ) == 1288 );
 }
 
 TEST_CASE("NAIF DSK Shape Test", "[naif][shape]") {
