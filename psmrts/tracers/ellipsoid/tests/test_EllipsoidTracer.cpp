@@ -449,10 +449,11 @@ TEST_CASE( "Ellipsoid Shape Tracer Photometric Array Test", "[ellipsoid][shapetr
 }
 
 TEST_CASE( "Ellipsoid Shape Tracer Product Specification Test", "[ellipsoid][shapetracer][product][specification]") {
-    psmrts::ProductSpecification spec = psmrts::EllipsoidTracer::product_specifications();
+    // This must be a vector to get all three specs - it should be a PRQRegistration eventually
+    psmrts::ProductSpecification spec = psmrts::EllipsoidTracer::ellipsoid_product_spec();
 
     CHECK( spec.name()              == "ellipsoid"   );
-    CHECK( spec.product()           == "shapetracer" ); 
+    CHECK( spec.product()           == "tracer" ); 
     CHECK( spec.type()              == "tracer"      );
     CHECK( spec.driver().name()     == "ellipsoid"   ); 
     CHECK( spec.size()              == 2             );

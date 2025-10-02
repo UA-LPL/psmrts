@@ -132,7 +132,7 @@ namespace psmrts {
         return ( m_name );
       }
 
-      /** This is good for a UID but is a string instead */
+      /** This is good for a UID but is a string */
       inline const std::string &uid() const {
         return ( m_name );
       }
@@ -297,6 +297,14 @@ namespace psmrts {
           return ( std::to_string ( data ) );
         }
 
+      inline bool equals( const ProductOption &opt ) const {
+        if ( this->name() != opt.name() ) return ( false );
+        if ( this->type() != opt.type() ) return ( false );
+        if ( this->to_string() != opt.to_string() ) return ( false );
+        
+        // All good.
+        return ( true );
+      }
 
     private:
       std::string m_name;

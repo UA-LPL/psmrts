@@ -28,7 +28,7 @@ namespace psmrts {
    * "psmrts" inventory is excluded from the search (unless explicitly
    * added) for existing products.
    * 
-   * Users can submit this request to PsrmtsFactory whic will process the
+   * Users can submit this request to PsrmtsFactory which will process the
    * request for general purposes. Custom processes can also be used where
    * needed.
    * 
@@ -125,12 +125,12 @@ namespace psmrts {
 
       /** Add a shape to the inventory */
       inline bool add_shape( const PsmrtsShape &shape ) {
-        return ( m_product.shapes() .add_product( shape ) );
+        return ( m_product.shapes().add_product( shape ) );
       }
 
       /** Add a tracer to the inventory */
       inline bool add_tracer( const PsmrtsTracer &tracer ) {
-        return ( m_product.tracers() .add_product( tracer ) );
+        return ( m_product.tracers().add_product( tracer ) );
       }
 
     public:
