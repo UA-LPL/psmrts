@@ -10,6 +10,7 @@ add_executable( psmrts_test_suite psmrts_catch2_main.cpp
                                   test_ProductOption.cpp
                                   test_ProductProcessDispatch.cpp
                                   test_ProductSpecification.cpp
+                                  test_PRQProduct.cpp
                                   test_PsmrtsBuffer.cpp
                                   test_PsmrtsBufferData.cpp
                                   test_PsmrtsCache.cpp

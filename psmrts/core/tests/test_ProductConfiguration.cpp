@@ -45,4 +45,21 @@ TEST_CASE( "PSMRTS Product Initializer", "[product][configuration][initializer]"
 
   CHECK( config.remove("tracer")  == true );
   CHECK( config.size()            == 1 );
+  CHECK_THROWS( config.find( "tracer" ) );
+
+  psmrts::ProductConfiguration config2("single", { psmrts::ProductOption("shape", "ply") });
+  CHECK( config.compare( config2 ) == false );
+
+  psmrts::ProductConfiguration comp_check = config.difference( config2 );
+  CHECK( comp_check.name() == "" );
+  CHECK( comp_check.size() == 1 );
+
+  config2.add( psmrts::ProductOption( "obj_file", "l_00050mm_alt_ptm_5595n04217_v020.obj" ) );
+  config2.remove("shape");
+  psmrts::ProductConfiguration comp_check2 = config.difference( config2 );
+  CHECK( comp_check2.name() == "" );
+  CHECK( comp_check2.size() == 1 ); // ?
+  CHECK( config.contains( "obj_file" ) == true );
+  CHECK( config2.contains( "obj_file" ) == true );
+
 }

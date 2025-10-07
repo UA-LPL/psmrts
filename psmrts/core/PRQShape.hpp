@@ -8,6 +8,7 @@
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/PsmrtsInventory.hpp>
 #include <psmrts/core/ProductConfiguration.hpp>
+#include <psmrts/core/PRQProduct.hpp>
 
 namespace psmrts { 
 
