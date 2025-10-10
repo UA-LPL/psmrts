@@ -1,6 +1,7 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 #include <psmrts/shapes/ply/PlyShape.hpp>
 #include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
 
 // Test Default (No / Bad file) Constructor Cases
 TEST_CASE( "PLY FORMAT Asset Test - No File Default Constructor", "[format][ply]") {
@@ -188,6 +189,15 @@ TEST_CASE ( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][defaul
 
     std::shared_ptr<miniply::PLYReader> ply_read( psmrts::PsmrtsPLYFormat::open( plyfile ) );
     REQUIRE( ply_read != nullptr );
+
+    psmrts::ProductConfiguration meta_data = ply.get_metadata();
+    CHECK( meta_data.name() == "" );
+    CHECK( meta_data.size() == 5 );
+    CHECK( psmrts::psmrts_file_basename(meta_data.find("ply_file").to_string()) == "Bennu_Radar.ply\"" );
+    CHECK( meta_data.find("ply_file_type").to_string() == "\"binary\"" );
+    CHECK( meta_data.find("ply_data_type").to_string() == "\"float\"" );
+    CHECK( meta_data.find("ply_vertices").to_string()  == "1348" );
+    CHECK( meta_data.find("ply_facets").to_string()    == "2692" );
 }
 
 /** 
