@@ -456,6 +456,25 @@ namespace psmrts {
     return ( directory + dpathdelim + pathpart );
   }
 
+
+  /** Returns just the file name, with no preceeding path information */
+  inline std::string psmrts_filename( const std::string &pathname ) {
+    std::string base_f( "" );
+    if ( pathname.length() > 0 ) {
+
+      // Find any directory paths...
+      auto lastslash = pathname.find_last_of( '/' );
+      if ( lastslash != std::string::npos ) {
+        base_f = pathname.substr( lastslash + 1 );
+      }
+      else {
+        base_f = pathname;
+      }
+
+    }
+    return ( base_f );
+  }
+
   /** Returns file type extension, ie. cpp, hpp, etc.. */
   inline std::string psmrts_file_extension( const std::string &pathname ) {
     std::string extension_f( "" );
@@ -484,7 +503,7 @@ namespace psmrts {
     return ( path_f );
   }
 
-  /** Returns just the file name, with no preceeding path information */
+  /** Returns just the base part of the file name, with no preceeding path information or extension */
   inline std::string psmrts_file_basename( const std::string &pathname ) {
     std::string base_f( "" );
     if ( pathname.length() > 0 ) {
@@ -494,10 +513,13 @@ namespace psmrts {
       if ( lastslash != std::string::npos ) {
         base_f = pathname.substr( lastslash + 1 );
       }
+      else {
+        base_f = pathname;
+      }
 
-      auto lastdot = pathname.find_last_of( '.' );
+      auto lastdot = base_f.find_last_of( '.' );
       if ( lastdot != std::string::npos ) {
-        base_f = base_f.substr( 0, lastdot - 1 );
+        base_f = base_f.substr( 0, lastdot );
       }
 
     }

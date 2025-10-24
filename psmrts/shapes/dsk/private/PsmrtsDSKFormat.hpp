@@ -157,6 +157,7 @@ namespace psmrts {
         }
 
         inline ProductMetaData get_metadata( const naif::DskSegment &segment ) {
+          
           ProductMetaData meta( "dsk" );
           meta.add( ProductOption( "dsk_file", this->dsk_source() ) );
           meta.add( ProductOption( "dsk_data_type", "double" ) );

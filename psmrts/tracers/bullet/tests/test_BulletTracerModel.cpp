@@ -24,7 +24,7 @@ TEST_CASE( "Bullet Tracer Model - Ray Trace / Values Test", "[default][bullet][t
     
     psmrts::bullet::BulletTracerModel b_model( bt_world );
 
-    std::string b_shapefile = psmrts::psmrts_file_basename( b_model.shapefile() );
+    std::string b_shapefile = psmrts::psmrts_filename( b_model.shapefile() );
     CHECK( b_model.tracer_model_name()  == "bullet" );
     CHECK( b_shapefile                  == "bennu_20facets.obj" );
     CHECK( b_model.plate_count()        == 36 );

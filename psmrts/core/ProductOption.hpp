@@ -145,7 +145,7 @@ namespace psmrts {
       /** Returns size of the data -  1 for scalars, DataTypes::size() otherwise */
       inline size_t size() const {
         // Run an overloaded visitor with default behavior
-        const auto visitor = overload{
+        const auto visitor = overload{            
                   [](const std::string &s) { return ( s.size() ); },            
                   [](const std::vector<int> &i_array) { return (i_array.size() ); },
                   [](const std::vector<size_t> &i_t_array) { return (i_t_array.size() ); },
@@ -180,13 +180,25 @@ namespace psmrts {
           std::visit( visitor, m_data );
         }
 
-
       /** Convert the value to a string using JSON rules */
       inline std::string to_string() const {
-        return ( std::visit( [&] ( auto &&datum ) -> std::string { 
-          json j = datum;
-          return ( j.dump() ); 
-        }, m_data ) );
+        const auto visitor = overload {
+
+                  [](const bool &b) { return ( std::string( ( b ? "true" : "false" ) ) ); },            
+                  [](const int &i ) { return ( std::to_string( i ) ); },            
+                  [](const size_t &t ) { return ( std::to_string( t ) ); },            
+                  [](const double &d ) { return ( ProductOption::to_string( d ) ); },                  
+                  [](const std::string &s) { return ( s ); },   
+
+                  [](const std::vector<int> &i_array) { return ( to_string( i_array ) ); },
+                  [](const std::vector<size_t> &i_t_array) { return ( to_string( i_t_array ) ); },
+                  [](const std::vector<double> &d_array) { return (  to_string( d_array ) ); },
+                  [](const std::vector<std::string> &s_array) { return ( to_string( s_array ) ); },
+
+                  [](const ordered_json &j) { return ( j.dump() );  }
+              };
+         
+         return ( std::visit(visitor, m_data ) );
       }
 
       /* Convert the keyword and value to a JSON object */
@@ -290,12 +302,6 @@ namespace psmrts {
       inline static std::string to_string( const ordered_json &j_data ) {
         return ( j_data.dump() );        
       } 
-      
-      /** Convert the rest of the elements to string */
-      template <typename T>
-        std::string to_string( const T &data ) const {
-          return ( std::to_string ( data ) );
-        }
 
       inline bool equals( const ProductOption &opt ) const {
         if ( this->name() != opt.name() ) return ( false );

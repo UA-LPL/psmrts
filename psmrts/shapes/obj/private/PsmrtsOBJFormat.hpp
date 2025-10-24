@@ -448,7 +448,6 @@ namespace psmrts {
       m_config_j = ProductSpecification("obj", "mesh", options);
     }
 
-
     inline ProductMetaData get_metadata( tinyobj::ObjReader *reader ) {
       ProductMetaData meta( "obj" );
       meta.add( ProductOption( "obj_file", this->obj_source() ) );
@@ -460,6 +459,9 @@ namespace psmrts {
       return ( meta );
     }
 
+    inline ProductMetaData get_metadata( ) {
+      return ( this->get_metadata( m_obj_reader.get() ) );
+    }
 
     /**
      * @brief returns true if the input ProductSpecification contains the same

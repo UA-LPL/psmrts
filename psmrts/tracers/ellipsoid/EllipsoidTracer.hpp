@@ -346,8 +346,7 @@ namespace psmrts  {
                                                const std::string &name = "" ) {
 
         std::string source = ( name.size() >  0 ) ? name : config.name();
-
-
+        
         // Check for sphere first
         ProductConfiguration config_c;
         if ( EllipsoidTracer::sphere_product_spec().extract( config, config_c ) ) {

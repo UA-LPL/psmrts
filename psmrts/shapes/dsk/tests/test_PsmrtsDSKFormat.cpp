@@ -67,8 +67,8 @@ TEST_CASE( "DSK FORMAT Basic Load/Innit Test", "[format][dsk][shape][bennu]") {
 
     CHECK( meta_data.name() == "" );
     CHECK( meta_data.size() == 14 ); 
-    CHECK( psmrts::psmrts_file_basename(meta_data.find("dsk_file").to_string()) == "bennu_20facets.bds\"" ); // quotes issues
-    CHECK( meta_data.find("dsk_data_type").to_string()      == "\"double\"" ); //quotes behavior?
+    CHECK( psmrts::psmrts_filename(meta_data.find("dsk_file").to_string() ) == "bennu_20facets.bds" );
+    CHECK( meta_data.find("dsk_data_type").to_string()                  == "double" );
     CHECK( meta_data.find("dsk_segment_number").to_string() == "0" );
     CHECK( meta_data.find("dsk_surface_id").to_string()     == "2101955" ); 
     CHECK( meta_data.find("dsk_vertices").to_string()       == "20" );
@@ -79,8 +79,8 @@ TEST_CASE( "DSK FORMAT Basic Load/Innit Test", "[format][dsk][shape][bennu]") {
     CHECK( meta_data.find("dsk_frame_id").to_string()       == "10106" );
     CHECK( meta_data.find("dsk_type").to_string()           == "2" );
     CHECK( meta_data.find("dsk_class").to_string()          == "1" );
-    CHECK( meta_data.find("dsk_minimum_radius").to_string() == "0.22493886860043516" );
-    CHECK( meta_data.find("dsk_maximum_radius").to_string() == "0.2830650000000668" );
+    CHECK( meta_data.find("dsk_minimum_radius").to_string() == "0.224938869" );
+    CHECK( meta_data.find("dsk_maximum_radius").to_string() == "0.283065000" );
     
 }
 
