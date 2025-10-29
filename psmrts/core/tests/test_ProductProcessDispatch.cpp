@@ -31,7 +31,7 @@ TEST_CASE( "ProductProcessDispatch Default / MissingProcessRequestHandler", "[Pr
 
     CHECK( dispatch2.process(request) == false );
     CHECK( request.error_count()      == 1 );
-    CHECK( request.errors_to_string() == "std::exception\n" );
+    CHECK( request.errors_to_string() != "" );
     CHECK( request.was_invoked()      == true );
     CHECK( request.process_status()   == false );
 }

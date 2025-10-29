@@ -109,7 +109,7 @@ TEST_CASE("PSMRTS Inventory Environment", "[product][inventory][env]") {
 
 #ifdef _WIN32
   if (env_ref.contains("USERNAME")) {
-    CHECK(env_ref.find("USERNAME").value().empty() == false);
+    CHECK(env_ref.find("USERNAME").empty() == false);
   }
 #else
   if (env_ref.contains("USER")) {
