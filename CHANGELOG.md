@@ -35,8 +35,7 @@ release.
 ## TODO
 - See [TODO](TODO.md)
 
-## [0.3.7] 2025-09-15
-- Add PRQShape class.
+## [0.3.7] 2025-11-04
 - Additions/updates to product configurations and tracking of products.
 - Update tracers to use private implementation, add construction options, tracking/meta data reporting and tests.
 - Add/update numerous tests.

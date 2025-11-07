@@ -162,43 +162,6 @@ namespace psmrts {
         return (this->inventory().find( name ) );
       }
 
-      /**
-       * @brief Register a product with the factory 
-       * 
-       * This method adds a product registration to the factory. The
-       * registration includes the category (e.g., shape, tracer,
-       * priorty tracer), type (shape::obj, tracer::bullet), and a
-       * product specfication that can be used to process PRQProducts.
-       * 
-       * The contents of this registration will be retained for addition
-       * uses.
-       * 
-       * @param register  Process request containing a valid registration
-       *                   for a product
-       * @return true     If successfully registered
-       * @return false    Signals errors occured whose descriptions
-       *                    are contained in the PRQ.
-       */
-#if 0      
-      inline bool process( PRQRegistration &register ) {
-
-      }
-#endif
-      /**
-       * @brief Process a product request order
-       * 
-       * This process method will create a product from the contents of
-       * the PRQ. It could result in any type of supported product that
-       * is ultimately contained in the 
-       * 
-       * @param config 
-       * @return true 
-       * @return false 
-       */
-      inline bool process ( PRQProduct &config ) {
-        return ( false );
-      }
-
 
       /**
        * @brief Add PsmrtsShape object into a named inventory

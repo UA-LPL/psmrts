@@ -43,7 +43,7 @@ endif(BUILD_TESTING)
 
 # This is PROJECT_SOURCE_DIR=psmrts
 project(PSMRTS VERSION 0.3.7 LANGUAGES CXX C)
-set( PSMRTS_VERSION_DATE  "2025-09-10")
+set( PSMRTS_VERSION_DATE  "2025-11-04")
 include(GNUInstallDirs)
 
 set( PSMRTS_PROJECT_DIR  ${CMAKE_SOURCE_DIR} )
@@ -90,6 +90,7 @@ target_include_directories( psmrts INTERFACE
 )
 target_link_libraries( psmrts INTERFACE psmrts::psmrts-dependencies )
 add_library( psmrts::psmrts ALIAS psmrts )
+set_target_properties( psmrts PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION ${PROJECT_VERSION_MAJOR} )
 
 # Build C-API here if requested
 if( BUILD_CAPI OR BUILD_CAPI_APPS )
