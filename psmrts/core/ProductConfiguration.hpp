@@ -113,12 +113,27 @@ namespace psmrts {
        * @return ProductConfiguration Contains all options in "config" that are
        *                                 not also in this object 
        */
-      inline ProductConfiguration difference( const ProductConfiguration &config ) const {
+      inline ProductConfiguration difference( const ProductConfiguration &config,
+                                              const bool twoway = false ) const {
         ProductConfiguration diff_c( config.name() );
         if ( &config != this ) {
-          for ( auto const &opt_t : m_options ) {
-            if ( !this->contains( config.name() ) ) {
+          for ( auto const &opt_t : this->options() ) {
+            if ( !config.contains( opt_t.name() ) ) {
               diff_c.add( opt_t );
+            }
+            else {
+              if ( config.find( opt_t.name() ).to_string() != opt_t.to_string() ) {
+                diff_c.add( opt_t );
+              }
+            }
+          }
+
+          if ( true == twoway ) { 
+            // Now check config for options that don't exist in diff
+            for ( auto const &conf_t : config.options() ) {
+              if ( !this->contains( conf_t.name() ) ) {
+                diff_c.add( conf_t );
+              }
             }
           }
         }
@@ -128,7 +143,7 @@ namespace psmrts {
       inline bool compare( const ProductConfiguration &config,
                            const bool throw_errors = false ) const {
         PsmrtsRequest errors_t;
-        for ( auto const &opt_t : m_options ) {
+        for ( auto const &opt_t : this->options() ) {
           try {
             if ( !opt_t.equals( config.find( opt_t.name() ) ) ) {
               errors_t.add_error( std::runtime_error( "Option " + opt_t.name() + " does not match!") );
@@ -149,6 +164,11 @@ namespace psmrts {
         }
 
         return ( true );
+      }
+
+      /** Return the list of options in this configuration */
+      inline const ProductOptionList &options() const {
+        return ( m_options );
       }
 
     private:
