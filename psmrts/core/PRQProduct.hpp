@@ -14,7 +14,7 @@ namespace psmrts {
    * @brief PRQProduct is a request to create products through configurations
    * 
    * This class accepts a PSRMTS products configuration request and 
-   * fulfill the request by navigating system resources to utilizing
+   * fulfill the request by navigating system resources and utilizing
    * existing products. It contains a local inventory that can be used
    * to restrict the scope of searches for existing product to the local
    * cache. This implies the local cache is always used first to search
@@ -43,10 +43,9 @@ namespace psmrts {
       PRQProduct() : PsmrtsRequest( "PRQProduct" ) { 
         init();
       }
-      PRQProduct( const std::string &name = "PRQProduct" ) : 
+      PRQProduct( const std::string &name ) : 
                   PsmrtsRequest( name ) {
         init( name );
-
       }
       PRQProduct( const std::string &name,
                   const ProductConfiguration &product_c ) : 
@@ -92,6 +91,7 @@ namespace psmrts {
         m_config = config;
       }
 
+      /** Returns a reference to the product configuration */
       inline const ProductConfiguration &config() const {
         return ( m_config );
       }
@@ -119,6 +119,7 @@ namespace psmrts {
         return ( m_local_inventory );
       }
 
+      /** Returns the product inventory */
       inline const PsmrtsInventory &product_inventory() const {
         return ( m_product );
       }
@@ -133,13 +134,17 @@ namespace psmrts {
         return ( m_product.tracers().add_product( tracer ) );
       }
 
-    public:
+      /** Return list of active inventories */
+      inline const std::vector<std::string> &get_inventory_list() const {
+        return ( m_inventory_names );
+      }
+
+    private:
       std::vector<std::string> m_inventory_names;
       ProductConfiguration     m_config;
       PsmrtsInventory          m_local_inventory;
       PsmrtsInventory          m_product;
 
-    private:
       inline void init( const std::string &name = "PRQRequest" ) {
         m_inventory_names.clear();
         m_config          = ProductConfiguration( name );
@@ -149,5 +154,4 @@ namespace psmrts {
 
   };
 
-}  // namespace psmrts 
- 
+}  // namespace psmrts

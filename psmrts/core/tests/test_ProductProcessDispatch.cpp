@@ -53,28 +53,8 @@ TEST_CASE( "ProductProcessDispatch Values Test", "[ProductProcessDispatch][value
     psmrts_json feat_json = feat.config();
     CHECK( feat_json.size() == 1 );
 
-    /** 
-    Eigen::Vector3d obs;
-    double radius = 1.0;
-    double obs_long = psmrts::degrees_to_radians( 45.0 );
-    double obs_lat = psmrts::degrees_to_radians( 45.0 );
-    latrec_c ( radius, obs_long, obs_lat, obs.data() );
-    obs = obs * 10.0;
-
-    Eigen::Vector3d surf;
-    double surf_lon = 45.0 * rpd_c();
-    double surf_lat = 50.0 * rpd_c();
-    latrec_c ( radius, surf_lon, surf_lat, surf.data() );
-
-    Eigen::Vector3d surf_obs = surf * (0.28 + 1.5);
-    psmrts::PRQRayTrace prq_ray(surf_obs, -surf_obs );
-
-    // Now compute expected/precise look vector from observer to surface intercept point
-    Eigen::Vector3d lookdir = prq_ray.trace().xyz() - obs;
-    */
-
+    // Uninitialized ray trace should fail.
     psmrts::PRQRayTrace ray;
-
     CHECK( shape.process(ray) == false );
 
 }

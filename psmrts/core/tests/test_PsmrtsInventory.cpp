@@ -8,7 +8,11 @@
 TEST_CASE( "PSMRTS Inventory Default", "[product][inventory][default]") {
 
   psmrts::PsmrtsInventory inventory;
-  CHECK( sizeof( psmrts::PsmrtsInventory ) == 1144 );
+
+  // Comment out this test as its OS dependent. The sizes of the variants
+  // differ per OS, but is useful to track the size as we copy many of them
+  // rather than use pointers/virtual classes.
+  // CHECK( sizeof( psmrts::PsmrtsInventory ) == 1144 );
 
   CHECK( inventory.product().name() == "product" );
   CHECK( inventory.product().type() == "inventory" );

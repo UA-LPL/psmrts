@@ -142,9 +142,23 @@ namespace psmrts {
         return ( m_enum );
       }
 
-      /** Returns size of the data -  1 for scalars, DataTypes::size() otherwise */
+      /** 
+       * @brief veturns size of the data -  1 for scalars, DataTypes::size() otherwise
+       * 
+       * This method returns the sise of the data element contained within this instance
+       * of the class. All interisic types report asize of 1, where as all other vectors
+       * return the size of the actual values contained in the data.
+       * 
+       * The overload{  } construct allows you to seclect the correct type stored in variant
+       * and reprot the actual size of the data.
+       */
       inline size_t size() const {
-        // Run an overloaded visitor with default behavior
+        // Run an overloaded visitor with default behavior. This overload
+        // requires a lambda that successfully accepts each variant
+        // type and takes appropriate action. This particular overload will
+        // simply return the appropriate number of elements/type. Scalar
+        // integral types will always return 1, executed by the std:visit()
+        // below. 
         const auto visitor = overload{            
                   [](const std::string &s) { return ( s.size() ); },            
                   [](const std::vector<int> &i_array) { return (i_array.size() ); },
@@ -181,15 +195,32 @@ namespace psmrts {
         }
 
       /** Convert the value to a string using JSON rules */
+
+      /**
+       * @brief Returns the string representation of the content of the product.
+       * 
+       * Each variably type may have particulare specifics involve in performing a string
+       * conversion. This overload{} construct ovecomes any particlars using specialization
+       * of ach type.
+       * 
+       * @return std::string 
+       */
       inline std::string to_string() const {
+
+        // This overload structure handles conversions of each variant
+        // type by calling the appropriate lambda method and converting
+        // the stored variant variable type to a string, executed by the
+        // std::visit() below.
         const auto visitor = overload {
 
+                  // Handle intrisics
                   [](const bool &b) { return ( std::string( ( b ? "true" : "false" ) ) ); },            
                   [](const int &i ) { return ( std::to_string( i ) ); },            
                   [](const size_t &t ) { return ( std::to_string( t ) ); },            
                   [](const double &d ) { return ( ProductOption::to_string( d ) ); },                  
                   [](const std::string &s) { return ( s ); },   
 
+                  // Vector types shoudl look similar to JSON here.
                   [](const std::vector<int> &i_array) { return ( to_string( i_array ) ); },
                   [](const std::vector<size_t> &i_t_array) { return ( to_string( i_t_array ) ); },
                   [](const std::vector<double> &d_array) { return (  to_string( d_array ) ); },
@@ -303,6 +334,7 @@ namespace psmrts {
         return ( j_data.dump() );        
       } 
 
+      /** Determine if two products contain the same data */
       inline bool equals( const ProductOption &opt ) const {
         if ( this->name() != opt.name() ) return ( false );
         if ( this->type() != opt.type() ) return ( false );
