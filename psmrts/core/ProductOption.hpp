@@ -212,7 +212,10 @@ namespace psmrts {
         // the stored variant variable type to a string, executed by the
         // std::visit() below.
         const auto visitor = overload {
-
+#if defined(WIN32) || defined(_MSC_VER) || defined(__CYGWIN__)
+#pragma warning ( push )
+#pragma warning ( disable : 4573 )
+#endif
                   // Handle intrisics
                   [](const bool &b) { return ( std::string( ( b ? "true" : "false" ) ) ); },            
                   [](const int &i ) { return ( std::to_string( i ) ); },            
@@ -227,6 +230,9 @@ namespace psmrts {
                   [](const std::vector<std::string> &s_array) { return ( to_string( s_array ) ); },
 
                   [](const ordered_json &j) { return ( j.dump() );  }
+#if defined(WIN32) || defined(_MSC_VER) || defined(__CYGWIN__)
+#pragma warning ( pop )
+#endif                  
               };
          
          return ( std::visit(visitor, m_data ) );
