@@ -6,7 +6,6 @@ target_sources( psmrts PUBLIC ProductConfiguration.hpp
                               ProductProcessDispatch.hpp
                               ProductSpecification.hpp
                               PRQProduct.hpp
-                              PRQShape.hpp
                               PsmrtsBuffer.hpp
                               PsmrtsBufferData.hpp
                               PsmrtsCache.hpp
