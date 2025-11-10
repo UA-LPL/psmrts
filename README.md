@@ -70,12 +70,12 @@ cmake --build build --target coverage
 open ./build/coverage/index.html
 ```
 
-The [Doxygen](https://www.doxygen.nl/index.html) configuration file, Doxyfile, is located in the docs directory. To access the documentation enter the following commands:
+The [Doxygen](https://www.doxygen.nl/index.html) configuration file, Doxyfile, is located in the docs directory. To access the documentation the `-D` tag is required when executing ./make_psmrts.sh, then requires the following commands, by example:
 
 ```
-cd docs
-doxygen Doxyfile
-open ./html/index.html
+./make_psmrts.sh -t -D -j4
+cmake --build build --target doxy_docs
+open ./docs/html/index.html
 ```
 The open commands for each process will load the related interactable HTML reports to the default browser.
 

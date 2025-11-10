@@ -13,6 +13,10 @@
 
 TEST_CASE("PsmrtsTracer Default / Validity Test", "[tracer][default]") {
     psmrts::PsmrtsTracer tracer;
+
+    // This sizeof() is not the same on all OSes, tracks sizes of tracers
+    // CHECK( sizeof( psmrts::PsmrtsTracer ) == 824 );
+
     CHECK( tracer.isValid()      == false );
 
     psmrts::PsmrtsTracer sphere = psmrts::PsmrtsTracer::sphere( 1.0 );

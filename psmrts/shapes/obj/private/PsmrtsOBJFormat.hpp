@@ -90,6 +90,11 @@ namespace psmrts {
         return ( m_obj_source );
       }
 
+      /** Returns the materials search path */
+      inline const std::string &obj_mtl_search_path() const {
+        return ( this->config().mtl_search_path );
+      }
+
       /** OBJs can have more than one shape in a file */
       inline size_t nShapes() const {
         if ( !this->isValid() ) return ( 0 );
@@ -436,15 +441,26 @@ namespace psmrts {
     inline void make_config(std::string objfile, tinyobj::ObjReader *reader) {
       ordered_json options;
       options["obj_file"] = objfile;
-      if (sizeof(tinyobj_real_type) == sizeof(float)) {
-        options["obj_data_type"] = "float";
-      } else {
-        options["obj_data_type"] = "double";
-      }
-      options["obj_mtl_search_path"] = m_obj_config.mtl_search_path;
+      options["obj_data_type"] = PsmrtsOBJFormat::get_data_type( );
+      options["obj_mtl_search_path"] = this->obj_mtl_search_path();
       options["required"] = { "obj_file" };
       options["optional"] = { "obj_data_type", "obj_mtl_search_path" };
       m_config_j = ProductSpecification("obj", "mesh", options);
+    }
+
+    inline ProductMetaData get_metadata( tinyobj::ObjReader *reader ) {
+      ProductMetaData meta( "obj" );
+      meta.add( ProductOption( "obj_file", this->obj_source() ) );
+      meta.add( ProductOption( "obj_data_type", PsmrtsOBJFormat::get_data_type() ) );
+      meta.add( ProductOption( "obj_mtl_search_path", this->obj_mtl_search_path() ) );
+      meta.add( ProductOption( "obj_shapes", this->nShapes() ) );
+      meta.add( ProductOption( "obj_vertices", this->nVertexes() ) );
+      meta.add( ProductOption( "obj_facets", this->nIndexes() ) );      
+      return ( meta );
+    }
+
+    inline ProductMetaData get_metadata( ) {
+      return ( this->get_metadata( m_obj_reader.get() ) );
     }
 
     /**
@@ -491,6 +507,14 @@ namespace psmrts {
           }
         }
         return ( n_indexes );
+      }
+
+      static inline std::string get_data_type() {
+        if ( sizeof(tinyobj_real_type) == sizeof(float) ) 
+          return ("float" );
+
+        // The default is double
+        return ( "double" );
       }
 
     private:

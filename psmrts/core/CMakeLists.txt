@@ -5,9 +5,12 @@ target_sources( psmrts PUBLIC ProductConfiguration.hpp
                               ProductOption.hpp
                               ProductProcessDispatch.hpp
                               ProductSpecification.hpp
+                              PRQProduct.hpp
+                              PRQShape.hpp
                               PsmrtsBuffer.hpp
                               PsmrtsBufferData.hpp
                               PsmrtsCache.hpp
+                              PsmrtsFactory.hpp
                               PsmrtsInventory.hpp
                               PsmrtsJson.hpp
                               PsmrtsMeshData.hpp

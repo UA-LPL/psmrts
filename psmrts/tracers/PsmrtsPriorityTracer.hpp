@@ -17,14 +17,14 @@ namespace psmrts {
   class PsmrtsPriorityTracer : public PsmrtsProduct {
     public:
       using UIDType         = PsmrtsUID::UIDType;
-      using TracerList      = std::vector<PsmrtsTracer>;
+      using TracerList      = std::vector<UIDType>;
       using TracerInventory = ProductInventory<UIDType, PsmrtsTracer>;
 
       PsmrtsPriorityTracer( ) : PsmrtsProduct("prioritytracer") { init(); }
       
       PsmrtsPriorityTracer( const PsmrtsTracer &tracer ) : PsmrtsProduct("prioritytracer") { 
         init();
-        m_tracers.push_back( tracer );
+        this->add_tracer( tracer );
       }
 
       virtual ~PsmrtsPriorityTracer() { }
@@ -41,13 +41,15 @@ namespace psmrts {
 
       /** Adds a tracer to Priority Tracer list */
       inline void add_tracer( const PsmrtsTracer &tracer ) {
-        m_tracers.push_back( tracer );
+        m_tracers.push_back( tracer.uid() );
+        m_inventory_t.add_product( tracer );
       }
       
       inline bool process ( PRQRayTrace &ray ) const {
 
         // Just loop through linear like
-        for ( auto const &tracer : tracers() ) {
+        for ( auto const &uid : tracers() ) {
+          auto const &tracer = m_inventory_t.find( uid );
           if ( tracer.process( ray )  ) {
             return ( ray.isValid() );
           }
@@ -59,7 +61,8 @@ namespace psmrts {
      // Just loop through linear like
         size_t ngood = 0;
         for ( auto &ray : tracelist.traces() ) {
-          for ( auto const &tracer : tracers() ) {
+          for ( auto const &uid : tracers() ) {
+            auto const &tracer = m_inventory_t.find( uid );
             if ( tracer.process( ray ) == true ) ngood++;
           }
         }
@@ -70,16 +73,20 @@ namespace psmrts {
 
      inline bool process ( PRQPhotometricTrace &ray_p ) const {
      // Just loop through linear like
-        for ( auto const &tracer : tracers() ) {
+        for ( auto const &uid : tracers() ) {
+          auto const &tracer = m_inventory_t.find( uid );
           if ( tracer.process( ray_p ) == true ) return ( true );
         }
         return ( false ); // Not a one intercepted
       }     
+
+      
       inline bool process ( PRQPhotometricTraceArray &tracelist ) const {
      // Just loop through linear like
         size_t ngood = 0;
         for ( auto &ray : tracelist.traces() ) {
-          for ( auto const &tracer : this->tracers() ) {
+          for ( auto const &uid : tracers() ) {
+            auto const &tracer = m_inventory_t.find( uid );
             if ( tracer.process( ray ) == true ) ngood++;
           }
         }
@@ -117,7 +124,8 @@ namespace psmrts {
       }
 
       inline bool ray_trace( PRQRayTrace &ray ) const {
-        for ( auto const &tracer : this->tracers() ) {
+        for ( auto const &uid : tracers() ) {
+          auto const &tracer = m_inventory_t.find( uid );
           if ( this->ray_trace( tracer, ray ) == true ) {
             return ( ray.isValid() );
           }
@@ -128,7 +136,6 @@ namespace psmrts {
       inline const TracerList &tracers() const {
         return ( m_tracers );
       }
-
 
       /** Empties the Priority list */
       inline void clear() {

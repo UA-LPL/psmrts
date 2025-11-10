@@ -10,6 +10,8 @@
 #include <psmrts/core/PsmrtsBufferData.hpp>
 #include <psmrts/core/PsmrtsVector3.hpp>
 #include <psmrts/core/PsmrtsMeshData.hpp>
+#include <psmrts/core/ProductConfiguration.hpp>
+#include <psmrts/core/ProductOption.hpp>
 #include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
 
 
@@ -152,6 +154,27 @@ namespace psmrts {
 
             m_config = j_result;
             return;
+        }
+
+        inline ProductMetaData get_metadata( const naif::DskSegment &segment ) {
+          
+          ProductMetaData meta( "dsk" );
+          meta.add( ProductOption( "dsk_file", this->dsk_source() ) );
+          meta.add( ProductOption( "dsk_data_type", "double" ) );
+          meta.add( ProductOption( "dsk_segment_number", segment.segment_number() ) );
+          meta.add( ProductOption( "dsk_surface_id", segment.id() ) );
+          meta.add( ProductOption( "dsk_vertices", segment.n_vertices() ) );
+          meta.add( ProductOption( "dsk_facets", segment.n_plates() ) );
+          meta.add( ProductOption( "dsk_reference_id", segment.bodyid() ) );
+          meta.add( ProductOption( "dsk_body_id", segment.bodyid() ) );
+          meta.add( ProductOption( "dsk_surface_id", segment.surfaceid() ) );
+          meta.add( ProductOption( "dsk_frame_id", segment.frameid() ) );
+          meta.add( ProductOption( "dsk_type", segment.dtype() ) );
+          meta.add( ProductOption( "dsk_class", segment.dclass() ) );
+          meta.add( ProductOption( "dsk_minimum_radius", segment.minimum_radius() ) );
+          meta.add( ProductOption( "dsk_maximum_radius", segment.maximum_radius() ) );
+
+          return ( meta );
         }
 
         inline const ordered_json &config() const {

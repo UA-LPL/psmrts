@@ -142,11 +142,34 @@ namespace psmrts {
         return result;
       }
 
-      /** Checks if a user/dev request can be satisfies by this product spec 
-      inline bool satisfies( const ProductConfiguration &config ) const {
+      /** Checks if this spec supports the configuration */ 
+      inline bool extract( const ProductConfiguration &config, 
+                           ProductConfiguration &options ) const {
 
+        options = ProductConfiguration( this->name() );
+
+        size_t n_missing = 0;
+        for ( auto const &key : this->required() ) {
+          if ( config.contains( key ) ) {
+            options.add( config.find( key ) );
+          }
+          else {
+            n_missing++;
+          }
+        }
+
+        // Check for any optional keywords
+        size_t n_optional = 0;
+        for ( auto const &key : this->optional() ) {
+          if ( config.contains( key ) ) {
+            options.add( config.find( key ) );
+            n_optional++;
+          }
+        }
+
+        if ( n_missing > 0 ) { return ( false ); }
+        return ( true );
       }
-      */
 
       /** Compares two specfications for a match */
       inline bool matches( const ProductSpecification &other, const bool throwException = false ) const {
@@ -195,7 +218,7 @@ namespace psmrts {
       std::string          m_product;
       std::string          m_type;
       ordered_json         m_specs;
-      ProductFeatureList m_parameters;
+      ProductFeatureList  m_parameters;
 
 
       /** Parse/internalize the contents of the JSON struct */

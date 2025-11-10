@@ -449,10 +449,10 @@ TEST_CASE( "Ellipsoid Shape Tracer Photometric Array Test", "[ellipsoid][shapetr
 }
 
 TEST_CASE( "Ellipsoid Shape Tracer Product Specification Test", "[ellipsoid][shapetracer][product][specification]") {
-    psmrts::ProductSpecification spec = psmrts::EllipsoidTracer::product_specifications();
-
+    // This must be a vector to get all three specs - it should be a PRQRegistration eventually
+    psmrts::ProductSpecification spec = psmrts::EllipsoidTracer::ellipsoid_product_spec();
     CHECK( spec.name()              == "ellipsoid"   );
-    CHECK( spec.product()           == "shapetracer" ); 
+    CHECK( spec.product()           == "tracer"      ); 
     CHECK( spec.type()              == "tracer"      );
     CHECK( spec.driver().name()     == "ellipsoid"   ); 
     CHECK( spec.size()              == 2             );
@@ -462,6 +462,26 @@ TEST_CASE( "Ellipsoid Shape Tracer Product Specification Test", "[ellipsoid][sha
 
     CHECK( spec.has_parameter( "obj_mtl_search_path" ) == false );
     CHECK( spec.has_parameter( "ellipsoid_radii" )  == true  );
+
+    psmrts::ProductSpecification sphere_spec = psmrts::EllipsoidTracer::sphere_product_spec();
+    CHECK( sphere_spec.name()              == "sphere" );
+    CHECK( sphere_spec.product()           == "tracer" );
+    CHECK( sphere_spec.type()              == "tracer" );
+    CHECK( sphere_spec.driver().name()     == "sphere" );
+    CHECK( sphere_spec.size()              == 2 );
+    CHECK( sphere_spec.parameters().size() == 2 );
+    CHECK( sphere_spec.required().size()   == 1 );
+    CHECK( sphere_spec.optional().size()   == 1 );
+
+    psmrts::ProductSpecification spheroid_spec = psmrts::EllipsoidTracer::spheroid_product_spec();
+    CHECK( spheroid_spec.name()              == "spheroid" );
+    CHECK( spheroid_spec.product()           == "tracer" );
+    CHECK( spheroid_spec.type()              == "tracer" );
+    CHECK( spheroid_spec.driver().name()     == "spheroid" );
+    CHECK( spheroid_spec.size()              == 2 );
+    CHECK( spheroid_spec.parameters().size() == 2 );
+    CHECK( spheroid_spec.required().size()   == 1 );
+    CHECK( spheroid_spec.optional().size()   == 1 );
 }
 
 

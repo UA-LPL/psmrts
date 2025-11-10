@@ -103,7 +103,7 @@ CHECK ( path_ext == "cpp" );
 std::string path_file = psmrts::psmrts_file_path( path );
 CHECK ( path_file == "tests" ); // Should be tests? 
 
-std::string path_base = psmrts::psmrts_file_basename( path );
+std::string path_base = psmrts::psmrts_filename( path );
 CHECK ( path_base == "test_PsmrtsUtilities.cpp" );
 
 }

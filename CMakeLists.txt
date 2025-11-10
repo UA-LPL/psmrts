@@ -9,11 +9,12 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(psmrts_register_code_coverage)
 
 # Add option to build tests and tools
-option( BUILD_TESTING    "Add PSMRTS unit tests"       OFF )
-option( BUILD_COVERAGE   "Build with code coverage"    OFF )
-option( BUILD_EXTRAS     "Add PSMRTS tools extras"     OFF )
-option( BUILD_CAPI       "Build PSMRTS C API"           ON )
-option( BUILD_CAPI_APPS  "Build PMSRTS C API and APPS"  ON )
+option( BUILD_TESTING    "Add PSMRTS unit tests"            OFF )
+option( BUILD_COVERAGE   "Build with code coverage"         OFF )
+option( BUILD_EXTRAS     "Add PSMRTS tools extras"          OFF )
+option( BUILD_CAPI       "Build PSMRTS C API"               ON  )
+option( BUILD_CAPI_APPS  "Build PMSRTS C API and APPS"      ON  )
+option( BUILD_DOCS       "Build API Doxygen Documentation"  OFF )
 
 if(BUILD_CAPI_APPS)
   # Ensure we build the complete C API
@@ -41,8 +42,8 @@ endif(BUILD_TESTING)
 #set(CMAKE_VISIBILITY_INLINES_HIDDEN YES)
 
 # This is PROJECT_SOURCE_DIR=psmrts
-project(PSMRTS VERSION 0.3.5 LANGUAGES CXX C)
-set( PSMRTS_VERSION_DATE  "2025-09-10")
+project(PSMRTS VERSION 0.3.7 LANGUAGES CXX C)
+set( PSMRTS_VERSION_DATE  "2025-11-04")
 include(GNUInstallDirs)
 
 set( PSMRTS_PROJECT_DIR  ${CMAKE_SOURCE_DIR} )
@@ -89,6 +90,7 @@ target_include_directories( psmrts INTERFACE
 )
 target_link_libraries( psmrts INTERFACE psmrts::psmrts-dependencies )
 add_library( psmrts::psmrts ALIAS psmrts )
+set_target_properties( psmrts PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION ${PROJECT_VERSION_MAJOR} )
 
 # Build C-API here if requested
 if( BUILD_CAPI OR BUILD_CAPI_APPS )
@@ -140,3 +142,17 @@ if( BUILD_TESTING )
   endif(BUILD_COVERAGE)
 endif( BUILD_TESTING )
 
+if(BUILD_DOCS)
+  find_package(Doxygen QUIET)
+
+  if(DOXYGEN_FOUND)
+    add_custom_target(doxy_docs ALL
+        COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/docs
+        COMMENT "Generating Doxygen API Documentation.."
+        VERBATIM
+    )
+  else ()
+    message(WARNING "ERROR: Doxygen not found, unable to generate documentation.")
+  endif()
+endif(BUILD_DOCS)

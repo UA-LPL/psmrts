@@ -7,8 +7,9 @@ codecovopts=""
 extraopts=""
 buildopts="-DCMAKE_BUILD_TYPE=Release"
 usecpus=""
+doxyopts=""
 
-while getopts ":htcdxj:" o; do
+while getopts ":htcdxDj:" o; do
     case "${o}" in
         t)
             testopts="-DBUILD_TESTING=ON"
@@ -24,6 +25,9 @@ while getopts ":htcdxj:" o; do
         d)
             buildopts="-DCMAKE_BUILD_TYPE=Debug"
             ;;
+        D)
+            doxyopts="-DBUILD_DOCS=ON"
+            ;;
         j)
             usecpus="-j ${OPTARG}"
             ;;
@@ -36,5 +40,5 @@ done
 shift $((OPTIND-1))
 
 
-cmake  -B build -S . ${buildopts} ${testopts} ${codecovopts} ${extraopts} -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake
+cmake  -B build -S . ${buildopts} ${testopts} ${codecovopts} ${extraopts} ${doxyopts} -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake
 cmake  --build build ${usecpus}

@@ -9,8 +9,10 @@
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsCache.hpp>
+#include <psmrts/core/PRQProduct.hpp>
 #include <psmrts/core/ProductInventory.hpp>
-#include <psmrts/core/PsmrtsInventory.hpp>
+#include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/core/PRQProduct.hpp>
 
 namespace psmrts {
 
@@ -160,6 +162,7 @@ namespace psmrts {
         return (this->inventory().find( name ) );
       }
 
+
       /**
        * @brief Add PsmrtsShape object into a named inventory
        * 
@@ -270,12 +273,21 @@ namespace psmrts {
       /** Liquidate/empty all PSRMTS factory inventory - affects all instances of PsrmtsFactory! */
       inline static void liquidate( ) {
         PsmrtsFactory::m_inventory.clear();
+        
+        // Be sure to set up the defaul inventory
+        PsmrtsFactory::m_inventory = { "psmrts", "inventory" };
         return;
       }
 
     private:
+    // Definitions for the product registry. This holds all the products that have specifications
+      using ProductSpecs =  ProductInventory<std::string, ProductSpecification, lowercase_key_id<std::string>>;
+      using ProductRegistry =  ProductInventory<std::string, ProductSpecs, lowercase_key_id<std::string>>;
+      static inline ProductRegistry  m_registry  = { };
+
+      // Definitions and cache of active product inventories.
       using FactoryInventory = ProductInventory<std::string, PsmrtsInventory, lowercase_key_id<std::string>>;
-      static inline FactoryInventory m_inventory = { "psmrts", "inventory" };
+      static inline FactoryInventory m_inventory = { "psmrts", "inventory" }; // set up default product cache
 
       /** Return the factory inventory */
       inline const FactoryInventory &inventory() const {

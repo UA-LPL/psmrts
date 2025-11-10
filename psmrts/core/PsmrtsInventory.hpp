@@ -40,7 +40,7 @@ namespace psmrts {
     */
     class PsmrtsInventory : public PsmrtsProduct {
       public:
-        using UIDType         = PsmrtsUID::UIDType;
+        using UIDType         = PsmrtsProduct::UIDType;
         using PsmrtsParameter = ProductOption;
 
         using ShapeInventory          = ProductInventory<UIDType, PsmrtsShape>;

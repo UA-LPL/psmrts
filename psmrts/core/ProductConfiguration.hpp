@@ -7,6 +7,7 @@
 #include <initializer_list>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/ProductOption.hpp>
 
 namespace psmrts { 
@@ -62,7 +63,7 @@ namespace psmrts {
         return;
       }
 
-      inline const ProductOption &find( const std::string &name ) {       
+      inline const ProductOption &find( const std::string &name ) const {       
         std::string name_l = psmrts_tolower( name );
         for ( auto const &option : m_options ) {
           if ( option.name() == name_l ) {
@@ -91,11 +92,93 @@ namespace psmrts {
         m_options.clear();
       }
 
-    protected:
+      inline psmrts_json to_json( ) const {
+        psmrts_json option_j;
+        for ( auto const &opt_j : m_options ) {
+          option_j.update( opt_j.to_json() );
+        }
+        return ( option_j );
+      }
+
+      /**
+       * @brief Return difference of this config and another config
+       * 
+       * This method will compare the contents of this object contents
+       * of the config object argument. Note this does not actually
+       * compare values of option, but determines options that exist in
+       * "config" but not in this object. See the compare method.
+       * 
+       * @param config  Contains a single product config that is compared with
+       *                  the options contained in this object.
+       * @return ProductConfiguration Contains all options in "config" that are
+       *                                 not also in this object 
+       */
+      inline ProductConfiguration difference( const ProductConfiguration &config,
+                                              const bool twoway = false ) const {
+        ProductConfiguration diff_c( config.name() );
+        if ( &config != this ) {
+          for ( auto const &opt_t : this->options() ) {
+            if ( !config.contains( opt_t.name() ) ) {
+              diff_c.add( opt_t );
+            }
+            else {
+              if ( config.find( opt_t.name() ).to_string() != opt_t.to_string() ) {
+                diff_c.add( opt_t );
+              }
+            }
+          }
+
+          if ( true == twoway ) { 
+            // Now check config for options that don't exist in diff
+            for ( auto const &conf_t : config.options() ) {
+              if ( !this->contains( conf_t.name() ) ) {
+                diff_c.add( conf_t );
+              }
+            }
+          }
+        }
+        return ( diff_c );
+      }
+
+      inline bool compare( const ProductConfiguration &config,
+                           const bool throw_errors = false ) const {
+        PsmrtsRequest errors_t;
+        for ( auto const &opt_t : this->options() ) {
+          try {
+            if ( !opt_t.equals( config.find( opt_t.name() ) ) ) {
+              errors_t.add_error( std::runtime_error( "Option " + opt_t.name() + " does not match!") );
+            }
+          }
+          catch ( const std::runtime_error &e ) {
+            // Doesn't exist
+            errors_t.add_error( e );
+          }
+        }
+
+        if ( errors_t.error_count() > 0 ) {
+          if ( true == throw_errors ) {
+            errors_t.add_error( std::runtime_error( "*** ProductConfiguration::compare( " + config.name() + " with errors:") );
+            errors_t.throw_errors();
+          }
+          return ( false );
+        }
+
+        return ( true );
+      }
+
+      /** Return the list of options in this configuration */
+      inline const ProductOptionList &options() const {
+        return ( m_options );
+      }
+
+    private:
       std::string       m_name;
       ProductOptionList m_options;
   };
 
+
+  // Temporary? definition of ProductMetaData
+  using ProductMetaData = ProductConfiguration;
 
 } // namespace psmrts
 

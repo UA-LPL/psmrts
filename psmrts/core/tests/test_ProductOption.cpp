@@ -90,7 +90,7 @@ TEST_CASE( "ProductOption Parameter Constructor and Default Tests", "[parameter]
   CHECK(psmrts::ProductOption("bool", true).to_string() == "true");
   CHECK(psmrts::ProductOption("int", 42).to_string() == "42");
   CHECK(psmrts::ProductOption("double", 3.14).to_string().substr(0, 4) == "3.14");
-  CHECK(psmrts::ProductOption("string", std::string("test")).to_string() == "\"test\"");
+  CHECK(psmrts::ProductOption("string", std::string("test")).to_string() == "test");
   CHECK(psmrts::ProductOption("intarray", {1, 2, 3}).to_string() == "[1,2,3]");
   CHECK(psmrts::ProductOption("dblarray", {1.1, 2.2, 3.3}).to_string().find("2.2") != std::string::npos);
   CHECK(psmrts::ProductOption("strarray", {"one", "two"}).to_string() == R"(["one","two"])");

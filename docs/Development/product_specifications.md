@@ -676,3 +676,40 @@ To specify a priority tracer requires multiple shape tracer product configuratio
 const char *bennu_tag_global = "[{tracer=bullet;obj_file=l_00050mm_alt_ptm_5595n04217_v020.obj}\n{tracer=naifdsk;dsk_file=g_00880mm_alt_ptm_0000n00000_v020.bds}]";
 ```
 Clearly, order matters here. You can also separate the arrays with commas as is allowed by JSON, otherwise use the semicolon or line feed characters to separate all keyword/value pairs and priority shape tracers.
+
+### Processes to Create Products
+Process requests, or PRQs, are used to configure PSMRTS products. Ultimately, this process results in compound ray tracing objects for individual targets. Targets can be global or regional for most any composition. These instances are scalable and can result in complex configurations.
+
+PSMRTS products are primarily comprised of shapes, tracers and priority tracers. Shapes are typically stored in files containing tesselated plate/mesh-like formatted data. Currently, PSMRTS supports OBJ, PLY and NAIF DSK file formats. Users can also map data to PMSRTS buffers that can also be used in PSMRTS tracers. (DEMONSTRATE THIS!!)
+
+Tracers may or may not require a mesh object. For example, spheres, spheroids (two axes) and (triaxial) ellipsoids are dataless mathematical models of shapes. PSMRTS must accomodate construction of these types of objects and more.
+
+Priority tracers are set of two or more tracers that act on the same body. Complex multi-body tracing can be achieved, but requires frame transformations of observer positions and look direction rays from the observer into body fixed coordinates. Thus, target body shapes must be represented in body fixed coordinates where the center of the body is the origin. Frame rotations are not currently support directly in PSMRTS but is planned in future releases. Users can also create custom tracing enviroments for these and other special purposes.
+
+PSMRTS products are constructed from a user/dev supplied configuration. Individual product configurations are contained in the ProductConfiguration object. The PRQConfiguration class, utilizing a fundamental request/process technique, contains one or more product configurations that ultimately end up as a tracer or a priority tracer. Shapes are consumed by tracers and tracers are comprised of multiple tracers.
+
+### Steps to create PSMRTS Products
+The steps required to create PSMRTS products are outlined below. Generally, users must construct a ProductConfiguration comprised of product options specified to the desired object to create. Fundamentally, ProductConfigurations are designed toward tracers. As such, the configuration of a shape is included within a ProductConfiguration as required by the tracer. Tracer shape requirements can vary significantly. For example, spheres, spheroids and ellipsoids have no physical data associated with its mathematical model other than radii; NAIF DSK tracers support only one file format (NAIF DSK .bds) and are not physically loaded but disk bound; Bullet can accept any triangular/facet-based mesh (including float and double types - PSMRTS standardizes on double precison mesh data). However, a configuration can specify only a shape. Priority tracers are created from individual tracers where each has a ProductConfiguration.
+
+Here are preconditions/actions/considerations that occur in the creation of PSRMTS tracer products:
+1. ProductConfigurations (`config` hereafter) are added to the PRQProduct (hereafter just `PRQ` unless otherwise specified) object.
+1. For each individual tracer, a new `config` is added to the `PRQ`.
+1. The `PRQ` is processed by the PsmrtsFactory::process(`PRQ`) method.
+1. After processing, the PRQ contains all its products (minimally) that can be used to construct additional compound structures in a PsmrtsInventory, the basis of the PSMRTS caching system.
+1. The desired products can be extracted from the `PRQ` results.
+1. The `PRQ` result can be `merged` into the main PSMRTS cache, `psmrts`, added to the PsmrtsFactory cache as a standalone cache for future reference.
+1. Then, `PRQ` requests can be restricted to unique cache names (may be a file name) by `adding` its name to a list of inventories to search for existing products into the `PRQ` directly.
+1. Unique caches are not included in searches unless added by name to the `PRQ`, otherwise the system cache `psmrts` is used.
+1. If the preliminary search for an existing product fails, it is created using the product `config`.
+1. Priority tracers can efficiently and effectively be stored as an entire PsmrtsInventory. However, all the components of a priorty tracer are contained in the cache system individually and constructed on demand unless the priority tracer is constructed by name.
+
+
+
+Here are the processing steps ran in PsmrtsFactory::process(`PRQ`) to create PSRMTS tracer products:
+1. Evalute `config` to identify individual products using `ProductSpecification` as stored in the factory caching system.
+1. After each product has been identified, check to determine if any residual options remain.
+    1. Unconsumed options indicate an ill-configured composite product. These may well be typos in named parameters.
+    1. An error condition is logged and the process is terminated.
+1. For each defined product, exiting PSMRTS product caches are executed as defined above.
+1. If cached products don't exist, a new one is created and added to the `PRQ` local result inventory for future reference (remember the local cache is also searched first).
+1. Priority tracers can efficiently and effectively be stored as an entire PsmrtsInventory. 
