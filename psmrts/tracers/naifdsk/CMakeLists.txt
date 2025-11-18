@@ -1,7 +1,11 @@
 # This requires Bullet double precision, which should already be in psrmts-dependencies
 
 # Add naifdsk classes to PSRMTS target
-target_sources(psmrts PRIVATE NaifDskTracer.hpp)
+target_sources(psmrts PUBLIC
+                         FILE_SET psmrts_headers 
+                           TYPE HEADERS 
+                           FILES  NaifDskTracer.hpp
+              )
 add_subdirectory( private )    # May not need this
 
 # Add test directory if BUILD_TESTING and/or BUILD_COVERAGE is set

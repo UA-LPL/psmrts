@@ -8,7 +8,11 @@ set( CMAKE_C_STANDARD 17 )
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(psmrts_register_code_coverage)
 
+#-----------------------------------------------------------------------------
+# PSMRTS build options
+#-----------------------------------------------------------------------------
 # Add option to build tests and tools
+option( BUILD_SHARED     "Build PSMRTS shared libraries"    OFF )
 option( BUILD_TESTING    "Add PSMRTS unit tests"            OFF )
 option( BUILD_COVERAGE   "Build with code coverage"         OFF )
 option( BUILD_EXTRAS     "Add PSMRTS tools extras"          OFF )
@@ -31,20 +35,14 @@ if(BUILD_TESTING)
     enable_testing()
 endif(BUILD_TESTING)
 
-# See https://github.com/Microsoft/vcpkg/issues/4497 as to why this
-# is needed. Its a conflict with proj and nlohmann_json.
-#set( other_flags "${other_flags} -frtti -fvisibility-inlines-hidden" )
-#set( other_flags "${other_flags} -fvisibility=hidden" )
-#set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${other_flags}" )
-
-# Must be set before project()
-#set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-#set(CMAKE_VISIBILITY_INLINES_HIDDEN YES)
-
-# This is PROJECT_SOURCE_DIR=psmrts
+#-----------------------------------------------------------------------------
+# PSMRTS project configuration. PROJECT_SOURCE_DIR=psmrts
+#-----------------------------------------------------------------------------
 project(PSMRTS VERSION 0.3.7 LANGUAGES CXX C)
 set( PSMRTS_VERSION_DATE  "2025-11-04")
+
 include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
 
 set( PSMRTS_PROJECT_DIR  ${CMAKE_SOURCE_DIR} )
 set( PSMRTS_DIR          ${CMAKE_SOURCE_DIR}/psmrts )
@@ -59,17 +57,24 @@ configure_file( psmrts_version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/psmrts/core/psmr
 # Set psmrts source and include directory
 set( PSMRTS_BUILD_DIR    ${CMAKE_BINARY_DIR} )
 
+#-----------------------------------------------------------------------------
 # Set up link dependencies for PSMRTS
-find_package( spdlog CONFIG REQUIRED )
-find_package( nlohmann_json CONFIG REQUIRED )
-find_package( Eigen3 CONFIG REQUIRED )
-find_package( Bullet CONFIG REQUIRED )
-find_library( SPICE_LIB cspice )
-find_package( tinyobjloader CONFIG REQUIRED)
+#-----------------------------------------------------------------------------
+find_package( spdlog             CONFIG REQUIRED )
+find_package( nlohmann_json      CONFIG REQUIRED )
+find_package( Eigen3             CONFIG REQUIRED )
+find_package( Bullet             CONFIG REQUIRED )
+find_package( unofficial-cspice  CONFIG REQUIRED)
+find_package( tinyobjloader      CONFIG REQUIRED)
 find_package( unofficial-miniply CONFIG REQUIRED )
 
+# Create standardized/common targets
+include(psmrts_dependency_standards)
+psmrts_create_dependency_targets()
+
+#[[
 # Create interface library that collects PSMRTS dependencies
-add_library( psmrts-dependencies INTERFACE)
+add_library( psmrts-dependencies INTERFACE IMPORTED )
 target_link_libraries( psmrts-dependencies INTERFACE 
     nlohmann_json::nlohmann_json
     Eigen3::Eigen
@@ -80,24 +85,96 @@ target_link_libraries( psmrts-dependencies INTERFACE
     spdlog::spdlog
 )
 add_library( psmrts::psmrts-dependencies ALIAS psmrts-dependencies )
+]]
 
-# Create the PSMRTS interface export target
+#-----------------------------------------------------------------------------
+# Set up for PSMRTS library interface.
+#-----------------------------------------------------------------------------
 add_library( psmrts INTERFACE )
+add_library( psmrts::psmrts ALIAS psmrts )
 add_subdirectory(psmrts)
 target_include_directories( psmrts INTERFACE 
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>
 )
-target_link_libraries( psmrts INTERFACE psmrts::psmrts-dependencies )
-add_library( psmrts::psmrts ALIAS psmrts )
-set_target_properties( psmrts PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION ${PROJECT_VERSION_MAJOR} )
+
+# Create link depedendencies using standarized targets
+#target_link_libraries( psmrts INTERFACE psmrts::psmrts-dependencies )
+target_link_libraries( psmrts INTERFACE
+    nlohmann_json::nlohmann_json
+    Eigen3::Eigen
+    cspice::cspice
+    Bullet::Bullet_double
+    tinyobjloader::tinyobjloader_double
+    miniply::miniply
+    spdlog::spdlog
+)
+
+#-----------------------------------------------------------------------------
+# Set up SHARED PSMRTS library versioning.
+#-----------------------------------------------------------------------------
+if(BUILD_SHARED)
+  set_target_properties( psmrts PROPERTIES VERSION ${PROJECT_VERSION} )
+  # Set SOVERSION for non-WINDOWS systems.
+  if(NOT WIN32 OR MINGW)
+    set_target_properties( psmrts PROPERTIES SOVERSION ${PROJECT_VERSION_MAJOR} )
+  endif()
+endif()
+
+#-----------------------------------------------------------------------------
+# Install PSMRTS targets and export/import configuration.
+#-----------------------------------------------------------------------------
+ install(TARGETS psmrts
+         EXPORT psmrts_targets
+         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+         FILE_SET psmrts_headers DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/psmrts
+ )
 
 # Build C-API here if requested
 if( BUILD_CAPI OR BUILD_CAPI_APPS )
   add_subdirectory( psmrts/capi )
+  install(TARGETS psmrts_c
+          EXPORT psmrts_targets
+          ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+          FILE_SET psmrts_c_headers DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/psmrts/capi
+          FILE_SET generated_headers DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/psmrts/capi
+        )
 endif( BUILD_CAPI OR BUILD_CAPI_APPS )
 
-# Optionally add unit tests of psmrts classes
+# Export target configurations
+install(EXPORT psmrts_targets
+          FILE psmrts-targets.cmake 
+          DESTINATION lib/cmake/psmrts 
+          NAMESPACE psmrts:: 
+        )
+
+  
+# Create and write the PSMRTS package configuration file.
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/psmrts-config.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/psmrts-config.cmake"
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/psmrts
+)
+
+# Create and install version package.
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/psmrts-config-version.cmake"
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY AnyNewerVersion
+)
+
+# Install PSMRTS configuration files.
+install(FILES 
+         "${CMAKE_CURRENT_BINARY_DIR}/psmrts-config.cmake"
+         "${CMAKE_CURRENT_BINARY_DIR}/psmrts-config-version.cmake" 
+        DESTINATION  ${CMAKE_INSTALL_LIBDIR}/cmake/psmrts )
+
+#-----------------------------------------------------------------------------
+# Optionally build unit tests and code coverage of PSMRTS classes
+#-----------------------------------------------------------------------------
 if( BUILD_TESTING )
   configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/psmrts/core/tests/psmrts_test_config.h.in 
                   ${CMAKE_CURRENT_SOURCE_DIR}/psmrts/core/tests/psmrts_test_config.h @ONLY )
@@ -111,12 +188,12 @@ if( BUILD_TESTING )
     append_coverage_compiler_flags()
 
     # Try hard coding coverage flags as it does not seem to work without it.
-    target_compile_options(psmrts INTERFACE -g0 -coverage)
-    target_link_options(psmrts    INTERFACE -g0 -coverage)
+    target_compile_options(psmrts PRIVATE -g0 -coverage)
+    target_link_options(psmrts    PRIVATE -g0 -coverage)
 
     if(BUILD_CAPI)
-      target_compile_options(psmrts_c INTERFACE -g0 -coverage)
-      target_link_options(psmrts_c    INTERFACE -g0 -coverage)
+      target_compile_options(psmrts_c PRIVATE -g0 -coverage)
+      target_link_options(psmrts_c    PRIVATE -g0 -coverage)
     endif(BUILD_CAPI)   
 
     # Exclude any instances of VCPKG
@@ -142,6 +219,9 @@ if( BUILD_TESTING )
   endif(BUILD_COVERAGE)
 endif( BUILD_TESTING )
 
+#-----------------------------------------------------------------------------
+# Build PSMRTS documentation
+#-----------------------------------------------------------------------------
 if(BUILD_DOCS)
   find_package(Doxygen QUIET)
 

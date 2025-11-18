@@ -42,3 +42,4 @@ shift $((OPTIND-1))
 
 cmake  -B build -S . ${buildopts} ${testopts} ${codecovopts} ${extraopts} ${doxyopts} -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake
 cmake  --build build ${usecpus}
+#cmake  --install build --prefix install

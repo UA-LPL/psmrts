@@ -1,5 +1,9 @@
 # Add sources current directory to include path
-target_sources( psmrts PRIVATE PlyShape.hpp )
+target_sources( psmrts PUBLIC
+                         FILE_SET psmrts_headers 
+                           TYPE HEADERS 
+                           FILES PlyShape.hpp 
+              )
 add_subdirectory( private )
 
 # Only add if requested

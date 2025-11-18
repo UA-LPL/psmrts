@@ -1,6 +1,10 @@
 # Add sources current directory to include path
-target_sources( psmrts PRIVATE PsmrtsTracer.hpp
-                               PsmrtsPriorityTracer.hpp )
+target_sources( psmrts PUBLIC
+                         FILE_SET psmrts_headers 
+                           TYPE HEADERS
+                           FILES  PsmrtsTracer.hpp
+                                  PsmrtsPriorityTracer.hpp
+              )
 
 add_subdirectory( bullet )
 add_subdirectory( ellipsoid )

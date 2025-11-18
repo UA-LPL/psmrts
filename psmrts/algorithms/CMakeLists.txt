@@ -1,6 +1,10 @@
 # Add sources current directory to include path
-target_sources( psmrts PUBLIC TracingBasics.hpp )
-c
+target_sources( psmrts PUBLIC
+                         FILE_SET psmrts_headers
+                           TYPE HEADERS 
+                           FILES TracingBasics.hpp
+              )
+
 # Only add if requested
 if(BUILD_TESTING)
   add_subdirectory( tests )

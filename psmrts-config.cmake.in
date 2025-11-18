@@ -1,0 +1,5 @@
+@PACKAGE_INIT@
+
+include ("${CMAKE_CURRENT_BINARY_DIR}/psmrts-targets.cmake")
+
+check_required_components(psmrts)
