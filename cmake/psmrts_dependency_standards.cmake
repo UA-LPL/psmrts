@@ -32,7 +32,8 @@ macro(psmrts_add_cspice_target)
       set(cspice_FOUND FALSE)
     endif()
 
-    add_library( cspice::cspice ALIAS "${_cspice_target_name}" )
+    add_library( cspice::cspice INTERFACE IMPORTED)
+    set_target_properties(cspice::cspice PROPERTIES INTERFACE_LINK_LIBRARIES "${_cspice_target_name}" )
     set(cspice_FOUND TRUE)
     message(STATUS "cspice Target Created/Confirmed: cspice::cspice")
 
@@ -115,7 +116,8 @@ macro(psmrts_add_miniply_target)
       set(miniply_FOUND FALSE)
     endif()
 
-    add_library( miniply::miniply ALIAS "${_miniply_target_name}" )
+    add_library( miniply::miniply INTERFACE IMPORTED )
+    set_target_properties( miniply::miniply PROPERTIES INTERFACE_LINK_LIBRARIES  "${_miniply_target_name}" )
     set(miniply_FOUND TRUE)
     message(STATUS "miniply Target Created/Confirmed: miniply::miniply")
 
