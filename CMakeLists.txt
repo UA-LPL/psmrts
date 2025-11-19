@@ -48,8 +48,8 @@ set( PSMRTS_PROJECT_DIR  ${CMAKE_SOURCE_DIR} )
 set( PSMRTS_DIR          ${CMAKE_SOURCE_DIR}/psmrts )
 set( PSMRTS_TEST_DIR     ${CMAKE_SOURCE_DIR}/psmrts )
 set( PSMRTS_DATA_DIR     ${CMAKE_SOURCE_DIR}core/data )
-set( PSMRTS_TRACERS_DIR   ${CMAKE_SOURCE_DIR}/tracers )
-set( PSMRTS_SHAPES_DIR    ${CMAKE_SOURCE_DIR}/shapes )
+set( PSMRTS_TRACERS_DIR  ${CMAKE_SOURCE_DIR}/tracers )
+set( PSMRTS_SHAPES_DIR   ${CMAKE_SOURCE_DIR}/shapes )
 
 # Configure the project include/header files 
 configure_file( psmrts_version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/psmrts/core/psmrts_version.h @ONLY )
@@ -71,21 +71,6 @@ find_package( unofficial-miniply CONFIG REQUIRED )
 # Create standardized/common targets
 include(psmrts_dependency_standards)
 psmrts_create_dependency_targets()
-
-#[[
-# Create interface library that collects PSMRTS dependencies
-add_library( psmrts-dependencies INTERFACE IMPORTED )
-target_link_libraries( psmrts-dependencies INTERFACE 
-    nlohmann_json::nlohmann_json
-    Eigen3::Eigen
-    "${SPICE_LIB}"
-    ${BULLET_LIBRARIES}
-    tinyobjloader::tinyobjloader_double
-    unofficial::miniply::miniply
-    spdlog::spdlog
-)
-add_library( psmrts::psmrts-dependencies ALIAS psmrts-dependencies )
-]]
 
 #-----------------------------------------------------------------------------
 # Set up for PSMRTS library interface.

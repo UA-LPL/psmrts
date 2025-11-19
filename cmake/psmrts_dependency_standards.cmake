@@ -51,7 +51,7 @@ macro(psmrts_add_bullet_target)
         MATCHES
         ".*-DBT_USE_DOUBLE_PRECISION.*")
         message(
-          FATAL_ERROR "Bullet does not appear to be built with double precision, current definitions: ${BULLETFLOAT64_DEFINITIONS}")
+          FATAL_ERROR "Bullet does not appear to be built with double precision, current definitions: ${BULLET_DEFINITIONS}")
       endif()
       message(STATUS "Bullet Double Compile Definitions: ${BULLET_DEFINITIONS}")
 
@@ -74,7 +74,9 @@ endmacro()
 
 macro(psmrts_add_tinyobjloader_target)
   
-  # This works for both vcpkg and conan
+  # This works for both vcpkg and conan. 
+  # Double precision version is currently not supported in conda
+  # tinyobjloader package.
   set(_tinytarget tinyobjloader::tinyobjloader_double )
   if ( NOT TARGET ${_tinytarget}  )
     message(FATAL_ERROR "tinyobjloader double precision library import target not found - must be "
