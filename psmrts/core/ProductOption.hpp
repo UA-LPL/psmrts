@@ -415,7 +415,10 @@ namespace psmrts {
       }
 
       inline void operator()( const std::vector<size_t> &i_array ) {
-        m_doubles.insert(m_doubles.end(), i_array.begin(), i_array.end() );
+        // m_doubles.insert(m_doubles.end(), i_array.begin(), i_array.end() );
+        for (size_t x : i_array) {
+          m_doubles.push_back(static_cast<double>(x));
+        }
       }
 
       inline void operator()( const std::vector<double> &d_array ) {
@@ -522,27 +525,95 @@ namespace psmrts {
         m_integers.push_back( i );
       }          
 
+      /**
+       * @brief This operator accepts a size_t value and adds its'
+       * integer equivalent to the internal integer array.
+       * 
+       * Note: size_t value that exceed the max possible represented
+       * values for integers will be converted to the max int value.
+       * Please be aware of the given potential for data loss.
+       * 
+       * @param i size_t value
+       */
       inline void operator()( const size_t i )  {
-        m_integers.push_back( i );
+        //m_integers.push_back( i );
+        if ( i > std::numeric_limits<int>::max()) {
+          m_integers.push_back(std::numeric_limits<int>::max());
+        } else {
+          m_integers.push_back( static_cast<int>(i) );
+        }
       }
 
+      /**
+       * @brief This operator accepts a double value and adds its' 
+       *        integer equivalent to the internal integer array.
+       * 
+       * Note: double values that exceed the max/min possible represented
+       * values for integers will be converted to the max/min int value. 
+       * Please be aware of the given potential for data loss.
+       * 
+       * @param d double value
+       */
       inline void operator()( const double d ) {
-        m_integers.push_back( d );
+        //m_integers.push_back( d );
+        if ( d > std::numeric_limits<int>::max()) {
+          m_integers.push_back(std::numeric_limits<int>::max());
+        } else if ( d < std::numeric_limits<int>::min() ) {
+          m_integers.push_back(std::numeric_limits<int>::min());
+        } else {
+          m_integers.push_back(static_cast<int>(d));
+        }
       }
 
       inline void operator()( const std::string &s ) {
       }    
 
+      /**
+       * @brief This operator will accept an array of doubles and add their
+       *        integer converted values to the associated internal array.
+       * 
+       * Note: double values that exceed the max/min possible represented
+       * values for integers will be converted to the max/min int value. 
+       * Please be aware of the given potential for data loss.
+       * 
+       * @param d_array an array of double values
+       */
       inline void operator()( const std::vector<double> d_array ) {
-        m_integers.insert(m_integers.end(), d_array.begin(), d_array.end() );
+        // m_integers.insert(m_integers.end(), d_array.begin(), d_array.end() );
+        for (double x : d_array) {
+          if ( x > std::numeric_limits<int>::max()) {
+            m_integers.push_back(std::numeric_limits<int>::max());
+          } else if ( x < std::numeric_limits<int>::min() ) {
+            m_integers.push_back(std::numeric_limits<int>::min());
+          } else {
+            m_integers.push_back(static_cast<int>(x));
+          }
+        }
       }
 
       inline void operator()( const std::vector<int> i_array ) {
         m_integers.insert(m_integers.end(), i_array.begin(), i_array.end() );
       }
 
+      /**
+       * @brief This operator will accept an array of size_t and add their
+       *        integer converted values to the associated internal array.
+       * 
+       * Note: size_t values that exceed the max possible represented
+       * values for integers will be converted to the max int value. 
+       * Please be aware of the given potential for data loss.
+       * 
+       * @param i_array an array of size_t values
+       */
       inline void operator()( const std::vector<size_t> i_array ) {
-        m_integers.insert(m_integers.end(), i_array.begin(), i_array.end() );
+        //m_integers.insert(m_integers.end(), i_array.begin(), i_array.end() );
+        for (size_t x : i_array) {
+          if ( x > std::numeric_limits<int>::max()) {
+            m_integers.push_back(std::numeric_limits<int>::max());
+          } else {
+            m_integers.push_back(static_cast<int>(x));
+          }
+        }
       }
 
       inline void operator()( const std::vector<std::string> &s_array ) {
