@@ -7,5 +7,8 @@ target_sources(psmrts PRIVATE miniply.cpp
               )
 
 if(BUILD_COVERAGE)
-  psmrts_register_code_coverage(EXCLUDES miniply.cpp miniply.h)
+  set(_mini_sources "miniply.cpp;miniply.h")
+  list(TRANSFORM _mini_sources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
+  psmrts_register_code_coverage(EXCLUDES "${_mini_sources}")
+  unset(_mini_sources)
 endif()              

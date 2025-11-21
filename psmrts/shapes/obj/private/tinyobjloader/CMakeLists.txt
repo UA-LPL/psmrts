@@ -7,5 +7,8 @@ target_sources(psmrts PRIVATE tinyobjloader.cpp
               )
 
 if(BUILD_COVERAGE)
-  psmrts_register_code_coverage(EXCLUDES tinyobjloader.cpp tiny_obj_loader.h)
+  set(_tiny_sources "tinyobjloader.cpp;tiny_obj_loader.h")
+  list(TRANSFORM _tiny_sources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
+  psmrts_register_code_coverage(EXCLUDES "${_tiny_sources}")
+  unset(_tiny_sources)
 endif()              
