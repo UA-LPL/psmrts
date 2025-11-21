@@ -71,69 +71,9 @@ macro(psmrts_add_bullet_target)
 
 endmacro()
 
-
-macro(psmrts_add_tinyobjloader_target)
-  
-  # This works for both vcpkg and conan. 
-  # Double precision version is currently not supported in conda
-  # tinyobjloader package.
-  set(_tinytarget tinyobjloader::tinyobjloader_double )
-  if ( NOT TARGET ${_tinytarget}  )
-    message(FATAL_ERROR "tinyobjloader double precision library import target not found - must be "
-                        "${_tinytarget} ")
-    set(tinyobjloader_double_FOUND FALSE)
-
-  else()
-
-    get_target_property(_tiny_comp_prop ${_tinytarget} INTERFACE_COMPILE_DEFINITIONS)
-    # Check for double precision target property
-    message(STATUS "tinyobjloader Double Compile Definitions: ${_tiny_comp_prop}")
-
-    if(NOT ${_tiny_comp_prop} MATCHES ".*TINYOBJLOADER_USE_DOUBLE.*")
-      message(
-        FATAL_ERROR "tinyobjloader does not appear to be built with double precision, current definitions: "
-                    "${_tiny_comp_prop}")
-    endif() 
-    
-    set(tinyobjloader_double_FOUND TRUE)
-    message(STATUS "tinyobjloader Double Target Confirmed: ${_tinytarget}")
-
-    unset(_tiny_comp_prop)   
-    unset(_tinytarget)   
-  endif()
-
-endmacro()
-
-
-macro(psmrts_add_miniply_target)
-
-  # Only known package is vcpkg currently
-  if ( NOT TARGET miniply::miniply )
-    if ( TARGET unofficial::miniply::miniply )
-      # VCPKG target name
-      set(_miniply_target_name unofficial::miniply::miniply )
-    else()
-      message(FATAL_ERROR "miniply::miniply library import target not found - can be "
-                         "unofficial::miniply::miniply or some other unknown target")
-      set(miniply_FOUND FALSE)
-    endif()
-
-    add_library( miniply::miniply INTERFACE IMPORTED )
-    set_target_properties( miniply::miniply PROPERTIES INTERFACE_LINK_LIBRARIES  "${_miniply_target_name}" )
-    set(miniply_FOUND TRUE)
-    message(STATUS "miniply Target Created/Confirmed: miniply::miniply")
-
-    unset(_miniply_target_name )
-  endif()
-
-endmacro() 
-
-
 macro(psmrts_create_dependency_targets)
 
   psmrts_add_cspice_target()
   psmrts_add_bullet_target()
-  psmrts_add_tinyobjloader_target()
-  psmrts_add_miniply_target()
 
 endmacro()

@@ -8,9 +8,13 @@ extraopts=""
 buildopts="-DCMAKE_BUILD_TYPE=Release"
 usecpus=""
 doxyopts=""
+sharedopts=""
 
-while getopts ":htcdxDj:" o; do
+while getopts ":hstcdxDj:" o; do
     case "${o}" in
+        s)
+            sharedopts="-DBUILD_SHARED=ON"
+            ;;    
         t)
             testopts="-DBUILD_TESTING=ON"
             ;;
@@ -40,6 +44,6 @@ done
 shift $((OPTIND-1))
 
 
-cmake  -B build -S . ${buildopts} ${testopts} ${codecovopts} ${extraopts} ${doxyopts} -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake
+cmake  -B build -S . ${sharedopts} ${buildopts} ${testopts} ${codecovopts} ${extraopts} ${doxyopts} -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake
 cmake  --build build ${usecpus}
 #cmake  --install build --prefix install

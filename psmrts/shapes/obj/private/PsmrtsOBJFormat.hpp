@@ -16,7 +16,7 @@
 #include <psmrts/core/ProductSpecification.hpp>
 
 // See PsmrtsOBJImplementation.hpp for defining the tinyobj implementation in your main
-#include "tiny_obj_loader.h"
+#include "tinyobjloader/tiny_obj_loader.h"
 namespace psmrts {
   /**
    * @brief PsmrtsOBJFormat contains tools for OBJ file format I/O

@@ -12,19 +12,29 @@ include(psmrts_register_code_coverage)
 # PSMRTS build options
 #-----------------------------------------------------------------------------
 # Add option to build tests and tools
-option( BUILD_SHARED     "Build PSMRTS shared libraries"    OFF )
-option( BUILD_TESTING    "Add PSMRTS unit tests"            OFF )
-option( BUILD_COVERAGE   "Build with code coverage"         OFF )
-option( BUILD_EXTRAS     "Add PSMRTS tools extras"          OFF )
-option( BUILD_CAPI       "Build PSMRTS C API"               ON  )
-option( BUILD_CAPI_APPS  "Build PMSRTS C API and APPS"      ON  )
-option( BUILD_DOCS       "Build API Doxygen Documentation"  OFF )
+option( BUILD_SHARED     "Build PSMRTS shared libraries"       OFF )
+option( BUILD_TESTING    "Add PSMRTS unit tests"               OFF )
+option( BUILD_COVERAGE   "Build with code coverage"            OFF )
+option( BUILD_EXTRAS     "Add PSMRTS tools extras"             OFF )
+option( BUILD_CAPI       "Build PSMRTS C API"                  ON  )
+option( BUILD_CAPI_APPS  "Build PMSRTS C API and APPS"         ON  )
+option( BUILD_DOCS       "Build API Doxygen Documentation"     OFF )
+option( WITH_ISIS        "Build with ISIS Shapemodel Support"  OFF )
 
+# Check for type of library build.
+if(BUILD_SHARED)
+  set(PSMRTS_BUILD_TYPE SHARED)
+else()
+  set(PSMRTS_BUILD_TYPE STATIC)
+endif(BUILD_SHARED)
+
+# Build PSMRTS C API.
 if(BUILD_CAPI_APPS)
-  # Ensure we build the complete C API
+  # Ensure we build the complete C API.
   set(BUILD_CAPI ON)
 endif(BUILD_CAPI_APPS)
 
+# Build coverage requires testing as well.
 if(BUILD_COVERAGE)
     set(BUILD_TESTING ON)
     # Initialize configs to build up coverage targets
@@ -60,13 +70,10 @@ set( PSMRTS_BUILD_DIR    ${CMAKE_BINARY_DIR} )
 #-----------------------------------------------------------------------------
 # Set up link dependencies for PSMRTS
 #-----------------------------------------------------------------------------
-find_package( spdlog             CONFIG REQUIRED )
 find_package( nlohmann_json      CONFIG REQUIRED )
 find_package( Eigen3             CONFIG REQUIRED )
 find_package( Bullet             CONFIG REQUIRED )
 find_package( unofficial-cspice  CONFIG REQUIRED)
-find_package( tinyobjloader      CONFIG REQUIRED)
-find_package( unofficial-miniply CONFIG REQUIRED )
 
 # Create standardized/common targets
 include(psmrts_dependency_standards)
@@ -75,11 +82,12 @@ psmrts_create_dependency_targets()
 #-----------------------------------------------------------------------------
 # Set up for PSMRTS library interface.
 #-----------------------------------------------------------------------------
-add_library( psmrts INTERFACE )
+add_library( psmrts ${PSMRTS_BUILD_TYPE} )
 add_library( psmrts::psmrts ALIAS psmrts )
 add_subdirectory(psmrts)
-target_include_directories( psmrts INTERFACE 
+target_include_directories( psmrts PUBLIC 
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
   $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
@@ -90,9 +98,6 @@ target_link_libraries( psmrts INTERFACE
     Eigen3::Eigen
     cspice::cspice
     Bullet::Bullet_double
-    tinyobjloader::tinyobjloader_double
-    miniply::miniply
-    spdlog::spdlog
 )
 
 #-----------------------------------------------------------------------------

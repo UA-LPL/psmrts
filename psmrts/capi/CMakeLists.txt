@@ -3,7 +3,7 @@ include(GenerateExportHeader)
 set( PSMRTS_CAPI_DIR  ${CMAKE_CURRENT_SOURCE_DIR} )
 
 # Add the C API sources, headers, and build specifics
-add_library( psmrts_c )
+add_library( psmrts_c ${PSMRTS_BUILD_TYPE})
 add_library( psmrts::psmrts_c ALIAS psmrts_c )
 set_target_properties( psmrts_c PROPERTIES 
                                   VERSION ${PROJECT_VERSION} 

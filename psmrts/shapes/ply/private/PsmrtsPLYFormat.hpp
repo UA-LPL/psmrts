@@ -18,7 +18,7 @@
 #include <psmrts/core/PsmrtsMeshData.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
 
-#include <miniply.h>
+#include "miniply/miniply.h"
 
 
 namespace psmrts {
