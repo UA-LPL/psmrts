@@ -26,6 +26,26 @@ macro(psmrts_add_cspice_target)
     elseif( TARGET cspice )
       # Conan target name
       set(_cspice_target_name cspice )
+    elseif( CSPICE_LIBRARY )
+      # Detects a very limited ISIS cspice setup, sets up the cspice target
+      # if it doesn't exist.
+      if( NOT TARGET cspice )
+        add_library(cspice INTERFACE IMPORTED)
+        get_filename_component(_libdir  ${CSPICE_LIBRARY} DIRECTORY)
+        get_filename_component(_libname ${CSPICE_LIBRARY} NAME)
+        set_target_properties(cspice 
+          PROPERTIES
+            INTERFACE_INCLUDE_DIRECTORIES "${CSPICE_INCLUDE_DIR}"
+            INTERFACE_LINK_DIRECTORIES    "${_libdir}"
+            INTERFACE_LINK_LIBRARIES      "${_libname}"
+        )
+        unset(_libdir)
+        unset(_libname)  
+        set(cspice_FOUND TRUE)
+        set(CSPICE_FOUND TRUE)
+      endif()        
+      
+      set(_cspice_target_name cspice )
     else()
       message(FATAL_ERROR "cspice library import not found - must be one of "
                          "unofficial::cspice::cspice, CSPICE::cspice or cspice ")

@@ -72,10 +72,16 @@ set( PSMRTS_BUILD_DIR    ${CMAKE_BINARY_DIR} )
 #-----------------------------------------------------------------------------
 find_package( nlohmann_json      CONFIG REQUIRED )
 find_package( Eigen3             CONFIG REQUIRED )
-find_package( Bullet             CONFIG REQUIRED )
-find_package( unofficial-cspice  CONFIG REQUIRED)
+find_package( Bullet             CONFIG )
+find_package( unofficial-cspice  CONFIG )
 
-# Create standardized/common targets
+# Create standardized/common targets. Note that Bullet and cspice can be
+# provided in projects by other means (thus the missing REQUIRED), as this
+# macro will check for other resources providing these libraries.
+# However, they must be called before this macro is called. In that
+# case, find PSMRTS after those packages are found. Regardless, 
+# consumers must ensure Bullet::Bullet_double and cspice::cspice
+# targets exist.
 include(psmrts_dependency_standards)
 psmrts_create_dependency_targets()
 
@@ -177,14 +183,11 @@ if( BUILD_TESTING )
     include(CodeCoverage)
     append_coverage_compiler_flags()
 
-    # Try hard coding coverage flags as it does not seem to work without it.
-    target_compile_options(psmrts PRIVATE -g0 -coverage)
-    target_link_options(psmrts    PRIVATE -g0 -coverage)
+    # Must add these flags to the INTERFACE portion of PSMRTS or it won't
+    # pick up the headers!
+    target_compile_options(psmrts INTERFACE -g0 --coverage)
+    target_link_options(psmrts    INTERFACE -g0 --coverage)
 
-    if(BUILD_CAPI)
-      target_compile_options(psmrts_c PRIVATE -g0 -coverage)
-      target_link_options(psmrts_c    PRIVATE -g0 -coverage)
-    endif(BUILD_CAPI)   
 
     # Exclude any instances of VCPKG
     psmrts_register_code_coverage(EXCLUDES "${CMAKE_BINARY_DIR}/vcpkg_installed/*")
