@@ -1,6 +1,5 @@
 #!/bin/bash
 
-export VCPKG_ROOT=$PWD/vcpkg
 
 testopts=""
 codecovopts=""
@@ -9,8 +8,10 @@ buildopts="-DCMAKE_BUILD_TYPE=Release"
 usecpus=""
 doxyopts=""
 sharedopts=""
+vcpkg_specs=""
+conda_specs=""
 
-while getopts ":hstcdxDj:" o; do
+while getopts ":hstcdxDVCj:" o; do
     case "${o}" in
         s)
             sharedopts="-DBUILD_SHARED=ON"
@@ -32,6 +33,13 @@ while getopts ":hstcdxDj:" o; do
         D)
             doxyopts="-DBUILD_DOCS=ON"
             ;;
+        V)
+            vcpkg_specs="-DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake"
+            export VCPKG_ROOT=$PWD/vcpkg
+            ;;
+        C)
+            conda_specs="-DCMAKE_PREFIX_PATH=${CONDA_PREFIX}"
+            ;;                         
         j)
             usecpus="-j ${OPTARG}"
             ;;
@@ -44,6 +52,6 @@ done
 shift $((OPTIND-1))
 
 
-cmake  -B build -S . ${sharedopts} ${buildopts} ${testopts} ${codecovopts} ${extraopts} ${doxyopts} -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake
+cmake  -B build -S . ${sharedopts} ${buildopts} ${testopts} ${codecovopts} ${extraopts} ${doxyopts} ${vcpkg_specs} ${conda_specs}
 cmake  --build build ${usecpus}
 #cmake  --install build --prefix install
