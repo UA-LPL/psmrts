@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 testopts=""
 codecovopts=""
 extraopts=""
@@ -9,6 +8,7 @@ usecpus=""
 doxyopts=""
 sharedopts=""
 vcpkg_specs=""
+uselocalpsmrtsvcpkg=0
 conda_specs=""
 
 while getopts ":hstcdxDVCj:" o; do
@@ -34,8 +34,15 @@ while getopts ":hstcdxDVCj:" o; do
             doxyopts="-DBUILD_DOCS=ON"
             ;;
         V)
-            vcpkg_specs="-DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake"
-            export VCPKG_ROOT=$PWD/vcpkg
+            # Check for installed vcpkg system
+            if [[ -n "$VCPKG_ROOT" ]]; then
+              uselocalpsmrtsvcpkg=0
+            else
+              # Create a local version of vcpkg for builds
+              uselocalpsmrtsvcpkg=1
+              export VCPKG_ROOT=$PWD/vcpkg
+            fi            
+            vcpkg_specs="-DCMAKE_TOOLCHAIN_FILE=${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
             ;;
         C)
             conda_specs="-DCMAKE_PREFIX_PATH=${CONDA_PREFIX}"
@@ -51,7 +58,17 @@ while getopts ":hstcdxDVCj:" o; do
 done
 shift $((OPTIND-1))
 
+# Install vcpkg if not available in system. Note this build will remain
+# in the psmrts directory above ./build until user manaully deletes it.
+if [[ $uselocalpsmrtsvcpkg -eq 1 ]]; then
+  ./scripts/install_vcpkg.sh
+fi
 
+# Do the build 
 cmake  -B build -S . ${sharedopts} ${buildopts} ${testopts} ${codecovopts} ${extraopts} ${doxyopts} ${vcpkg_specs} ${conda_specs}
 cmake  --build build ${usecpus}
-#cmake  --install build --prefix install
+
+# Example builds of other targets 
+# cmake --install build --prefix install
+# cmake --build build   --target coverage
+# cmake --build build   --target doxy_docs
