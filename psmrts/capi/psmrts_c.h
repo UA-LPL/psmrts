@@ -86,6 +86,7 @@ typedef struct psmrts_facet {
 
 /*============ PSMRTS C API type definitions ============*/
 #if !defined( PSMRTS_POINTERS )
+#define PSMRTS_POINTERS 1
 typedef struct psmrts_raytrace                 PSMRTS_RayTrace;
 typedef struct psmrts_shape                    PSMRTS_Shape;
 typedef struct psmrts_tracer                   PSMRTS_Tracer;
