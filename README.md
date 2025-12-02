@@ -23,14 +23,23 @@ Building `PSMRTS` requires the `pkg-config` build utility which may not be avail
 For the Mac, it is recommended to install from source as it is a better long term solution.  There is a universal binary install package for the Mac located [here](https://github.com/donmccaughey/pkg-config_pkg/releases/tag/v0.29.2-r4). Simply download the PKG file, click on the package and follow the install instructions.
 
 
-#### Building psmrts
+#### Building and installing psmrts
 
 The `psmrts` is contained in the `./psmrts` directory. One command is used to completely build the PSMRTS. However, there are several scripts ran that completes the build.
 
 1. `cd psmrts`
 2. `./make_psmrts.sh`
+   - Add `-s` to build shared libraries
    - Add `-t` to enable testing
    - Add `-c` to enable code coverage
+   - Add `-x` to build extras
+   - Add `-d` to build Debug
+   - Add `-V` to use the vcpkg package manager to provide PSMRTS dependencies
+   - Add `-C` to use the conda package manager to provide PSMRTS dependencies
+   - Add `-j x` will use x threads to build PSMRTS (recommended)
+
+   When the build completes, the system cam be installed with the following command:
+3. `cmake  --install build --prefix install` where `install` is the directory PSMRTS is installed in.
 
 The executable called `psmrts` will be in the ./build directory. It can be copied to any location and ran from anywhere. The script `make_psmrts.sh` runs several other scripts that can be ran separately if needed. Note that these scripts must be run from the `./psmrts` directory.
 
@@ -41,6 +50,13 @@ The `vcpkg` package manager is downloaded from GitHub and installed at runtime u
 `psmrts` dependencies are then built and installed using the `install_vcpkg_packages.sh` script. This script uses the contents of the file `vcpkg.json` that contains `psmrts` dependency packages. This is potentially where to start looking if the build fails for some reason - this part of the build may be the source as package versions could change rather frequently.
 
 And, finally, the `psmrts` is built with the `build_psmrts.sh` script. This script can be ran repeatedly as needed to reconfigure and rebuild `psmrts`. An alternative would be to just remake `psmrts` using the command `make -C build` in the `./psmrts` directory to recompile `psmrts.cpp` and the code (headers) in `./psmrts/psmrts/src`.
+
+To build using the `conda` environment, you must first install [Miniconda](https://www.anaconda.com/docs/getting-started/miniconda/main) (recommended) and install the minimum build packages into a conda environment called `psmrts`. It must be activated before building PMSRTS.
+
+```
+conda env create -n psmrts -f psmrts_conda_deps.yml
+conda activate psmrts
+```
 
 #### Testing the psmrts Build
 
