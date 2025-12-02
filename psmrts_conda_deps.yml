@@ -1,0 +1,10 @@
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - bullet >=3.25
+  - eigen >=3, <4
+  - nlohmann_json=3.11.2
+  - cspice =67
+  

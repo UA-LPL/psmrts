@@ -1,0 +1,17 @@
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - bullet >=3.25
+  - eigen >=3, <4
+  - nlohmann_json=3.11.2
+  - cspice =67
+# Test package dependencies. Note cmocka is currently not available on Mac ARM.
+  - catch2
+  - cmocka
+# Code coverage dependencies
+  - doxygen
+  - graphviz
+  - gcovr
+  - lcov  

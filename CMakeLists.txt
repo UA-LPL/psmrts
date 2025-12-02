@@ -72,16 +72,25 @@ set( PSMRTS_BUILD_DIR    ${CMAKE_BINARY_DIR} )
 #-----------------------------------------------------------------------------
 find_package( nlohmann_json      CONFIG REQUIRED )
 find_package( Eigen3             CONFIG REQUIRED )
-find_package( Bullet             CONFIG )
-find_package( unofficial-cspice  CONFIG )
+find_package( cspice QUIET NAMES unofficial-cspice cspice )
+
+# Check for Conda special Bullet config
+find_file(_conda_bullet_config BulletConfig-float64.cmake 
+             PATH ${CMAKE_PREFIX_PATH}
+             PATH_SUFFIXES lib/cmake/bullet )
+if (NOT "${_conda_bullet_config}" MATCHES ".*-NOTFOUND")
+  find_package( Bullet REQUIRED CONFIGS BulletConfig-float64.cmake)
+else()
+  # All non-conda environments assumes double is default.
+  find_package( Bullet           CONFIG REQUIRED )
+endif()
 
 # Create standardized/common targets. Note that Bullet and cspice can be
-# provided in projects by other means (thus the missing REQUIRED), as this
-# macro will check for other resources providing these libraries.
-# However, they must be called before this macro is called. In that
-# case, find PSMRTS after those packages are found. Regardless, 
-# consumers must ensure Bullet::Bullet_double and cspice::cspice
-# targets exist.
+# provided in projects by other means. This macro will check for other
+# resources providing these libraries. However, they must be called before
+# this macro is called. In that case, find PSMRTS after those packages
+# are found. Regardless, consumers must ensure Bullet::Bullet_double and
+# cspice::cspice targets exist.
 include(psmrts_dependency_standards)
 psmrts_create_dependency_targets()
 
@@ -99,7 +108,7 @@ target_include_directories( psmrts PUBLIC
 
 # Create link depedendencies using standarized targets
 #target_link_libraries( psmrts INTERFACE psmrts::psmrts-dependencies )
-target_link_libraries( psmrts INTERFACE
+target_link_libraries( psmrts PUBLIC
     nlohmann_json::nlohmann_json
     Eigen3::Eigen
     cspice::cspice
@@ -219,7 +228,7 @@ if(BUILD_DOCS)
   find_package(Doxygen QUIET)
 
   if(DOXYGEN_FOUND)
-    add_custom_target(doxy_docs ALL
+    add_custom_target(doxy_docs
         COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/docs
         COMMENT "Generating Doxygen API Documentation.."
