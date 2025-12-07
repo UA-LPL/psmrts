@@ -119,6 +119,10 @@ target_link_libraries( psmrts PUBLIC
     Bullet::Bullet_double
 )
 
+ set_target_properties(psmrts PROPERTIES
+    INTERFACE_LINK_LIBRARIES_DIRECT Bullet::Bullet_double
+)
+
 #-----------------------------------------------------------------------------
 # Set up SHARED PSMRTS library versioning.
 #-----------------------------------------------------------------------------
