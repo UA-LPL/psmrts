@@ -6,6 +6,8 @@
 #include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
 #include <psmrts/core/PsmrtsUtilities.hpp>
 
+#include <cspice/SpiceUsr.h>
+
 TEST_CASE ( "Bullet Tracer - Default Constructor", "[default][bullet][tracer]" ) {
     psmrts::BulletTracer b_tracer;
 

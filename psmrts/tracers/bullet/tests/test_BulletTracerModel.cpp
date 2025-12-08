@@ -4,6 +4,7 @@
 #include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
 #include <psmrts/core/PsmrtsUtilities.hpp>
 
+#include <cspice/SpiceUsr.h>
 
 TEST_CASE( "Bullet Tracer Model - Default Constructor", "[default][bullet][tracer][model]") {
     psmrts::bullet::BulletTracerModel b_model;
