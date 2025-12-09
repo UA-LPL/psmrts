@@ -5,10 +5,10 @@ find_package( Catch2 CONFIG REQUIRED )
 
 # Build all-in-one renderer test application
 add_executable( bullet_test_suite  bullet_catch2_main.cpp
-                                   test_BulletTracer.cpp
                                    test_BulletSystemModel.cpp
                                    test_BulletTracerModel.cpp
                                    test_PsmrtsBulletMeshMap.cpp
+                                   test_BulletTracer.cpp
                                    test_PsmrtsBulletWorldModel.cpp )  
 
 # Add required libraries as needed fo psmrts_test_suite

@@ -1,10 +1,5 @@
 # Add sources current directory to include path
-target_sources(psmrts PRIVATE miniply.cpp 
-                         PUBLIC
-                           FILE_SET psmrts_headers 
-                             TYPE HEADERS 
-                             FILES miniply.h
-              )
+target_sources(psmrts PRIVATE miniply.cpp )
 
 if(BUILD_COVERAGE)
   set(_mini_sources "miniply.cpp;miniply.h")
