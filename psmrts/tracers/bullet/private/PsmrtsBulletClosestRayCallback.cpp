@@ -1,11 +1,11 @@
-
 #include <Eigen/Geometry>
 
 #include "PsmrtsBulletClosestRayCallback.hpp"
 #include "BulletSystemModel.hpp"
-#include <BulletCollision/NarrowPhaseCollision/btRaycastCallback.h>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
+
+#include <BulletCollision/NarrowPhaseCollision/btRaycastCallback.h>
 
 namespace psmrts::bullet {
 

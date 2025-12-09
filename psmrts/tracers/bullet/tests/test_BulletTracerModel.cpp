@@ -1,7 +1,7 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
 #include <psmrts/tracers/bullet/private/BulletTracerModel.hpp>
-#include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
+#include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/core/PsmrtsUtilities.hpp>
 
 #include <cspice/SpiceUsr.h>
@@ -21,9 +21,8 @@ TEST_CASE( "Bullet Tracer Model - Ray Trace / Values Test", "[default][bullet][t
     const double tolerance = 1.0e-6;
 
     std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
-    psmrts::bullet::PsmrtsBulletWorldModel bt_world( psmrts::bullet::PsmrtsBulletMeshMap( psmrts::PsmrtsOBJFormat(objfile)), objfile);
-    
-    psmrts::bullet::BulletTracerModel b_model( bt_world );
+    psmrts::PsmrtsShape b_shape{ objfile };    
+    psmrts::bullet::BulletTracerModel b_model( b_shape.get_mesh(), objfile );
 
     std::string b_shapefile = psmrts::psmrts_filename( b_model.shapefile() );
     CHECK( b_model.tracer_model_name()  == "bullet" );

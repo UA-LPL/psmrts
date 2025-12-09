@@ -5,7 +5,9 @@
 
 #include "private/PsmrtsBulletWorldModel.hpp"
 #include "private/BulletTracerModel.hpp"
+
 #include <psmrts/core/PsmrtsRequest.hpp>
+#include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/algorithms/TracingBasics.hpp>
 
 namespace psmrts  {
@@ -16,14 +18,22 @@ namespace psmrts  {
    */
   class BulletTracer {
     public:
-     BulletTracer( ) {  }
+     BulletTracer( ) : m_model( ) {  }
      BulletTracer( const bullet::PsmrtsBulletWorldModel &bt_model) :
                         m_model( bt_model ) { }
-      virtual ~BulletTracer() { }
+     BulletTracer( const PsmrtsShape &shape ) :
+                   m_model( bullet::PsmrtsBulletMeshMap( shape.get_mesh(), shape.name(), 0), 
+                            shape.name()) {
+     }                       
+      virtual ~BulletTracer() = default;
 
       /** Return the name of the shape file */
       inline const std::string &name() const {
         return ( m_model.shapefile() );
+      }
+
+      inline double maximum_radius() const {
+        return ( m_model.maximum_radius() );
       }
 
       /**

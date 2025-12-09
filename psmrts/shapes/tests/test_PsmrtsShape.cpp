@@ -66,3 +66,35 @@ TEST_CASE("PLY Shape Test", "[ply][shape]") {
     CHECK( ply_mesh.nvectors() == 1348  );
     CHECK( ply_mesh.nfacets() == 2692 );
 }
+
+TEST_CASE("Direct Constructor Shape Test", "[direct][shape]") {
+    class MyShapeClass {
+      public:
+        MyShapeClass() {}
+        MyShapeClass( const psmrts::PsmrtsShape &shape ) {
+          m_shape = shape;
+        }
+
+      inline const std::string &shape_name(  ) {
+        return (m_shape.name() );
+      }
+
+    psmrts::PsmrtsShape m_shape;
+    };
+
+    std::string plyfile = psmrts_shapes_path( "ply/data/Bennu_Radar.ply"  );
+    psmrts::PsmrtsShape direct_shape( plyfile );
+
+    CHECK( direct_shape.isValid() == true );
+    MyShapeClass myshape( direct_shape );
+    CHECK( direct_shape.name() == myshape.shape_name( ) );
+
+    MyShapeClass myshape2( psmrts::PsmrtsShape{ plyfile } );
+    CHECK( direct_shape.name() == myshape2.shape_name( ) );
+
+    psmrts::PsmrtsMeshData ply_mesh = direct_shape.get_mesh();
+
+    CHECK( ply_mesh.isValid() == true );
+    CHECK( ply_mesh.nvectors() == 1348  );
+    CHECK( ply_mesh.nfacets() == 2692 );
+}

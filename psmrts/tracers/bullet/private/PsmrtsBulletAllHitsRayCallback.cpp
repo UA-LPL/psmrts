@@ -1,5 +1,3 @@
-
-
 #include "PsmrtsBulletAllHitsRayCallback.hpp"
 #include <BulletCollision/NarrowPhaseCollision/btRaycastCallback.h>
 

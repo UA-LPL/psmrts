@@ -3,7 +3,6 @@
 
 #include <psmrts/tracers/bullet/private/BulletSystemModel.hpp>
 
-
 TEST_CASE ( "Bullet System Info", "[bullet][system]" ) {
 
   CHECK( MAX_NUM_PARTS_IN_BITS       == 10 );

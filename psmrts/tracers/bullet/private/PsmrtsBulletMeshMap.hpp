@@ -5,8 +5,6 @@
 #include <memory>
 
 #include <psmrts/core/PsmrtsMeshData.hpp>
-#include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
-
 #include "BulletSystemModel.hpp"
 
 
@@ -54,11 +52,6 @@ namespace psmrts::bullet {
       PsmrtsBulletMeshMap( const PsmrtsMeshData &mesh,
                            const std::string &name, 
                            const int mesh_id,
-                           const int partno = 0 );
-
-      PsmrtsBulletMeshMap( const PsmrtsOBJFormat &obj_t,
-                           const PsmrtsDataType v_data_type = PsmrtsDouble,
-                           const int mesh_id = 0, 
                            const int partno = 0 );
 
       /** Destructor */

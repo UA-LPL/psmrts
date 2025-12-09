@@ -13,6 +13,10 @@
 #include "PsmrtsBulletMeshMap.hpp"
 #include "PsmrtsBulletClosestRayCallback.hpp"
 
+#include <BulletCollision/CollisionShapes/btCollisionShape.h>
+#include <BulletCollision/CollisionDispatch/btCollisionObject.h>
+
+
 namespace psmrts::bullet {
 
   /**

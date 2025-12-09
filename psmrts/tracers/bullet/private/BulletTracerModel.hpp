@@ -6,6 +6,7 @@
 #include <Eigen/Geometry>
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
+#include <psmrts/core/PsmrtsMeshData.hpp>
 #include "PsmrtsBulletWorldModel.hpp"
 
 namespace psmrts::bullet {
@@ -19,6 +20,8 @@ namespace psmrts::bullet {
     public:
       BulletTracerModel( );
       BulletTracerModel( const PsmrtsBulletWorldModel &bt_model );
+      BulletTracerModel( const PsmrtsMeshData &mesh, 
+                         const std::string &name );
 
       virtual ~BulletTracerModel() = default;
 
@@ -27,6 +30,8 @@ namespace psmrts::bullet {
 
       /** Name of the shape model source */
       const std::string &shapefile() const;
+
+      bool isValid() const;
 
       /** Total number of plates/facets in model */
       size_t plate_count()  const;
@@ -75,6 +80,9 @@ namespace psmrts::bullet {
        */
       bool get_facet( const PsmrtsRayTrace &ray,
                              PsmrtsRayTrace::FacetDatum &facet ) const;
+
+
+      const PsmrtsBulletWorldModel &model() const;
 
     private:
       PsmrtsBulletWorldModel   m_bullet_model;

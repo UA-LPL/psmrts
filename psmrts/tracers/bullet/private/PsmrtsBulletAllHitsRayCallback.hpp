@@ -2,7 +2,7 @@
 #define PsmrtsBulletAllHitsRayCallback_hpp
 
 #include "PsmrtsBulletClosestRayCallback.hpp"
-#include <BulletCollision/NarrowPhaseCollision/btRaycastCallback.h>
+#include <BulletCollision/CollisionDispatch/btCollisionWorld.h>
 
 namespace psmrts::bullet {
 

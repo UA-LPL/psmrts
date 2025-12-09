@@ -12,9 +12,7 @@
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/ProductProcessDispatch.hpp>
-
-#include <psmrts/shapes/ply/private/PsmrtsPLYFormat.hpp>
-
+#include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/tracers/bullet/BulletTracer.hpp>
 #include <psmrts/tracers/ellipsoid/EllipsoidTracer.hpp>
 #include <psmrts/tracers/naifdsk/NaifDskTracer.hpp>
@@ -57,27 +55,7 @@ namespace psmrts {
       }
 
       inline static PsmrtsTracer bullet( const std::string &meshfile ) {
-
-        std::string fext_t = psmrts_tolower( psmrts_file_extension( meshfile ) );
-        if ( "obj" == fext_t ) {
-          return ( PsmrtsTracer( BulletTracer( psmrts::bullet::PsmrtsBulletWorldModel( psmrts::bullet::PsmrtsBulletMeshMap ( psmrts::PsmrtsOBJFormat( meshfile ) ), meshfile ) ) ) );
-        }
-        else if ( "ply" == fext_t ) {
-          PsmrtsMeshData mesh_t(  PsmrtsPLYFormat( meshfile ).get_mesh() );
-          psmrts::bullet::PsmrtsBulletMeshMap mesh_b( mesh_t, meshfile, 0 );
-          psmrts::bullet::PsmrtsBulletWorldModel bt_world( mesh_b, meshfile );
-          return ( PsmrtsTracer( BulletTracer( bt_world ), meshfile ) );
-        }
-        else {  // ( "dsk" == fext_t )
-          naif::DskKernelModel dsk( meshfile );
-          PsmrtsMeshData mesh_t( dsk.load_facet_indexes(), dsk.load_facet_vectors() );
-          psmrts::bullet::PsmrtsBulletMeshMap mesh_b( mesh_t, meshfile, 0 );
-          psmrts::bullet::PsmrtsBulletWorldModel bt_world( mesh_b, meshfile );
-          return ( PsmrtsTracer( BulletTracer( bt_world ), meshfile ) );           
-        }
-
-        // Likely won't reach here...
-        return ( PsmrtsTracer( MissingProcessRequestHandler( "PsmrtsTracer" ), "badbullet" ) );
+        return ( PsmrtsTracer( BulletTracer( PsmrtsShape( meshfile ) ) ) );
       }
 
       inline static PsmrtsTracer naifdsk( const std::string &dskfile ) {

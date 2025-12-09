@@ -10,10 +10,10 @@
 #include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsCache.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
-#include <psmrts/core/ProductProcessDispatch.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/ProductOption.hpp>
 
+#include <psmrts/core/ProductProcessDispatch.hpp>
 #include <psmrts/shapes/dsk/DskShape.hpp>
 #include <psmrts/shapes/obj/ObjShape.hpp>
 #include <psmrts/shapes/ply/PlyShape.hpp>
@@ -27,7 +27,23 @@ namespace psmrts {
       using Shape = ProductProcessDispatch::ProductType;
       using UIDType = PsmrtsUID::UIDType;
 
-      PsmrtsShape( ) : PsmrtsProduct("shape") {  }
+      PsmrtsShape( ) :  PsmrtsProduct("shape") {  }
+      PsmrtsShape( const std::string &filename ) : PsmrtsProduct("shape") {  
+        std::string fext_t = psmrts_tolower( psmrts_file_extension( filename ) );
+        if ( "obj" == fext_t ) {
+          m_product = ObjShape( filename );
+        }
+        else if ( "ply" == fext_t ) {
+          m_product = PlyShape( filename );
+        }
+        else if ( "bds" == fext_t ) {
+          m_product = DskShape( filename );
+        }
+        else {
+          std::string badfile = "Shape(" + fext_t + ") format is not supported!";
+          throw std::runtime_error( badfile );
+        }
+      }
       PsmrtsShape( const Shape &shape ) :
                    ProductProcessDispatch( shape ), 
                    PsmrtsProduct("shape") {  }

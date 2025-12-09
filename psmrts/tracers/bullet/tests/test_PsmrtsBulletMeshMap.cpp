@@ -3,11 +3,10 @@
 #include <psmrts/tracers/bullet/private/BulletSystemModel.hpp>
 #include <psmrts/core/PsmrtsVector3.hpp>
 #include <psmrts/core/PsmrtsMeshData.hpp>
-#include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
+#include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/tracers/bullet/private/PsmrtsBulletMeshMap.hpp>
 
 #include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
-
 
 TEST_CASE ( "Bullet Mesh Map Test - Default Constructor", "[default][bullet][mesh]" ) {
     psmrts::bullet::PsmrtsBulletMeshMap b_map;
@@ -21,17 +20,15 @@ TEST_CASE ( "Bullet Mesh Map Test - Default Constructor", "[default][bullet][mes
 TEST_CASE ( "Bullet Mesh Map Test - Small Dataset", "[bullet][mesh]" ) {
 
     std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
-    psmrts::PsmrtsOBJFormat t_loader( objfile );
-    CHECK( t_loader.nIndexes()  == 36 );
-    CHECK( t_loader.nVertexes() == 20 );
+    psmrts::PsmrtsShape b_shape{ objfile };    
+    psmrts::bullet::PsmrtsBulletMeshMap bt_data( b_shape.get_mesh(), objfile, 0);
 
-    psmrts::bullet::PsmrtsBulletMeshMap bt_data( t_loader );
     CHECK( bt_data.nfacets()  ==  36 );
     CHECK( bt_data.nvectors() ==  20 );
 
     psmrts::bullet::PsmrtsBulletMeshMap bt_mesh( bt_data, objfile, 0, 0 );
     CHECK ( bt_mesh.isValid() == true );
-    CHECK ( bt_mesh.name()    == t_loader.obj_source() );
+    CHECK ( bt_mesh.name()    == bt_data.name() );
     CHECK ( bt_mesh.id()      == 0 );
 
     CHECK ( bt_mesh.mesh_type() == "bullet" );
@@ -94,20 +91,19 @@ TEST_CASE ( "Bullet Mesh Map OBJ/DSK Comparison - Bullet == NaifDSK ", "[bullet]
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
 
     // Load the OBJ
-    psmrts::PsmrtsOBJFormat t_loader( objfile );
-    CHECK( t_loader.nIndexes()  == 36 );
-    CHECK( t_loader.nVertexes() == 20 );
+    psmrts::PsmrtsShape b_shape{ objfile };    
+    psmrts::bullet::PsmrtsBulletMeshMap bt_data( b_shape.get_mesh(), b_shape.name(), 0);    
 
     // Load the DSK compare size
     naif::DskKernelModel dsk( dskfile );
     CHECK_NOTHROW( naif::check_naif_errors() );
     naif::DskSegment segment = dsk.segment();
     CHECK_NOTHROW( naif::check_naif_errors() );
-    CHECK( segment.n_plates() == t_loader.nIndexes() );
-    CHECK( segment.n_vertices() == t_loader.nVertexes() );
+    CHECK( segment.n_plates() == bt_data.nfacets() );
+    CHECK( segment.n_vertices() == bt_data.nvectors() );
 
-    auto obj_indexes = t_loader.get_indexes();
-    auto obj_vectors = t_loader.get_double_vectors();
+    auto obj_indexes = bt_data.indexes();
+    auto obj_vectors = bt_data.vectors().double_vectors();
     
     auto dsk_indexes = dsk.load_facet_indexes(); 
     auto dsk_vectors = dsk.load_facet_vectors();
@@ -123,8 +119,8 @@ TEST_CASE ( "Bullet Mesh Map OBJ/DSK Comparison - Bullet == NaifDSK ", "[bullet]
     CHECK ( obj_vectors.volume_size()     == dsk_vectors.volume_size() );
 
     // check each value of indexes and vectors individually, not comparing
-    psmrts::PsmrtsMeshData  obj_data(  obj_indexes, obj_vectors );
-    psmrts::PsmrtsMeshData  dsk_data(  dsk_indexes, dsk_vectors );
+    psmrts::PsmrtsMeshData  obj_data{  obj_indexes, obj_vectors };
+    psmrts::PsmrtsMeshData  dsk_data{  dsk_indexes, dsk_vectors };
 
     psmrts::bullet::PsmrtsBulletMeshMap obj_mesh( obj_data, objfile, 0, 0  );
     psmrts::bullet::PsmrtsBulletMeshMap dsk_mesh( dsk_data, dskfile, 0, 0  );

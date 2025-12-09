@@ -3,7 +3,10 @@
 #include <Eigen/Geometry>
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
+#include <psmrts/shapes/PsmrtsShape.hpp>
+
 #include "PsmrtsBulletWorldModel.hpp"
+#include "PsmrtsBulletMeshMap.hpp"
 #include "BulletTracerModel.hpp"
 
 namespace psmrts::bullet {
@@ -11,6 +14,10 @@ namespace psmrts::bullet {
       BulletTracerModel::BulletTracerModel( ) {  }
       BulletTracerModel::BulletTracerModel( const PsmrtsBulletWorldModel &bt_model ) :
                                             m_bullet_model( bt_model ) {  }
+      BulletTracerModel::BulletTracerModel(const PsmrtsMeshData &mesh, 
+                                           const std::string &name ) :
+                                           m_bullet_model(PsmrtsBulletMeshMap( mesh, name, 0), name ) { 
+      }
 
       /** Returns name of tracer model, ie. bullet */
       std::string BulletTracerModel::tracer_model_name() const {
@@ -20,6 +27,10 @@ namespace psmrts::bullet {
       /** Name of the shape model source */
       const std::string &BulletTracerModel::shapefile() const {
         return ( m_bullet_model.name() );
+      }
+
+      bool BulletTracerModel::isValid() const {
+        return ( m_bullet_model.isValid() );
       }
 
       /** Total number of plates/facets in model */
@@ -92,5 +103,9 @@ namespace psmrts::bullet {
         return ( facet.isValid() );
       }
 
+     const PsmrtsBulletWorldModel &BulletTracerModel::model() const {
+        return ( m_bullet_model );
+      }
 
-} // namespace psmrts
+
+} // namespace psmrts::bullet

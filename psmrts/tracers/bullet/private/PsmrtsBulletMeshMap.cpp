@@ -2,7 +2,6 @@
 #include <memory>
 
 #include <psmrts/core/PsmrtsMeshData.hpp>
-#include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
 #include "BulletSystemModel.hpp"
 #include "PsmrtsBulletMeshMap.hpp"
 
@@ -31,29 +30,7 @@ namespace psmrts::bullet {
     m_bullet_mesh.reset( this->create_map_mesh( ) );
 
   }
-
-  PsmrtsBulletMeshMap::PsmrtsBulletMeshMap( const PsmrtsOBJFormat &obj_t,
-                                            const PsmrtsDataType v_data_type,
-                                            const int mesh_id, const int partno ) {
-
-    this->init_mesh_map( obj_t.obj_source(), mesh_id, partno );
-
-    //Check the requested type
-    PsmrtsVector3i mesh_indexes = obj_t.get_indexes();
-    if ( PsmrtsDouble == v_data_type ) {
-      this->init_mesh( mesh_indexes, obj_t.get_double_vectors() );
-    }
-    else {
-      // Initialize with float vectors
-      this->init_mesh( mesh_indexes, obj_t.get_float_vectors() );
-    }
-
-    // Retrieve any shape partitions of the facets
-    m_shapes = obj_t.get_index_shape_map( mesh_indexes );
-
-    m_bullet_mesh.reset( this->create_map_mesh( ) );
-  }
-
+  
   /** Returns mesh name, ie. bullet */
   const std::string &PsmrtsBulletMeshMap::name() const {
     return ( m_name );

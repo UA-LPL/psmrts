@@ -16,7 +16,7 @@ namespace psmrts {
   template <typename... Ts>
     class ProductProcessDispatch {
       public:
-        using ProductType = std::variant<Ts ...>;
+        using ProductType = std::variant<Ts...>;
 
         ProductProcessDispatch( )         = default;
         ProductProcessDispatch( const ProductType &product ) : m_product( product ) {  }
