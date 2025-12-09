@@ -113,14 +113,14 @@ macro(psmrts_add_bullet_target)
         PROPERTIES
           INTERFACE_COMPILE_DEFINITIONS "${BULLET_DEFINITIONS}"
           INTERFACE_INCLUDE_DIRECTORIES "${BULLET_INCLUDE_DIR}"
-          INTERFACE_LINK_DIRECTORIES "${BULLET_LIBRARY_DIRS}"
-          INTERFACE_LINK_LIBRARIES_DIRECT "${BULLET_LIBRARIES}"
+          INTERFACE_LINK_DIRECTORIES    "${BULLET_LIBRARY_DIRS}"
+          INTERFACE_LINK_LIBRARIES      "${BULLET_LIBRARIES}"
       )
 
       set(Bullet_double_FOUND TRUE)
       message(STATUS "Bullet Double Target Created/Confirmed: Bullet::Bullet_double")
       message(STATUS "Bullet Includes:  ${BULLET_INCLUDE_DIR}")
-      message(STATUS "Bullet Libdirs:  ${BULLET_LIBRARY_DIRS}")
+      message(STATUS "Bullet Libdirs:   ${BULLET_LIBRARY_DIRS}")
       message(STATUS "Bullet Libraries: ${BULLET_LIBRARIES}")
     endif()
   endif()
