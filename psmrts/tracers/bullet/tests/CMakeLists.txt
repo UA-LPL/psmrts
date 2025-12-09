@@ -12,6 +12,8 @@ add_executable( bullet_test_suite  bullet_catch2_main.cpp
                                    test_PsmrtsBulletWorldModel.cpp )  
 
 # Add required libraries as needed fo psmrts_test_suite
+target_include_directories( bullet_test_suite PRIVATE 
+                               $<TARGET_PROPERTY:Bullet::Bullet_double,INTERFACE_INCLUDE_DIRECTORIES>)
 target_link_libraries( bullet_test_suite PRIVATE psmrts::psmrts )
 target_link_libraries( bullet_test_suite PRIVATE Catch2::Catch2WithMain )
 include ( CTest )

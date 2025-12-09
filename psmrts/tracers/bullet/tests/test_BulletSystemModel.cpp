@@ -1,7 +1,7 @@
 
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
-#include <psmrts/tracers/bullet/private/BulletSystemModel.hpp>
+#include "../private/BulletSystemModel.hpp"
 
 TEST_CASE ( "Bullet System Info", "[bullet][system]" ) {
 

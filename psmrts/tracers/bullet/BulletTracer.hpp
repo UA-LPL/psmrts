@@ -2,15 +2,16 @@
 #define BulletTracer_hpp
 
 #include <string>
-
-#include "private/PsmrtsBulletWorldModel.hpp"
-#include "private/BulletTracerModel.hpp"
+#include <memory>
 
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/algorithms/TracingBasics.hpp>
 
+// Define class for private implementation
+
 namespace psmrts  {
+
   /**
    * @brief Bullet ShapeModel
    * 
@@ -18,23 +19,14 @@ namespace psmrts  {
    */
   class BulletTracer {
     public:
-     BulletTracer( ) : m_model( ) {  }
-     BulletTracer( const bullet::PsmrtsBulletWorldModel &bt_model) :
-                        m_model( bt_model ) { }
-     BulletTracer( const PsmrtsShape &shape ) :
-                   m_model( bullet::PsmrtsBulletMeshMap( shape.get_mesh(), shape.name(), 0), 
-                            shape.name()) {
-     }                       
-      virtual ~BulletTracer() = default;
+     BulletTracer( );
+     BulletTracer( const PsmrtsShape &shape );
+     virtual ~BulletTracer();
 
       /** Return the name of the shape file */
-      inline const std::string &name() const {
-        return ( m_model.shapefile() );
-      }
+      const std::string &name() const;
 
-      inline double maximum_radius() const {
-        return ( m_model.maximum_radius() );
-      }
+      double maximum_radius() const;
 
       /**
        * @brief Bullet Ray Trace Processor
@@ -51,7 +43,7 @@ namespace psmrts  {
        * @return false  If no ray trace intercept was found
        */
       inline bool process ( PRQRayTrace &trace ) const {
-        return ( algorithms::process_basic_trace( m_model, trace ) );
+        return ( algorithms::process_basic_trace( *this, trace ) );
       }
 
       /**
@@ -71,7 +63,7 @@ namespace psmrts  {
        * @return false    If no trace intercepts were found
        */
       inline bool process ( PRQRayTraceArray &tracelist ) const {
-        return ( algorithms::process_basic_trace_array( m_model, tracelist ) );
+        return ( algorithms::process_basic_trace_array( *this, tracelist ) );
       }
 
       /**
@@ -90,7 +82,7 @@ namespace psmrts  {
        * @return false  If process fails to find facet/intercept
        */
       inline bool process( PRQFacet &facet ) const {
-        return ( algorithms::process_basic_facet( m_model, facet ) );
+        return ( algorithms::process_basic_facet( *this, facet ) );
       }
 
       /**
@@ -109,7 +101,7 @@ namespace psmrts  {
        * @return false  If either does not intercept the shape
        */
       inline bool process( PRQPhotometricTrace &trace_p ) const {
-        return ( algorithms::process_basic_photometric_trace( m_model, trace_p ) );
+        return ( algorithms::process_basic_photometric_trace( *this, trace_p ) );
       }
 
       /**
@@ -129,7 +121,7 @@ namespace psmrts  {
        * @return false    If no appropriate trace intercepts were found
        */
       inline bool process ( PRQPhotometricTraceArray &tracelist ) const {
-        return ( algorithms::process_basic_photometric_trace_array( m_model, tracelist ) );
+        return ( algorithms::process_basic_photometric_trace_array( *this, tracelist ) );
       }
 
       /**
@@ -178,10 +170,10 @@ namespace psmrts  {
         return ( this->ray_trace( ray.reset( observer, lookdir ) ) );
       }
       
-      inline bool ray_trace( PsmrtsRayTrace &ray ) const {
-        // Let the model do it!
-        return ( m_model.ray_trace( ray ) );
-      }
+      // These are the tracing and facet implementations in the source class
+      bool ray_trace( PsmrtsRayTrace &ray ) const;
+      bool get_facet(  const PsmrtsRayTrace &ray, 
+                       PsmrtsRayTrace::FacetDatum &facet) const;
             
       static inline ProductSpecification product_specifications() {
         char text[] = R"(
@@ -230,8 +222,9 @@ namespace psmrts  {
       PSMRTS_PROCESS_CATCHALL( "BulletTracer" )
 
 
-    protected:
-      bullet::BulletTracerModel  m_model;
+    private:
+      class BulletTracerImpl;
+      std::shared_ptr<BulletTracerImpl> m_model;
   };
 
 } // namespace psmrts

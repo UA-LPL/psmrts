@@ -1,6 +1,6 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
-#include <psmrts/tracers/bullet/private/BulletTracerModel.hpp>
+#include "../private/BulletTracerModel.hpp"
 #include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/core/PsmrtsUtilities.hpp>
 

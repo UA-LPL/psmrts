@@ -116,6 +116,9 @@ target_link_libraries( psmrts PUBLIC
     nlohmann_json::nlohmann_json
     Eigen3::Eigen
     cspice::cspice
+)
+
+target_link_libraries( psmrts PRIVATE
     Bullet::Bullet_double
 )
 

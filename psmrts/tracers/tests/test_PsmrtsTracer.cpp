@@ -6,7 +6,6 @@
 
 #include <psmrts/tracers/PsmrtsTracer.hpp>
 #include <psmrts/tracers/ellipsoid/EllipsoidTracer.hpp>
-#include <psmrts/tracers/bullet/BulletTracer.hpp>
 #include <psmrts/tracers/naifdsk/NaifDskTracer.hpp>
 
 #include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>

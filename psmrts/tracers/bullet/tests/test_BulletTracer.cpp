@@ -2,7 +2,6 @@
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/shapes/PsmrtsShape.hpp>
-
 #include <psmrts/tracers/bullet/BulletTracer.hpp>
 
 #include <cspice/SpiceUsr.h>

@@ -1,10 +1,11 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
-#include <psmrts/tracers/bullet/private/BulletSystemModel.hpp>
 #include <psmrts/core/PsmrtsVector3.hpp>
 #include <psmrts/core/PsmrtsMeshData.hpp>
 #include <psmrts/shapes/PsmrtsShape.hpp>
-#include <psmrts/tracers/bullet/private/PsmrtsBulletMeshMap.hpp>
+
+#include "../private/BulletSystemModel.hpp"
+#include "../private/PsmrtsBulletMeshMap.hpp"
 
 #include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
 

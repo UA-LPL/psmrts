@@ -1,9 +1,9 @@
-# This requires Bullet double precision, which should already be in psrmts-dependencies
+# This requires Bullet double precision
 
 # Add bullet  classes to PSRMTS target
 target_sources(psmrts PUBLIC
                          FILE_SET psmrts_headers 
-                           TYPE HEADERS 
+                           TYPE HEADERS
                            FILES BulletTracer.hpp 
               )
               

@@ -4,10 +4,10 @@
 #include <psmrts/core/PsmrtsMeshData.hpp>
 #include <psmrts/shapes/PsmrtsShape.hpp>
 
-#include <psmrts/tracers/bullet/private/BulletSystemModel.hpp>
-#include <psmrts/tracers/bullet/private/PsmrtsBulletMeshMap.hpp>
-#include <psmrts/tracers/bullet/private/PsmrtsBulletWorldModel.hpp>
-#include <psmrts/tracers/bullet/private/BulletTracerModel.hpp>
+#include "../private/BulletSystemModel.hpp"
+#include "../private/PsmrtsBulletMeshMap.hpp"
+#include "../private/PsmrtsBulletWorldModel.hpp"
+#include "../private/BulletTracerModel.hpp"
 #include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
 
 #include <psmrts/tracers/naifdsk/private/NaifUtilities.hpp>
