@@ -3,8 +3,10 @@
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 #include <psmrts/tracers/ellipsoid/EllipsoidTracer.hpp>
-#include <psmrts/tracers/ellipsoid/private/EllipsoidTracerModel.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
+
+#include <cspice/SpiceUsr.h>
+
 
 TEST_CASE( "Ellipsoid Shape Tracer - Request Default Constructor", "[default][ellipsoid][shapetracer]") {
     psmrts::EllipsoidTracer e_tracer;

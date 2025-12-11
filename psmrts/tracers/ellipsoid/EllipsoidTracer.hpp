@@ -1,11 +1,12 @@
 #pragma once
 #include <string>
 
+#include <Eigen/Geometry>
+
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
 #include <psmrts/algorithms/TracingBasics.hpp>
-#include "private/EllipsoidTracerModel.hpp"
 
 namespace psmrts  {
   /**
@@ -34,41 +35,67 @@ namespace psmrts  {
   class EllipsoidTracer {
 
     public:
-      EllipsoidTracer( ) : m_model( 1.0, 1.0, 1.0 ) {  }
+      EllipsoidTracer( ) : m_radii{ 1.0, 1.0, 1.0 } {  }
       EllipsoidTracer( const double radius,
                       const std::string &source = "sphere") :
-                      m_model( radius, radius, radius, source) { 
+                      m_radii{ radius, radius, radius }, m_name( source ) { 
         init_sphere( 1.0 , source );                        
       }
       EllipsoidTracer( const double a, const double c,
                       const std::string &source = "spheroid") :                      
-                      m_model( a, a, c, source) {
+                      m_radii{ a, a, c }, m_name( source ) {
         init_spheroid( a, c, source );                        
 
       }     
       EllipsoidTracer( const double a, const double b, const double c,
                       const std::string &source = "ellipsoid") :
-                      m_model( a, b, c, source) { 
+                      m_radii{ a, b, c }, m_name( source ) { 
         init_ellipsoid( a, b, c, source );                    
 
       }     
       EllipsoidTracer( const Eigen::Vector3d &radii,
                       const std::string &source = "ellipsoid" ) : 
-                      m_model( radii.data(), source) { 
+                      m_radii{ radii[0], radii[1],radii[2] }, m_name( source ) { 
         init_ellipsoid( radii[0], radii[1], radii[2], source );                    
       }
-      EllipsoidTracer( const ProductConfiguration &config_p ) : 
-                      m_model() { 
-        init_config( config_p );
-      }                         
+      // EllipsoidTracer( const ProductConfiguration &config_p ) : 
+      //                 m_radii{0, 0, 0}, m_name("none") { 
+      //  init_config( config_p );
+      // }                         
         
-      virtual ~EllipsoidTracer() { }
+      virtual ~EllipsoidTracer() = default;
 
  
 
       inline const std::string &name() const {
-        return ( m_model.name() );
+        return ( m_name );
       }
+
+      /** Returns value of a */
+      const double &a() const {
+        return ( m_radii[0] );
+      }
+
+      /** Returns value of b */
+      const double &b() const {
+        return ( m_radii[1] );
+      }
+
+      /** Returns value of c */
+      const double &c() const {
+        return ( m_radii[2] );
+      }
+      
+      /** Return the maximum radius of the ellipsoid */
+      inline double maximum_radius() const {
+        return ( std::max( std::max( m_radii[0], m_radii[1]), m_radii[2] ) );
+      }
+
+      /** Return the minimum radius of the ellipsoid  */
+      inline double minimum_radius() const {
+        return ( std::min( std::min( m_radii[0], m_radii[1]), m_radii[2] ) );
+      }
+
 
       /**
        * @brief Ellipsoid Ray Trace Processor
@@ -166,9 +193,7 @@ namespace psmrts  {
         f_e["product"] = "shapetracer" ;
         f_e["mesh"] = false;
 
-        double radii[3];
-        m_model.get_radii( &radii[0] );
-        f_e["radii"] = { radii[0], radii[1], radii[2] } ;
+        f_e["radii"] = { m_radii[0], m_radii[1], m_radii[2] } ;
 
         features.add_feature( f_e );
         return ( true );
@@ -200,18 +225,39 @@ namespace psmrts  {
         return ( this->ray_trace( ray.reset( observer, lookdir ) ) );
       }
 
-      inline bool ray_trace( PsmrtsRayTrace &ray ) const {
+ 
+    /**
+     * @brief Ray Trace method for Ellipsoid Shape - PsmrtsRayTrace Result
+     * 
+     * The main method used to run individual body-fixed ray traces from 
+     * an observer point and a look direction vector. The origin of the
+     * "observer" vector is the origin of the planet body and extends
+     * outward, presumeably, beyond the maximum radius of the surface in
+     * this model. From that point, is the origin of the "lookdir" vector
+     * from which to trace for an intersection with the shape model
+     * surface. 
+     * 
+     * The PsmrtsRayTrace class contains the results of the ray trace and can
+     * be used in subsequent operations.
+     * 
+     * @param observer Location of the observer (s/c) relative to the
+     *                   center of the target body
+     * @param lookdir  Look direction of the ray from the observer to
+     *                   trace for intersections
+     * @param ray      PsmrtsRayTrace returns the results of the trace
+     * @return true    If the trace intercepts the shape
+     * @return false   If no ray trace intercept was found
+     */
+      bool ray_trace( PsmrtsRayTrace &ray ) const;
 
-        // Let the model do it!
-        ray.datum().m_hit = m_model.ray_trace( ray.observer().data(), 
-                                               ray.lookdir().data(), 
-                                               ray.datum().m_xyz.data(), 
-                                               ray.datum().m_normal.data() );
-        return ( ray.hasHit() );
-      }
-      
+      /** IMPL function to compute the rays */
+      bool ray_trace( const double *observer, const double *lookdir,
+                      double *xyz, double *normal ) const;
 
-
+      /** Retuns the vector normal of an input point */
+      void compute_normal( const double *point, double *normal ) const;
+    
+    
       static inline ProductSpecification sphere_product_spec() {
         char text[] = R"(
         {
@@ -315,8 +361,10 @@ namespace psmrts  {
       PSMRTS_PROCESS_CATCHALL( "EllipsoidTracer" )
 
     private:
-      EllipsoidTracerModel m_model;
+      double      m_radii[3];
+      std::string m_name;
       ProductConfiguration m_configured;
+
 
 
       inline ProductConfiguration init_sphere(const double radius, const std::string &source ) {
