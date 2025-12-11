@@ -1,12 +1,10 @@
 #include <string>
 #include <memory>
 
-
 #include "PsmrtsBulletWorldModel.hpp"
 #include "BulletTracerModel.hpp"
-#include "../BulletTracer.hpp"
-
 #include "PsmrtsBulletMeshMap.hpp"
+#include "../BulletTracer.hpp"
 
 namespace psmrts {
 

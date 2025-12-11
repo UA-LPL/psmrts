@@ -8,8 +8,6 @@
 #include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/algorithms/TracingBasics.hpp>
 
-// Define class for private implementation
-
 namespace psmrts  {
 
   /**
