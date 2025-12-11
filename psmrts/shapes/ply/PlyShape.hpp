@@ -3,10 +3,10 @@
 
 #include <string>
 
-#include <psmrts/shapes/ply/private/PsmrtsPLYFormat.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/core/PsmrtsMeshData.hpp>
 
 namespace psmrts {
     /**
@@ -15,16 +15,9 @@ namespace psmrts {
      */
     class PlyShape : public PsmrtsProduct {
         public:
-         PlyShape() : PsmrtsProduct( "none", "ply"), 
-                      m_model(), m_mesh() { }
-         PlyShape( const psmrts::PsmrtsPLYFormat &ply_t ) :
-                   PsmrtsProduct( ply_t.ply_source(), "ply" ), 
-                   m_model( ply_t ), m_mesh( ply_t.get_mesh() ) { }
-         PlyShape( const std::string &ply_file ) : 
-                   PsmrtsProduct( ply_file, "ply"), 
-                   m_model( ply_file ),
-                   m_mesh( m_model.get_mesh() ) { }
-         virtual ~PlyShape() { }
+         PlyShape() : PsmrtsProduct( "none", "ply"), m_mesh() { }
+         PlyShape( const std::string &ply_file );
+         virtual ~PlyShape() = default;
          
          /**
           * @brief PRQFeatures holding Format-relevant specification data
@@ -81,8 +74,7 @@ namespace psmrts {
          PSMRTS_PROCESS_CATCHALL( "PlyShape" )
 
         protected:
-         psmrts::PsmrtsPLYFormat m_model;
-         psmrts::PsmrtsMeshData m_mesh;
+          PsmrtsMeshData m_mesh;
     };
 
 } // namespace psmrts

@@ -4,11 +4,8 @@
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsMeshData.hpp>
 
-#include <psmrts/shapes/dsk/private/PsmrtsDSKFormat.hpp>
 #include <psmrts/shapes/dsk/DskShape.hpp>
-#include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
 #include <psmrts/shapes/obj/ObjShape.hpp>
-#include <psmrts/shapes/ply/private/PsmrtsPLYFormat.hpp>
 #include <psmrts/shapes/ply/PlyShape.hpp>
 
 #include <psmrts/shapes/PsmrtsShape.hpp>

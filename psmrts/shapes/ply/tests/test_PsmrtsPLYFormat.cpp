@@ -1,6 +1,7 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 #include <psmrts/shapes/ply/PlyShape.hpp>
 #include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
+#include "../private/PsmrtsPLYFormat.hpp"
 #include <psmrts/core/PsmrtsUtilities.hpp>
 
 // Test Default (No / Bad file) Constructor Cases
