@@ -54,7 +54,7 @@ if(BUILD_SHARED)
   if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE)  
     set(CMAKE_INSTALL_RPATH "$ORIGIN" "$ORIGIN/../lib")
-  endif())
+  endif()
 endif(BUILD_SHARED)
 
 #-----------------------------------------------------------------------------
