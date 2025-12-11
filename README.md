@@ -67,10 +67,10 @@ find_package(PSMRTS REQUIRED CONFIG)
 
 To build `PSMRTS` tests, code coverage and documentation, use the `psmrts_conda_deps_all.yml` conda configuration file in step 1. that adds additional packages that `PSMRTS` uses for these features. Once this environment is install and activated the following commands can be used to build and run the other targets.
 ```
-1.  conda env create -n psmrts_dev -f psmrts_conda_deps_all.yml
-2.  conda activate psmrts_dev
-3.  git clone https://github.com/UA-LPL/psmrts.git
-4.  cd psmrts
+1.  git clone https://github.com/UA-LPL/psmrts.git
+2.  cd psmrts
+3.  conda env create -n psmrts_dev -f psmrts_conda_deps_all.yml
+4.  conda activate psmrts_dev
 5.  ./make_psmrts.sh -s -x -t -d -c -D -C -j4
 6.  cmake --build build --target doxy_docs     # Build doxygen documentation
 7.  open docs/html/index.html                  # On Mac, open the PSMRT documentation
