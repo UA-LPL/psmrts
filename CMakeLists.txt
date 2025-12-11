@@ -49,6 +49,14 @@ if(BUILD_TESTING)
     enable_testing()
 endif(BUILD_TESTING)
 
+# Set shared library RPATH configs here
+if(BUILD_SHARED)
+  if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE)  
+    set(CMAKE_INSTALL_RPATH "$ORIGIN" "$ORIGIN/../lib")
+  endif())
+endif(BUILD_SHARED)
+
 #-----------------------------------------------------------------------------
 # PSMRTS project configuration. PROJECT_SOURCE_DIR=psmrts
 #-----------------------------------------------------------------------------
