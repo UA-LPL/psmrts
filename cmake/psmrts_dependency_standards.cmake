@@ -103,7 +103,7 @@ macro(psmrts_add_bullet_target)
         set(BULLET_LIBRARY_DIRS "lib")
       endif()
 
-      # Reverse list of Bullet libraries and add absolute paths
+      # Add absolute paths to Bullet target properties
       prepend_root_dir("${BULLET_INCLUDE_DIR}"    "${BULLET_ROOT_DIR}"     BULLET_INCLUDE_DIR)
       prepend_root_dir("${BULLET_LIBRARY_DIRS}"   "${BULLET_ROOT_DIR}"     BULLET_LIBRARY_DIRS)
       get_full_library_path("${BULLET_LIBRARIES}" "${BULLET_LIBRARY_DIRS}" BULLET_LIBRARIES)
