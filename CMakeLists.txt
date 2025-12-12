@@ -51,10 +51,12 @@ endif(BUILD_TESTING)
 
 # Set shared library RPATH configs here
 if(BUILD_SHARED)
-  set(CMAKE_SKIP_BUILD_RPATH FALSE)
-  if(UNIX AND NOT APPLE)
+    set(CMAKE_SKIP_BUILD_RPATH FALSE)
     set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+  if(UNIX AND NOT APPLE)
     set(CMAKE_INSTALL_RPATH "$ORIGIN" "$ORIGIN/../lib")
+  elseif(APPLE)
+    set(CMAKE_INSTALL_RPATH "@loader_path" "@loader_path/../lib" )
   endif()
 endif(BUILD_SHARED)
 
