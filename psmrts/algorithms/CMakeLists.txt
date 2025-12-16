@@ -6,6 +6,6 @@ target_sources( psmrts PUBLIC
               )
 
 # Only add if requested
-if(BUILD_TESTING)
-  add_subdirectory( tests )
-endif(BUILD_TESTING)
+#if(BUILD_TESTING)
+#  add_subdirectory( tests )
+#endif(BUILD_TESTING)

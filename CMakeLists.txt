@@ -171,8 +171,8 @@ endif( BUILD_CAPI OR BUILD_CAPI_APPS )
 # Export target configurations
 install(EXPORT psmrts_targets
           FILE psmrts-targets.cmake 
-          DESTINATION lib/cmake/psmrts 
           NAMESPACE psmrts:: 
+          DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/psmrts 
         )
 
   
@@ -192,7 +192,8 @@ write_basic_package_version_file(
 # Install PSMRTS configuration files.
 install(FILES 
          "${CMAKE_CURRENT_BINARY_DIR}/psmrts-config.cmake"
-         "${CMAKE_CURRENT_BINARY_DIR}/psmrts-config-version.cmake" 
+         "${CMAKE_CURRENT_BINARY_DIR}/psmrts-config-version.cmake"
+         "${CMAKE_SOURCE_DIR}/cmake/psmrts_dependency_standards.cmake"
         DESTINATION  ${CMAKE_INSTALL_LIBDIR}/cmake/psmrts )
 
 #-----------------------------------------------------------------------------

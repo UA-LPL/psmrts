@@ -22,6 +22,7 @@ target_sources( psmrts PUBLIC
                                   PsmrtsStridingBuffer.hpp
                                   PsmrtsUtilities.hpp
                                   PsmrtsVector3.hpp
+                                  psmrts_version.h
               )
 
 # Only add if requested
