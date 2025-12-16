@@ -53,10 +53,10 @@ To build using the `conda` environment, you must first install [Anancond](https:
 
 To just build the `PSMRTS` system for installation, use the conda environment file `psmrts_conda_deps.yml`. This configuration installs the minimum `PSMRTS` The following instructions can be used to create the conda environment, build and install `PSMRTS`.
 ```
-1. conda env create -n psmrts -f psmrts_conda_deps.yml
-2. conda activate psmrts
-3. git clone https://github.com/UA-LPL/psmrts.git
-4. cd psmrts
+1. git clone https://github.com/UA-LPL/psmrts.git
+2. cd psmrts
+3. conda env create -n psmrts -f psmrts_conda_deps.yml
+4. conda activate psmrts
 5. ./make_psmrts.sh -s -x -C -j4          # cmake configuration step
 6. cmake --install build --prefix install # Install in desired location
 ```
@@ -95,17 +95,17 @@ When building with `vcpkg`, you can build outside a `conda` environment with tes
 
 Building `PSMRTS` tests with `vcpkg` requires additional packages and programs that are not directly available in `vcpkg` so they must come from somewhere else. You could use Homebrew or conda, however, Homebrew will install them in a system-wide location which may impact how `PSMRTS` builds using different build environments. Using conda to provide the additional packages needed to build documentation and code coverage installs them in an isolated environment to minimize impact on other build situations. `PSMRTS` provides a YAML file `./tools/build_addons.yml` that is intended to provide the necessary tools to create a `conda` environment containing the applications required to produce documentation and code coverage. To use `conda` for these requirements, you must first install Miniconda as described in the `conda` section, Once Miniconda is available, use the following instructions for a full `vcpkg` development experience:
 ```
-1.  conda env create -n psmrts_vcpkg -f tools/build_addons.yml
-2.  conda activate psmrts_vcpkg
-3.  git clone https://github.com/UA-LPL/psmrts.git
-4.  cd psmrts
+1.  git clone https://github.com/UA-LPL/psmrts.git
+2.  cd psmrts
+3.  conda env create -n psmrts_vcpkg -f tools/build_addons.yml
+4.  conda activate psmrts_vcpkg
 5.  ./make_psmrts.sh -x -t -d -c -D -V -j4
 6.  cmake --build build --target doxy_docs     # Build doxygen documentation
-7.  open docs/html/index.html                  # On Mac, open the PSMRT documentation
+7.  open docs/html/index.html                  # On Mac, open the PSMRTS documentation
 8.  cmake --build build --target coverage      # Build code coverage
-9.  open build/coverage/index.html             # On Mac, open the PSMRT code coverage report
+9.  open build/coverage/index.html             # On Mac, open the PSMRTS code coverage report
 10. cd build
-11. ctest --output-on-failure -j4              # Run the PSMRT tests
+11. ctest --output-on-failure -j4              # Run the PSMRTS tests
 ```
 
 In some cases you may need to explicitly specify a `vcpkg` triplet. You may specify a specific triplet to build for other platforms should the `make_psmrts.sh` script fail to determine the proper triplet. See the `vcpkg` documentation describing [triplets](https://learn.microsoft.com/en-us/vcpkg/concepts/triplets) for additional details.
@@ -134,11 +134,36 @@ This is because the compiler interprets line 130 as a **function declaration!** 
     psmrts::BulletTracer b_tracer( psmrts::PsmrtsShape{ objfile } );
 ```
 
+### Creating PSMRTS Documentation
+
+`PSMRTS` documentation system is based upon the [Doxygen](https://www.doxygen.nl) generator. The `docs` directory contains the Doxygen file that contains the configuration to create the `PSMRTS` documentation. The CMAKE target `doxy_docs` creates the HTML documentation in the `docs/html` directory. The `conda` configuration provides the necessary tools to create the documentation but other means can provide the required apps, namely `doxygen`, `graphviz`, `gcovr` and `lcov`. 
+
+The following commands can be used to create the necessary `conda` environment and build the documentation (and code coverage):
+
+```
+
+1.  git clone https://github.com/UA-LPL/psmrts.git
+2.  cd psmrts
+3.  conda env create -n psmrts_docs_cov -f psmrts_conda_deps_all.yml
+4.  conda activate psmrts_docs_cov
+5.  ./make_psmrts.sh -t -x -d -c -D -C -j4
+6.  cmake --build build --target doxy_docs     # Build doxygen documentation
+7.  open docs/html/index.html                  # On Mac, open the PSMRTS documentation
+```
+
+
 ### Code Coverage in PSMRTS
 
 Code coverage can be ran on `PSMRTS` code by providing the `-c` flag to the PSMRTS build scripts. `PSMRTS` uses a custom CMake code coverage script called [CodeCoverage.cmake](https://github.com/bilke/cmake-modules/blob/master/CodeCoverage.cmake). This file is included in the code repository in the `./cmake` directory.
 
 Code coverage prerequisites are provided in the `PSMRTS` package manager configurations. The cmake configurations in each `./tests` subdirectories can customize what files are added in code coverage reports. The `PSMRTS` cmake configuration provides methods to include and exclude source files in the report. See the cmake file [psmrts_register_code_coverage.cmake](.cmake/psmrts_register_code_coverage.cmake) for details and refer to the tests subdirectories CMakeLists.txt files for examples.
+
+Using the configuration described in the `PSMRTS Documentation` section above, you can create a code coverage HTML report using the following additional commands: 
+
+```
+1.  cmake --build build --target coverage      # Build code coverage
+2.  open build/coverage/index.html             # On Mac, open the PSMRTS code coverage report
+```
 
 ### Windows Builds
 
@@ -149,6 +174,7 @@ Development of `PSMRTS` was done and tested mainly using Mac and Linux platforms
 Similar to above, once changed to an appropriate directory made to hold `PSMRTS`, and cloned using the `git clone https://github.com/UA-LPL/psmrts.git` , the following commands will build the system and run the appropriate tests:
 
 ```
+git clone https://github.com/UA-LPL/psmrts.git
 cd psmrts
 .\make_psmrts.ps1 -t
 cd build
