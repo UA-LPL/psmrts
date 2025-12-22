@@ -90,8 +90,9 @@ find_package( Eigen3             CONFIG REQUIRED )
 find_package( cspice QUIET NAMES unofficial-cspice cspice )
 
 # Check for Conda special Bullet config
-find_file(_conda_bullet_config BulletConfig-float64.cmake 
-             PATH ${CMAKE_PREFIX_PATH}
+find_file(_conda_bullet_config 
+             NAMES BulletConfig-float64.cmake 
+             PATHS ${CMAKE_PREFIX_PATH}
              PATH_SUFFIXES lib/cmake/bullet )
 if (NOT "${_conda_bullet_config}" MATCHES ".*-NOTFOUND")
   find_package( Bullet REQUIRED CONFIGS BulletConfig-float64.cmake)
