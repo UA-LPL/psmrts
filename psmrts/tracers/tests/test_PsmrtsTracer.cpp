@@ -81,6 +81,7 @@ TEST_CASE("PsmrtsTracer Values / Raytrace Test", "[tracer][raytrace][default]") 
     CHECK( status                 == true );
     CHECK( ray_t.isValid()        == true );
     CHECK( ray_t.trace().hasHit() == true );
+    CHECK( ray_t.trace().get_tracer_id() == tracer_t.uid() ); 
 
     CHECK_THAT( ray_t.trace().incidence( ray_t.trace() ), Catch::Matchers::WithinAbs(0.10622974872501688, tolerance_r));
     CHECK_THAT( ray_t.trace().emission(), Catch::Matchers::WithinAbs(0.10622974872501688, tolerance_r ));
@@ -133,6 +134,7 @@ TEST_CASE("PsmrtsTracer Values / Raytrace Test", "[tracer][raytrace][default]") 
     CHECK( status_b                 == true );
     CHECK( ray_b.isValid()        == true );
     CHECK( ray_b.trace().hasHit() == true );
+    CHECK( ray_b.trace().get_tracer_id() == bullet_t.uid() ); 
 
     CHECK_THAT( ray_b.trace().incidence( ray_b.trace() ), Catch::Matchers::WithinAbs( 0.52690706564731504, tolerance_r ));
     CHECK_THAT( ray_b.trace().emission(),                 Catch::Matchers::WithinAbs( 0.52690706564731504, tolerance_r ));
@@ -143,6 +145,7 @@ TEST_CASE("PsmrtsTracer Values / Raytrace Test", "[tracer][raytrace][default]") 
     CHECK( status_d               ==  status_b );
     CHECK( ray_d.isValid()        == ray_b.isValid());
     CHECK( ray_d.trace().hasHit() == ray_b.trace().hasHit() );
+    CHECK( ray_d.trace().get_tracer_id() == naifdsk_t.uid() ); 
 
     CHECK( ray_d.trace().incidence( ray_d.trace() )  == ray_b.trace().incidence( ray_b.trace() ) );
     CHECK( ray_d.trace().emission()                  == ray_b.trace().emission() );

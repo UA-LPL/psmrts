@@ -54,6 +54,7 @@ TEST_CASE( "Ellipsoid Shape Tracer Test", "[ellipsoid][shapetracer]") {
     Eigen::Vector3d surf_obs = surf*1.5;
     psmrts::PRQRayTrace prq_ray(surf_obs, -surf_obs );
     REQUIRE( e_tracer.process( prq_ray ) == true ); 
+    REQUIRE( prq_ray.trace().get_tracer_id() == e_tracer.uid() ); 
 
     Eigen::Vector3d lkdr = prq_ray.trace().xyz() - obs;
 
@@ -159,6 +160,7 @@ TEST_CASE( "Ellipsoid Shape Tracer Ray Trace Array Test", "[ellipsoid][shapetrac
     Eigen::Vector3d surf_obs2 = surf2 * 1.5;
     psmrts::PRQRayTrace prq_ray2(surf_obs2, -surf_obs2 );
     REQUIRE( e_tracer.process( prq_ray2 ) == true );
+    REQUIRE( prq_ray2.trace().get_tracer_id() == e_tracer.uid() ); 
 
     Eigen::Vector3d lookdir2 = prq_ray2.trace().xyz() - obs2;
 
@@ -228,6 +230,7 @@ TEST_CASE("Ellipsoid Shape Tracer Photometric Values Test", "[ellipsoid][shapetr
     psmrts::PRQRayTrace prq_surf( surf_obs, -surf_obs );
     CHECK( e_tracer.process( prq_surf ) == true );
     CHECK( surf_obs == prq_surf.trace().observer() );
+    REQUIRE( prq_surf.trace().get_tracer_id() == e_tracer.uid() ); 
 
     // Now compute expected/precise look vector from observer to surface intercept point
     Eigen::Vector3d lookdir = prq_surf.trace().xyz() - observer;
