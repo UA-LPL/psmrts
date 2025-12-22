@@ -56,7 +56,7 @@ namespace psmrts {
    * @author Kris J. Becker, University of Arizona
    * @history 2025-09-03 Kris J. Becker  Original Version
    */
-    template <typename K, typename P, typename U=noop_key_id<K>>
+  template <typename K, typename P, typename U=noop_key_id<K>>
     class ProductInventory : public PsmrtsProduct {
       public:
         using CacheType       = PsmrtsCache<K,P>;
@@ -184,8 +184,8 @@ namespace psmrts {
     };
 
     // Declare string type cache for case sensitive and insensitive map keys of strings
-    using LowerCaseKeyMap     = ProductInventory<std::string,std::string,lowercase_key_id<std::string>>;
-    using CaseSensitiveKeyMap = ProductInventory<std::string,std::string,noop_key_id<std::string>>;
+    using CaseInsensitiveKeyMap = ProductInventory<std::string,std::string,lowercase_key_id<std::string>>;
+    using CaseSensitiveKeyMap   = ProductInventory<std::string,std::string,noop_key_id<std::string>>;
 
 } // namespace psmrts
 
