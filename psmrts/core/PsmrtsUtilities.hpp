@@ -761,6 +761,10 @@ namespace psmrts {
         using UIDType = unsigned long long;
         inline static const UIDType UID_Reserved{0};
 
+        inline static const  UIDType &null_id() {
+          return ( UID_Reserved );
+        }
+
         /** Return a unique ID which should never assumed to be negative */
         inline static UIDType get_uid() {
           return ( ++m_uid );  // This reserves ID <= UID_Reserved!
