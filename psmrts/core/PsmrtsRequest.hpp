@@ -21,12 +21,25 @@ namespace psmrts {
    */
   class MissingProcessRequestHandler {
     public:
-      MissingProcessRequestHandler() : m_name("Product" ) { }
-      MissingProcessRequestHandler(const std::string &name ) : m_name ( name ) { }
+      MissingProcessRequestHandler() : m_name( "Product" ),
+                                       m_type( "missing" ) { }
+      MissingProcessRequestHandler( const std::string &name,
+                                    const std::string &type_t = "missing" ) : 
+                                   m_name ( name ),
+                                   m_type( type_t ) { }
       virtual ~MissingProcessRequestHandler() = default;
       
       inline const std::string &name() const {
         return ( m_name );
+      }
+
+      inline const std::string &type() const {
+        return ( m_type );
+      }
+
+      /** Returns a null (invalid) product ID */
+      inline const PsmrtsUID::UIDType &uid() const {
+        return ( PsmrtsUID::null_id() );
       }
 
       template <class PRQ>
@@ -41,6 +54,7 @@ namespace psmrts {
 
     private:
       std::string m_name;
+      std::string m_type;
   };
 
   /**

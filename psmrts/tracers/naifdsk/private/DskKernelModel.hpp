@@ -9,6 +9,7 @@
 #include <Eigen/Geometry>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsBufferData.hpp>
 #include <psmrts/core/PsmrtsBuffer.hpp>
 #include <psmrts/core/PsmrtsVector3.hpp>
@@ -30,7 +31,7 @@ namespace naif {
    * 
    * @author 2024-02-19 Kris J. Becker
    */
-  class DskKernelModel {
+  class DskKernelModel : public psmrts::PsmrtsProduct {
     
     public:
       // SharedDskDescriptor is the unique thread safe latch on the NAIF DSK file
@@ -62,23 +63,26 @@ namespace naif {
 
 
       /** Default constructor */
-      DskKernelModel( ) {
+      DskKernelModel( ) : psmrts::PsmrtsProduct( "dskkernelmodel", "tracer" ) {
         reset();
       }
 
       /** Open new or use existing DSK file */
-      DskKernelModel( const std::string  &dskfile ) {
+      DskKernelModel( const std::string  &dskfile ) :
+                      psmrts::PsmrtsProduct( dskfile, "tracer" ) {
         init( dskfile );
       }
 
       DskKernelModel( const std::string  &dskfile, 
-                      const Eigen::Vector3d &radii ) {
+                      const Eigen::Vector3d &radii ) :
+                      psmrts::PsmrtsProduct( dskfile, "tracer" ) {
         init( dskfile );
         m_radii = radii;
       }
 
       /** Initialize with a unique NAIF DSK file descriptor */
-      DskKernelModel( const SharedDskDescriptor &k_descr ) {
+      DskKernelModel( const SharedDskDescriptor &k_descr ) :
+                      psmrts::PsmrtsProduct( k_descr.datum().m_source_file, "tracer" ) {
         init( k_descr );
       }
 

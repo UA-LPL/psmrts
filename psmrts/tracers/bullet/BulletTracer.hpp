@@ -4,6 +4,8 @@
 #include <string>
 #include <memory>
 
+#include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/algorithms/TracingBasics.hpp>
@@ -15,14 +17,11 @@ namespace psmrts  {
    * 
    * 
    */
-  class BulletTracer {
+  class BulletTracer : public PsmrtsProduct {
     public:
      BulletTracer( );
      BulletTracer( const PsmrtsShape &shape );
      virtual ~BulletTracer();
-
-      /** Return the name of the shape file */
-      const std::string &name() const;
 
       double maximum_radius() const;
 

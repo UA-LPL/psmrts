@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
 #include <psmrts/algorithms/TracingBasics.hpp>
@@ -14,19 +16,17 @@ namespace psmrts  {
    * 
    * 
    */
-  class NaifDskTracer {
+  class NaifDskTracer : public PsmrtsProduct {
     public:
-      NaifDskTracer( ) {  }
+      NaifDskTracer( ) : PsmrtsProduct( "naifdsktracer", "tracer" ), 
+                         m_model() {  }
       NaifDskTracer( const naif::DskKernelModel &dsktracer ) : 
-                          m_model( dsktracer ) {  }
+                     PsmrtsProduct( dsktracer.shapefile(), "tracer" ),
+                     m_model( dsktracer ) {  }
       NaifDskTracer( const std::string &dsk ) : 
-                          m_model( dsk ) {  }
+                     PsmrtsProduct( dsk, "tracer" ),
+                     m_model( dsk ) {  }
       virtual ~NaifDskTracer() { }
-
-      /** Return the name of the shape file */
-      inline const std::string &name() const {
-        return ( m_model.shapefile() );
-      }
 
       /**
        * @brief NAIF Dsk Ray Trace Processor
@@ -43,7 +43,7 @@ namespace psmrts  {
        * @return false  If no ray trace intercept was found
        */
       inline bool process ( PRQRayTrace &trace ) const {
-        return ( algorithms::process_basic_trace( m_model, trace ) );
+        return ( algorithms::process_basic_trace( *this, trace ) );
       }
 
       /**
@@ -63,7 +63,7 @@ namespace psmrts  {
        * @return false    If no trace intercepts were found
        */
       inline bool process ( PRQRayTraceArray &tracelist ) const {
-        return ( algorithms::process_basic_trace_array( m_model, tracelist ) );
+        return ( algorithms::process_basic_trace_array( *this, tracelist ) );
       }
 
       /**
@@ -82,7 +82,7 @@ namespace psmrts  {
        * @return false  If process fails to find facet/intercept
        */
       inline bool process( PRQFacet &facet ) const {
-        return ( algorithms::process_basic_facet( m_model, facet ) );
+        return ( algorithms::process_basic_facet( *this, facet ) );
       }
 
       /**
@@ -101,7 +101,7 @@ namespace psmrts  {
        * @return false  If either does not intercept the shape
        */
       inline bool process( PRQPhotometricTrace &trace_p ) const {
-        return ( algorithms::process_basic_photometric_trace( m_model, trace_p ) );
+        return ( algorithms::process_basic_photometric_trace( *this, trace_p ) );
       }
 
        /**
@@ -121,7 +121,7 @@ namespace psmrts  {
        * @return false    If no appropriate trace intercepts were found
        */
        inline bool process( PRQPhotometricTraceArray &tracelist ) const {
-        return ( algorithms::process_basic_photometric_trace_array( m_model, tracelist ) );
+        return ( algorithms::process_basic_photometric_trace_array( *this, tracelist ) );
       }
 
        /**
@@ -169,10 +169,16 @@ namespace psmrts  {
       }
       
       inline bool ray_trace( PsmrtsRayTrace &ray ) const {
-        // this->local_tracker()++;
-        return ( m_model.ray_trace( ray ) );
+        bool status = m_model.ray_trace( ray );
+        ray.set_tracer_id( this->uid() );
+        return ( status );
       } 
       
+      inline bool get_facet(  const PsmrtsRayTrace &ray, 
+                              PsmrtsRayTrace::FacetDatum &facet) const {
+        return ( m_model.get_facet( ray, facet ) );                                 
+      }
+
       /** Report all remaining features not available - e.g., PRQFacet not relevant to Ellipsoid format */
       PSMRTS_PROCESS_CATCHALL( "NaifDskTracer" )
 

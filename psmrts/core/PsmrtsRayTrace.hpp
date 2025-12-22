@@ -5,6 +5,7 @@
 #include <Eigen/Geometry>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsProduct.hpp>
 
 namespace psmrts {
 
@@ -113,9 +114,19 @@ namespace psmrts {
             init( );
             m_observer = observer;
             m_lookdir  = lookdir;
-          }          
+          }        
+          
+          inline PsmrtsUID::UIDType get_tracer_id() const {
+            return ( m_uid_t );
+          }
+
+          inline void set_tracer_id( const PsmrtsUID::UIDType &uid_t ) {
+            m_uid_t  = uid_t;
+          }
 
         private:
+          PsmrtsProduct::UIDType m_uid_t;
+
           /** Initialize the datum to default condition */
           inline void init( ) {
 
@@ -128,6 +139,9 @@ namespace psmrts {
 
             m_plateid  = -1;
             m_segment  = -1;
+
+            // Reset the tracer id
+            m_uid_t = PsmrtsUID::null_id();
 
             return;
           }
@@ -302,6 +316,16 @@ namespace psmrts {
         }
 
         return ( true );
+      }
+
+      /** Returns the tracer id used for each tracer operation */
+      inline PsmrtsUID::UIDType get_tracer_id() const {
+        return ( this->datum().get_tracer_id() );
+      }
+
+      /** Sets the tracer for this trace */
+      inline void set_tracer_id( const PsmrtsUID::UIDType &uid_t) {
+        this->datum().set_tracer_id( uid_t );
       }
 
     private:

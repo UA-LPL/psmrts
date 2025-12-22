@@ -32,44 +32,45 @@ namespace psmrts  {
    * @history 2025-08-12 Kris J. Becker - Restructured to use private
    *                       implementation 
    */
-  class EllipsoidTracer {
+  class EllipsoidTracer : public PsmrtsProduct {
 
     public:
-      EllipsoidTracer( ) : m_radii{ 1.0, 1.0, 1.0 } {  }
+      EllipsoidTracer( ) : PsmrtsProduct( "ellipsoid", "tracer" ), 
+                           m_radii{ 1.0, 1.0, 1.0 } {  }
       EllipsoidTracer( const double radius,
                       const std::string &source = "sphere") :
-                      m_radii{ radius, radius, radius }, m_name( source ) { 
+                      PsmrtsProduct( source, "tracer" ),
+                      m_radii{ radius, radius, radius } { 
         init_sphere( 1.0 , source );                        
       }
       EllipsoidTracer( const double a, const double c,
-                      const std::string &source = "spheroid") :                      
-                      m_radii{ a, a, c }, m_name( source ) {
+                      const std::string &source = "spheroid") :
+                      PsmrtsProduct( source, "tracer" ),                      
+                      m_radii{ a, a, c } {
         init_spheroid( a, c, source );                        
 
       }     
       EllipsoidTracer( const double a, const double b, const double c,
                       const std::string &source = "ellipsoid") :
-                      m_radii{ a, b, c }, m_name( source ) { 
+                      PsmrtsProduct( source, "tracer" ),
+                      m_radii{ a, b, c } { 
         init_ellipsoid( a, b, c, source );                    
 
       }     
       EllipsoidTracer( const Eigen::Vector3d &radii,
                       const std::string &source = "ellipsoid" ) : 
-                      m_radii{ radii[0], radii[1],radii[2] }, m_name( source ) { 
+                      PsmrtsProduct( source, "tracer" ),
+                      m_radii{ radii[0], radii[1],radii[2] } { 
         init_ellipsoid( radii[0], radii[1], radii[2], source );                    
       }
-      // EllipsoidTracer( const ProductConfiguration &config_p ) : 
-      //                 m_radii{0, 0, 0}, m_name("none") { 
+      // EllipsoidTracer( const ProductConfiguration &config_p ) :
+      //                  PsmrtsProduct( "none", "tracer" ), 
+      //                  m_radii{0, 0, 0} { 
       //  init_config( config_p );
       // }                         
         
       virtual ~EllipsoidTracer() = default;
-
  
-
-      inline const std::string &name() const {
-        return ( m_name );
-      }
 
       /** Returns value of a */
       const double &a() const {
@@ -362,7 +363,6 @@ namespace psmrts  {
 
     private:
       double      m_radii[3];
-      std::string m_name;
       ProductConfiguration m_configured;
 
 

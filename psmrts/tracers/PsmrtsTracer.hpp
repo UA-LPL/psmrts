@@ -19,17 +19,53 @@
 
 namespace psmrts {
 
-  class PsmrtsTracer : public ProductProcessDispatch< MissingProcessRequestHandler, EllipsoidTracer, BulletTracer, NaifDskTracer>, 
-                       public PsmrtsProduct {
+  /**
+   * @brief PsmrtsTracer container for all PSMRTS tracers
+   * 
+   * This class contains all the active/supported tracers in the PSMRTS system.
+   * All the tracer business is in the ProductProcessDispath, a generic process
+   * dispatch container class that uses templated process( Product T ) methods
+   * to execute the requested operation.
+   * 
+   * Any one of the supported tracers can be passed to the constructor. Its
+   * instance is copied into the ProductProcessDispatch class. Each tracer
+   * implements all the process( T ) method it supports. The design of the
+   * process dispatcher actually accepts any call made to this object, where
+   * non-existant process( T ) methods are trapped and an error is recorded in
+   * the corresponding T class. The T class must contain a PRQRequest base class
+   * to properly handle this feature.
+   * 
+   * To use this class, the following sequence can be used:
+   * @code 
+   *   psmrts::PsmrtsTracer tracer( psmrts::PsmrtsTracer::sphere( 100 ) );
+   *   psmrts::PRQRayTrace ray( observer, lookdir );
+   *   bool status = tracer.process( ray ); // == ray.isValid() = ray.trace().hasHit()
+   *   if ( true == status ) {
+   *     // Trace successfully intercepts surface
+   *   }
+   *   elseif ( false == ray.was_invoked() ) {
+   *      // Indicates the PRQ has no process(PRQRayTrace) method
+   *   }
+   *   elseif ( ray.error_count() > 0 ) {
+   *      // An error was encountered and can be retrieved using
+   *      // ray.errors_to_string()     
+   *   }
+   * @endcode
+   * 
+   * See PsmrtsRequest.hpp and ProductProcessDispatch.hpp for details.
+   */
+  class PsmrtsTracer : public ProductProcessDispatch< MissingProcessRequestHandler,
+                                                      EllipsoidTracer, 
+                                                      BulletTracer, 
+                                                      NaifDskTracer> {
     public:
       using Tracer = ProductProcessDispatch::ProductType;
       using UIDType = PsmrtsUID::UIDType;
 
-      PsmrtsTracer( ) : PsmrtsProduct("tracer") {  }
+      PsmrtsTracer( ) : ProductProcessDispatch (  ) {  }
       PsmrtsTracer( const Tracer &tracer,
                     const std::string &name = "tracer" ) : 
-                    ProductProcessDispatch( tracer ), 
-                    PsmrtsProduct(name, "tracer") {  }
+                    ProductProcessDispatch( tracer ) {  }
       virtual ~PsmrtsTracer() { }
 
       inline static PsmrtsTracer sphere( const double radius_km, const std::string &name="sphere" ) {

@@ -15,23 +15,25 @@ namespace psmrts {
    * API. 
    * 
    */
-  class BulletTracer::BulletTracerImpl {
+  class BulletTracer::BulletTracerImpl : public PsmrtsProduct {
     public:
-      BulletTracerImpl( ) : m_bullet_model() { }
-      BulletTracerImpl( const PsmrtsShape &shape  ) :
-        m_bullet_model( bullet::PsmrtsBulletMeshMap( shape.get_mesh(), shape.name(), 0), shape.name() ) { 
+      BulletTracerImpl( ) : PsmrtsProduct( "bulletmodel", "tracer" ), 
+                            m_bullet_model() { }
+      BulletTracerImpl( const PsmrtsShape &shape  ) : 
+                        PsmrtsProduct( shape.name(), "tracer" ),
+                        m_bullet_model( bullet::PsmrtsBulletMeshMap( shape.get_mesh(), 
+                                                                     shape.name(), 0), 
+                                                                     shape.name() ) { 
       }
       ~BulletTracerImpl() = default;
 
-      inline const std::string &name() const {
-        return ( m_bullet_model.shapefile() );
-      }
 
       inline double maximum_radius() const { 
         return ( m_bullet_model.maximum_radius() );
       }
 
       inline bool ray_trace( PsmrtsRayTrace &ray ) const {
+        ray.set_tracer_id( this->uid() );
         return ( m_bullet_model.ray_trace( ray ) );
       }
 
@@ -49,18 +51,15 @@ namespace psmrts {
    * 
    * 
    */
-  BulletTracer::BulletTracer( ) : m_model( std::make_shared<BulletTracerImpl>() ) {  }
+  BulletTracer::BulletTracer( ) : PsmrtsProduct( "bullet", "tracer" ),
+                                  m_model( std::make_shared<BulletTracerImpl>() ) {  }
 
-  BulletTracer::BulletTracer( const PsmrtsShape &shape ) {
+  BulletTracer::BulletTracer( const PsmrtsShape &shape ) :
+                              PsmrtsProduct( shape.name(), "tracer" ) {
     m_model = std::make_shared<BulletTracerImpl> (shape );
   }                       
   
   BulletTracer::~BulletTracer() = default;
-
-  /** Return the name of the shape file */
-  const std::string &BulletTracer::name() const {
-    return ( m_model->name() );
-  }
 
       
   double BulletTracer::maximum_radius() const {
@@ -68,7 +67,9 @@ namespace psmrts {
   }
 
   bool BulletTracer::ray_trace( PsmrtsRayTrace &ray ) const {
-    return ( m_model->ray_trace( ray ) );
+    bool status = m_model->ray_trace( ray );
+    ray.set_tracer_id( this->uid() );
+    return ( status );
 
   }
   bool BulletTracer::get_facet(  const PsmrtsRayTrace &ray, 

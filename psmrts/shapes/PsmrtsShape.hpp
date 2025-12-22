@@ -21,14 +21,16 @@
 
 namespace psmrts {
 
-  class PsmrtsShape : public ProductProcessDispatch< MissingProcessRequestHandler, DskShape, ObjShape, PlyShape>, 
-                      public PsmrtsProduct {
+  class PsmrtsShape : public ProductProcessDispatch< MissingProcessRequestHandler, 
+                                                     DskShape, 
+                                                     ObjShape, 
+                                                     PlyShape> {
     public:
       using Shape = ProductProcessDispatch::ProductType;
       using UIDType = PsmrtsUID::UIDType;
 
-      PsmrtsShape( ) :  PsmrtsProduct("shape") {  }
-      PsmrtsShape( const std::string &filename ) : PsmrtsProduct("shape") {  
+      PsmrtsShape( ) {  }
+      PsmrtsShape( const std::string &filename ) {  
         std::string fext_t = psmrts_tolower( psmrts_file_extension( filename ) );
         if ( "obj" == fext_t ) {
           m_product = ObjShape( filename );
@@ -45,8 +47,7 @@ namespace psmrts {
         }
       }
       PsmrtsShape( const Shape &shape ) :
-                   ProductProcessDispatch( shape ), 
-                   PsmrtsProduct("shape") {  }
+                   ProductProcessDispatch( shape ) {  }
       virtual ~PsmrtsShape() { }
 
       inline bool isValid() const {
