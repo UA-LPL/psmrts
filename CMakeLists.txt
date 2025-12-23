@@ -93,7 +93,7 @@ find_package( cspice QUIET NAMES unofficial-cspice cspice )
 find_file(_conda_bullet_config 
              NAMES BulletConfig-float64.cmake 
              PATHS ${CMAKE_PREFIX_PATH}
-             PATH_SUFFIXES lib/cmake/bullet )
+             PATH_SUFFIXES lib/cmake/bullet library/lib/cmake/bullet )
 if (NOT "${_conda_bullet_config}" MATCHES ".*-NOTFOUND")
   find_package( Bullet REQUIRED CONFIGS BulletConfig-float64.cmake)
 else()
