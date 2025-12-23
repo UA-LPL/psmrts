@@ -70,16 +70,21 @@ macro(psmrts_add_cspice_target)
       set(_cspice_target_name cspice )
     else()
       message(FATAL_ERROR "cspice library import not found - must be one of "
-                         "unofficial::cspice::cspice, CSPICE::cspice or cspice ")
+                          "unofficial::cspice::cspice, CSPICE::cspice or cspice ")
       set(cspice_FOUND FALSE)
     endif()
 
+    get_target_property(_cspice_include_dir "${_cspice_target_name}" INTERFACE_INCLUDE_DIRECTORIES)
     add_library( cspice::cspice INTERFACE IMPORTED)
-    set_target_properties(cspice::cspice PROPERTIES INTERFACE_LINK_LIBRARIES "${_cspice_target_name}" )
+    set_target_properties(cspice::cspice PROPERTIES 
+                              INTERFACE_LINK_LIBRARIES      "${_cspice_target_name}"
+                              INTERFACE_INCLUDE_DIRECTORIES "${_cspice_include_dir}" 
+    )
     set(cspice_FOUND TRUE)
     message(STATUS "cspice Target Created/Confirmed: cspice::cspice")
 
     unset(_cspice_target_name )
+    unset(_cspice_include_dir )
   endif()
 
 endmacro()
@@ -91,7 +96,8 @@ macro(psmrts_add_bullet_target)
     if (BULLET_FOUND OR Bullet_FOUND )
       if(NOT "${BULLET_DEFINITIONS}" MATCHES ".*-DBT_USE_DOUBLE_PRECISION.*")
         message(
-          FATAL_ERROR "Bullet does not appear to be built with double precision, current definitions: ${BULLET_DEFINITIONS}")
+          FATAL_ERROR "Bullet does not appear to be built with double precision, "
+                      "current definitions: ${BULLET_DEFINITIONS}")
       endif()
       message(STATUS "Bullet Double Compile Definitions: ${BULLET_DEFINITIONS}")
 
