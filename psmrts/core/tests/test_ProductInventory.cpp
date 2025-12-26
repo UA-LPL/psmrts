@@ -7,7 +7,7 @@
 TEST_CASE( "ProductInventory Default Constructor", "[product][inventory][default]") {
    
   // Creates a product inventory of PsmrtsShapes using the standard Psrmts::UIDType.
-  psmrts::ProductInventory<psmrts::PsmrtsProduct::UIDType, psmrts::PsmrtsShape, psmrts::noop_key_id<psmrts::PsmrtsProduct::UIDType>> inv;
+  psmrts::ProductInventory<psmrts::PsmrtsProduct::UIDType, psmrts::PsmrtsShape> inv;
 
   // Create two shapes and show they have undefined ids.
   psmrts::PsmrtsShape shape1;

@@ -3,6 +3,7 @@
 #pragma once
 
 #include <string>
+#include <functional>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsProduct.hpp>
@@ -45,6 +46,7 @@ namespace psmrts {
       }
     };    
 
+
   /** 
    * @brief PSMRTS system inventories
    * 
@@ -53,23 +55,55 @@ namespace psmrts {
    * configured and maintained keyword parameter/options, shape, tracer and
    * priority tracer product system.
    * 
+   * Note that the key mapping function must be a static function and should
+   * be initialized using the full template declared type. This is because
+   * when ProductInventorys are copied, the function pointer is also copied.
+   * This requires the function to exist beyond the scope of the object. I am
+   * not sure this is directly enforceable and may be the source of wierd
+   * behavior/errors. Non-capturing lambdas fufill this requirement.
+   * 
    * @author Kris J. Becker, University of Arizona
    * @history 2025-09-03 Kris J. Becker  Original Version
    */
-  template <typename K, typename P, typename U=noop_key_id<K>>
+  template <typename K, typename P>
     class ProductInventory : public PsmrtsProduct {
       public:
         using CacheType       = PsmrtsCache<K,P>;
         using UIDType         = typename CacheType::UIDType; // == K
-        using KeyToMapUID     = U;
 
+        static std::string case_insensitive_key( const std::string &key ) {
+          return ( psmrts_tolower( key ) );
+        };
+
+        /** Generic key translation function */
+        static K get_real_map_key( const K &key ) {
+          return ( key );
+        }
+
+    
         ProductInventory( ) : PsmrtsProduct( "product", "inventory" ),
-                              m_cache() { }
+                              m_cache(),
+                              m_key_t{ &ProductInventory::get_real_map_key } { }
         ProductInventory( const std::string &product_name,
                           const std::string &itype = "inventory" ) : 
                           PsmrtsProduct( product_name, itype ), 
-                          m_cache() { }
+                          m_cache(),
+                          m_key_t( &get_real_map_key ) { }
 
+          /** This constructor requires a static function! */
+          ProductInventory( std::function<K(const K)> &func  ) : 
+                           PsmrtsProduct( "product", "inventory" ),
+                           m_cache(),
+                           m_key_t( func ) { } 
+        
+        
+        template<typename KeyMapFunc>
+          ProductInventory( const std::string &product_name,
+                            const std::string &itype,
+                            KeyMapFunc&& func ) : 
+                            PsmrtsProduct( product_name, itype ), 
+                            m_cache(),
+                            m_key_t( std::forward<KeyMapFunc>(func) ) { }
         virtual ~ProductInventory() { }
 
 
@@ -93,8 +127,8 @@ namespace psmrts {
          */
         inline bool add( const K &key, const P &product ) {
           // NEVER replace existing products
-          if ( !m_cache.contains( m_key_t.get_real_map_key( key ) ) ) {
-             m_cache.add( m_key_t.get_real_map_key( key ), product );
+          if ( !m_cache.contains( m_key_t( key ) ) ) {
+             m_cache.add( m_key_t( key ), product );
              return ( true );
           }
           return ( false );
@@ -119,7 +153,7 @@ namespace psmrts {
           size_t n_merged = 0;
           for ( auto const &p_it : product.cache() ) {
             if ( !m_cache.contains( p_it.first ) ) {
-              m_cache.add( m_key_t.get_real_map_key( p_it.first ), p_it.second );
+              m_cache.add( m_key_t( p_it.first ), p_it.second );
               n_merged++;
             }
           }
@@ -128,35 +162,35 @@ namespace psmrts {
 
         /** Check for the existance of a product with K=key  */
         inline bool contains( const K &key ) const {
-          return ( m_cache.contains( m_key_t.get_real_map_key( key ) ) );
+          return ( m_cache.contains( m_key_t( key ) ) );
         }
 
         /** Return the product with K=key */
         inline P &find( const K &key ) {
-          return ( m_cache.find( m_key_t.get_real_map_key( key ) ) );
+          return ( m_cache.find( m_key_t( key ) ) );
         }
 
         /** Return the product with K=key */
         inline const P &find( const K &key ) const {
-          return ( m_cache.find( m_key_t.get_real_map_key( key ) ) );
+          return ( m_cache.find( m_key_t( key ) ) );
         }
 
 
         /** Return the product with K=key */
         inline const P &find_by_uid( const K &key ) const {
-          return ( m_cache.find( m_key_t.get_real_map_key( key ) ) );
+          return ( m_cache.find( m_key_t( key ) ) );
         }
 
         /** Remove the product with K=key */
         inline void remove( const K &key ) {
-          m_cache.remove( m_key_t.get_real_map_key( key ) );
+          m_cache.remove( m_key_t( key ) );
           return;
         }
 
         /** Remove the same products in this cache that exists in cache */
         inline void remove( const CacheType &cache ) {
           for ( auto const &p_it : m_cache ) {
-            m_cache.remove( m_key_t.get_real_map_key( p_it->first ) );
+            m_cache.remove( m_key_t( p_it->first ) );
           }
           return;
         }
@@ -179,13 +213,16 @@ namespace psmrts {
         }
 
       private:
-        CacheType   m_cache;  ///!  The product cache
-        KeyToMapUID m_key_t;  ///!  Instance of map key translator
+        CacheType                 m_cache;  ///!  The product cache
+        std::function<K(const K)> m_key_t;  ///!  Instance of map key translator
+
+
+
     };
 
     // Declare string type cache for case sensitive and insensitive map keys of strings
-    using CaseInsensitiveKeyMap = ProductInventory<std::string,std::string,lowercase_key_id<std::string>>;
-    using CaseSensitiveKeyMap   = ProductInventory<std::string,std::string,noop_key_id<std::string>>;
+    // using CaseInsensitiveKeyMap = ProductInventory<std::string,std::string,lowercase_key_id<std::string>>;
+    // using CaseSensitiveKeyMap   = ProductInventory<std::string,std::string,noop_key_id<std::string>>;
 
 } // namespace psmrts
 

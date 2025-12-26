@@ -46,8 +46,8 @@ namespace psmrts {
         using ShapeInventory          = ProductInventory<UIDType, PsmrtsShape>;
         using TracerInventory         = ProductInventory<UIDType, PsmrtsTracer>;
         using PriorityTracerInventory = ProductInventory<UIDType, PsmrtsPriorityTracer>;
-        using ParameterInventory      = ProductInventory<std::string, PsmrtsParameter, lowercase_key_id<std::string>>;
-        using EnvInventory            = ProductInventory<std::string, std::string, noop_key_id<std::string>>;
+        using ParameterInventory      = ProductInventory<std::string, PsmrtsParameter>;
+        using EnvInventory            = ProductInventory<std::string, std::string>;
 
 
         PsmrtsInventory( ) : PsmrtsProduct( "product", "inventory" ) {
@@ -149,11 +149,12 @@ namespace psmrts {
 
         /** Reinitialize everything  */
         inline void init( ) {
-          m_shapes          = ShapeInventory( this->product().name(), "shapes") ;
-          m_tracers         = TracerInventory( this->product().name(), "tracers") ;
-          m_prioritytracers = PriorityTracerInventory( this->product().name(), "prioritytracers") ;
-          m_parameters      = ParameterInventory( this->product().name(), "parameters") ;
-          m_env             = EnvInventory( this->product().name(), "env") ;
+          m_shapes          = ShapeInventory{ this->product().name(), "shapes" } ;
+          m_tracers         = TracerInventory{ this->product().name(), "tracers" } ;
+          m_prioritytracers = PriorityTracerInventory{ this->product().name(), "prioritytracers" };
+          m_parameters      = ParameterInventory{  this->product().name(), "parameters",
+                                                  &ParameterInventory::case_insensitive_key } ;
+          m_env             = EnvInventory{  this->product().name(), "env", &EnvInventory::get_real_map_key } ;
         }
 
         inline const EnvInventory &load_and_merge_env() {
@@ -185,7 +186,7 @@ namespace psmrts {
               
       /** Load all the environment variables */
       static inline EnvInventory get_environment_variables( const std::string &name_p ) {
-          EnvInventory env_t( name_p, "env" );
+          EnvInventory env_t{ name_p, "env", &EnvInventory::get_real_map_key };
 
 #if defined(WIN32) || defined(_MSC_VER) || defined(__CYGWIN__)
           // **** Windows implementation *****/
