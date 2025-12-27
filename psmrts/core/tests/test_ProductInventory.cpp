@@ -36,3 +36,32 @@ TEST_CASE( "ProductInventory Default Constructor", "[product][inventory][default
   inv.remove(uid1);
   CHECK( inv.contains(uid1) == false );
 }
+
+TEST_CASE( "ProductInventory Case Insensitve Inventory", "[product][inventory][caseinsensitive]") {
+
+  psmrts::CaseSensitivyKeyMap<std::string> nocase = psmrts::create_case_insensitive_inventory<std::string>( "isis" );
+
+  CHECK( nocase.name() == "isis" );
+  CHECK( nocase.type() == "inventory" );
+
+  nocase.add("OsirisRex", "$ISISDATA/osirisrex");
+
+  CHECK( nocase.contains( "osirisrex" ) == true );
+  CHECK( nocase.contains( "OSIRISREX" ) == true );
+  CHECK( nocase.find( "oSiriSreX" )     == "$ISISDATA/osirisrex" );
+
+}
+
+TEST_CASE( "ProductInventory Case Insensitve Inventory", "[product][inventory][casesensitive]") {
+
+  psmrts::CaseSensitivyKeyMap<std::string> case_s = psmrts::create_case_sensitive_inventory<std::string>( "env" );
+  CHECK( case_s.name() == "env" );
+  CHECK( case_s.type() == "inventory" );
+
+  case_s.add("ISISDATA", "/opt/isis3/data/osirisrex");
+
+  CHECK( case_s.contains( "ISISDATA" ) == true );
+  CHECK( case_s.contains( "isisdata" ) == false );
+
+  CHECK( case_s.find( "ISISDATA" )     == "/opt/isis3/data/osirisrex" );
+}

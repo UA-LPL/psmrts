@@ -118,6 +118,7 @@ TEST_CASE("PSMRTS Inventory Environment", "[product][inventory][env]") {
 #else
   if (env_ref.contains("USER")) {
     CHECK(env_ref.find("USER").empty() == false);
+    CHECK(env_ref.contains("user")     == false);
   }
 #endif
 

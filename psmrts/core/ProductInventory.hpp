@@ -106,7 +106,7 @@ namespace psmrts {
                             m_key_t( std::forward<KeyMapFunc>(func) ) { }
         virtual ~ProductInventory() { }
 
-
+              
         inline size_t size( ) const {
           return ( m_cache.size() );
         }
@@ -220,9 +220,63 @@ namespace psmrts {
 
     };
 
-    // Declare string type cache for case sensitive and insensitive map keys of strings
-    // using CaseInsensitiveKeyMap = ProductInventory<std::string,std::string,lowercase_key_id<std::string>>;
-    // using CaseSensitiveKeyMap   = ProductInventory<std::string,std::string,noop_key_id<std::string>>;
+
+    // Specialized template instantiation of case aware string key objects
+    /**
+     * @brief Create a case insensitive std:string key inventory object
+     * 
+     * This method constructor creates a case insensitive inventory object
+     * where the cache key is a string and the case is converted to
+     * lowercase when data is inserted into the map.
+     * 
+     * This type of cache can be used for named inventory such as ISIS
+     * mission translation strings and general typed caches.
+     * 
+     * @tparam P     Type of data stored in the cache map
+     * @param name   Name of the cache. This can be stored in the
+     *                 PsmrtsFactory as a product repository. 
+     * @param itype   Type of the product stored
+     * @return ProductInventory<typename P> Case insensitve cache map where
+     *                   the key is stored as a lower case string
+     */
+    template <typename P> 
+      static ProductInventory<std::string, P> 
+          create_case_insensitive_inventory( const std::string &name,
+                                              const std::string &itype = "inventory") {
+            return ( ProductInventory<std::string, P>(name, itype,
+                                                      &ProductInventory<std::string, P>::case_insensitive_key ) );
+          }
+
+    /**
+     * @brief Create a case sensitive std:string key inventory object
+     * 
+     * This method constructor creates a case sensitive inventory object
+     * where the cache key is a string and the case is preserved when the
+     * data is inserted into the map. 
+     * 
+     * This object is recommended for sorting environment variables (P =
+     * std::string), absolute/expanded file names of PsmrtsShapes,
+     * PsmrtsTracers and PsmrtsPriority tracers.
+     * 
+     * @tparam P     Type of data store in the cache map
+     * @param name   Name of the cache. This can be stored in the
+     *                 PsmrtsFactory as a product repository. 
+     * @param itype  Type of the product stored
+     * @return ProductInventory<typename P> Case sensitive cache map
+     */
+    template <typename P> 
+      static ProductInventory<std::string, P> 
+          create_case_sensitive_inventory( const std::string &name,
+                                            const std::string &itype = "inventory") {
+            return ( ProductInventory<std::string, P>(name, itype,
+                                                      &ProductInventory<std::string, P>::get_real_map_key ) );
+          }
+          
+              
+    // Declare string type cache for case sensitive and insensitive map keys of
+    // strings
+    template <typename P>
+      using CaseSensitivyKeyMap = ProductInventory<std::string, P>;
 
 } // namespace psmrts
 
