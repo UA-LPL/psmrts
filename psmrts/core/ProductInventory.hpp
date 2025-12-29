@@ -11,41 +11,6 @@
 
 namespace psmrts {
 
-  /**
-   * @brief Template struct method for a noop UID key translation
-   * 
-   * Use this template method functor to simply pass the map key
-   * as is with no translation to the actual real cached UIDType.
-   * 
-   * @tparam K Type of the UID to translate
-   */
-  template <typename K> 
-    struct noop_key_id {
-      inline K get_real_map_key( const K &key ) const {
-        return ( key );
-      }
-    };
-
-  /**
-   * @brief Template struct method to enforce lowercase string UID keys
-   * 
-   * Use this template method functor to convert any incoming key from
-   * the caller to lowercase. Note this is really only applicable if the
-   * the key is std::string. This provides support to enforce internally
-   * lowercase keys.
-   * 
-   * This serves as an example to emply more complex needs. Usage in this
-   * way will typically be optimized well by the compiler.
-   * 
-   * @tparam K std::string in this specialization
-   */  
-  template <typename K = std::string> 
-    struct lowercase_key_id {
-      inline K get_real_map_key( const K &key ) const {
-        return ( psmrts_tolower( key ) );
-      }
-    };    
-
 
   /** 
    * @brief PSMRTS system inventories
