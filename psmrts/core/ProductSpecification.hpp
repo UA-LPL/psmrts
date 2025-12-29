@@ -81,21 +81,21 @@ namespace psmrts {
 
       inline std::vector<std::string> get_parameter_names() const {
         std::vector<std::string> pnames_t;
-        for ( auto const &parm_t : this->parameters() ) {
+        for ( const auto &parm_t : this->parameters() ) {
           pnames_t.push_back( parm_t.name() );
         }
         return ( pnames_t );
       }
 
       inline bool has_parameter( const std::string &name ) const {
-        for ( auto const &parm_t : this->parameters() ) {
+        for ( const auto &parm_t : this->parameters() ) {
           if ( parm_t.name() == name ) return ( true );
         }
         return ( false );
       }
 
       inline const ProductFeature &get_parameter( const std::string &name ) const {
-        for ( auto &parm_t : this->parameters() ) {
+        for ( const auto &parm_t : this->parameters() ) {
           if ( parm_t.name() == name ) return ( parm_t );
         }
 
@@ -149,7 +149,7 @@ namespace psmrts {
         options = ProductConfiguration( this->name() );
 
         size_t n_missing = 0;
-        for ( auto const &key : this->required() ) {
+        for ( const auto &key : this->required() ) {
           if ( config.contains( key ) ) {
             options.add( config.find( key ) );
           }
@@ -160,7 +160,7 @@ namespace psmrts {
 
         // Check for any optional keywords
         size_t n_optional = 0;
-        for ( auto const &key : this->optional() ) {
+        for ( const auto &key : this->optional() ) {
           if ( config.contains( key ) ) {
             options.add( config.find( key ) );
             n_optional++;
@@ -183,7 +183,7 @@ namespace psmrts {
         // Now check required
         PsmrtsRequest spec_errors_t( "PsmrtsSpecification::matches()");
 
-        for ( auto const &parm_t : this->parameters() ) {
+        for ( const auto &parm_t : this->parameters() ) {
           try {
            ProductFeature other_parm_t = this->get_parameter( parm_t.name() );
             if ( !parm_t.validate( other_parm_t ) ) {
@@ -228,7 +228,7 @@ namespace psmrts {
         if ( m_specs.contains( "features" ) ) {
           ordered_json parms_t = m_specs["features"];
           if ( ( parms_t.is_array() && ( parms_t.size() > 0 ) ) ) {
-            for ( auto const & [key, j_parm_t ] : parms_t.items() ) {
+            for ( const auto & [key, j_parm_t ] : parms_t.items() ) {
               parms.push_back( ProductFeature( j_parm_t ) );
             }
           }

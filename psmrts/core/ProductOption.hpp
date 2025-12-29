@@ -426,7 +426,7 @@ namespace psmrts {
       }
       
       inline void operator()( const std::vector<std::string> &s_array ) {
-        for ( auto const &s : s_array ) { 
+        for ( const auto &s : s_array ) { 
           if ( !this->convert_and_add( s )  ) {
             // Do something!
           }
@@ -722,7 +722,7 @@ namespace psmrts {
       }
 
       inline void operator()( const std::vector<double> &d_array ) {
-        for ( auto const &d_value : d_array ) {
+        for ( const auto &d_value : d_array ) {
           m_strings.push_back( ProductOption::to_string( d_value ) );
         }
       }

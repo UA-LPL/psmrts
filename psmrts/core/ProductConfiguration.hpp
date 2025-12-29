@@ -50,7 +50,7 @@ namespace psmrts {
 
       inline bool contains( const std::string &name ) const {
         std::string name_l = psmrts_tolower( name );
-        for ( auto const &option : m_options ) {
+        for ( const auto &option : m_options ) {
           if ( option.name() == name_l ) {
             return ( true );
           }
@@ -65,7 +65,7 @@ namespace psmrts {
 
       inline const ProductOption &find( const std::string &name ) const {       
         std::string name_l = psmrts_tolower( name );
-        for ( auto const &option : m_options ) {
+        for ( const auto &option : m_options ) {
           if ( option.name() == name_l ) {
             return ( option );
           }
@@ -94,7 +94,7 @@ namespace psmrts {
 
       inline psmrts_json to_json( ) const {
         psmrts_json option_j;
-        for ( auto const &opt_j : m_options ) {
+        for ( const auto &opt_j : m_options ) {
           option_j.update( opt_j.to_json() );
         }
         return ( option_j );
@@ -117,7 +117,7 @@ namespace psmrts {
                                               const bool twoway = false ) const {
         ProductConfiguration diff_c( config.name() );
         if ( &config != this ) {
-          for ( auto const &opt_t : this->options() ) {
+          for ( const auto &opt_t : this->options() ) {
             if ( !config.contains( opt_t.name() ) ) {
               diff_c.add( opt_t );
             }
@@ -130,7 +130,7 @@ namespace psmrts {
 
           if ( true == twoway ) { 
             // Now check config for options that don't exist in diff
-            for ( auto const &conf_t : config.options() ) {
+            for ( const auto &conf_t : config.options() ) {
               if ( !this->contains( conf_t.name() ) ) {
                 diff_c.add( conf_t );
               }
@@ -143,7 +143,7 @@ namespace psmrts {
       inline bool compare( const ProductConfiguration &config,
                            const bool throw_errors = false ) const {
         PsmrtsRequest errors_t;
-        for ( auto const &opt_t : this->options() ) {
+        for ( const auto &opt_t : this->options() ) {
           try {
             if ( !opt_t.equals( config.find( opt_t.name() ) ) ) {
               errors_t.add_error( std::runtime_error( "Option " + opt_t.name() + " does not match!") );

@@ -171,7 +171,7 @@ namespace naif {
 
       /** Returns a refernce to the nth DSK segment. Exceptions are thrown for bad index */
       inline const DskSegment &segment( const int segnum = 0 ) const {
-        for ( auto const &segment : segments() ) {
+        for ( const auto &segment : segments() ) {
           if ( segment.segment_number() == segnum ) {
             return ( segment );
           }
@@ -186,7 +186,7 @@ namespace naif {
       inline std::vector<SpiceInt> get_id_list() const {
         std::vector<SpiceInt> sid_list;
 
-        for ( auto const &segment : segments() ) {
+        for ( const auto &segment : segments() ) {
           sid_list.push_back( segment.id() );
         }
         
@@ -195,7 +195,7 @@ namespace naif {
 
       /** Returns pointer to segment with a specifed id, or nullptr if it doesn't exist */
       inline const DskSegment *get_segment_with_id( const int surfaceid ) const {
-        for ( auto const &segment : segments() ) {
+        for ( const auto &segment : segments() ) {
           if ( segment.id() == surfaceid ) {
             return ( &segment );
           }
@@ -296,7 +296,7 @@ namespace naif {
 
       inline bool ray_trace( psmrts::PsmrtsRayTrace &ray ) const {
         m_tracker++;
-        for ( auto const &segment : segments() ) {
+        for ( const auto &segment : segments() ) {
           bool has_hit = this->ray_trace( segment, ray );
           if ( true == has_hit ) {
             return ( has_hit );
@@ -687,7 +687,7 @@ namespace naif {
       inline static std::vector<std::string> get_dsk_shape_inventory_list() {
         std::vector<std::string> v_dsk_files;
         std::scoped_lock mylocker( s_mutex ); 
-        for ( auto const &dsk : s_dsk_shape_inventory ) {
+        for ( const auto &dsk : s_dsk_shape_inventory ) {
           v_dsk_files.push_back( dsk.first );
         } 
         return ( v_dsk_files );

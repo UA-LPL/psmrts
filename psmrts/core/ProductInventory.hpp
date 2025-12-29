@@ -101,7 +101,7 @@ namespace psmrts {
 
         /** Add a PSMRTS product that has a required uid() method */
         inline K add_product( const P &product ) {
-          auto const &key = product.uid();
+          const auto &key = product.uid();
           this->add( key, product );
           return ( key );
         }
@@ -116,7 +116,7 @@ namespace psmrts {
          */
         inline size_t merge( const ProductInventory &product ) {
           size_t n_merged = 0;
-          for ( auto const &p_it : product.cache() ) {
+          for ( const auto &p_it : product.cache() ) {
             if ( !m_cache.contains( p_it.first ) ) {
               m_cache.add( m_key_t( p_it.first ), p_it.second );
               n_merged++;
@@ -154,7 +154,7 @@ namespace psmrts {
 
         /** Remove the same products in this cache that exists in cache */
         inline void remove( const CacheType &cache ) {
-          for ( auto const &p_it : m_cache ) {
+          for ( const auto &p_it : m_cache ) {
             m_cache.remove( m_key_t( p_it->first ) );
           }
           return;
