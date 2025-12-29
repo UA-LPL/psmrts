@@ -15,7 +15,7 @@ and build the helloword PSMRTS application:
 2.  cd psmrts
 3.  conda env create -n psmrts -f psmrts_conda_deps_all.yml
 4.  conda activate psmrts
-5.  ./make_psmrts.sh -x  -s -V -j4
+5.  ./make_psmrts.sh -x -s -C -j4
 6.  cmake --install build --prefix $CONDA_PREFIX
 
 To build and run the example helloword app:
