@@ -358,6 +358,10 @@ namespace psmrts  {
         return ( ProductSpecification( "ellipsoid", "tracer", "tracer", json_utils::parse_json_string( text )));
       }
 
+      inline ProductConfiguration &config() const {
+        return ( m_configured );
+      }
+
       /** Report all remaining features not available */
       PSMRTS_PROCESS_CATCHALL( "EllipsoidTracer" )
 
