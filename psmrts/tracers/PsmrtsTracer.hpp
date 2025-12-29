@@ -62,7 +62,9 @@ namespace psmrts {
       using Tracer = ProductProcessDispatch::ProductType;
       using UIDType = PsmrtsUID::UIDType;
 
-      PsmrtsTracer( ) : ProductProcessDispatch (  ) {  }
+      PsmrtsTracer( ) : ProductProcessDispatch ( MissingProcessRequestHandler( "invalid" ) ) {  }
+      PsmrtsTracer( const std::string &name ) : 
+                    ProductProcessDispatch ( MissingProcessRequestHandler( name ) ) {  }
       PsmrtsTracer( const Tracer &tracer,
                     const std::string &name = "tracer" ) : 
                     ProductProcessDispatch( tracer ) {  }
