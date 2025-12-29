@@ -358,7 +358,7 @@ namespace psmrts  {
         return ( ProductSpecification( "ellipsoid", "tracer", "tracer", json_utils::parse_json_string( text )));
       }
 
-      inline ProductConfiguration &config() const {
+      inline const ProductConfiguration &config() const {
         return ( m_configured );
       }
 
