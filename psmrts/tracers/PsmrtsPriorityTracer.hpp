@@ -42,14 +42,15 @@ namespace psmrts {
       /** Adds a tracer to Priority Tracer list */
       inline void add_tracer( const PsmrtsTracer &tracer ) {
         m_tracers.push_back( tracer.uid() );
-        m_inventory_t.add_product( tracer );
+        if ( !m_inventory_t.contains( tracer.uid() ) ) {
+          m_inventory_t.add_product( tracer );
+        }
       }
       
       inline bool process ( PRQRayTrace &ray ) const {
-
-        // Just loop through linear like
-        for ( auto const &uid : tracers() ) {
-          auto const &tracer = m_inventory_t.find( uid );
+        // Trace through list as ordered in the current UID set
+        for ( const auto &uid : tracers() ) {
+          const auto &tracer = m_inventory_t.find( uid );
           if ( tracer.process( ray )  ) {
             return ( ray.isValid() );
           }
@@ -58,11 +59,11 @@ namespace psmrts {
       }
 
       inline bool process ( PRQRayTraceArray &tracelist ) const {
-     // Just loop through linear like
+        // Trace through list as ordered in the current UID set
         size_t ngood = 0;
         for ( auto &ray : tracelist.traces() ) {
-          for ( auto const &uid : tracers() ) {
-            auto const &tracer = m_inventory_t.find( uid );
+          for ( const auto &uid : tracers() ) {
+            const auto &tracer = m_inventory_t.find( uid );
             if ( tracer.process( ray ) == true ) ngood++;
           }
         }
@@ -72,9 +73,9 @@ namespace psmrts {
 
 
      inline bool process ( PRQPhotometricTrace &ray_p ) const {
-     // Just loop through linear like
-        for ( auto const &uid : tracers() ) {
-          auto const &tracer = m_inventory_t.find( uid );
+        // Trace through list as ordered in the current UID set
+        for ( const auto &uid : tracers() ) {
+          const auto &tracer = m_inventory_t.find( uid );
           if ( tracer.process( ray_p ) == true ) return ( true );
         }
         return ( false ); // Not a one intercepted
@@ -82,11 +83,11 @@ namespace psmrts {
 
       
       inline bool process ( PRQPhotometricTraceArray &tracelist ) const {
-     // Just loop through linear like
+        // Trace through list as ordered in the current UID set
         size_t ngood = 0;
         for ( auto &ray : tracelist.traces() ) {
-          for ( auto const &uid : tracers() ) {
-            auto const &tracer = m_inventory_t.find( uid );
+          for ( const auto &uid : tracers() ) {
+            const auto &tracer = m_inventory_t.find( uid );
             if ( tracer.process( ray ) == true ) ngood++;
           }
         }
@@ -94,7 +95,7 @@ namespace psmrts {
       } 
       
       
-      /** Report all remaining features not available - e.g., PRQFacet not relevant to Ellipsoid format */
+      /** Report all remaining features not available  */
       PSMRTS_PROCESS_CATCHALL( "PsmrtsPriorityTracer" )
 
 
@@ -123,9 +124,10 @@ namespace psmrts {
         return ( tracer.process( ray ) );
       }
 
+      /** Run a trace on the priority list */
       inline bool ray_trace( PRQRayTrace &ray ) const {
-        for ( auto const &uid : tracers() ) {
-          auto const &tracer = m_inventory_t.find( uid );
+        for ( const auto &uid : tracers() ) {
+          const auto &tracer = m_inventory_t.find( uid );
           if ( this->ray_trace( tracer, ray ) == true ) {
             return ( ray.isValid() );
           }
@@ -133,11 +135,28 @@ namespace psmrts {
         return ( ray.isValid() );
       }
 
+      /** Return list of tracers in this object */
       inline const TracerList &tracers() const {
         return ( m_tracers );
       }
 
-      /** Empties the Priority list */
+      /** Return list of tracers in this object */
+      inline const TracerInventory &inventory() const {
+        return ( m_inventory_t );
+      }
+
+      /** Find and return pointer to tracer in list, otherwise an invalid
+       * tracer is returned */
+      inline PsmrtsTracer get_tracer( const UIDType &uid ) const {
+        if ( m_inventory_t.contains( uid ) ) {
+          return( m_inventory_t.find( uid ) );
+        }
+
+        // Return an invalid tracer
+        return ( PsmrtsTracer( "invalid" ) );
+      }
+
+      /** Empties the priority list not the inventory */
       inline void clear() {
         m_tracers.clear();
       }
@@ -149,7 +168,6 @@ namespace psmrts {
       inline void init( ) {
         m_tracers.clear();
         m_inventory_t.clear();
-
       }
   };
 
