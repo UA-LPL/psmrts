@@ -64,6 +64,13 @@ namespace psmrts {
             return ( m_mesh.nfacets() ); 
         }
 
+        inline int nSegments() const {
+            return ( m_segments );
+        }
+
+        inline std::string data_type() const {
+            return ( m_type );
+        }
         /** 
          * @brief Loads a DSK file mesh data
          * 
@@ -132,6 +139,11 @@ namespace psmrts {
             j_result["header"]["file"] = m_dsk_source;
             int seg_num = model.n_dsk_segments();
             j_result["header"]["nSegments"] = seg_num;
+            m_segments = seg_num;
+            if ( seg_num > 0 ) {
+                m_type = model.segment(0).dtype();
+            }
+            
 
             nlohmann::ordered_json j_segments = nlohmann::ordered_json::array();
             // JSON: [Segment(s)]. (Get list of Segments - DskSegmentList &segments)
@@ -151,7 +163,6 @@ namespace psmrts {
                 j_segments.push_back(j_segment);
             } 
             j_result["segments"] = j_segments;
-
             m_config = j_result;
             return;
         }
@@ -183,6 +194,8 @@ namespace psmrts {
 
         private:
             std::string           m_dsk_source;
+            int                   m_segments;
+            std::string           m_type;
             PsmrtsMeshData        m_mesh;
             ordered_json          m_config;
     };

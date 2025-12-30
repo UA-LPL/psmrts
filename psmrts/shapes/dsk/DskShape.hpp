@@ -3,6 +3,7 @@
 
 #include <string>
 
+#include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
@@ -12,14 +13,24 @@ namespace psmrts {
     class DskShape : public PsmrtsProduct {
      public:
       DskShape( ) : PsmrtsProduct("none", "dsk"), 
-                    m_model(), m_mesh() { }
+                    m_model(), m_mesh() { 
+                        init_dsk( "No_File_DSK" );
+                    }
       DskShape( const psmrts::PsmrtsDSKFormat &dsk_t ) :
                 PsmrtsProduct(dsk_t.dsk_source(), "dsk"), 
-                m_model( dsk_t ), m_mesh( dsk_t.get_mesh() ) { }
+                m_model( dsk_t ), m_mesh( dsk_t.get_mesh() ) { 
+                    init_dsk( dsk_t.data_type(),
+                              std::to_string(dsk_t.nSegments()),
+                              dsk_t.dsk_source() );
+                }
       DskShape( const std::string &dsk_file ) :
                 PsmrtsProduct( dsk_file, "dsk"), 
                 m_model( dsk_file ), 
-                m_mesh( m_model.get_mesh() ) { }
+                m_mesh( m_model.get_mesh() ) {
+                    init_dsk( m_model.data_type(),
+                              std::to_string(m_model.nSegments()),
+                              m_model.dsk_source() );
+                 }
       virtual ~DskShape() { } 
      
 
@@ -81,9 +92,29 @@ namespace psmrts {
         return m_mesh; 
      }
 
+     inline const ProductConfiguration &config() const {
+        return ( m_configured );
+     }
+
      protected:
        psmrts::PsmrtsDSKFormat m_model;
        psmrts::PsmrtsMeshData m_mesh;
+       psmrts::ProductConfiguration m_configured;
+
+       inline ProductConfiguration init_dsk( const std::string &source ) {
+            auto config = ProductConfiguration( source , { ProductOption( "shape", "dsk" ) } );
+            return ( config );
+       }
+
+       inline ProductConfiguration init_dsk( const std::string &datatype,  
+                                             const std::string &segments, 
+                                             const std::string &source ) {
+            auto config = ProductConfiguration( source, { ProductOption( "shape", "dsk" ),
+                                                       ProductOption( "data_type", datatype ),
+                                                       ProductOption( "segments", segments ),
+                                                       ProductOption( "dsk_source", source ) } );
+            return ( config );
+       }
     };
 }
 

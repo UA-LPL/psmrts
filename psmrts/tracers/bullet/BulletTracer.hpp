@@ -7,6 +7,7 @@
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
+#include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/algorithms/TracingBasics.hpp>
 
@@ -215,6 +216,10 @@ namespace psmrts  {
         return ( ProductSpecification( "bullet", "tracer", "tracer", json_utils::parse_json_string( text )));
       }
 
+      inline const ProductConfiguration &config() const {
+        return ( m_configured );
+      }
+
       /** Report all remaining features not available - e.g., PRQFacet not relevant to Ellipsoid format */
       PSMRTS_PROCESS_CATCHALL( "BulletTracer" )
 
@@ -222,6 +227,18 @@ namespace psmrts  {
     private:
       class BulletTracerImpl;
       std::shared_ptr<BulletTracerImpl> m_model;
+      ProductConfiguration m_configured;
+
+      // WIP -- Dependent on shapes configs
+      inline ProductConfiguration init_bullet() {
+        auto config = ProductConfiguration( "bullet", { ProductOption("tracer", "bullet") });
+        return ( config );
+      }
+
+      inline ProductConfiguration init_bullet_shape( const PsmrtsShape &shape ) {
+        auto config = ProductConfiguration();
+        return ( config );
+      }
   };
 
 } // namespace psmrts
