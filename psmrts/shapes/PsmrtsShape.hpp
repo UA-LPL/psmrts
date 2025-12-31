@@ -64,6 +64,34 @@ namespace psmrts {
         };
         return std::visit(visitor, m_product);
       }
+
+      inline const ProductConfiguration &config() const {
+        static const ProductConfiguration empty_config{};
+        const auto visitor = overload{
+          [](const ObjShape &obj) -> const ProductConfiguration& {
+            return obj.config();
+          },
+          [](const PlyShape &ply) -> const ProductConfiguration& {
+            return ply.config();
+          },
+          [](const DskShape &dsk) -> const ProductConfiguration& {
+            return dsk.config();
+          },
+          [](auto &&) -> const ProductConfiguration& {
+            return empty_config;
+          }
+        };
+        return std::visit(visitor, m_product);
+      }
+      
+      inline double minimum_radius() const {
+        return this->get_mesh().minimum_radius();
+      }
+      
+      inline double maximum_radius() const {
+        return this->get_mesh().maximum_radius();
+      }
+      
   };
 } // namespace psmrts
 

@@ -3,6 +3,7 @@
 
 #include <string>
 
+#include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
@@ -19,13 +20,19 @@ namespace psmrts  {
   class NaifDskTracer : public PsmrtsProduct {
     public:
       NaifDskTracer( ) : PsmrtsProduct( "naifdsktracer", "tracer" ), 
-                         m_model() {  }
+                         m_model() {
+                          //m_configured = init_naifdsk( "naifdsk" );
+                           }
       NaifDskTracer( const naif::DskKernelModel &dsktracer ) : 
                      PsmrtsProduct( dsktracer.shapefile(), "tracer" ),
-                     m_model( dsktracer ) {  }
+                     m_model( dsktracer ) { 
+                       //m_configured = init_naifdsk( dsktracer, dsktracer.shapefile() );
+                      }
       NaifDskTracer( const std::string &dsk ) : 
                      PsmrtsProduct( dsk, "tracer" ),
-                     m_model( dsk ) {  }
+                     m_model( dsk ) { 
+                      //m_configured = init_naifdsk( m_model, m_model.shapefile() );
+                      }
       virtual ~NaifDskTracer() { }
 
       /**
@@ -216,9 +223,25 @@ namespace psmrts  {
         return ( ProductSpecification( "naifdsk", "tracer", "shapetracer", json_utils::parse_json_string( text )));
       }
 
+      inline const ProductConfiguration &config() const {
+        return ( m_configured );
+      }
+      
     private:
       naif::DskKernelModel m_model;
+      ProductConfiguration m_configured;
 
+      inline ProductConfiguration init_naifdsk( const std::string &source ) {
+        auto config = ProductConfiguration( source, { ProductOption( "tracer", "naifdsk" ) } );
+        return ( config );
+      }
+
+      inline ProductConfiguration init_naifdsk( const naif::DskKernelModel &model, const std::string &source ) {
+        auto config = ProductConfiguration( source, { ProductOption( "tracer", "naifdsk" ),
+                                                      ProductOption( "plates", std::to_string(model.plate_count())),
+                                                      ProductOption( "segments", std::to_string(model.n_dsk_segments())) } );
+        return ( config );
+      }
   };
 
 } // namespace psmrts

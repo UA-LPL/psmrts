@@ -448,18 +448,19 @@ namespace psmrts {
       m_config_j = ProductSpecification("obj", "mesh", options);
     }
 
-    inline ProductMetaData get_metadata( tinyobj::ObjReader *reader ) {
-      ProductMetaData meta( "obj" );
-      meta.add( ProductOption( "obj_file", this->obj_source() ) );
-      meta.add( ProductOption( "obj_data_type", PsmrtsOBJFormat::get_data_type() ) );
+    inline ProductConfiguration get_metadata( tinyobj::ObjReader *reader ) const {
+      ProductConfiguration meta( "obj" );
+      meta.add( ProductOption( "file", this->obj_source() ) );
+      meta.add( ProductOption( "data_type", PsmrtsOBJFormat::get_data_type() ) );
       meta.add( ProductOption( "obj_mtl_search_path", this->obj_mtl_search_path() ) );
-      meta.add( ProductOption( "obj_shapes", this->nShapes() ) );
-      meta.add( ProductOption( "obj_vertices", this->nVertexes() ) );
-      meta.add( ProductOption( "obj_facets", this->nIndexes() ) );      
+      meta.add( ProductOption( "n_shapes", this->nShapes() ) );
+      meta.add( ProductOption( "n_vertices", this->nVertexes() ) );
+      meta.add( ProductOption( "n_facets", this->nIndexes() ) );    
+
       return ( meta );
     }
 
-    inline ProductMetaData get_metadata( ) {
+    inline ProductConfiguration get_metadata( ) const {
       return ( this->get_metadata( m_obj_reader.get() ) );
     }
 

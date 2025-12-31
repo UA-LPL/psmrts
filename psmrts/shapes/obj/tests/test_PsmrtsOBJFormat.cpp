@@ -63,12 +63,12 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Basic Load/Init Tests", "[format][obj][benn
     psmrts::ProductConfiguration meta_data = t_loader.get_metadata( &reader ); 
     CHECK( meta_data.name() == "" );
     CHECK( meta_data.size() == 6 );
-    CHECK( psmrts::psmrts_filename(meta_data.find("obj_file").to_string()) == "bennu_20facets.obj" );
-    CHECK( meta_data.find("obj_data_type").to_string()       == "double" );
+    CHECK( psmrts::psmrts_filename(meta_data.find("file").to_string()) == "bennu_20facets.obj" );
+    CHECK( meta_data.find("data_type").to_string()       == "double" );
     CHECK( meta_data.find("obj_mtl_search_path").to_string() == "" );
-    CHECK( meta_data.find("obj_shapes").to_string()          == "1" );
-    CHECK( meta_data.find("obj_vertices").to_string()        == "20" );
-    CHECK( meta_data.find("obj_facets").to_string()          == "36" );
+    CHECK( meta_data.find("n_shapes").to_string()          == "1" );
+    CHECK( meta_data.find("n_vertices").to_string()        == "20" );
+    CHECK( meta_data.find("n_facets").to_string()          == "36" );
 }
 
 TEST_CASE ( "OBJ FORMAT Asset Test - Load Fail Tests", "[format][obj][failures]" ) {

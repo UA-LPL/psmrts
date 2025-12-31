@@ -167,23 +167,26 @@ namespace psmrts {
             return;
         }
 
-        inline ProductMetaData get_metadata( const naif::DskSegment &segment ) {
-          
-          ProductMetaData meta( "dsk" );
-          meta.add( ProductOption( "dsk_file", this->dsk_source() ) );
-          meta.add( ProductOption( "dsk_data_type", "double" ) );
+        inline ProductConfiguration get_segment_metadata( const naif::DskSegment &segment ) {
+          // in the get_metadata:
+          // file 
+          // dataype - double
+          // Create vector variables for each segment, loop.
+          ProductConfiguration meta( "dsk" );
+          meta.add( ProductOption( "file", this->dsk_source() ) );
+          meta.add( ProductOption( "data_type", "double" ) );
           meta.add( ProductOption( "dsk_segment_number", segment.segment_number() ) );
           meta.add( ProductOption( "dsk_surface_id", segment.id() ) );
-          meta.add( ProductOption( "dsk_vertices", segment.n_vertices() ) );
-          meta.add( ProductOption( "dsk_facets", segment.n_plates() ) );
+          meta.add( ProductOption( "n_vertices", segment.n_vertices() ) );
+          meta.add( ProductOption( "n_facets", segment.n_plates() ) );
           meta.add( ProductOption( "dsk_reference_id", segment.bodyid() ) );
           meta.add( ProductOption( "dsk_body_id", segment.bodyid() ) );
           meta.add( ProductOption( "dsk_surface_id", segment.surfaceid() ) );
           meta.add( ProductOption( "dsk_frame_id", segment.frameid() ) );
           meta.add( ProductOption( "dsk_type", segment.dtype() ) );
           meta.add( ProductOption( "dsk_class", segment.dclass() ) );
-          meta.add( ProductOption( "dsk_minimum_radius", segment.minimum_radius() ) );
-          meta.add( ProductOption( "dsk_maximum_radius", segment.maximum_radius() ) );
+          meta.add( ProductOption( "minimum_radius", segment.minimum_radius() ) );
+          meta.add( ProductOption( "maximum_radius", segment.maximum_radius() ) );
 
           return ( meta );
         }

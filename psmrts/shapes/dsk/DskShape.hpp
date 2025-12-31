@@ -10,36 +10,28 @@
 #include <psmrts/shapes/dsk/private/PsmrtsDSKFormat.hpp>
 
 namespace psmrts {
-    class DskShape : public PsmrtsProduct {
-     public:
+  class DskShape : public PsmrtsProduct {
+    public:
       DskShape( ) : PsmrtsProduct("none", "dsk"), 
-                    m_model(), m_mesh() { 
-                        init_dsk( "No_File_DSK" );
-                    }
+                    m_model(), m_mesh() /**m_configured("dsk")*/ { }
       DskShape( const psmrts::PsmrtsDSKFormat &dsk_t ) :
                 PsmrtsProduct(dsk_t.dsk_source(), "dsk"), 
-                m_model( dsk_t ), m_mesh( dsk_t.get_mesh() ) { 
-                    init_dsk( dsk_t.data_type(),
-                              std::to_string(dsk_t.nSegments()),
-                              dsk_t.dsk_source() );
-                }
+                m_model( dsk_t ), m_mesh( dsk_t.get_mesh() )
+                /**m_configured( dsk_t.get_metadata() )*/ { }
       DskShape( const std::string &dsk_file ) :
                 PsmrtsProduct( dsk_file, "dsk"), 
                 m_model( dsk_file ), 
-                m_mesh( m_model.get_mesh() ) {
-                    init_dsk( m_model.data_type(),
-                              std::to_string(m_model.nSegments()),
-                              m_model.dsk_source() );
-                 }
+                m_mesh( m_model.get_mesh() )
+                /**m_configured( m_model.get_metadata() )*/ { }
       virtual ~DskShape() { } 
      
 
-     inline bool process( PRQFeatures &features ) const {
+      inline bool process( PRQFeatures &features ) const {
         features.add_feature( this->product_specifications().json_specs() );
         return ( true );
-     }
+      }
 
-     static inline ProductSpecification product_specifications() {
+      static inline ProductSpecification product_specifications() {
         char text[] = R"(
         {
             "name": "dsk",
@@ -86,35 +78,20 @@ namespace psmrts {
             ]
         })";
         return ( ProductSpecification( "dsk", "mesh", "shape", json_utils::parse_json_string( text ) ) );
-     }
+      }
 
-     inline const PsmrtsMeshData &get_mesh() const {
+      inline const PsmrtsMeshData &get_mesh() const {
         return m_mesh; 
-     }
+      }
 
-     inline const ProductConfiguration &config() const {
+      inline const ProductConfiguration &config() const {
         return ( m_configured );
-     }
+      }
 
-     protected:
-       psmrts::PsmrtsDSKFormat m_model;
+    protected:
+       psmrts::PsmrtsDSKFormat m_model; // Need to address this, .cpp?
        psmrts::PsmrtsMeshData m_mesh;
        psmrts::ProductConfiguration m_configured;
-
-       inline ProductConfiguration init_dsk( const std::string &source ) {
-            auto config = ProductConfiguration( source , { ProductOption( "shape", "dsk" ) } );
-            return ( config );
-       }
-
-       inline ProductConfiguration init_dsk( const std::string &datatype,  
-                                             const std::string &segments, 
-                                             const std::string &source ) {
-            auto config = ProductConfiguration( source, { ProductOption( "shape", "dsk" ),
-                                                       ProductOption( "data_type", datatype ),
-                                                       ProductOption( "segments", segments ),
-                                                       ProductOption( "dsk_source", source ) } );
-            return ( config );
-       }
     };
 }
 

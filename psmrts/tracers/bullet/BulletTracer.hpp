@@ -26,6 +26,8 @@ namespace psmrts  {
 
       double maximum_radius() const;
 
+      double minimum_radius() const;
+
       /**
        * @brief Bullet Ray Trace Processor
        * 
@@ -216,6 +218,10 @@ namespace psmrts  {
         return ( ProductSpecification( "bullet", "tracer", "tracer", json_utils::parse_json_string( text )));
       }
 
+      inline const PsmrtsShape &shape() const {
+        return ( m_shape );
+      }
+
       inline const ProductConfiguration &config() const {
         return ( m_configured );
       }
@@ -227,18 +233,8 @@ namespace psmrts  {
     private:
       class BulletTracerImpl;
       std::shared_ptr<BulletTracerImpl> m_model;
-      ProductConfiguration m_configured;
-
-      // WIP -- Dependent on shapes configs
-      inline ProductConfiguration init_bullet() {
-        auto config = ProductConfiguration( "bullet", { ProductOption("tracer", "bullet") });
-        return ( config );
-      }
-
-      inline ProductConfiguration init_bullet_shape( const PsmrtsShape &shape ) {
-        auto config = ProductConfiguration();
-        return ( config );
-      }
+      PsmrtsShape                       m_shape;
+      ProductConfiguration              m_configured;
   };
 
 } // namespace psmrts
