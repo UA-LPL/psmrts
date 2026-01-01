@@ -17,6 +17,7 @@
 #include <psmrts/shapes/dsk/DskShape.hpp>
 #include <psmrts/shapes/obj/ObjShape.hpp>
 #include <psmrts/shapes/ply/PlyShape.hpp>
+#include <psmrts/shapes/mesh/MeshShape.hpp>
 
 
 namespace psmrts {
@@ -24,7 +25,8 @@ namespace psmrts {
   class PsmrtsShape : public ProductProcessDispatch< MissingProcessRequestHandler, 
                                                      DskShape, 
                                                      ObjShape, 
-                                                     PlyShape> {
+                                                     PlyShape,
+                                                     MeshShape> {
     public:
       using Shape = ProductProcessDispatch::ProductType;
       using UIDType = PsmrtsUID::UIDType;
@@ -54,13 +56,14 @@ namespace psmrts {
         return ( !std::holds_alternative<MissingProcessRequestHandler>( m_product ) );
       }
 
-      inline const PsmrtsMeshData get_mesh() const {
+      inline const PsmrtsMeshData &get_mesh() const {
         static const PsmrtsMeshData empty_mesh{};
         const auto visitor = overload{
-          [](const DskShape &dsk) { return ( dsk.get_mesh() ); },            
-          [](const ObjShape &obj) { return ( obj.get_mesh() ); },            
-          [](const PlyShape &ply) { return ( ply.get_mesh() ); },            
-          [](auto &&args) { return ( empty_mesh ); } // Default lambda for all other types
+          [](const DskShape &dsk) -> const PsmrtsMeshData&   { return ( dsk.get_mesh() ); },            
+          [](const ObjShape &obj) -> const PsmrtsMeshData&   { return ( obj.get_mesh() ); },            
+          [](const PlyShape &ply) -> const PsmrtsMeshData&   { return ( ply.get_mesh() ); },            
+          [](const MeshShape &mesh) -> const PsmrtsMeshData& { return ( mesh.get_mesh() ); },            
+          [](auto &&args) -> const PsmrtsMeshData& { return ( empty_mesh ); } // Default lambda for all other types
         };
         return std::visit(visitor, m_product);
       }
