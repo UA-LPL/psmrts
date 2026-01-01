@@ -7,6 +7,7 @@
 #include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
 #include <psmrts/core/PsmrtsMeshData.hpp>
+#include <psmrts/core/ProductConfiguration.hpp>
 
 namespace psmrts {
     /**
@@ -15,10 +16,13 @@ namespace psmrts {
      */
     class MeshShape : public PsmrtsProduct {
         public:
-         MeshShape() : PsmrtsProduct( "none", "mesh"), m_mesh() { }
+         MeshShape() : PsmrtsProduct( "none", "mesh"), 
+                       m_mesh(), 
+                       m_configured( init_mesh("mesh") ) { }
          MeshShape( const PsmrtsMeshData &mesh, 
           const std::string &name = "mesh") : PsmrtsProduct( name, "mesh" ),
-                                              m_mesh( mesh ) { }
+                                              m_mesh( mesh ),
+                                              m_configured( init_mesh( mesh, name ) ) { }
          virtual ~MeshShape() = default;
          
          /**
@@ -72,11 +76,38 @@ namespace psmrts {
             return m_mesh;
          }
 
+         inline const ProductConfiguration &config() const {
+            return m_configured;
+         }
+
          PSMRTS_PROCESS_CATCHALL( "MeshShape" )
 
         protected:
           PsmrtsMeshData m_mesh;
-    };
+          ProductConfiguration m_configured;
+
+          inline ProductConfiguration init_mesh( const std::string &name ) {
+            ProductConfiguration config( name );
+            config.add( ProductOption( "file", "mesh" ) );
+            config.add( ProductOption( "data_type", "double") );
+            config.add( ProductOption( "n_vertices", 0 ) );
+            config.add( ProductOption( "n_facets", 0 ) );
+            config.add( ProductOption( "minimum_radius", 0 ) );
+            config.add( ProductOption( "maximum_radius", 0 ) );
+            return config;
+          }
+
+          inline ProductConfiguration init_mesh( const PsmrtsMeshData &mesh, const std::string &name ) {
+            ProductConfiguration config( name );
+            config.add( ProductOption( "file", "mesh" ) );
+            config.add( ProductOption( "data_type", mesh.vector_type() ) );
+            config.add( ProductOption( "n_vertices", mesh.nvectors() ) );
+            config.add( ProductOption( "n_facets", mesh.nfacets() ) );
+            config.add( ProductOption( "minimum_radius", mesh.minimum_radius() ) );
+            config.add( ProductOption( "maximum_radius", mesh.maximum_radius() ) );
+            return config;
+          }
+    };  
 
 } // namespace psmrts
 

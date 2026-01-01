@@ -16,7 +16,7 @@ TEST_CASE( "PLY SHAPE - Default Test", "[ply][shape][specification]") {
     CHECK( spec.optional().size()   == 2 );
     
     CHECK( spec.has_parameter( "obj_mtl_search_path" ) == false );
-    CHECK( spec.has_parameter( "ply_file" )          == true );
+    CHECK( spec.has_parameter( "ply_file" )            == true );
     CHECK( spec.has_parameter( "ply_data_type" )       == true );
 }
 
