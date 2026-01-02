@@ -192,7 +192,7 @@ TEST_CASE ( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][defaul
     REQUIRE( ply_read != nullptr );
 
     psmrts::ProductConfiguration meta_data = ply.get_metadata();
-    CHECK( meta_data.name() == "" );
+    CHECK( meta_data.name() == "ply" );
     CHECK( meta_data.size() == 7 );
     CHECK( psmrts::psmrts_filename(meta_data.find("file").to_string()) == "Bennu_Radar.ply" );
     CHECK( meta_data.find("ply_file_type").to_string()  == "binary" );

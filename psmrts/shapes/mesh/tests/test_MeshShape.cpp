@@ -71,7 +71,7 @@ TEST_CASE( "MESH SHAPE - Values Test", "[mesh][shape][values]") {
     psmrts::ProductConfiguration mesh_config = shape.config();
     psmrts_json mesh_json = mesh_config.to_json();
 
-    CHECK( mesh_config.name()      == "mesh" ); // possible constructor error in PConfig file?
+    CHECK( mesh_config.name()      == "mesh" );
     CHECK( mesh_config.size()      == 6 );
     CHECK( mesh_json["data_type"]  == "double" ); // outputs 1?
     CHECK( mesh_json["n_vertices"] == 10 );

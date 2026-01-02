@@ -150,6 +150,19 @@ namespace psmrts {
         return ( m_vectors.type() );
       }
 
+      inline std::string vector_type_string() const {
+        switch ( m_vectors.type() ) {
+          case 1:
+            return "double";
+          case 2:
+            return "float";
+          case 3:
+            return "integer";
+          default:
+            return "null";
+          }
+      }
+
       /** Returns boolean confirmation if vectors are double */
       inline bool isVectorDouble() const {
         return ( this->vector_type() == PsmrtsDouble );

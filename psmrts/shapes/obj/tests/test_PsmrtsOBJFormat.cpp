@@ -61,7 +61,7 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Basic Load/Init Tests", "[format][obj][benn
     REQUIRE( reader.ParseFromFile(objfile) == true );
     // Is param intentional? shape() returns const, function accepts non-const version
     psmrts::ProductConfiguration meta_data = t_loader.get_metadata( &reader ); 
-    CHECK( meta_data.name() == "" );
+    CHECK( meta_data.name() == "obj" );
     CHECK( meta_data.size() == 6 );
     CHECK( psmrts::psmrts_filename(meta_data.find("file").to_string()) == "bennu_20facets.obj" );
     CHECK( meta_data.find("data_type").to_string()       == "double" );

@@ -100,7 +100,7 @@ namespace psmrts {
           inline ProductConfiguration init_mesh( const PsmrtsMeshData &mesh, const std::string &name ) {
             ProductConfiguration config( name );
             config.add( ProductOption( "file", "mesh" ) );
-            config.add( ProductOption( "data_type", mesh.vector_type() ) );
+            config.add( ProductOption( "data_type", mesh.vector_type_string() ) );
             config.add( ProductOption( "n_vertices", mesh.nvectors() ) );
             config.add( ProductOption( "n_facets", mesh.nfacets() ) );
             config.add( ProductOption( "minimum_radius", mesh.minimum_radius() ) );

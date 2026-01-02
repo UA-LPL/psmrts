@@ -65,7 +65,7 @@ TEST_CASE( "DSK FORMAT Basic Load/Innit Test", "[format][dsk][shape][bennu]") {
 
     psmrts::ProductConfiguration meta_data = d_loader.get_segment_metadata( dsk.segment() );
 
-    CHECK( meta_data.name() == "" );
+    CHECK( meta_data.name() == "dsk" );
     CHECK( meta_data.size() == 14 ); 
     CHECK( psmrts::psmrts_filename(meta_data.find("file").to_string() ) == "bennu_20facets.bds" );
     CHECK( meta_data.find("data_type").to_string()                  == "double" );

@@ -27,7 +27,7 @@ namespace psmrts {
       using ProductOptionList = std::vector<ProductOption>;
 
       ProductConfiguration( ) : m_name("none"), m_options{} { }
-      ProductConfiguration(const std::string &name ) : m_name(), m_options{} { }
+      ProductConfiguration(const std::string &name ) : m_name( psmrts_tolower(name) ), m_options{} { }
       explicit ProductConfiguration( const std::string &name, 
                                      const std::initializer_list<ProductOption> &options ) : 
                                      m_name( psmrts_tolower(name) ),
