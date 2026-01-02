@@ -150,6 +150,11 @@ namespace psmrts {
     return ( std::numeric_limits<double>::quiet_NaN() );
   }
 
+  /** Standardize a null vector */
+  inline Eigen::Vector3d null_vector( ) {
+    return ( Eigen::Vector3d( { null(), null(), null() } ) );
+  }  
+
   /** Test for the NULL value */
   inline bool isnull( const double &v ) {
     return ( std::isnan( v ) );
