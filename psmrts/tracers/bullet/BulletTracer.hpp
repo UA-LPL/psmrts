@@ -7,6 +7,7 @@
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
+#include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/algorithms/TracingBasics.hpp>
 
@@ -24,6 +25,8 @@ namespace psmrts  {
      virtual ~BulletTracer();
 
       double maximum_radius() const;
+
+      double minimum_radius() const;
 
       /**
        * @brief Bullet Ray Trace Processor
@@ -215,6 +218,14 @@ namespace psmrts  {
         return ( ProductSpecification( "bullet", "tracer", "tracer", json_utils::parse_json_string( text )));
       }
 
+      inline const PsmrtsShape &shape() const {
+        return ( m_shape );
+      }
+
+      inline const ProductConfiguration &config() const {
+        return ( m_configured );
+      }
+
       /** Report all remaining features not available - e.g., PRQFacet not relevant to Ellipsoid format */
       PSMRTS_PROCESS_CATCHALL( "BulletTracer" )
 
@@ -222,6 +233,8 @@ namespace psmrts  {
     private:
       class BulletTracerImpl;
       std::shared_ptr<BulletTracerImpl> m_model;
+      PsmrtsShape                       m_shape;
+      ProductConfiguration              m_configured;
   };
 
 } // namespace psmrts

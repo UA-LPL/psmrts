@@ -28,10 +28,6 @@ namespace psmrts {
       ~BulletTracerImpl() = default;
 
 
-      inline double maximum_radius() const { 
-        return ( m_bullet_model.maximum_radius() );
-      }
-
       inline bool ray_trace( PsmrtsRayTrace &ray ) const {
         ray.set_tracer_id( this->uid() );
         return ( m_bullet_model.ray_trace( ray ) );
@@ -52,18 +48,29 @@ namespace psmrts {
    * 
    */
   BulletTracer::BulletTracer( ) : PsmrtsProduct( "bullet", "tracer" ),
+                                  m_shape(),
+                                  m_configured("bullet"),
                                   m_model( std::make_shared<BulletTracerImpl>() ) {  }
 
-  BulletTracer::BulletTracer( const PsmrtsShape &shape ) :
-                              PsmrtsProduct( shape.name(), "tracer" ) {
-    m_model = std::make_shared<BulletTracerImpl> (shape );
+  BulletTracer::BulletTracer( const PsmrtsShape &shape ) : 
+                              PsmrtsProduct( shape.config().name(), "tracer"),
+                              m_shape( shape ),
+                              m_configured("bullet") {
+    m_model = std::make_shared<BulletTracerImpl> ( shape );
+    m_configured.add( ProductOption( "bullet_optimize_bvh", "false" ) );
+    m_configured.add( ProductOption( "bullet_compressed", "false" ) );
+    m_configured.add( ProductOption( "bullet_thread_safety", "false" ) );
   }                       
   
   BulletTracer::~BulletTracer() = default;
 
       
   double BulletTracer::maximum_radius() const {
-    return ( m_model->maximum_radius() );
+    return ( m_shape.maximum_radius() );
+  }
+
+  double BulletTracer::minimum_radius() const { 
+    return ( m_shape.minimum_radius() );
   }
 
   bool BulletTracer::ray_trace( PsmrtsRayTrace &ray ) const {

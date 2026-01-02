@@ -7,6 +7,7 @@
 #include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
 #include <psmrts/core/PsmrtsMeshData.hpp>
+#include <psmrts/core/ProductConfiguration.hpp>
 
 namespace psmrts {
     /**
@@ -15,7 +16,9 @@ namespace psmrts {
      */
     class PlyShape : public PsmrtsProduct {
         public:
-         PlyShape() : PsmrtsProduct( "none", "ply"), m_mesh() { }
+         PlyShape() : PsmrtsProduct( "none", "ply"), 
+                      m_mesh(),
+                      m_configured("ply") { }
          PlyShape( const std::string &ply_file );
          virtual ~PlyShape() = default;
          
@@ -71,10 +74,15 @@ namespace psmrts {
             return m_mesh;
          }
 
+         inline const ProductConfiguration &config() const {
+            return m_configured;
+         }
+
          PSMRTS_PROCESS_CATCHALL( "PlyShape" )
 
-        protected:
+        private:
           PsmrtsMeshData m_mesh;
+          ProductConfiguration m_configured;
     };
 
 } // namespace psmrts

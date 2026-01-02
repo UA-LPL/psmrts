@@ -7,6 +7,7 @@
 namespace psmrts {
   PlyShape::PlyShape( const std::string &ply_file ) : PsmrtsProduct( ply_file, "ply"){
     PsmrtsPLYFormat m_model( ply_file );
+    m_configured = m_model.get_metadata(); // check if can rename to config
     m_mesh = m_model.get_mesh();
   }
 } // namespace psmrts

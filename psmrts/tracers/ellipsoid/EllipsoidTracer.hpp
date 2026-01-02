@@ -36,33 +36,28 @@ namespace psmrts  {
 
     public:
       EllipsoidTracer( ) : PsmrtsProduct( "ellipsoid", "tracer" ), 
-                           m_radii{ 1.0, 1.0, 1.0 } {  }
+                           m_radii{ 1.0, 1.0, 1.0 },
+                           m_configured( init_sphere( 1.0, "unit-sphere" ) ) { }
       EllipsoidTracer( const double radius,
                       const std::string &source = "sphere") :
                       PsmrtsProduct( source, "tracer" ),
-                      m_radii{ radius, radius, radius } { 
-        init_sphere( 1.0 , source );                        
-      }
+                      m_radii{ radius, radius, radius },
+                      m_configured( init_sphere( 1.0 , source ) ) { }
       EllipsoidTracer( const double a, const double c,
                       const std::string &source = "spheroid") :
                       PsmrtsProduct( source, "tracer" ),                      
-                      m_radii{ a, a, c } {
-        init_spheroid( a, c, source );                        
-
-      }     
+                      m_radii{ a, a, c },
+                      m_configured( init_spheroid( a, c, source ) ) { }     
       EllipsoidTracer( const double a, const double b, const double c,
                       const std::string &source = "ellipsoid") :
                       PsmrtsProduct( source, "tracer" ),
-                      m_radii{ a, b, c } { 
-        init_ellipsoid( a, b, c, source );                    
-
-      }     
+                      m_radii{ a, b, c },
+                      m_configured( init_ellipsoid( a, b, c, source ) ) { }     
       EllipsoidTracer( const Eigen::Vector3d &radii,
                       const std::string &source = "ellipsoid" ) : 
                       PsmrtsProduct( source, "tracer" ),
-                      m_radii{ radii[0], radii[1],radii[2] } { 
-        init_ellipsoid( radii[0], radii[1], radii[2], source );                    
-      }
+                      m_radii{ radii[0], radii[1],radii[2] },
+                      m_configured( init_ellipsoid( radii[0], radii[1], radii[2], source ) ) { }
       // EllipsoidTracer( const ProductConfiguration &config_p ) :
       //                  PsmrtsProduct( "none", "tracer" ), 
       //                  m_radii{0, 0, 0} { 
@@ -374,7 +369,9 @@ namespace psmrts  {
       inline ProductConfiguration init_sphere(const double radius, const std::string &source ) {
         auto config =  ProductConfiguration( source, { ProductOption( "tracer", "sphere" ),
                                                        ProductOption( "sphere_radius", radius ),
-                                                       ProductOption( "sphere_source", source ) } );
+                                                       ProductOption( "sphere_source", source ),
+                                                       ProductOption( "minimum_radius", this->minimum_radius()),
+                                                       ProductOption( "maximum_radius", this->maximum_radius()) } );
         return (config );
       }
 
@@ -382,7 +379,9 @@ namespace psmrts  {
                                  const std::string &source  ) {
         auto config =  ProductConfiguration( source, { ProductOption( "tracer", "spheroid" ),
                                                        ProductOption( "spheroid_radii", { a, c } ),
-                                                       ProductOption( "spheriod_source", source ) } );
+                                                       ProductOption( "spheriod_source", source ),
+                                                       ProductOption( "minimum_radius", this->minimum_radius()),
+                                                       ProductOption( "maximum_radius", this->maximum_radius()) } );
         return ( config );
       }
       
@@ -390,7 +389,9 @@ namespace psmrts  {
                                  const std::string &source  ) {
         auto config = ProductConfiguration( source, { ProductOption( "tracer", "ellipsoid" ),
                                                       ProductOption( "ellipsoid_radii", { a, b, c } ),
-                                                      ProductOption( "ellipsoid_source", source ) } );
+                                                      ProductOption( "ellipsoid_source", source ),
+                                                      ProductOption( "minimum_radius", this->minimum_radius()),
+                                                      ProductOption( "maximum_radius", this->maximum_radius()) } );
         return ( config );
       }
 

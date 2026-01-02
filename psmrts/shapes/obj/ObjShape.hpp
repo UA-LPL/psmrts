@@ -4,6 +4,7 @@
 #include <string>
 
 #include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
+#include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
@@ -16,14 +17,22 @@ namespace psmrts  {
    */
   class ObjShape : public PsmrtsProduct {
     public:
-     ObjShape( ) : PsmrtsProduct( "none", "obj" ), 
-                   m_model(), m_mesh() { }
-     ObjShape( const psmrts::PsmrtsOBJFormat &obj_t ) :
-               PsmrtsProduct( obj_t.obj_source(), "obj" ), 
-               m_model( obj_t ), m_mesh( obj_t.get_mesh() ) { }
-     ObjShape( const std::string &obj_file ) :
-               PsmrtsProduct( obj_file, "obj" ), 
-               m_model( obj_file ), m_mesh( m_model.get_mesh() ) { }
+      ObjShape( ) : PsmrtsProduct( "none", "obj" ), 
+                    m_model(), m_mesh(), m_configured("obj") { }
+      ObjShape( const psmrts::PsmrtsOBJFormat &obj_t ) :
+                PsmrtsProduct( obj_t.obj_source(), "obj" ), 
+                m_model( obj_t ), m_mesh( obj_t.get_mesh() ),
+                m_configured( obj_t.get_metadata()) { 
+        m_configured.add( ProductOption( "minimum_radius", m_mesh.minimum_radius() ) );
+        m_configured.add( ProductOption( "maximum_radius", m_mesh.maximum_radius() ) );
+      }
+      ObjShape( const std::string &obj_file ) :
+                PsmrtsProduct( obj_file, "obj" ), 
+                m_model( obj_file ), m_mesh( m_model.get_mesh() ),
+                m_configured( m_model.get_metadata() ) { 
+        m_configured.add( ProductOption( "minimum_radius", m_mesh.minimum_radius() ) );
+        m_configured.add( ProductOption( "maximum_radius", m_mesh.maximum_radius() ) );
+      }
       virtual ~ObjShape() { }
 
 
@@ -120,13 +129,18 @@ namespace psmrts  {
         return m_mesh;
       }
 
+      inline const ProductConfiguration &config() const {
+        return ( m_configured );
+      }
+
       /** Report all remaining features not available */
       PSMRTS_PROCESS_CATCHALL( "ObjShape" )
 
 
     protected:
-      psmrts::PsmrtsOBJFormat m_model;
-      psmrts::PsmrtsMeshData m_mesh;
+      psmrts::PsmrtsOBJFormat m_model; // Move to .cpp, WIP
+      psmrts::PsmrtsMeshData  m_mesh;
+      ProductConfiguration    m_configured;
   };
 
 } // namespace psmrts

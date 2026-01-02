@@ -60,7 +60,7 @@ TEST_CASE( "PSMRTS Product Initializer", "[product][configuration][initializer]"
 
   // "single" still remains after common 
   psmrts::ProductConfiguration comp_check = config.difference( config2 );
-  CHECK( comp_check.name() == "" );
+  CHECK( comp_check.name() == "single" );
   CHECK( comp_check.size() == 1 );
   
   // Add second option, remove "shape" and check difference.
@@ -69,7 +69,7 @@ TEST_CASE( "PSMRTS Product Initializer", "[product][configuration][initializer]"
   psmrts::ProductConfiguration comp_check2 = config.difference( config2 );
   
   // This results in no options remaining.
-  CHECK( comp_check2.name() == "" );
+  CHECK( comp_check2.name() == "single" );
   CHECK( comp_check2.size() == 0 );
   CHECK( config.contains( "obj_file" ) == true );
   CHECK( config2.contains( "obj_file" ) == true );

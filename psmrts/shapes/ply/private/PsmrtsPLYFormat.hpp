@@ -72,6 +72,10 @@ namespace psmrts {
           return ( m_file_type );
         }
         
+        /** Returns the type of the file's data - ie. float or double */
+        inline std::string data_type() const {
+            return ( m_data_type );
+        }
         /** Returns number of vertexes */
         inline size_t nVertexes() const {
             return ( m_mesh.nvectors() );
@@ -193,7 +197,7 @@ namespace psmrts {
 
             // Allocate a mesh now    
             m_mesh = PsmrtsMeshData( p_indexes, p_vectors);
-
+            // compute min/max radius, store internally (Mesh class has related functions)
             return ( m_mesh.isValid() );
         }
 
@@ -233,13 +237,15 @@ namespace psmrts {
             return;
         }
 
-        inline ProductMetaData get_metadata( ) {
-          ProductMetaData meta( "ply" );
-          meta.add( ProductOption( "ply_file", this->ply_source() ) );
+        inline ProductConfiguration get_metadata( ) {
+          ProductConfiguration meta( "ply" );
+          meta.add( ProductOption( "file", this->ply_source() ) );
           meta.add( ProductOption( "ply_file_type", m_file_type ) );
-          meta.add( ProductOption( "ply_data_type", m_data_type ) );
-          meta.add( ProductOption( "ply_vertices", (int) this->nVertexes() ) );
-          meta.add( ProductOption( "ply_facets", (int) this->nIndexes() ) );
+          meta.add( ProductOption( "data_type", m_data_type ) );
+          meta.add( ProductOption( "n_vertices", (int) this->nVertexes() ) );
+          meta.add( ProductOption( "n_facets", (int) this->nIndexes() ) );
+          meta.add( ProductOption( "minimum_radius", m_mesh.minimum_radius() ) );
+          meta.add( ProductOption( "maximum_radius", m_mesh.maximum_radius() ) );
           return ( meta );
         }        
 
