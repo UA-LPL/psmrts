@@ -141,26 +141,25 @@ namespace psmrts {
 
       /** Return the number of inventories present in the factory */
       inline size_t size() const {
+        std::scoped_lock mylocker( m_mutex );
         return ( this->inventory().size() );
       }
 
       /** Looking for an inventory by name case insensive */
       inline bool contains( const std::string &name ) const {
+        std::scoped_lock mylocker( m_mutex );
         return (this->inventory().contains( name ) );
       }
 
       /** Returns list of all cached inventories by name/uid */
       inline std::vector<std::string>  get_inventory_list( ) const {
+        std::scoped_lock mylocker( m_mutex );
         return ( m_inventory.cache().keys() );
-      }      
-
-      /** Looking for an inventory by name */
-      inline PsmrtsInventory &find( const std::string &name ) {
-        return (this->inventory().find( name ) );
       }
 
       /** Looking for an inventory by name */
       inline const PsmrtsInventory &find( const std::string &name ) const {
+        std::scoped_lock mylocker( m_mutex );
         return (this->inventory().find( name ) );
       }
 
@@ -180,7 +179,7 @@ namespace psmrts {
                                   const std::string &inventory_name = psmrts_inventory  ) {
                                     
         std::scoped_lock mylocker( m_mutex );
-        if ( this->contains( inventory_name ) ) {
+        if ( this->inventory().contains( inventory_name ) ) {
           return ( this->inventory().find( inventory_name ).shapes().add_product( shape ) );
         }
         else {
@@ -190,6 +189,17 @@ namespace psmrts {
         }           
         return ( shape.uid() );
       }
+
+      /** Remove a shape product from a named inventory */
+      inline void remove_shape( const UIDType &uid, 
+                                const std::string &inventory_name = psmrts_inventory  ) {
+        std::scoped_lock mylocker( m_mutex );
+        if ( this->inventory().contains( inventory_name )  ) {
+          this->inventory().find( inventory_name ).shapes().remove( uid );
+        }
+        return;
+      } 
+
 
       /**
        * @brief Add a PsmrtsTracer to the named inventory
@@ -205,7 +215,7 @@ namespace psmrts {
       inline UIDType add_product( const PsmrtsTracer &tracer,
                                   const std::string &inventory_name = psmrts_inventory  ) {
         std::scoped_lock mylocker( m_mutex );
-        if ( this->contains( inventory_name ) ) {
+        if ( this->inventory().contains( inventory_name )  ) {
           return ( this->inventory().find( inventory_name ).tracers().add_product( tracer ) );
         }
         else {
@@ -216,6 +226,15 @@ namespace psmrts {
         return ( tracer.uid() );
       }
 
+      /** Remove a tracer from a named inventory */
+      inline void remove_tracer( const UIDType &uid, 
+                                const std::string &inventory_name = psmrts_inventory  ) {
+        std::scoped_lock mylocker( m_mutex );
+        if ( this->inventory().contains( inventory_name )  ) {
+          this->inventory().find( inventory_name ).tracers().remove( uid );
+        }
+        return;
+      }       
 
       /**
        * @brief Add a PsmrtsPriorityTracer to the named inventory
@@ -231,7 +250,7 @@ namespace psmrts {
       inline UIDType add_product( const PsmrtsPriorityTracer &tracer_p,
                                   const std::string &inventory_name = psmrts_inventory  ) {
         std::scoped_lock mylocker( m_mutex );
-        if ( this->contains( inventory_name ) ) {
+        if ( this->inventory().contains( inventory_name )  ) {
           return ( this->inventory().find( inventory_name ).prioritytracers().add_product( tracer_p ) );
         }
         else {
@@ -242,6 +261,15 @@ namespace psmrts {
         return ( tracer_p.uid() );
       }
 
+      /** Remove a priority tracer from a named inventory */
+      inline void remove_priority_tracer( const UIDType &uid, 
+                                          const std::string &inventory_name = psmrts_inventory  ) {
+        std::scoped_lock mylocker( m_mutex );
+        if ( this->inventory().contains( inventory_name )  ) {
+          this->inventory().find( inventory_name ).prioritytracers().remove( uid );
+        }
+        return;
+      }                                            
 
       /** Add a value to the cache - overwrites existing data */
       inline size_t add( const PsmrtsInventory &inventory, 
