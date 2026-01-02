@@ -88,6 +88,11 @@ TEST_CASE( "ProductSpecification Values Test", "[product][specification][values]
     CHECK( opt.size() == 0           );
     CHECK( req[0]     == "obj_file"  );
    
+    std::vector<std::string> p_names = product2.get_parameter_names();
+    CHECK( p_names == std::vector<std::string>{ "obj_file" } );
+
+    psmrts::ProductFeature target = product2.get_parameter( "obj_file" );
+    CHECK( target.name() == "obj_file" );
 
     ordered_json options2;
     char reqCheck[] = R"({

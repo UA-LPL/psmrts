@@ -31,10 +31,17 @@ TEST_CASE ( "Bullet Mesh Map Test - Small Dataset", "[bullet][mesh]" ) {
     CHECK ( bt_mesh.isValid() == true );
     CHECK ( bt_mesh.name()    == bt_data.name() );
     CHECK ( bt_mesh.id()      == 0 );
+    CHECK ( bt_mesh.partno()  == 0 );
 
     CHECK ( bt_mesh.mesh_type() == "bullet" );
 
     CHECK ( bt_mesh.mesh() != nullptr );
+
+    std::string mesh_id = bt_mesh.mesh_data_id();
+    CHECK_THAT( mesh_id, Catch::Matchers::EndsWith( "shapes/obj/data/bennu_20facets.obj::bullet::0::0" ) );
+
+    std::vector<psmrts::PsmrtsVector3i> shapes = bt_mesh.shapes();
+    CHECK ( shapes.size() == 0 ); // Should this be 0?
 
     std::unique_ptr<btBvhTriangleMeshShape> bt_shape( bt_mesh.create_collision_shape() );
     CHECK ( bt_shape.get() != nullptr );
