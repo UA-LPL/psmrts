@@ -27,7 +27,7 @@ TEST_CASE( "PSMRTS Product OBJ Specification Test", "[product][type][mesh][obj]"
   
   CHECK( obj_m.name() == objfile );
   CHECK( obj_m.type() == "obj" );
-  CHECK( obj_m.uid()  > psmrts::PsmrtsUID::UID_Reserved );
+  CHECK( psmrts::PsmrtsUID::is_valid_uid( obj_m.uid() ) );
     
   psmrts::PsmrtsMeshData mesh_d = obj_m.get_mesh( );
   CHECK( mesh_d.nfacets()        == 36 );

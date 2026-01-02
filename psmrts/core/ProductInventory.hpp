@@ -36,11 +36,12 @@ namespace psmrts {
         using CacheType       = PsmrtsCache<K,P>;
         using UIDType         = typename CacheType::UIDType; // == K
 
+        /** Static method used for case-insensitive string keys */
         static std::string case_insensitive_key( const std::string &key ) {
           return ( psmrts_tolower( key ) );
         };
 
-        /** Generic key translation function */
+        /** Generic (case-sensitive string) key translation function */
         static K get_real_map_key( const K &key ) {
           return ( key );
         }

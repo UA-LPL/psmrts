@@ -18,5 +18,5 @@ TEST_CASE( "PSMRTS Product", "[product][default]") {
   psmrts::PsmrtsProduct product;
   CHECK( product.name() == "product" );
   CHECK( product.type() == "type" );
-  CHECK( product.uid()  != psmrts::PsmrtsUID::UID_Reserved );
+  CHECK( psmrts::PsmrtsUID::is_valid_uid( product.uid() ) );
 }
