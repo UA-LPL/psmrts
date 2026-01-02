@@ -26,7 +26,7 @@ TEST_CASE( "PSMRTS Product PLY Specification Test", "[product][type][mesh][ply]"
   
     CHECK( ply_m.name() == plyfile );
     CHECK( ply_m.type() == "ply" );
-    CHECK( ply_m.uid()  > psmrts::PsmrtsUID::UID_Reserved );
+    CHECK( psmrts::PsmrtsUID::is_valid_uid( ply_m.uid() ) );
     
     psmrts::PsmrtsMeshData mesh_d = ply_m.get_mesh( );
     CHECK( mesh_d.nfacets()        == 2692 );

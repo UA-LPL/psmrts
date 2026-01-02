@@ -33,7 +33,7 @@ TEST_CASE( "PSMRTS Product DSK Specification Test", "[product][type][mesh][dsk]"
   
     CHECK( dsk_m.name() == dskfile );
     CHECK( dsk_m.type() == "dsk" );
-    CHECK( dsk_m.uid()  > psmrts::PsmrtsUID::UID_Reserved );
+    CHECK( psmrts::PsmrtsUID::is_valid_uid( dsk_m.uid() ) );
     
     psmrts::PsmrtsMeshData mesh_d = dsk_m.get_mesh( );
     CHECK( mesh_d.nfacets()        == 36 );

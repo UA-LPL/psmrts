@@ -15,8 +15,8 @@ TEST_CASE( "ProductInventory Default Constructor", "[product][inventory][default
 
   auto uid1 = shape1.uid();
   auto uid2 = shape2.uid();
-  CHECK( uid1 == psmrts::PsmrtsUID::null_id() );
-  CHECK( uid2 == psmrts::PsmrtsUID::null_id() );
+  CHECK( uid1 == psmrts::PsmrtsUID::null_uid() );
+  CHECK( uid2 == psmrts::PsmrtsUID::null_uid() );
   
   REQUIRE( uid1 == uid2 );
 

@@ -16,7 +16,7 @@ TEST_CASE( "PSMRTS Inventory Default", "[product][inventory][default]") {
 
   CHECK( inventory.product().name() == "product" );
   CHECK( inventory.product().type() == "inventory" );
-  CHECK( inventory.product().uid() != psmrts::PsmrtsUID::UID_Reserved );
+  CHECK( psmrts::PsmrtsUID::is_valid_uid( inventory.product().uid() ) );
 
   CHECK( inventory.shapes().size()          == 0 );
   CHECK( inventory.shapes().name()          == "product" );
@@ -45,7 +45,7 @@ TEST_CASE( "PSMRTS Inventory Basics", "[product][inventory][basics]") {
   psmrts::PsmrtsInventory inventory;
   CHECK( inventory.product().name() == "product" );
   CHECK( inventory.product().type() == "inventory" );
-  CHECK( inventory.product().uid() != psmrts::PsmrtsUID::UID_Reserved );
+  CHECK( psmrts::PsmrtsUID::is_valid_uid( inventory.product().uid() ) );
   CHECK( inventory.tracers().cache().keys().size() == 0 );
 
   psmrts::PsmrtsInventory::TracerInventory::UIDType uid;

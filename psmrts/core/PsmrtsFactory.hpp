@@ -281,7 +281,7 @@ namespace psmrts {
 
     private:
     // Definitions for the product registry. This holds all the products that have specifications
-      using ProductSpecs =  ProductInventory<std::string, ProductSpecification>;
+      using ProductSpecs    =  ProductInventory<std::string, ProductSpecification>;
       using ProductRegistry =  ProductInventory<std::string, ProductSpecs>;
       static inline ProductRegistry  m_registry  = { "psmrts", "registry", &ProductRegistry::case_insensitive_key };
 

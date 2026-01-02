@@ -764,9 +764,9 @@ namespace psmrts {
     class PsmrtsUID {
       public:
         using UIDType = unsigned long long;
-        inline static const UIDType UID_Reserved{0};
+  
 
-        inline static const  UIDType &null_id() {
+        inline static const  UIDType &null_uid() {
           return ( UID_Reserved );
         }
 
@@ -775,9 +775,16 @@ namespace psmrts {
           return ( ++m_uid );  // This reserves ID <= UID_Reserved!
         }
 
+        /** Checks for a valid ID */
+        inline static bool is_valid_uid( const UIDType uid ) {
+          return ( uid > null_uid() );
+        }
+
       private:
         PsmrtsUID()  = default;
         ~PsmrtsUID() = default;
+
+        inline static const UIDType UID_Reserved{0};
         inline static std::atomic<UIDType> m_uid{UID_Reserved};
     };
 

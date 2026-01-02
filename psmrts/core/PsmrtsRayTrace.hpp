@@ -141,7 +141,7 @@ namespace psmrts {
             m_segment  = -1;
 
             // Reset the tracer id
-            m_uid_t = PsmrtsUID::null_id();
+            m_uid_t = PsmrtsUID::null_uid();
 
             return;
           }
