@@ -33,12 +33,15 @@ namespace psmrts {
                      m_cache(), 
                      m_mutex() {  }
         /** Required copy constructor due to std::mutex */
-        PsmrtsCache( const PsmrtsCache &other ) :
-                     m_cache( other.m_cache ), 
-                     m_mutex() {  }
+        PsmrtsCache( const PsmrtsCache &other )  {
+          std::scoped_lock( other.mutex() );
+          m_cache = other.m_cache; 
+        }
+
         /** Required copy operator due to std::mutex */
         PsmrtsCache &operator=( const PsmrtsCache &other ) {
           if (this != &other) {
+            std::scoped_lock mylocker( m_mutex, other.mutex() );
             m_cache = other.m_cache;
           }
           return ( *this );
