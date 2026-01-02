@@ -127,6 +127,8 @@ namespace psmrts {
    * 
    * @author Kris J Becker, Univerisity of Arizona
    * @history 2025-09-07 Kris J. Becker  Original Version
+   * @history 2026-01-01 Kris J. Becker  Add thread locking for merge, add and
+   *                      remove operations
    */
   class PsmrtsFactory {
     public:
@@ -176,6 +178,8 @@ namespace psmrts {
        */
       inline UIDType add_product( const PsmrtsShape &shape,
                                   const std::string &inventory_name = psmrts_inventory  ) {
+                                    
+        std::scoped_lock mylocker( m_mutex );
         if ( this->contains( inventory_name ) ) {
           return ( this->inventory().find( inventory_name ).shapes().add_product( shape ) );
         }
@@ -200,6 +204,7 @@ namespace psmrts {
        */
       inline UIDType add_product( const PsmrtsTracer &tracer,
                                   const std::string &inventory_name = psmrts_inventory  ) {
+        std::scoped_lock mylocker( m_mutex );
         if ( this->contains( inventory_name ) ) {
           return ( this->inventory().find( inventory_name ).tracers().add_product( tracer ) );
         }
@@ -225,6 +230,7 @@ namespace psmrts {
        */
       inline UIDType add_product( const PsmrtsPriorityTracer &tracer_p,
                                   const std::string &inventory_name = psmrts_inventory  ) {
+        std::scoped_lock mylocker( m_mutex );
         if ( this->contains( inventory_name ) ) {
           return ( this->inventory().find( inventory_name ).prioritytracers().add_product( tracer_p ) );
         }
@@ -247,7 +253,9 @@ namespace psmrts {
       inline size_t merge( const PsmrtsInventory &inventory, 
                            const std::string &cache_name ) {
 
+        std::scoped_lock mylocker( m_mutex );
         size_t n_merged = 0;
+
         if ( this->inventory().contains( cache_name ) ) {
           PsmrtsInventory &cache = this->inventory().find( cache_name );
           n_merged += cache.merge( inventory );
@@ -267,11 +275,13 @@ namespace psmrts {
 
       /** Remove a system inventory from the factory! */
       inline void remove( const std::string &invname ) {
+        std::scoped_lock mylocker( m_mutex );
         m_inventory.remove( invname );
       }
     
       /** Liquidate/empty all PSRMTS factory inventory - affects all instances of PsmrtsFactory! */
       inline static void liquidate( ) {
+        std::scoped_lock mylocker( m_mutex );
         PsmrtsFactory::m_inventory.clear();
         
         // Be sure to set up the defaul inventory
@@ -288,6 +298,7 @@ namespace psmrts {
       // Definitions and cache of active product inventories.
       using FactoryInventory = ProductInventory<std::string, PsmrtsInventory>;
       static inline FactoryInventory m_inventory = { "psmrts", "inventory", &FactoryInventory::case_insensitive_key  }; // set up default product cache
+      static inline std::mutex       m_mutex{};
 
       /** Return the factory inventory */
       inline const FactoryInventory &inventory() const {

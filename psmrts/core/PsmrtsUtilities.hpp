@@ -764,7 +764,6 @@ namespace psmrts {
     class PsmrtsUID {
       public:
         using UIDType = unsigned long long;
-  
 
         inline static const  UIDType &null_uid() {
           return ( UID_Reserved );
