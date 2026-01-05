@@ -71,7 +71,7 @@ namespace psmrts::algorithms::conversions {
       inline const std::vector<std::string> &get_all( std::vector<std::string> &s ) const {
         ConversionParameters p = ConversionParameters::get_all_values( m_traits );
 
-        OptionVisitor visitor( s, p );
+        OptionVisitor visitor(  s, p );
         m_option.get_to( visitor );
 
         return ( s );
@@ -102,7 +102,7 @@ namespace psmrts::algorithms::conversions {
         option1_s.get_all( opt1_v );
         option2_s.get_all( opt2_v );
 
-        if ( opt1_v.size(), opt2_v.size() ) {
+        if ( opt1_v.size() != opt2_v.size() ) {
           return ( false );
         }
 
@@ -118,18 +118,18 @@ namespace psmrts::algorithms::conversions {
       class OptionVisitor { 
         public:
           OptionVisitor( std::vector<std::string> &data,
-                        const std::string &default_v,
-                        const ConversionParameters parms = ConversionParameters() ) : 
-                        m_datum( data ),m_default( default_v),
-                        m_parameters( parms ) { }
+                         const std::string &default_v,
+                         const ConversionParameters parms = ConversionParameters() ) : 
+                         m_datum( data ),m_default( default_v),
+                         m_parameters( parms ) { }
           OptionVisitor( std::vector<std::string> &data,
-                        const ConversionParameters parms = ConversionParameters() ) : 
-                        m_datum( data ),m_default( ""),
-                        m_parameters( parms ) { }                        
+                         const ConversionParameters parms = ConversionParameters() ) : 
+                         m_datum( data ),m_default( ""),
+                         m_parameters( parms ) { }                        
           virtual ~OptionVisitor() = default;
 
           inline void operator()( const bool b ) {
-            if ( add_it( 0 ) ) {
+            if ( add_it( 0, 1 ) ) {
               m_datum.push_back( ( b ? "true" : "false" ) );
             }
             else {
@@ -138,7 +138,7 @@ namespace psmrts::algorithms::conversions {
           }
 
           inline void operator()( const int i )  {
-            if ( add_it( 0 ) ) {
+            if ( add_it( 0, 1 ) ) {
               m_datum.push_back( std::to_string( i ));
             }
             else {
@@ -147,7 +147,7 @@ namespace psmrts::algorithms::conversions {
           }
 
           inline void operator()( const size_t i )  {
-            if ( add_it( 0 ) ) {
+            if ( add_it( 0, 1 ) ) {
               m_datum.push_back( std::to_string( i ));
             }
             else {
@@ -156,7 +156,7 @@ namespace psmrts::algorithms::conversions {
           }          
 
           inline void operator()( const double d ) {
-            if ( add_it( 0 ) ) {
+            if ( add_it( 0, 1 ) ) {
               std::ostringstream out;
               out << std::fixed << std::setprecision( parameters().traits().digits() ) << d;               
               m_datum.push_back( out.str() );
@@ -167,7 +167,7 @@ namespace psmrts::algorithms::conversions {
           }
 
           inline void operator()( const std::string &s ) {
-            if ( add_it( 0 ) ) {
+            if ( add_it( 0, 1 ) ) {
               m_datum.push_back( s );
             }
             else {
@@ -178,10 +178,9 @@ namespace psmrts::algorithms::conversions {
           inline void operator()( const std::vector<int> i_array ) {
             size_t ith = parameters().index();
             size_t nth = parameters().count() + ith;
-            size_t max_n = i_array.size();
 
             for (size_t i = ith ; i < nth ; nth++ ) {
-              if ( add_it( i ) && ( ith < max_n) ) {
+              if ( add_it( i, i_array.size() ) ) {
                 m_datum.push_back( std::to_string( i_array[i] ) ); 
               }
               else {
@@ -193,10 +192,9 @@ namespace psmrts::algorithms::conversions {
           inline void operator()( const std::vector<size_t> i_array ) {
              size_t ith = parameters().index();
             size_t nth = parameters().count() + ith;
-            size_t max_n = i_array.size();
 
             for (size_t i = ith ; i < nth  ; nth++ ) {
-              if ( add_it( i ) && ( ith < max_n) ) {
+              if ( add_it( i, i_array.size() ) ) {
                 m_datum.push_back( std::to_string( i_array[i] ) ); 
               }
               else {
@@ -208,10 +206,9 @@ namespace psmrts::algorithms::conversions {
           inline void operator()( const std::vector<double> &d_array ) {
             size_t ith = parameters().index();
             size_t nth = parameters().count() + ith;
-            size_t max_n = d_array.size();
 
             for (size_t i = ith ; i < nth  ; nth++ ) {
-              if ( add_it( i ) && ( ith < max_n) ) {
+              if ( add_it( i, d_array.size() ) ) {
                 std::ostringstream out;
                 out << std::fixed << std::setprecision( parameters().traits().digits() ) << d_array[i];               
                 m_datum.push_back( out.str() );                
@@ -225,10 +222,9 @@ namespace psmrts::algorithms::conversions {
           inline void operator()( const std::vector<std::string> &s_array ) {
             size_t ith = parameters().index();
             size_t nth = parameters().count() + ith;
-            size_t max_n = s_array.size();
 
             for (size_t i = ith ; i < nth  ; nth++ ) {
-              if ( add_it( i ) && ( ith < max_n) ) {
+              if ( add_it( i, s_array.size() ) ) {
                 m_datum.push_back( s_array[i] );                
               }
               else {
@@ -238,7 +234,7 @@ namespace psmrts::algorithms::conversions {
           }      
           
           inline void operator()( const ordered_json &j_data ) {
-            if ( add_it( 0 ) ) {            
+            if ( add_it( 0, 1 ) ) {            
               m_datum.push_back( j_data.dump( parameters().traits().spaces() ) );
             }
             else {
@@ -259,12 +255,15 @@ namespace psmrts::algorithms::conversions {
           inline const ConversionParameters &parameters( ) const {
             return  ( m_parameters );
           }
-
-          inline bool add_it(const size_t index) const {
-            if ( parameters().all() && ( index >= parameters().index()) ) {
+        
+          inline bool add_it(const size_t index, const size_t max_size ) const {
+            if ( parameters().all() && 
+               ( index >= parameters().index() ) &&
+               ( index < max_size )  ) {
               return ( true );
             }
-            else if ( index == parameters().index() ) {
+            else if ( ( index == parameters().index() ) &&
+                     ( index < max_size ) ) {
               return ( true );
             }
             return ( false );

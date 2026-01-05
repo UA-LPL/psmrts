@@ -5,6 +5,8 @@ target_sources( psmrts PUBLIC
                            FILES TracingBasics.hpp
               )
 
+add_subdirectory( conversions )
+
 # Only add if requested
 if(BUILD_TESTING)
   add_subdirectory( tests )
