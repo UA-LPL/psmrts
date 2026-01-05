@@ -162,7 +162,7 @@ namespace psmrts {
           return ( this->env() );
         }
 
-        static inline EnvInventory getenv( const std::string &name_p ) {
+        static inline EnvInventory getenv( const std::string &name_p = "env ") {
           return ( PsmrtsInventory::get_environment_variables( name_p ) );
         }
 

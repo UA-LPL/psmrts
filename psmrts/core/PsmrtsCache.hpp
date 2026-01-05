@@ -12,10 +12,13 @@ namespace psmrts {
    * @brief Template class for thread-safe caching PSMRTS data objects/elements
    * 
    * This class provides caching of PSMRTS data using K key-based maps for
-   * any T data/object. Each instance of the cache is thread-safe. Note that
-   * when the class is copied, the data is deep copied. As such a unique
-   * mutex is created for each copy and they are no longer considered the
-   * same cache (therefore not inherently a PsmrtsProduct).
+   * any T data/object. Each instance of the cache is mostly thread-safe,
+   * however, const and non-const references to existing cached values are
+   * returned.
+   * 
+   * Note that when the cache is copied, the data is deep copied. As such a 
+   * unique mutex is created for each copy and they are no longer considered the
+   * same cache.
    * 
    * @tparam K Key to use in the cache map
    * @tparam T Type stored in the cache map

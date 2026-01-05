@@ -21,9 +21,13 @@ namespace psmrts {
       using TracerInventory = ProductInventory<UIDType, PsmrtsTracer>;
 
       PsmrtsPriorityTracer( ) : PsmrtsProduct("prioritytracer") { init(); }
+      PsmrtsPriorityTracer( const std::string &name ) : PsmrtsProduct( name ) { init(); }
       
-      PsmrtsPriorityTracer( const PsmrtsTracer &tracer ) : PsmrtsProduct("prioritytracer") { 
+      PsmrtsPriorityTracer( const PsmrtsTracer &tracer,
+                            const std::string &name = "" ) : 
+                            PsmrtsProduct( name ) { 
         init();
+        if ( name.length() == 0 ) set_name( tracer.name() );
         this->add_tracer( tracer );
       }
 
@@ -154,6 +158,11 @@ namespace psmrts {
 
         // Return an invalid tracer
         return ( PsmrtsTracer( "invalid" ) );
+      }
+
+      /** Find the tracer of a valid ray trace result */
+      inline PsmrtsTracer get_tracer( const PsmrtsRayTrace &ray ) const {
+        return ( get_tracer( ray.get_tracer_id() ) );
       }
 
       /** Empties the priority list not the inventory */

@@ -12,6 +12,7 @@
 #include <psmrts/core/PRQProduct.hpp>
 #include <psmrts/core/ProductInventory.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/core/PsmrtsInventory.hpp>
 #include <psmrts/core/PRQProduct.hpp>
 
 namespace psmrts {
@@ -134,6 +135,7 @@ namespace psmrts {
     public:
       inline static const std::string psmrts_inventory{ "psmrts" };
       using UIDType         = PsmrtsUID::UIDType;
+      using EnvInventory    = PsmrtsInventory::EnvInventory;
 
       PsmrtsFactory( )  {  }
       virtual ~PsmrtsFactory() { }
@@ -276,6 +278,12 @@ namespace psmrts {
                        const std::string &cache_name = psmrts_inventory) {
         return ( this->merge( inventory, cache_name ) );
       }
+
+      /** Get the current state of the environment variable system */
+      static inline EnvInventory getenv( const std::string &name = "env" ) {
+        return ( PsmrtsInventory::getenv( name) );
+      }
+
       
       /** Remove the requested cache value by key */
       inline size_t merge( const PsmrtsInventory &inventory, 
