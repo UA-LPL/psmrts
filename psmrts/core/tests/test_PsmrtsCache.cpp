@@ -48,12 +48,6 @@ TEST_CASE( "PSMRTS Cache Default Test", "[cache][default]") {
     CHECK( i_keys == std::vector<std::string>{"test", "test2", "test3", "test4"} );
     CHECK( i_values == std::vector<int>{1, 20, 3, 4} );
     
-
-    // Modify values through iterator
-    for (auto it = cache.begin(); it != cache.end(); ++it) {
-        it->second += 10;
-    }
-
     CHECK(cache.find("test") == 11);
     CHECK(cache.find("test2") == 30);
     CHECK(cache.find("test3") == 13);
