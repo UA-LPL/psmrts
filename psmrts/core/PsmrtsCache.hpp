@@ -37,7 +37,7 @@ namespace psmrts {
                      m_mutex() {  }
         /** Required copy constructor due to std::mutex */
         PsmrtsCache( const PsmrtsCache &other )  {
-          std::scoped_lock( other.mutex() );
+          std::scoped_lock mylocker( other.mutex() );
           m_cache = other.m_cache; 
         }
 
@@ -118,18 +118,6 @@ namespace psmrts {
             return ( it_c->second );
           }
           return ( default_t );
-        }
-
-        /** Return the const begin iterator of the map */
-        inline CacheMapIter begin() {
-          std::scoped_lock mylocker( this->mutex() );
-          return ( m_cache.begin() );
-        }
-
-        /** Return the const end iterator of the map */
-        inline CacheMapIter end() {
-          std::scoped_lock mylocker( this->mutex() );
-          return ( m_cache.end() );
         }
 
         /** Return the const begin iterator of the map */

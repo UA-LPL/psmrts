@@ -29,8 +29,8 @@ namespace psmrts {
     class PsmrtsContainer {
       public:
         using Container          = std::vector<T>;
-        using ContainerIter      = typename std::vector<T>::iterator;
-        using ContainerConstIter = typename std::vector<T>::const_iterator;
+        using ContainerIter      = typename Container::iterator;
+        using ContainerConstIter = typename Container::const_iterator;
 
         PsmrtsContainer( ) : m_name( "data" ),
                              m_data(),
@@ -52,7 +52,7 @@ namespace psmrts {
 
         /** Required copy constructor due to std::mutex */
         PsmrtsContainer( const PsmrtsContainer &other )  {
-          std::scoped_lock( other.mutex() );
+          std::scoped_lock mylocker( other.mutex() );
           m_name = other.m_name;
           m_data = other.m_data; 
         }
