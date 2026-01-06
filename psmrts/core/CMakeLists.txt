@@ -12,6 +12,7 @@ target_sources( psmrts PUBLIC
                                   PsmrtsBuffer.hpp
                                   PsmrtsBufferData.hpp
                                   PsmrtsCache.hpp
+                                  PsmrtsContainer.hpp
                                   PsmrtsFactory.hpp
                                   PsmrtsInventory.hpp
                                   PsmrtsJson.hpp

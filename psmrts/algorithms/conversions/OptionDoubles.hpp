@@ -1,5 +1,9 @@
 #pragma once
 
+#include <iostream>
+#include <cstdlib>
+#include <stdexcept>
+
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/ProductOption.hpp>
 #include <psmrts/algorithms/conversions/ConversionTraits.hpp>
@@ -8,41 +12,40 @@ namespace psmrts::algorithms::conversions {
 
 
 /**
-   * @brief Option string conversion extracts strings from ProductOptions
+   * @brief Option conversion extracts double values from ProductOptions
    * 
    * This functor object will extract, converting if necessary, any of the
    * stored intrinsic types. This must be maintained alongside any changes
    * made to ProductOption, paticular any new types added or removed.
    * 
-   * @author 2025-08-21 Kris J Becker
+   * @author 2026-01-06 Kris J Becker
    */
-  class OptionStrings {
+  class OptionDoubles {
     public:
-
-      OptionStrings() : m_option(),  
-                        m_traits( ConversionTraits() ),
-                        m_default("") { }
-      OptionStrings( const ProductOption &option ) {
+      OptionDoubles() : m_option(), 
+                        m_traits( ConversionTraits() ), 
+                        m_default( psmrts::null() ) { }
+      OptionDoubles( const ProductOption &option ) {
         m_option  = option;
         m_traits  = ConversionTraits();
-        m_default = "";
+        m_default = psmrts::null();
       }      
-      OptionStrings( const ProductOption &option,
+      OptionDoubles( const ProductOption &option,
                      const ConversionTraits &traits,
-                     const std::string default_v = "" ) {
+                     const double default_v = psmrts::null() ) {
         m_option  = option;
         m_traits  = traits;
         m_default = default_v;
       }
-      OptionStrings( const ProductOption &option,
-                     const std::string default_v,
+      OptionDoubles( const ProductOption &option,
+                     const double default_v,
                      const ConversionTraits &traits = ConversionTraits() ) {
         m_option  = option;
         m_traits  = traits;
         m_default = default_v;
       }        
 
-      virtual ~OptionStrings() = default;
+      virtual ~OptionDoubles() = default;
 
       inline size_t size() const {
         return ( m_option.size() );
@@ -52,7 +55,7 @@ namespace psmrts::algorithms::conversions {
         return ( m_option.type() );
       }
 
-      inline const std::string &default_value( ) const {
+      inline const double &default_value( ) const {
         return ( m_default );
       }
 
@@ -60,9 +63,9 @@ namespace psmrts::algorithms::conversions {
         return ( m_option.name() );
       }
 
-      inline std::string get( const size_t index = 0 ) const {
+      inline double get( const size_t index = 0 ) const {
         ConversionParameters p( index, m_traits );
-        std::vector<std::string> one;
+        std::vector<double> one;
         one.reserve( 1 );
 
         OptionVisitor visitor( one, p );
@@ -71,13 +74,13 @@ namespace psmrts::algorithms::conversions {
         return ( one.front() );
       }
 
-      inline const std::vector<std::string> &get_all( std::vector<std::string> &s ) const {
+      inline const std::vector<double> &get_all( std::vector<double> &d ) const {
         ConversionParameters p = ConversionParameters::get_all_values( m_traits );
 
-        OptionVisitor visitor(  s, p );
+        OptionVisitor visitor(  d, p );
         m_option.get_to( visitor );
 
-        return ( s );
+        return ( d);
       }
 
       /**
@@ -93,11 +96,11 @@ namespace psmrts::algorithms::conversions {
       static inline bool compare( const ProductOption &option1, 
                                   const ProductOption &option2,
                                   const ConversionParameters &parms = ConversionParameters::get_all_values( ),
-                                  const std::string default_v = "" )  {
+                                  const double default_v = psmrts::null() )  {
 
-        OptionStrings option1_s( option1, parms.traits(), default_v );
-        OptionStrings option2_s( option2, parms.traits(), default_v );
-        std::vector<std::string> opt1_v, opt2_v;
+        OptionDoubles option1_s( option1, parms.traits(), default_v );
+        OptionDoubles option2_s( option2, parms.traits(), default_v );
+        std::vector<double> opt1_v, opt2_v;
         
         opt1_v.reserve( option1_s.size() );
         opt2_v.reserve( option2_s.size() );
@@ -109,9 +112,11 @@ namespace psmrts::algorithms::conversions {
           return ( false );
         }
 
-        size_t n = std::max( opt1_v.size(), opt2_v.size() );
+        size_t n = std::min( opt1_v.size(), opt2_v.size() );
         for ( size_t i = 0  ; i < n ; i++ ) {
-          if ( opt1_v[i] != opt2_v[i] ) return ( false );
+          if ( !psmrts::isApprox( opt1_v[i], opt2_v[i], parms.traits().tolerance() ) ) {
+            return ( false );
+          }
         }
         return ( true );
       }
@@ -120,20 +125,20 @@ namespace psmrts::algorithms::conversions {
       
       class OptionVisitor { 
         public:
-          OptionVisitor( std::vector<std::string> &data,
-                         const std::string &default_v,
+          OptionVisitor( std::vector<double> &data,
+                         const double &default_v,
                          const ConversionParameters parms = ConversionParameters() ) : 
                          m_datum( data ),m_default( default_v),
                          m_parameters( parms ) { }
-          OptionVisitor( std::vector<std::string> &data,
+          OptionVisitor( std::vector<double> &data,
                          const ConversionParameters parms = ConversionParameters() ) : 
-                         m_datum( data ),m_default( ""),
+                         m_datum( data ),m_default( psmrts::null() ),
                          m_parameters( parms ) { }                        
           virtual ~OptionVisitor() = default;
 
           inline void operator()( const bool b ) {
             if ( add_it( 0, 1 ) ) {
-              m_datum.push_back( ( b ? "true" : "false" ) );
+              m_datum.push_back( ( b ? 1.0 : 0.0 ) );
             }
             else {
               m_datum.push_back ( default_value());
@@ -142,16 +147,16 @@ namespace psmrts::algorithms::conversions {
 
           inline void operator()( const int i )  {
             if ( add_it( 0, 1 ) ) {
-              m_datum.push_back( std::to_string( i ));
+              m_datum.push_back( static_cast<double>( i ) );
             }
             else {
-              m_datum.push_back ( default_value());
+              m_datum.push_back ( default_value() );
             }            
           }
 
           inline void operator()( const size_t i )  {
             if ( add_it( 0, 1 ) ) {
-              m_datum.push_back( std::to_string( i ));
+              m_datum.push_back( static_cast<double>( i ) );
             }
             else {
               m_datum.push_back ( default_value() );
@@ -159,10 +164,8 @@ namespace psmrts::algorithms::conversions {
           }          
 
           inline void operator()( const double d ) {
-            if ( add_it( 0, 1 ) ) {
-              std::ostringstream out;
-              out << std::fixed << std::setprecision( parameters().traits().digits() ) << d;               
-              m_datum.push_back( out.str() );
+            if ( add_it( 0, 1 ) ) {               
+              m_datum.push_back( d );
             }
             else {
               m_datum.push_back ( default_value());
@@ -171,7 +174,7 @@ namespace psmrts::algorithms::conversions {
 
           inline void operator()( const std::string &s ) {
             if ( add_it( 0, 1 ) ) {
-              m_datum.push_back( s );
+              m_datum.push_back( string_to_double( s ) );
             }
             else {
               m_datum.push_back ( default_value() );
@@ -184,7 +187,7 @@ namespace psmrts::algorithms::conversions {
 
             for (size_t i = ith ; i < nth ; nth++ ) {
               if ( add_it( i, i_array.size() ) ) {
-                m_datum.push_back( std::to_string( i_array[i] ) ); 
+                m_datum.push_back( static_cast<double>( i_array[i] ) ); 
               }
               else {
                 m_datum.push_back ( default_value() );
@@ -193,12 +196,12 @@ namespace psmrts::algorithms::conversions {
           }
 
           inline void operator()( const std::vector<size_t> i_array ) {
-             size_t ith = parameters().index();
+            size_t ith = parameters().index();
             size_t nth = parameters().count() + ith;
 
             for (size_t i = ith ; i < nth  ; nth++ ) {
               if ( add_it( i, i_array.size() ) ) {
-                m_datum.push_back( std::to_string( i_array[i] ) ); 
+                m_datum.push_back( static_cast<double>( i_array[i] ) ); 
               }
               else {
                 m_datum.push_back ( default_value());
@@ -212,9 +215,7 @@ namespace psmrts::algorithms::conversions {
 
             for (size_t i = ith ; i < nth  ; nth++ ) {
               if ( add_it( i, d_array.size() ) ) {
-                std::ostringstream out;
-                out << std::fixed << std::setprecision( parameters().traits().digits() ) << d_array[i];               
-                m_datum.push_back( out.str() );                
+                m_datum.push_back( d_array[i] );                
               }
               else {
                 m_datum.push_back ( default_value() );
@@ -228,7 +229,7 @@ namespace psmrts::algorithms::conversions {
 
             for (size_t i = ith ; i < nth  ; nth++ ) {
               if ( add_it( i, s_array.size() ) ) {
-                m_datum.push_back( s_array[i] );                
+                m_datum.push_back( string_to_double( s_array[i] ) );                
               }
               else {
                 m_datum.push_back ( default_value() );
@@ -237,28 +238,91 @@ namespace psmrts::algorithms::conversions {
           }      
           
           inline void operator()( const ordered_json &j_data ) {
-            if ( add_it( 0, 1 ) ) {            
-              m_datum.push_back( j_data.dump( parameters().traits().spaces() ) );
+            // Not simple but look for the easiest way to process this
+            auto it_j = j_data.begin();
+
+            double value = default_value();  // Set default return condition
+            size_t level = 0;
+            try { 
+
+              while ( it_j->is_structured() && ( it_j != j_data.end() )) {
+                if ( it_j == j_data.end() ) break;
+                if ( it_j->is_array() )     break;
+                if ( it_j->is_primitive() ) break;
+
+                level++;
+                ++it_j;
+              }
+
+              // Now check for primitives and arrays
+              if ( it_j->is_primitive() ) {
+                if ( add_it( 0, it_j->size() ) ) {  
+                  if ( it_j->is_number() ) {
+                    // Try direct assignement
+                    value = *it_j;
+                  }
+                  else if ( it_j->is_string() ) {
+                    std::string temp_s = *it_j;
+                    value = string_to_double( temp_s );
+                  }
+                }            
+              }
+              else if ( it_j->is_array() ) {
+                size_t ith = parameters().index();
+                size_t nth = parameters().count() + ith;
+                if ( add_it( ith, it_j->size() ) ) {
+                  if ( it_j->at(ith).is_number( ) ) {
+                    value = it_j->at(ith);
+                  }
+                  else if (it_j->is_string() ) {
+                    std::string temp_s = *it_j;
+                    value = string_to_double( temp_s );
+                  }
+                }
+              }
             }
-            else {
-              m_datum.push_back( default_value() );
+            catch ( json::exception & j ) {
+
+              value = default_value();
             }
+
+            // It is what it is...
+            m_datum.push_back( default_value() );
+            return;
           }
 
-          inline const std::string &default_value() const {
+
+          inline const double &default_value() const {
             return ( m_default );
           }
 
         private:
-          /** Reference to vector that collects strings */
-          std::vector<std::string> &m_datum;
-          ConversionParameters     m_parameters;
-          std::string              m_default; 
-          
+          /** Reference to vector that collects doubles */
+          std::vector<double> &m_datum;
+          ConversionParameters m_parameters;
+          double               m_default; 
+        
+          /** Convert strings to double precision with error checking */
+          inline double string_to_double( const std::string &s) const {
+            size_t bad_char_index;
+            try {
+              double d = std::stod( s, &bad_char_index );
+              if ( bad_char_index != s.length( ) ) return ( default_value() );
+              return ( d );
+            }
+            catch ( std::exception &e) {
+              return ( default_value() );
+            }
+
+            return ( default_value() );
+          }
+
+          /** Return conversion parameters */
           inline const ConversionParameters &parameters( ) const {
             return  ( m_parameters );
           }
         
+          /** Determine if the index is valid given traits and array size */
           inline bool add_it(const size_t index, const size_t max_size ) const {
             if ( parameters().all() && 
                ( index >= parameters().index() ) &&
@@ -277,7 +341,7 @@ namespace psmrts::algorithms::conversions {
       private:
         ProductOption    m_option;
         ConversionTraits m_traits;
-        std::string      m_default;
+        double           m_default;
   };  
 
 }    // namespace psmrts::algoriths::conversions

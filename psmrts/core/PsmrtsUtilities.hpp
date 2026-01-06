@@ -298,6 +298,13 @@ namespace psmrts {
       return ( llr );
   }
 
+    /** Nothing fancy about checking if two doubles are approximately equivalent */
+    inline bool isApprox( const double &v1, 
+                          const double &v2,
+                          const double v_tolerance = 1.0e-12 ) {
+    return ( std::abs( v1 - v2 ) < v_tolerance );                    
+  }
+
   /** Returns true if the data of two Eigen::Vector3d have same relative values, with adjustable tolerance */
   inline bool isEqual( const Eigen::Vector3d &v1, 
                        const Eigen::Vector3d &v2,

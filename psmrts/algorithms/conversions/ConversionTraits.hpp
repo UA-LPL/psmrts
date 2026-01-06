@@ -88,8 +88,8 @@ namespace psmrts::algorithms::conversions {
     size_t count_t;
     bool get_all_t;
     ConversionTraits traits_t;
-    
   };
+  
   using ConversionParameters = struct conversion_parameters;
 
 } // namspace psmrts::algorithms::conversions

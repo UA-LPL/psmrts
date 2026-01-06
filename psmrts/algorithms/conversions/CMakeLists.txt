@@ -4,6 +4,7 @@ target_sources( psmrts PUBLIC
                            TYPE HEADERS 
                            FILES ConversionTraits.hpp
                                  OptionStrings.hpp
+                                 OptionDoubles.hpp
               )
 
 # Only add if requested
