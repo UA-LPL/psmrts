@@ -237,8 +237,14 @@ namespace psmrts::algorithms::conversions {
           }      
           
           inline void operator()( const ordered_json &j_data ) {
-            if ( add_it( 0, 1 ) ) {            
-              m_datum.push_back( j_data.dump( parameters().traits().spaces() ) );
+            if ( add_it( 0, 1 ) ) {
+              if ( j_data.is_primitive() ) {
+                std::string str_t = j_data;
+                m_datum.push_back( str_t );
+              }
+              else {        
+                m_datum.push_back( j_data.dump( parameters().traits().spaces() ) );
+              }
             }
             else {
               m_datum.push_back( default_value() );

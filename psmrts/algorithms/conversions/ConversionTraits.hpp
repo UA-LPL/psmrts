@@ -8,7 +8,7 @@ namespace psmrts::algorithms::conversions {
   struct conversion_traits {
       inline static const size_t DigitsPrecision = 9;
       inline static const double DoubleTolerance = 1.0e-9;
-      inline static const double JsonSpacing = 0;
+      inline static const int JsonSpacing = -1;
 
     conversion_traits(  ) {
       digits_precision = DigitsPrecision;
@@ -25,13 +25,13 @@ namespace psmrts::algorithms::conversions {
       return ( double_tolerance );
     }    
 
-    inline size_t spaces() const {
+    inline int spaces() const {
       return ( json_space );
     }
 
     size_t digits_precision;
     double double_tolerance;
-    size_t json_space;
+    int json_space;
   };
 
   using ConversionTraits     = struct conversion_traits;
@@ -89,7 +89,7 @@ namespace psmrts::algorithms::conversions {
     bool get_all_t;
     ConversionTraits traits_t;
   };
-  
+
   using ConversionParameters = struct conversion_parameters;
 
 } // namspace psmrts::algorithms::conversions

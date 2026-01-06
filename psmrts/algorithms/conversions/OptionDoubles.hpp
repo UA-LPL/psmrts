@@ -245,6 +245,7 @@ namespace psmrts::algorithms::conversions {
             size_t level = 0;
             try { 
 
+              // Find the first primitive or array
               while ( it_j->is_structured() && ( it_j != j_data.end() )) {
                 if ( it_j == j_data.end() ) break;
                 if ( it_j->is_array() )     break;
@@ -253,41 +254,56 @@ namespace psmrts::algorithms::conversions {
                 level++;
                 ++it_j;
               }
+              // std::cout << "OptionDoubles::Json::level: " << level << std::endl;
+              // std::cout << "OptionDoubles::Json::value: " << *it_j << std::endl;
 
-              // Now check for primitives and arrays
+              // Now check if we actually have primitives or arrays
               if ( it_j->is_primitive() ) {
+               // std::cout << "OptionDoubles::Json::primitive..." << std::endl;
+
+                // Check if its ok to get a scaler
                 if ( add_it( 0, it_j->size() ) ) {  
                   if ( it_j->is_number() ) {
+                    // std::cout << "OptionDoubles::Json::number..." << std::endl;
+
                     // Try direct assignement
                     value = *it_j;
                   }
                   else if ( it_j->is_string() ) {
+                    // std::cout << "OptionDoubles::Json::string..." << std::endl;
                     std::string temp_s = *it_j;
+                   //  std::cout << "OptionDoubles::Json::string: " << temp_s << std::endl;
                     value = string_to_double( temp_s );
                   }
                 }            
               }
               else if ( it_j->is_array() ) {
+                // Got an array, these values must be a number of string
+               // std::cout << "OptionDoubles::Json::array..." << std::endl;
                 size_t ith = parameters().index();
                 size_t nth = parameters().count() + ith;
                 if ( add_it( ith, it_j->size() ) ) {
                   if ( it_j->at(ith).is_number( ) ) {
+                    // std::cout << "OptionDoubles::Json::number..." << std::endl;
                     value = it_j->at(ith);
                   }
-                  else if (it_j->is_string() ) {
-                    std::string temp_s = *it_j;
+                  else if ( it_j->at(ith).is_string() ) {
+                    // std::cout << "OptionDoubles::Json::string..." << std::endl;
+                    std::string temp_s = it_j->at(ith);
+                    // std::cout << "OptionDoubles::Json::string: " << temp_s << std::endl;
                     value = string_to_double( temp_s );
                   }
                 }
               }
             }
             catch ( json::exception & j ) {
-
+              // All errors just result in default value
+              // std::cout << "OptionDoubles::Json::exception!" << std::endl;
               value = default_value();
             }
 
             // It is what it is...
-            m_datum.push_back( default_value() );
+            m_datum.push_back( value );
             return;
           }
 
