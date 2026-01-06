@@ -160,7 +160,6 @@ namespace psmrts {
         // integral types will always return 1, executed by the std:visit()
         // below. 
         const auto visitor = overload{            
-                  // [](const std::string &s) { return ( 1 ); },            
                   [](const std::vector<int> &i_array) { return (i_array.size() ); },
                   [](const std::vector<size_t> &i_t_array) { return (i_t_array.size() ); },
                   [](const std::vector<double> &d_array) { return (d_array.size() ); },

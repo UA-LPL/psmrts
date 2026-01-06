@@ -66,16 +66,17 @@ namespace psmrts::algorithms::conversions {
         one.reserve( 1 );
 
         OptionVisitor visitor( one, p );
-        m_option.get_to( visitor );
+        m_option.visit( visitor );
 
         return ( one.front() );
       }
 
       inline const std::vector<std::string> &get_all( std::vector<std::string> &s ) const {
         ConversionParameters p = ConversionParameters::get_all_values( m_traits );
+        p.count_t = m_option.size();
 
         OptionVisitor visitor(  s, p );
-        m_option.get_to( visitor );
+        m_option.visit( visitor );
 
         return ( s );
       }
@@ -182,7 +183,7 @@ namespace psmrts::algorithms::conversions {
             size_t ith = parameters().index();
             size_t nth = parameters().count() + ith;
 
-            for (size_t i = ith ; i < nth ; nth++ ) {
+            for (size_t i = ith ; i < nth ; i++ ) {
               if ( add_it( i, i_array.size() ) ) {
                 m_datum.push_back( std::to_string( i_array[i] ) ); 
               }
@@ -196,7 +197,7 @@ namespace psmrts::algorithms::conversions {
              size_t ith = parameters().index();
             size_t nth = parameters().count() + ith;
 
-            for (size_t i = ith ; i < nth  ; nth++ ) {
+            for (size_t i = ith ; i < nth  ; i++ ) {
               if ( add_it( i, i_array.size() ) ) {
                 m_datum.push_back( std::to_string( i_array[i] ) ); 
               }
@@ -210,7 +211,7 @@ namespace psmrts::algorithms::conversions {
             size_t ith = parameters().index();
             size_t nth = parameters().count() + ith;
 
-            for (size_t i = ith ; i < nth  ; nth++ ) {
+            for (size_t i = ith ; i < nth  ; i++ ) {
               if ( add_it( i, d_array.size() ) ) {
                 std::ostringstream out;
                 out << std::fixed << std::setprecision( parameters().traits().digits() ) << d_array[i];               
@@ -226,7 +227,7 @@ namespace psmrts::algorithms::conversions {
             size_t ith = parameters().index();
             size_t nth = parameters().count() + ith;
 
-            for (size_t i = ith ; i < nth  ; nth++ ) {
+            for (size_t i = ith ; i < nth  ; i++ ) {
               if ( add_it( i, s_array.size() ) ) {
                 m_datum.push_back( s_array[i] );                
               }

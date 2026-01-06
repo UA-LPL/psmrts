@@ -69,7 +69,7 @@ namespace psmrts::algorithms::conversions {
         one.reserve( 1 );
 
         OptionVisitor visitor( one, p );
-        m_option.get_to( visitor );
+        m_option.visit( visitor );
 
         return ( one.front() );
       }
@@ -78,28 +78,39 @@ namespace psmrts::algorithms::conversions {
         ConversionParameters p = ConversionParameters::get_all_values( m_traits );
 
         OptionVisitor visitor(  d, p );
-        m_option.get_to( visitor );
+        m_option.visit( visitor );
 
         return ( d);
       }
 
       /**
-       * @brief Compare string conversions of two products
+       * @brief Compare two products with differing defaults
        * 
-       * @param option1 
-       * @param option2 
-       * @param traits 
-       * @param default_v 
-       * @return true 
-       * @return false 
+       * This function computes the difference of two double options where
+       * differing default values detect extended arrays resulting in a failing
+       * comparison. 
+       * 
+       * Options that do not have all the same number of values will fail by 
+       * definition.
+       * 
+       * @param option1   First option to convert to doubles for comparison
+       * @param option2   Second option to convert to doubles for comparison
+       * @param default1  Default for first option for failures and missing data
+       * @param default2  Default for second option for failures and missing data
+       * @param parms     Optional access parameters and traits for comparisons
+       *                    Default is to extract all values from each option
+       * @return true     If all corresponding values compare within tolerance
+       * @return false    If option sizes differ or are not within tolerance
        */
       static inline bool compare( const ProductOption &option1, 
                                   const ProductOption &option2,
-                                  const ConversionParameters &parms = ConversionParameters::get_all_values( ),
-                                  const double default_v = psmrts::null() )  {
+                                  const double default1,
+                                  const double default2,
+                                  const ConversionParameters &parms = ConversionParameters::get_all_values( )
+                                )  {                                    
 
-        OptionDoubles option1_s( option1, parms.traits(), default_v );
-        OptionDoubles option2_s( option2, parms.traits(), default_v );
+        OptionDoubles option1_s( option1, parms.traits(), default1 );
+        OptionDoubles option2_s( option2, parms.traits(), default2 );
         std::vector<double> opt1_v, opt2_v;
         
         opt1_v.reserve( option1_s.size() );
@@ -119,6 +130,27 @@ namespace psmrts::algorithms::conversions {
           }
         }
         return ( true );
+      }
+
+      /**
+       * @brief Compare doubles conversions of two products with same parameters
+       * 
+       * This comparison is convenient for options that contain the same number
+       * of values, since the same default is used. 
+       * 
+       * @param option1 
+       * @param option2 
+       * @param default_v 
+       * @param traits 
+       * @return true 
+       * @return false 
+       */
+      static inline bool compare( const ProductOption &option1, 
+                                  const ProductOption &option2,
+                                  const double default_v = psmrts::null(),
+                                  const ConversionParameters &parms = ConversionParameters::get_all_values( )
+                                  )  {
+        return ( OptionDoubles::compare( option1, option2, default_v, default_v, parms ) );                                    
       }
 
     protected:
@@ -185,7 +217,7 @@ namespace psmrts::algorithms::conversions {
             size_t ith = parameters().index();
             size_t nth = parameters().count() + ith;
 
-            for (size_t i = ith ; i < nth ; nth++ ) {
+            for ( size_t i = ith ; i < nth ; i++ ) {
               if ( add_it( i, i_array.size() ) ) {
                 m_datum.push_back( static_cast<double>( i_array[i] ) ); 
               }
@@ -199,7 +231,7 @@ namespace psmrts::algorithms::conversions {
             size_t ith = parameters().index();
             size_t nth = parameters().count() + ith;
 
-            for (size_t i = ith ; i < nth  ; nth++ ) {
+            for ( size_t i = ith ; i < nth  ; i++ ) {
               if ( add_it( i, i_array.size() ) ) {
                 m_datum.push_back( static_cast<double>( i_array[i] ) ); 
               }
@@ -213,7 +245,7 @@ namespace psmrts::algorithms::conversions {
             size_t ith = parameters().index();
             size_t nth = parameters().count() + ith;
 
-            for (size_t i = ith ; i < nth  ; nth++ ) {
+            for ( size_t i = ith ; i < nth  ; i++ ) {
               if ( add_it( i, d_array.size() ) ) {
                 m_datum.push_back( d_array[i] );                
               }
@@ -227,7 +259,7 @@ namespace psmrts::algorithms::conversions {
             size_t ith = parameters().index();
             size_t nth = parameters().count() + ith;
 
-            for (size_t i = ith ; i < nth  ; nth++ ) {
+            for ( size_t i = ith ; i < nth  ; i++ ) {
               if ( add_it( i, s_array.size() ) ) {
                 m_datum.push_back( string_to_double( s_array[i] ) );                
               }
@@ -247,7 +279,6 @@ namespace psmrts::algorithms::conversions {
 
               // Find the first primitive or array
               while ( it_j->is_structured() && ( it_j != j_data.end() )) {
-                if ( it_j == j_data.end() ) break;
                 if ( it_j->is_array() )     break;
                 if ( it_j->is_primitive() ) break;
 
