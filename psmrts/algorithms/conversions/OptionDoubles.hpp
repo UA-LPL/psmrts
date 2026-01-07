@@ -22,17 +22,18 @@ namespace psmrts::algorithms::conversions {
    */
   class OptionDoubles {
     public:
+      static inline double OptionDoublesDefault = psmrts::null();
       OptionDoubles() : m_option(), 
                         m_traits( ConversionTraits() ),
-                        m_default( psmrts::null() ) { }
+                        m_default( OptionDoublesDefault ) { }
       OptionDoubles( const ProductOption &option ) {
         m_option  = option;
-        m_default = psmrts::null();
+        m_default = OptionDoublesDefault;
         m_traits  = ConversionTraits();
       }      
       OptionDoubles( const ProductOption &option,
                      const ConversionTraits &traits,
-                     const double default_v = psmrts::null() ) {
+                     const double default_v = OptionDoublesDefault ) {
         m_option  = option;
         m_default = default_v;
         m_traits  = traits;
@@ -78,7 +79,7 @@ namespace psmrts::algorithms::conversions {
                                                  const size_t index = 0,
                                                  const size_t nvals = 0 ) const {
 
-        size_t nth = this->size() - 1;
+        size_t nth = ( this->size() == 0 ) ? 0 : this->size() - 1;
         if ( index > nth ) return ( d );  // Edge case where starting index exceeds size
         size_t n = ( nvals == 0 ) ? nth - index + 1 : nvals;
 
@@ -158,7 +159,7 @@ namespace psmrts::algorithms::conversions {
        */
       static inline bool compare( const ProductOption &option1, 
                                   const ProductOption &option2,
-                                  const double default_v = psmrts::null(),
+                                  const double default_v = OptionDoublesDefault,
                                   const ConversionParameters &parms = ConversionParameters::get_all_values( )
                                   )  {
         return ( OptionDoubles::compare( option1, option2, default_v, default_v, parms ) );                                    

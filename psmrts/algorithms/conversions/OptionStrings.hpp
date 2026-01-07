@@ -18,10 +18,10 @@ namespace psmrts::algorithms::conversions {
    */
   class OptionStrings {
     public:
-
+      static inline std::string OptionStringsDefault = "";
       OptionStrings() : m_option(),  
                         m_traits( ConversionTraits() ),
-                        m_default("") { }
+                        m_default(OptionStringsDefault) { }
       OptionStrings( const ProductOption &option ) {
         m_option  = option;
         m_traits  = ConversionTraits();
@@ -29,7 +29,7 @@ namespace psmrts::algorithms::conversions {
       }      
       OptionStrings( const ProductOption &option,
                      const ConversionTraits &traits,
-                     const std::string default_v = "" ) {
+                     const std::string default_v = OptionStringsDefault ) {
         m_option  = option;
         m_traits  = traits;
         m_default = default_v;
@@ -94,7 +94,7 @@ namespace psmrts::algorithms::conversions {
       static inline bool compare( const ProductOption &option1, 
                                   const ProductOption &option2,
                                   const ConversionParameters &parms = ConversionParameters::get_all_values( ),
-                                  const std::string default_v = "" )  {
+                                  const std::string default_v = OptionStringsDefault )  {
 
         OptionStrings option1_s( option1, parms.traits(), default_v );
         OptionStrings option2_s( option2, parms.traits(), default_v );
@@ -128,7 +128,7 @@ namespace psmrts::algorithms::conversions {
                          m_parameters( parms ) { }
           OptionVisitor( std::vector<std::string> &data,
                          const ConversionParameters parms = ConversionParameters() ) : 
-                         m_datum( data ),m_default( ""),
+                         m_datum( data ),m_default( OptionStringsDefault ),
                          m_parameters( parms ) { }                        
           virtual ~OptionVisitor() = default;
 

@@ -21,9 +21,10 @@ namespace psmrts::algorithms::conversions {
    */
   class OptionInts {
     public:
+      static inline int OptionIntsDefault = std::numeric_limits<int>::max();
       OptionInts() : m_option(), 
                      m_traits( ConversionTraits() ), 
-                     m_default( psmrts::null() ) { }
+                     m_default( OptionIntsDefault ) { }
       OptionInts( const ProductOption &option ) {
         m_option  = option;
         m_traits  = ConversionTraits();
@@ -31,7 +32,7 @@ namespace psmrts::algorithms::conversions {
       }      
       OptionInts( const ProductOption &option,
                   const ConversionTraits &traits,
-                  const int default_v = psmrts::null() ) {
+                  const int default_v = OptionIntsDefault  ) {
         m_option  = option;
         m_traits  = traits;
         m_default = default_v;
@@ -63,23 +64,34 @@ namespace psmrts::algorithms::conversions {
       }
 
       inline int get( const size_t index = 0 ) const {
-        ConversionParameters p( index, m_traits );
+        ConversionParameters p( index, 1, m_traits );
         std::vector<int> one;
         one.reserve( 1 );
 
-        OptionVisitor visitor( one, p );
+        OptionVisitor visitor( one,  this->default_value(), p );
         m_option.visit( visitor );
 
         return ( one.front() );
       }
 
-      inline const std::vector<int> &get_all( std::vector<int> &d ) const {
-        ConversionParameters p = ConversionParameters::get_all_values( m_traits );
+      inline const std::vector<int> &get_all( std::vector<int> &d,
+                                                 const size_t index = 0,
+                                                 const size_t nvals = 0 ) const {
 
-        OptionVisitor visitor( d, p );
+        size_t nth = this->size() - 1;
+        if ( index > nth ) return ( d );  // Edge case where starting index exceeds size
+        size_t n = ( nvals == 0 ) ? nth - index + 1 : nvals;
+
+        ConversionParameters p( index, n, m_traits );
+        OptionVisitor visitor( d, this->default_value(), p );
         m_option.visit( visitor );
-
         return ( d );
+      }
+
+      inline std::vector<int> get_all( const size_t index = 0,
+                                          const size_t nvals = 0 ) const {
+        std::vector<int> d;
+        return ( get_all( d, index,  nvals) );
       }
 
       /**
@@ -146,7 +158,7 @@ namespace psmrts::algorithms::conversions {
        */
       static inline bool compare( const ProductOption &option1, 
                                   const ProductOption &option2,
-                                  const int default_v = psmrts::null(),
+                                  const int default_v = OptionIntsDefault ,
                                   const ConversionParameters &parms = ConversionParameters::get_all_values( )
                                   )  {
         return ( OptionInts::compare( option1, option2, default_v, default_v, parms ) );                                    
@@ -163,7 +175,7 @@ namespace psmrts::algorithms::conversions {
                          m_parameters( parms ) { }
           OptionVisitor( std::vector<int> &data,
                          const ConversionParameters parms = ConversionParameters() ) : 
-                         m_datum( data ),m_default( psmrts::null() ),
+                         m_datum( data ),m_default( OptionIntsDefault  ),
                          m_parameters( parms ) { }                        
           virtual ~OptionVisitor() = default;
 
@@ -187,8 +199,8 @@ namespace psmrts::algorithms::conversions {
 
           inline void operator()( const size_t i )  {
             if ( add_it( 0, 1 ) ) {
-                if ( i >= std::numeric_limits<int>::max() ) {
-                    m_datum.push_back( std::numeric_limits<int>::max() );
+                if ( i >= OptionIntsDefault ) {
+                    m_datum.push_back( m_default);
                 } else {
                     m_datum.push_back( static_cast<int>( i ) );
                 }
@@ -203,8 +215,8 @@ namespace psmrts::algorithms::conversions {
             // May need to revisit - floor/ceil 
             // static will truncate, but need to evaluate what to do 
             // with values > int max 
-                if (d >= std::numeric_limits<int>::max() ) {
-                    m_datum.push_back( std::numeric_limits<int>::max() );
+                if (d >= OptionIntsDefault ) {
+                    m_datum.push_back( m_default );
                 }
                 else if (d <= std::numeric_limits<int>::min() ) {
                     m_datum.push_back( std::numeric_limits<int>::min() );
@@ -247,8 +259,8 @@ namespace psmrts::algorithms::conversions {
 
             for ( size_t i = ith ; i < nth  ; i++ ) {
               if ( add_it( i, i_array.size() ) ) {
-                if ( i_array[i] >= std::numeric_limits<int>::max() ) {
-                    m_datum.push_back( std::numeric_limits<int>::max() );
+                if ( i_array[i] >= std::numeric_limits<int>::min() ) {
+                    m_datum.push_back( m_default );
                 } else {
                     m_datum.push_back( static_cast<int>( i_array[i] ) );
                 }
@@ -265,8 +277,8 @@ namespace psmrts::algorithms::conversions {
 
             for ( size_t i = ith ; i < nth  ; i++ ) {
               if ( add_it( i, d_array.size() ) ) {
-                if (d_array[i] >= std::numeric_limits<int>::max() ) {
-                    m_datum.push_back( std::numeric_limits<int>::max() );
+                if (d_array[i] >= std::numeric_limits<int>::min() ) {
+                    m_datum.push_back( m_default );
                 }
                 else if (d_array[i] <= std::numeric_limits<int>::min() ) {
                     m_datum.push_back( std::numeric_limits<int>::min() );
@@ -348,7 +360,7 @@ namespace psmrts::algorithms::conversions {
             }
 
             // It is what it is...
-            m_datum.push_back( static_cast<int> value );
+            m_datum.push_back( static_cast<int>( value ) );
             return;
           }
 
@@ -363,7 +375,7 @@ namespace psmrts::algorithms::conversions {
           ConversionParameters m_parameters;
           int                  m_default; 
         
-          /** Convert strings to double precision with error checking */
+          /** Convert strings to ints with error checking */
           inline double string_to_int( const std::string &s ) const {
             size_t bad_char_index;
             try {

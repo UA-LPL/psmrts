@@ -17,15 +17,16 @@ namespace psmrts::algorithms::conversions {
 
  class OptionBools {
     public:
-     OptionBools() : m_option(), m_default(false) {}
+      static inline bool OptionBoolsDefault = false;
+     OptionBools() : m_option(), m_default(OptionBoolsDefault) {}
      OptionBools( const ProductOption &option ) {
         m_option = option;
         m_traits = ConversionTraits();
-        m_default = false;
+        m_default = OptionBoolsDefault;
      }
      OptionBools( const ProductOption &option,
                   const ConversionTraits &traits,
-                  const bool default_v = false ) {
+                  const bool default_v = OptionBoolsDefault ) {
         m_option = option;
         m_traits = traits;
         m_default = default_v;
@@ -56,34 +57,66 @@ namespace psmrts::algorithms::conversions {
      }
     
      inline bool get( const size_t index = 0 ) const {
-        ConversionParameters p( index, m_traits );
+        ConversionParameters p( index, 1, m_traits );
         std::vector<bool> one;
         one.reserve( 1 );
 
-        OptionVisitor visitor( one, p );
+        OptionVisitor visitor( one,this->default_value(), p );
         m_option.visit( visitor );
 
         return ( one.front() );
      }
 
-     inline const std::vector<bool> &get_all( std::vector<bool> &b ) const {
-        ConversionParameters p = ConversionParameters::get_all_values( m_traits );
+      inline const std::vector<bool> &get_all( std::vector<bool> &d,
+                                                 const size_t index = 0,
+                                                 const size_t nvals = 0 ) const {
 
-        OptionVisitor visitor( b, p );
+        size_t nth = ( this->size() == 0 ) ? 0 : this->size() - 1;
+        if ( index > nth ) return ( d );  // Edge case where starting index exceeds size
+        size_t n = ( nvals == 0 ) ? nth - index + 1 : nvals;
+
+        ConversionParameters p( index, n, m_traits );
+        OptionVisitor visitor( d, this->default_value(), p );
         m_option.visit( visitor );
+        return ( d );
+      }
 
-        return b;
-     }
+      inline std::vector<bool> get_all( const size_t index = 0,
+                                        const size_t nvals = 0 ) const {
+        std::vector<bool> d;
+        return ( get_all( d, index,  nvals) );
+      }
 
-     static inline bool compare( const ProductOption &option1, 
-                                 const ProductOption &option2,
-                                 const ConversionParameters &parms = ConversionParameters::get_all_values( ),
-                                 const bool default_v = false )  {
+      /**
+       * @brief Compare two products with differing defaults
+       * 
+       * This function computes the difference of two bool options where
+       * differing default values detect extended arrays resulting in a failing
+       * comparison. 
+       * 
+       * Options that do not have all the same number of values will fail by 
+       * definition.
+       * 
+       * @param option1   First option to convert to bools for comparison
+       * @param option2   Second option to convert to bools for comparison
+       * @param default1  Default for first option for failures and missing data
+       * @param default2  Default for second option for failures and missing data
+       * @param parms     Optional access parameters and traits for comparisons
+       *                    Default is to extract all values from each option
+       * @return true     If all corresponding values compare within tolerance
+       * @return false    If option sizes differ or are not within tolerance
+       */
+      static inline bool compare( const ProductOption &option1, 
+                                  const ProductOption &option2,
+                                  const double default1,
+                                  const double default2,
+                                  const ConversionParameters &parms = ConversionParameters::get_all_values( )
+                                )  {                                    
 
-        OptionBools option1_s( option1, parms.traits(), default_v );
-        OptionBools option2_s( option2, parms.traits(), default_v );
+        OptionBools option1_s( option1, parms.traits(), default1 );
+        OptionBools option2_s( option2, parms.traits(), default2 );
         std::vector<bool> opt1_v, opt2_v;
-
+        
         opt1_v.reserve( option1_s.size() );
         opt2_v.reserve( option2_s.size() );
 
@@ -91,27 +124,49 @@ namespace psmrts::algorithms::conversions {
         option2_s.get_all( opt2_v );
 
         if ( opt1_v.size() != opt2_v.size() ) {
-            return ( false );
+          return ( false );
         }
 
-        size_t n = std::max( opt1_v.size(), opt2_v.size() );
+        size_t n = std::min( opt1_v.size(), opt2_v.size() );
         for ( size_t i = 0  ; i < n ; i++ ) {
-        if ( opt1_v[i] != opt2_v[i] ) return ( false );
+          if ( opt1_v[i] != opt2_v[i] ) return ( false );
         }
         return ( true );
-     }
-    
+      }
+
+          /**
+       * @brief Compare bools conversions of two products with same parameters
+       * 
+       * This comparison is convenient for options that contain the same number
+       * of values, since the same default is used. 
+       * 
+       * @param option1 
+       * @param option2 
+       * @param default_v 
+       * @param traits 
+       * @return true 
+       * @return false 
+       */
+      static inline bool compare( const ProductOption &option1, 
+                                  const ProductOption &option2,
+                                  const double default_v = OptionBoolsDefault,
+                                  const ConversionParameters &parms = ConversionParameters::get_all_values( )
+                                  )  {
+        return ( OptionBools::compare( option1, option2, default_v, default_v, parms ) );                                    
+      }
+
+
     protected: 
      class OptionVisitor { 
         public:
           OptionVisitor( std::vector<bool> &data,
                          const bool &default_v,
                          const ConversionParameters parms = ConversionParameters() ) : 
-                         m_datum( data ),m_default( default_v),
+                         m_datum( data ),m_default( default_v ),
                          m_parameters( parms ) { }
           OptionVisitor( std::vector<bool> &data,
                          const ConversionParameters parms = ConversionParameters() ) : 
-                         m_datum( data ),m_default( false ),
+                         m_datum( data ),m_default( OptionBoolsDefault ),
                          m_parameters( parms ) { }                        
           virtual ~OptionVisitor() = default;
 
@@ -219,22 +274,14 @@ namespace psmrts::algorithms::conversions {
                 m_datum.push_back ( default_value() );
               }             
             }              
-          }      
-          /** 
-          inline void operator()( const ordered_json &j_data ) {
-            if ( add_it( 0, 1 ) ) {            
-              m_datum.push_back( j_data.dump( parameters().traits().spaces() ) );
-            }
-            else {
-              m_datum.push_back( default_value() );
-            }
           }
-          */
+
+
          inline void operator()( const ordered_json &j_data ) {
             // Not simple but look for the easiest way to process this
             auto it_j = j_data.begin();
 
-            double value = default_value();  // Set default return condition
+            bool value = default_value();  // Set default return condition
             size_t level = 0;
             try { 
 
@@ -254,7 +301,7 @@ namespace psmrts::algorithms::conversions {
                 if ( add_it( 0, it_j->size() ) ) {  
                   if ( it_j->is_number() ) {
                     // Try direct assignement
-                    value = *it_j;
+                    value = *it_j;  // THIS IS A PROBLEM! SHOULD be bool!
                   }
                   else if ( it_j->is_string() ) {
                     std::string temp_s = *it_j;
