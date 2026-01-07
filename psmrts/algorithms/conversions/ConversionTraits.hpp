@@ -78,15 +78,10 @@ namespace psmrts::algorithms::conversions {
    * 
    */
   struct conversion_parameters {
-    // Enums for specify validity of occurances of default values
-    using DefaultStatus  = enum { DefaultValid, DefaultInvalid };
-
     /** Default constructor for a single value, default traits */
     conversion_parameters() { 
       index_t        = 0;
       count_t        = 1;
-      get_all_t      = false;
-      default_status = DefaultValid;
       traits_t = ConversionTraits( );
     }
     /** Get a single value from an array */
@@ -94,45 +89,21 @@ namespace psmrts::algorithms::conversions {
                           const ConversionTraits &t = ConversionTraits() ) {
       index_t        = ith;
       count_t        = 1;
-      get_all_t      = false;
-      default_status = DefaultValid;
       traits_t       = t;
     }    
     /** Get a single value from an array */
-    conversion_parameters(const size_t ith, const DefaultStatus status,
-                          const ConversionTraits &t = ConversionTraits() ) {
-      index_t        = ith;
-      count_t        = 1;
-      get_all_t      = DefaultValid;
-      default_status = status;
-      traits_t       = t;
-    }
-    /** Specify specific element in array and number of values to extract */       
     conversion_parameters(const size_t ith, const size_t n,
                           const ConversionTraits &t = ConversionTraits() ) {
       index_t        = ith;
-      count_t        = n;
-      get_all_t      = false;
-      default_status = DefaultValid;
-      traits_t      = t;
+      count_t        = 1;
+      traits_t       = t;
     }
-   /** Specify specific element in array and number of values to extract */       
-    conversion_parameters(const size_t ith, const size_t n, 
-                          const bool getall,
-                          const DefaultStatus status = DefaultValid,
-                          const ConversionTraits &t = ConversionTraits() ) {
-      index_t        = ith;
-      count_t        = n;
-      get_all_t      = false;
-      default_status = status;
-      traits_t      = t;
-    }    
  
     ~conversion_parameters() = default;
 
     /** Method constructor for getting all existing values with optional traits */
     static inline conversion_parameters get_all_values( const ConversionTraits &t = ConversionTraits()) {
-      conversion_parameters parms( 0, 0);
+      conversion_parameters parms( 0, 1);
       parms.get_all_t = true;
       parms.traits_t = t;
       return ( parms );
@@ -162,7 +133,6 @@ namespace psmrts::algorithms::conversions {
       size_t index_t;
       size_t count_t;
       bool get_all_t;
-      DefaultStatus default_status;
       ConversionTraits traits_t;
   };
 

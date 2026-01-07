@@ -23,27 +23,27 @@ namespace psmrts::algorithms::conversions {
   class OptionDoubles {
     public:
       OptionDoubles() : m_option(), 
-                        m_traits( ConversionTraits() ), 
+                        m_traits( ConversionTraits() ),
                         m_default( psmrts::null() ) { }
       OptionDoubles( const ProductOption &option ) {
         m_option  = option;
-        m_traits  = ConversionTraits();
         m_default = psmrts::null();
+        m_traits  = ConversionTraits();
       }      
       OptionDoubles( const ProductOption &option,
                      const ConversionTraits &traits,
                      const double default_v = psmrts::null() ) {
         m_option  = option;
-        m_traits  = traits;
         m_default = default_v;
+        m_traits  = traits;
       }
       OptionDoubles( const ProductOption &option,
                      const double default_v,
                      const ConversionTraits &traits = ConversionTraits() ) {
         m_option  = option;
-        m_traits  = traits;
         m_default = default_v;
-      }        
+        m_traits  = traits;
+      }
 
       virtual ~OptionDoubles() = default;
 
@@ -64,23 +64,34 @@ namespace psmrts::algorithms::conversions {
       }
 
       inline double get( const size_t index = 0 ) const {
-        ConversionParameters p( index, m_traits );
+        ConversionParameters p( index, 1, m_traits );
         std::vector<double> one;
         one.reserve( 1 );
 
-        OptionVisitor visitor( one, p );
+        OptionVisitor visitor( one, this->default_value(), p );
         m_option.visit( visitor );
 
         return ( one.front() );
       }
 
-      inline const std::vector<double> &get_all( std::vector<double> &d ) const {
-        ConversionParameters p = ConversionParameters::get_all_values( m_traits );
+      inline const std::vector<double> &get_all( std::vector<double> &d,
+                                                 const size_t index = 0,
+                                                 const size_t nvals = 0 ) const {
 
-        OptionVisitor visitor(  d, p );
+        size_t nth = this->size() - 1;
+        if ( index > nth ) return ( d );  // Edge case where starting index exceeds size
+        size_t n = ( nvals == 0 ) ? nth - index + 1 : nvals;
+
+        ConversionParameters p( index, n, m_traits );
+        OptionVisitor visitor( d, this->default_value(), p );
         m_option.visit( visitor );
+        return ( d );
+      }
 
-        return ( d);
+      inline std::vector<double> get_all( const size_t index = 0,
+                                          const size_t nvals = 0 ) const {
+        std::vector<double> d;
+        return ( get_all( d, index,  nvals) );
       }
 
       /**
@@ -159,13 +170,9 @@ namespace psmrts::algorithms::conversions {
         public:
           OptionVisitor( std::vector<double> &data,
                          const double &default_v,
-                         const ConversionParameters parms = ConversionParameters() ) : 
+                         const ConversionParameters &parms ) : 
                          m_datum( data ),m_default( default_v),
                          m_parameters( parms ) { }
-          OptionVisitor( std::vector<double> &data,
-                         const ConversionParameters parms = ConversionParameters() ) : 
-                         m_datum( data ),m_default( psmrts::null() ),
-                         m_parameters( parms ) { }                        
           virtual ~OptionVisitor() = default;
 
           inline void operator()( const bool b ) {
@@ -387,8 +394,8 @@ namespace psmrts::algorithms::conversions {
 
       private:
         ProductOption    m_option;
-        ConversionTraits m_traits;
         double           m_default;
+        ConversionTraits m_traits;
   };  
 
 }    // namespace psmrts::algoriths::conversions

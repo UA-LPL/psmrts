@@ -283,8 +283,8 @@ namespace psmrts::algorithms::conversions {
 
       private:
         ProductOption    m_option;
-        ConversionTraits m_traits;
         std::string      m_default;
-  };  
+        ConversionTraits m_traits;
+  };
 
 }    // namespace psmrts::algoriths::conversions

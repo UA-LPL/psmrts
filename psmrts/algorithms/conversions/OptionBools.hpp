@@ -61,7 +61,7 @@ namespace psmrts::algorithms::conversions {
         one.reserve( 1 );
 
         OptionVisitor visitor( one, p );
-        m_option.get_to( visitor );
+        m_option.visit( visitor );
 
         return ( one.front() );
      }
@@ -70,7 +70,7 @@ namespace psmrts::algorithms::conversions {
         ConversionParameters p = ConversionParameters::get_all_values( m_traits );
 
         OptionVisitor visitor( b, p );
-        m_option.get_to( visitor );
+        m_option.visit( visitor );
 
         return b;
      }
@@ -144,8 +144,6 @@ namespace psmrts::algorithms::conversions {
 
           inline void operator()( const double d ) {
             if ( add_it( 0, 1 ) ) {
-              //std::ostringstream out;
-              //out << std::fixed << std::setprecision( parameters().traits().digits() ) << d;               
               m_datum.push_back( ( ( d != 0.0 ) ? true : false ) );
             }
             else {
@@ -200,7 +198,6 @@ namespace psmrts::algorithms::conversions {
             for (size_t i = ith ; i < nth  ; i++ ) {
               if ( add_it( i, d_array.size() ) ) {
                 //std::ostringstream out;
-                //out << std::fixed << std::setprecision( parameters().traits().digits() ) << d_array[i];               
                 m_datum.push_back( ( ( d_array[i] != 0.0 ) ? true : false ) );                
               }
               else {
@@ -320,9 +317,7 @@ namespace psmrts::algorithms::conversions {
           static bool string_to_bool(const std::string &s, const bool default_v) {
             if (s.empty()) return default_v;
             
-            std::string v;
-            v = std::tolower(s);
-          
+            std::string v = psmrts::psmrts_tolower(s);
             if (v == "true" || v == "1" || v == "yes" || v == "on") {
               return true;
             }

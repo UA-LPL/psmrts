@@ -108,8 +108,8 @@ namespace psmrts::algorithms::conversions {
                                   const ConversionParameters &parms = ConversionParameters::get_all_values( )
                                 )  {                                    
 
-        OptionDoubles option1_s( option1, parms.traits(), default1 );
-        OptionDoubles option2_s( option2, parms.traits(), default2 );
+        OptionInts option1_s( option1, parms.traits(), default1 );
+        OptionInts option2_s( option2, parms.traits(), default2 );
         std::vector<int> opt1_v, opt2_v;
         
         opt1_v.reserve( option1_s.size() );
@@ -207,7 +207,7 @@ namespace psmrts::algorithms::conversions {
                     m_datum.push_back( std::numeric_limits<int>::max() );
                 }
                 else if (d <= std::numeric_limits<int>::min() ) {
-                    m_datum.push_back( std::numberic_limits<int>::min() );
+                    m_datum.push_back( std::numeric_limits<int>::min() );
                 } 
                 else {
                     m_datum.push_back( static_cast<int>( d ) );
@@ -269,7 +269,7 @@ namespace psmrts::algorithms::conversions {
                     m_datum.push_back( std::numeric_limits<int>::max() );
                 }
                 else if (d_array[i] <= std::numeric_limits<int>::min() ) {
-                    m_datum.push_back( std::numberic_limits<int>::min() );
+                    m_datum.push_back( std::numeric_limits<int>::min() );
                 } 
                 else {
                     m_datum.push_back( static_cast<int>( d_array[i] ) );

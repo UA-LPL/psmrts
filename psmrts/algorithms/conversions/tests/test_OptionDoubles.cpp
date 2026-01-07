@@ -50,7 +50,7 @@ TEST_CASE("OptionDoubles JSON Conversion Test", "[conversions][option][doubles][
 
   char text3[] = R"({"array":[1,2,3,4,5]})";
   psmrts::ProductOption option_j3( "array", psmrts::json_utils::parse_json_string( text3 ) );
-  psmrts::algorithms::conversions::OptionDoubles d3( option_j3 );
+  OptionDoubles d3( option_j3 );
   CHECK( d3.get()  == 1.0 );
   CHECK( d3.get(1) == 2.0 );
   CHECK( d3.get(2) == 3.0 );
@@ -58,7 +58,9 @@ TEST_CASE("OptionDoubles JSON Conversion Test", "[conversions][option][doubles][
   CHECK( d3.get(4) == 5.0 );
   CHECK( psmrts::isnull( d3.get(6) ) );
   CHECK( OptionStrings( option_j3 ).get() == std::string( text3 ) ); 
-  
+
+  const bool GetAll = true;
+  std::vector<double> partial = OptionDoubles( option_j3 ).get_all( 2, 2 );
 
   char text4[] = R"({"array":[1.0,"2",3,4,"5","null"]})";
   psmrts::ProductOption option_j4( "array", psmrts::json_utils::parse_json_string( text4 ) );
