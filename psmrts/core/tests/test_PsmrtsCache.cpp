@@ -40,7 +40,7 @@ TEST_CASE( "PSMRTS Cache Default Test", "[cache][default]") {
 
     std::vector<std::string> i_keys;
     std::vector<int> i_values;
-    for (auto i = cache.begin(); i != cache.end(); i++) {
+    for (auto i = cache.begin(); i != cache.end(); ++i ) {
         i_keys.push_back(i->first);
         i_values.push_back(i->second);
     }
@@ -48,21 +48,21 @@ TEST_CASE( "PSMRTS Cache Default Test", "[cache][default]") {
     CHECK( i_keys == std::vector<std::string>{"test", "test2", "test3", "test4"} );
     CHECK( i_values == std::vector<int>{1, 20, 3, 4} );
     
-    CHECK(cache.find("test") == 11);
-    CHECK(cache.find("test2") == 30);
-    CHECK(cache.find("test3") == 13);
-    CHECK(cache.find("test4") == 14);
+    CHECK(cache.find("test") == 1);
+    CHECK(cache.find("test2") == 20);
+    CHECK(cache.find("test3") == 3);
+    CHECK(cache.find("test4") == 4);
 
     const auto& const_cache = cache;
     std::vector<std::string> c_keys;
     std::vector<int> c_values;
-    for (auto j = const_cache.begin(); j != const_cache.end(); j++) {
+    for (auto j = const_cache.begin(); j != const_cache.end(); ++j ) {
         c_keys.push_back(j->first);
         c_values.push_back(j->second);
     }
 
     CHECK( c_keys == std::vector<std::string>{"test", "test2", "test3", "test4"} );
-    CHECK( c_values == std::vector<int>{11, 30, 13, 14} );
+    CHECK( c_values == std::vector<int>{1, 20, 3, 4} );
 
     std::vector<std::string> iter_keys;
     std::transform(cache.begin(), cache.end(), std::back_inserter(iter_keys),
