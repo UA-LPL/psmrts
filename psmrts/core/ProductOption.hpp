@@ -8,7 +8,7 @@
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsJson.hpp>
-#include <psmrts/algorithms/conversions/AllConversionVistors.hpp>
+#include <psmrts/algorithms/conversions/AllConversionsVisitors.hpp>
 
 namespace psmrts {
 
@@ -227,7 +227,7 @@ namespace psmrts {
       
       /** Compare with another product using strings conversions */
       inline bool operator==( const ProductOption &other ) const {
-        // Iffy, but ensurse failure unless those strings exist in string types...
+        // Iffy, but ensures failure unless those strings exist in string types...
         return ( StringsComparator( *this, "++" ).compare( other, "--" ) );
       }
 

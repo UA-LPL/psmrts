@@ -80,8 +80,10 @@ TEST_CASE ( "ProductOption Parameter Tests", "[parameter][json]") {
 
   //CHECK( v_radii.to_string( ) == v_parm.to_string() );
   CHECK( OptionDoubles::compare( v_radii, v_parm) == true );
-  CHECK( OptionDoubles::compare( v_radii, v_parm) == true );
+  CHECK( OptionStrings::compare( v_parm, v_radii ) == true );
   CHECK( v_radii == v_radii );
+  CHECK( v_radii == v_parm );
+  CHECK( v_parm ==  v_radii );
   // CHECK( v_radii.to_json( )   == v_parm.to_json() );
 
   psmrts::ProductOption iv("integer", 2);

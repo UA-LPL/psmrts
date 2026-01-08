@@ -2,11 +2,16 @@
 target_sources( psmrts PUBLIC
                          FILE_SET psmrts_headers
                            TYPE HEADERS 
-                           FILES ConversionTraits.hpp
+                           FILES AllConversionsVisitors.hpp
+                                 Comparator.hpp
+                                 ConversionTraits.hpp
+                                 DoublesVisitor.hpp
+                                 Extractor.hpp                           
                                  OptionBools.hpp
                                  OptionStrings.hpp
                                  OptionDoubles.hpp
                                  OptionInts.hpp
+                                 StringsVisitor.hpp                                 
               )
 
 # Only add if requested
