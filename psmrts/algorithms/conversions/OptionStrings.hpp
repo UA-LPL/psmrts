@@ -72,8 +72,7 @@ namespace psmrts::algorithms::conversions {
       }
 
       inline const std::vector<std::string> &get_all( std::vector<std::string> &s ) const {
-        ConversionParameters p = ConversionParameters::get_all_values( m_traits );
-        p.count_t = m_option.size();
+        ConversionParameters p = ConversionParameters( 0, this->size(), m_traits );
 
         OptionVisitor visitor(  s, p );
         m_option.visit( visitor );
@@ -93,11 +92,11 @@ namespace psmrts::algorithms::conversions {
        */
       static inline bool compare( const ProductOption &option1, 
                                   const ProductOption &option2,
-                                  const ConversionParameters &parms = ConversionParameters::get_all_values( ),
+                                  const ConversionTraits &t = ConversionTraits(),
                                   const std::string default_v = OptionStringsDefault )  {
 
-        OptionStrings option1_s( option1, parms.traits(), default_v );
-        OptionStrings option2_s( option2, parms.traits(), default_v );
+        OptionStrings option1_s( option1, t, default_v );
+        OptionStrings option2_s( option2, t, default_v );
         std::vector<std::string> opt1_v, opt2_v;
         
         opt1_v.reserve( option1_s.size() );
@@ -266,18 +265,13 @@ namespace psmrts::algorithms::conversions {
             return  ( m_parameters );
           }
         
-          inline bool add_it(const size_t index, const size_t max_size ) const {
-            if ( parameters().all() && 
-               ( index >= parameters().index() ) &&
-               ( index < max_size )  ) {
-              return ( true );
-            }
-            else if ( ( index == parameters().index() ) &&
-                     ( index < max_size ) ) {
-              return ( true );
-            }
-            return ( false );
+        /** Determine if the index is valid given traits and array size */
+        inline bool add_it(const size_t index, const size_t max_valid_size ) const {
+          if ( ( index >= parameters().index() ) && ( index < max_valid_size ) ) {
+            return ( true );
           }
+          return ( false );
+        }
       };
 
 

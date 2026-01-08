@@ -1,0 +1,208 @@
+#pragma once
+
+#include <iostream>
+#include <cstdlib>
+#include <stdexcept>
+
+#include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/algorithms/conversions/ConversionTraits.hpp>
+
+namespace psmrts::algorithms::conversions {
+
+
+/**
+   * @brief Extract double values from ProductOption like containers
+   * 
+   * This functor object will extract, converting if necessary, any of the
+   * stored intrinsic types. This must be maintained alongside any changes
+   * made to the ProductOption types and constraints that are added/removed.
+   * 
+   * Note that it is entirely possible to create a default value filled data
+   * return where no extract of data occurs but it fills the entire array with
+   * default values. See fill().
+   * 
+   * @author 2026-01-08 Kris J Becker
+   */
+  template <typename Container, typename Visitor>
+    class Extractor {
+      public:
+        using Type        =  typename Visitor::Type;
+        using TypeVector  =  typename Visitor::TypeVector;
+
+        Extractor() : m_option(), 
+                      m_traits( ConversionTraits() ), 
+                      m_default( Visitor::TypeDefault ) { }
+        Extractor( const Container &option ) {
+          m_option  = option;
+          m_traits  = ConversionTraits();
+          m_default = Visitor::TypeDefault;
+        }      
+        Extractor( const Container &option,
+                   const ConversionTraits &traits,
+                   const Type default_v = Visitor::TypeDefault ) {
+          m_option  = option;
+          m_traits  = traits;
+          m_default = default_v;
+        }
+        Extractor( const Container &option,
+                   const Type default_v,
+                   const ConversionTraits &traits = ConversionTraits() ) {
+          m_option  = option;
+          m_traits  = traits;
+          m_default = default_v;
+        }        
+        virtual ~Extractor() = default;
+
+
+        /** Name of the option dataset */
+        inline std::string name() const {
+          return ( m_option.name() );
+        }
+
+        /** Return the size of the options data set */
+        inline size_t size() const {
+          return ( m_option.size() );
+        }
+              
+        /** Return the enum data type */
+        // inline typename Container::DataEnums type() const {
+        //   return ( m_option.type() );
+        // }
+
+                /** Return the data default */
+        static inline const Type &visitor_default( ) {
+          return ( Visitor::TypeDefault );
+        }
+
+        /** Return the data default */
+        inline const Type &default_value( ) const {
+          return ( m_default );
+        }
+
+        /** Get values by index  */
+        inline Type get( const size_t index = 0 ) const {
+          ConversionParameters p( compute_range( index, 1, this->size() ) );
+          TypeVector one;
+          
+          one.reserve( 1 );
+          Visitor visitor( one, p );
+          m_option.visit( visitor );
+
+          return ( one.front() );
+        }
+
+        /**
+         * @brief Get range of data from an array of option values
+         * 
+         * This method can be used to extract a range of data from an option.
+         * 
+         * @param d      Vector<Type> to place the values in. It will be resized
+         *                 to the expected number of values to be returned by
+         *                 this call.
+         * @param index  Starting index of the data array to return.
+         * @param nvals  Number of values to return. The computed range will
+         *                 result in a max count of values, which is used to
+         *                 resize the d vector for efficiency.
+         * @return const std::vector<Type>& Reference to the returned data vector
+         */
+        inline const TypeVector &get_all( TypeVector &d, 
+                                          const size_t index,
+                                          const size_t nvals = 0 ) const {
+          ConversionParameters p = compute_range( index, nvals, this->size() );
+          
+          d.reserve( p.count() );
+          Visitor visitor(  d, p );
+          m_option.visit( visitor );
+
+          return ( d );
+        }
+
+        /**
+         * @brief Get range of data from an array of option values
+         * 
+         * This method can be used to extract a range of data from an option.
+         * 
+         * @param d      Vector<Type> to place the values in. It will be resized
+         *                 to the expected number of values to be returned by
+         *                 this call.
+         * @param index  Starting index of the data array to return.
+         * @param nvals  Number of values to return. The computed range will
+         *                 result in a max count of values, which is used to
+         *                 resize the d vector for efficiency.
+         * @return const std::vector<Type>& Reference to the returned data vector
+         */
+        static inline Visitor create_visitor( TypeVector &d, const Container &c,
+                                              const ConversionTraits &t = ConversionTraits(),
+                                              const Type &default_v = Visitor::TypeDefault ) {
+
+          Extractor e( c, t, default_v );
+          ConversionParameters p  = e.compute_range( 0, c.size(), c.size() );
+          return ( Visitor ( d, p ) );
+        }
+
+        /**
+         * @brief Get the all data values and return in a vector values
+         * 
+         * This method extracts value from a option potenitally converting the
+         * the type based upon the Visitor type. Some conversions may fail and
+         * return a default value as specifed in constructors (a resonable
+         * default is provided by the Visitor).
+         * 
+         * @param d  Vector<Type> is returned containing all the
+         *             converted/extracted data with potentai default/invalid
+         *             elements.
+         * @return const std::vector<Type>& Returns a reference to the return
+         *             data vector
+         */
+        inline TypeVector &get_all( TypeVector&d ) const {
+          ConversionParameters p = compute_range( 0, this->size(), this->size() );
+
+          d.reserve( p.count() );
+          Visitor visitor(  d, p );
+          m_option.visit( visitor );
+
+          return ( d);
+        }
+
+
+        /**
+         * @brief Compute a data extraction range parameter configuration
+         * 
+         * This method will compute a valid ConversionParameters struct that
+         * contains a valid range for the given starting index, nvals and
+         * max_size of the data vector extents. This parameter will be a valid
+         * extractor for a given option with max_size.
+         * 
+         * @param index    Starting 0-based data vector index
+         * @param nvals    Number of values to extract
+         * @param max_size Intended to be the actual size of the data vector in
+         *                   the dataset
+         * @return ConversionParameters 
+         */
+        inline ConversionParameters compute_range( const size_t index, 
+                                                   const size_t nvals,
+                                                   const size_t max_size )
+                                                   const {
+          
+          // Careful of cases where computations are negative!
+          size_t n = nvals;
+          if ( nvals == 0 ) {
+            if ( index < max_size ) {
+              n = max_size - index;
+            }
+          }
+          return ( ConversionParameters ( index, n, traits() ) );
+        }
+
+        /** Return the conversion/extractio traits */
+        inline const ConversionTraits &traits() const {
+          return ( m_traits );
+        }
+
+      private:
+        Container        m_option;
+        ConversionTraits m_traits;
+        Type             m_default;
+  };  
+
+}    // namespace psmrts::algoriths::conversions

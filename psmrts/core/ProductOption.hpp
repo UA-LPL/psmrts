@@ -8,6 +8,7 @@
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsJson.hpp>
+#include <psmrts/algorithms/conversions/AllConversionVistors.hpp>
 
 namespace psmrts {
 
@@ -27,10 +28,23 @@ namespace psmrts {
    */
   class ProductOption {
     public:
-      /*** Default is micrometer precision */
-      inline static const size_t DigitsPrecision = 9;
-      inline static const double DoubleTolerance = 1.0e-9;
+      using DoublesVisitor = psmrts::algorithms::conversions::DoublesVisitor;
+      using StringsVisitor = psmrts::algorithms::conversions::StringsVisitor;
+      // using SizetsVisitor = psmrts::algorithms::conversions::SizetsVisitor;
+      // using BoolsVisitor = psmrts::algorithms::conversions::BoolsVisitor;
+      // using IntsVisitor = psmrts::algorithms::conversions::IntsVisitor;
+      // using JsonVisitor = psmrts::algorithms::conversions::JsonVisitor;
+      
+      using DoublesExtractor = psmrts::algorithms::conversions::Extractor<ProductOption, DoublesVisitor>;
+      using StringsExtractor = psmrts::algorithms::conversions::Extractor<ProductOption, StringsVisitor>;
+      // using SizetsExtractor  = psmrts::algorithms::conversions::Extractor<ProductOption, SizetsVisitor>;
+      // using IntsExtractor    = psmrts::algorithms::conversions::Extractor<ProductOption, IntsVisitor>;
+      // using BoolsExtractor   = psmrts::algorithms::conversions::Extractor<ProductOption, BoolsVisitor>;
+      // using JsonExtractor    =  psmrts::algorithms::conversions::Extractor<ProductOption, JsonVisitor>;
+      
+      using StringsComparator = psmrts::algorithms::conversions::Comparator<ProductOption, StringsVisitor>;
 
+      
       using DataTypes = std::variant< bool,
                                       int, 
                                       size_t, 
@@ -192,50 +206,6 @@ namespace psmrts {
           std::visit( visitor, m_data );
         }
 
-      /** Convert the value to a string using JSON rules */
-
-      /**
-       * @brief Returns the string representation of the content of the product.
-       * 
-       * Each variably type may have particulare specifics involve in performing a string
-       * conversion. This overload{} construct ovecomes any particlars using specialization
-       * of ach type.
-       * 
-       * @return std::string 
-       */
-      inline std::string to_string() const {
-
-        // This overload structure handles conversions of each variant
-        // type by calling the appropriate lambda method and converting
-        // the stored variant variable type to a string, executed by the
-        // std::visit() below.
-        const auto visitor = overload {
-#if defined(WIN32) || defined(_MSC_VER) || defined(__CYGWIN__)
-#pragma warning ( push )
-#pragma warning ( disable : 4573 )
-#endif
-                  // Handle intrisics
-                  [](const bool &b) { return ( std::string( ( b ? "true" : "false" ) ) ); },            
-                  [](const int &i ) { return ( std::to_string( i ) ); },            
-                  [](const size_t &t ) { return ( std::to_string( t ) ); },            
-                  [](const double &d ) { return ( ProductOption::to_string( d ) ); },                  
-                  [](const std::string &s) { return ( s ); },   
-
-                  // Vector types should look similar to JSON here.
-                  [](const std::vector<int> &i_array) { return ( to_string( i_array ) ); },
-                  [](const std::vector<size_t> &i_t_array) { return ( to_string( i_t_array ) ); },
-                  [](const std::vector<double> &d_array) { return (  to_string( d_array ) ); },
-                  [](const std::vector<std::string> &s_array) { return ( to_string( s_array ) ); },
-
-                  [](const ordered_json &j) { return ( j.dump() );  }
-#if defined(WIN32) || defined(_MSC_VER) || defined(__CYGWIN__)
-#pragma warning ( pop )
-#endif                  
-              };
-         
-         return ( std::visit(visitor, m_data ) );
-      }
-
       /* Convert the keyword and value to a JSON object */
       inline ordered_json to_json() const {
         return ( std::visit( [&] ( auto &&datum ) -> ordered_json {
@@ -245,107 +215,20 @@ namespace psmrts {
         }, m_data ) );
       }
 
-
-      // Static API to use for consistent covnversions. See visitor
-      // functors below.
-
-      /** Convert a boolean data type to a "true" or "false" string */
-      inline static std::string to_string( const bool b_data ) {
-         return( ( b_data ? "true" : "false" ) );
+      /** Return each value as a string */
+      inline std::string to_string( const size_t index = 0 ) {
+        return ( StringsExtractor( *this ).get(index) );
       }
 
-      /** Convert integer data to a string using std::to_string() */
-      inline static std::string to_string( const int i_data ) {
-        return ( std::to_string( i_data ) );
-      }
-
-      /** Convert size_t data to a string using std::to_string() */
-      inline static std::string to_string( const size_t i_data ) {
-        return ( std::to_string( i_data ) );
-      } 
-           
-      /** Convert double data to a string with fixed digit representation */
-      inline static std::string to_string( const double d_data, 
-                                           const size_t ndigits = ProductOption::DigitsPrecision )  {
-
-        if ( isnull( d_data ) ) return ( "null" );
-
-        // For all other cases
-        std::ostringstream out;
-        out << std::fixed << std::setprecision(ndigits) << d_data;
-        return ( out.str() );        
+      /** Return each value as a double */
+      inline double to_double( const size_t index = 0 ) {
+        return ( DoublesExtractor( *this ).get(index) );
       }
       
-      /** Convert a integer vector to string */
-      inline static std::string to_string( const std::vector<int> i_array,
-                                           const std::tuple<std::string,std::string> &enclosures= { "[", "]" } ) {
-
-        std::string s_array = std::get<0>( enclosures );
-
-        std::string comma = "";
-        for ( const auto i : i_array ) {
-          s_array += ( psmrts_concate( comma, ProductOption::to_string( i ) ) );
-          comma = ",";
-        }
-        return ( psmrts_concate( s_array, std::get<1>( enclosures ) ) );        
-      } 
-
-      /** Convert a integer vector to string */
-      inline static std::string to_string( const std::vector<size_t> i_array,
-                                           const std::tuple<std::string,std::string> &enclosures= { "[", "]" } ) {
-
-        std::string s_array = std::get<0>( enclosures );
-
-        std::string comma = "";
-        for ( const auto i : i_array ) {
-          s_array += ( psmrts_concate( comma, ProductOption::to_string( i ) ) );
-          comma = ",";
-        }
-        return ( psmrts_concate( s_array, std::get<1>( enclosures ) ) );        
-      }      
-      
-      /** Convert double array to string array with optional array enclousures and precision */
-      inline static std::string to_string( const std::vector<double> d_array,
-                                           const std::tuple<std::string,std::string> &enclosures= { "[", "]" }, 
-                                           const size_t ndigits = DigitsPrecision ) {
-
-        std::string s_array =  std::get<0>( enclosures );
-
-        std::string comma = "";
-        for ( const auto d : d_array ) {
-          s_array += ( psmrts_concate( comma, ProductOption::to_string( d, ndigits ) ) );
-          comma = ",";
-        }
-        return ( psmrts_concate( s_array,  std::get<1>( enclosures ) ) );        
-      } 
-
-      /** Convert string array to string form with optional array enclosures */
-      inline static std::string to_string( const std::vector<std::string> s_array,
-                                           const std::tuple<std::string,std::string> &enclosures= { "[", "]" } ) {
-
-        std::string s_out = std::get<0>( enclosures );
-
-        std::string comma = "";
-        for ( const auto s : s_array ) {
-          s_out += ( psmrts_concate( comma, "\"" + s + "\"") );
-          comma = ",";
-        }
-        return ( psmrts_concate( s_out, std::get<1>( enclosures ) ) );        
-      } 
-
-      /** Return a JSON object formatted using JSON dump() */
-      inline static std::string to_string( const ordered_json &j_data ) {
-        return ( j_data.dump() );        
-      } 
-
-      /** Determine if two products contain the same data */
-      inline bool equals( const ProductOption &opt ) const {
-        if ( this->name() != opt.name() ) return ( false );
-        if ( this->type() != opt.type() ) return ( false );
-        if ( this->to_string() != opt.to_string() ) return ( false );
-        
-        // All good.
-        return ( true );
+      /** Compare with another product using strings conversions */
+      inline bool operator==( const ProductOption &other ) const {
+        // Iffy, but ensurse failure unless those strings exist in string types...
+        return ( StringsComparator( *this, "++" ).compare( other, "--" ) );
       }
 
     private:

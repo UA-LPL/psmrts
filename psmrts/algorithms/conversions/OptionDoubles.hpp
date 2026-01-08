@@ -118,11 +118,11 @@ namespace psmrts::algorithms::conversions {
                                   const ProductOption &option2,
                                   const double default1,
                                   const double default2,
-                                  const ConversionParameters &parms = ConversionParameters::get_all_values( )
+                                   const ConversionTraits &t = ConversionTraits()
                                 )  {                                    
 
-        OptionDoubles option1_s( option1, parms.traits(), default1 );
-        OptionDoubles option2_s( option2, parms.traits(), default2 );
+        OptionDoubles option1_s( option1, t, default1 );
+        OptionDoubles option2_s( option2, t, default2 );
         std::vector<double> opt1_v, opt2_v;
         
         opt1_v.reserve( option1_s.size() );
@@ -137,7 +137,7 @@ namespace psmrts::algorithms::conversions {
 
         size_t n = std::min( opt1_v.size(), opt2_v.size() );
         for ( size_t i = 0  ; i < n ; i++ ) {
-          if ( !psmrts::isApprox( opt1_v[i], opt2_v[i], parms.traits().tolerance() ) ) {
+          if ( !psmrts::isApprox( opt1_v[i], opt2_v[i], t.tolerance() ) ) {
             return ( false );
           }
         }
@@ -160,9 +160,9 @@ namespace psmrts::algorithms::conversions {
       static inline bool compare( const ProductOption &option1, 
                                   const ProductOption &option2,
                                   const double default_v = OptionDoublesDefault,
-                                  const ConversionParameters &parms = ConversionParameters::get_all_values( )
-                                  )  {
-        return ( OptionDoubles::compare( option1, option2, default_v, default_v, parms ) );                                    
+                                  const ConversionTraits &t = ConversionTraits()
+                                )  {
+        return ( OptionDoubles::compare( option1, option2, default_v, default_v, t ) );                                    
       }
 
     protected:
@@ -377,19 +377,13 @@ namespace psmrts::algorithms::conversions {
             return  ( m_parameters );
           }
         
-          /** Determine if the index is valid given traits and array size */
-          inline bool add_it(const size_t index, const size_t max_size ) const {
-            if ( parameters().all() && 
-               ( index >= parameters().index() ) &&
-               ( index < max_size )  ) {
-              return ( true );
-            }
-            else if ( ( index == parameters().index() ) &&
-                     ( index < max_size ) ) {
-              return ( true );
-            }
-            return ( false );
+        /** Determine if the index is valid given traits and array size */
+        inline bool add_it(const size_t index, const size_t max_valid_size ) const {
+          if ( ( index >= parameters().index() ) && ( index < max_valid_size ) ) {
+            return ( true );
           }
+          return ( false );
+        }
       };
 
 

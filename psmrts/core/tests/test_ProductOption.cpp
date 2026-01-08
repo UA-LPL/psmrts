@@ -76,9 +76,12 @@ TEST_CASE ( "ProductOption Parameter Tests", "[parameter][json]") {
   CHECK( double_c.get(0) == "1.000000000" );
   CHECK( double_c.get(1) == "2.000000000" );
   CHECK( double_c.get(2) == "3.000000000" );
+  CHECK( v_radii.to_string(2) == "3.000000000" );
 
   //CHECK( v_radii.to_string( ) == v_parm.to_string() );
   CHECK( OptionDoubles::compare( v_radii, v_parm) == true );
+  CHECK( OptionDoubles::compare( v_radii, v_parm) == true );
+  CHECK( v_radii == v_radii );
   // CHECK( v_radii.to_json( )   == v_parm.to_json() );
 
   psmrts::ProductOption iv("integer", 2);
@@ -117,12 +120,12 @@ TEST_CASE( "ProductOption Parameter Constructor and Default Tests", "[parameter]
 
   psmrts::ProductOption p;
   CHECK(p.name() == "false");
-  CHECK(p.to_string() == "false");
+  CHECK( OptionStrings(p).get() == "false");
   CHECK(p.size() == 1);
 
   psmrts::ProductOption empty_array("empty", std::vector<int>{});
   CHECK( empty_array.name() == "empty" );
-  CHECK(empty_array.to_string() == "[]");
+  CHECK( OptionStrings(empty_array).get() == "");
   CHECK(empty_array.size() == 0);
 }
 
@@ -148,7 +151,7 @@ TEST_CASE( "ProductOption Parameter Values Tests", "[parameter][values]") {
   psmrts::ProductOption c("Integer", 42);
   psmrts::ProductOption d("integer", 42);
   CHECK(c.name()       == d.name());
-  CHECK(c.to_string()  == d.to_string());
+  CHECK(OptionStrings(c).get()  == OptionStrings(d).get() );
   CHECK(c.to_json()    == d.to_json());
   CHECK(c.size()       == d.size());
   OptionStrings intval(c);
@@ -175,7 +178,7 @@ TEST_CASE( "ProductOption Parameter Values Tests", "[parameter][values]") {
   psmrts::ProductOption g("Hello", "world");
   psmrts::ProductOption h("heLlO", std::string("world"));
   CHECK(g.name()       == h.name());
-  CHECK(g.to_string()  == h.to_string());
+  CHECK(OptionStrings(g).get()  == OptionStrings(h).get() );
   CHECK(g.to_json()    == h.to_json());
   CHECK(g.size()       == h.size());
 
@@ -244,7 +247,7 @@ TEST_CASE( "ProductOption Parameter Values Tests", "[parameter][values]") {
   psmrts::ProductOption o("JsonTest", jvals);
   psmrts::ProductOption p("jsontest", jvals);
   CHECK(o.name() == p.name());
-  CHECK(o.to_string() == p.to_string());
+  CHECK(OptionStrings(o).get() == OptionStrings(p).get() );
   CHECK(o.to_json() == p.to_json());
   CHECK(o.size() == p.size());
 

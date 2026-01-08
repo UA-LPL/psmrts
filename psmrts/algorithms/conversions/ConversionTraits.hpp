@@ -78,10 +78,10 @@ namespace psmrts::algorithms::conversions {
    * 
    */
   struct conversion_parameters {
-    /** Default constructor for a single value, default traits */
+    /** Default constructor for a no values */
     conversion_parameters() { 
       index_t        = 0;
-      count_t        = 1;
+      count_t        = 0;
       traits_t = ConversionTraits( );
     }
     /** Get a single value from an array */
@@ -91,23 +91,15 @@ namespace psmrts::algorithms::conversions {
       count_t        = 1;
       traits_t       = t;
     }    
-    /** Get a single value from an array */
+    /** Get a range of values from an array */
     conversion_parameters(const size_t ith, const size_t n,
                           const ConversionTraits &t = ConversionTraits() ) {
       index_t        = ith;
-      count_t        = 1;
+      count_t        = n;
       traits_t       = t;
     }
- 
     ~conversion_parameters() = default;
 
-    /** Method constructor for getting all existing values with optional traits */
-    static inline conversion_parameters get_all_values( const ConversionTraits &t = ConversionTraits()) {
-      conversion_parameters parms( 0, 1);
-      parms.get_all_t = true;
-      parms.traits_t = t;
-      return ( parms );
-    }
 
     /** Returns 0-based index into array - 0 for scalar */
     inline size_t index() const {
@@ -119,11 +111,6 @@ namespace psmrts::algorithms::conversions {
       return ( count_t );
     }
     
-    /** Returns status of full extraction flag - count ignored */
-    inline bool all() const {
-      return ( get_all_t );
-    }
-
     /** Returns extractiom traits */
     inline const ConversionTraits &traits() const {
       return ( traits_t  );
@@ -132,7 +119,6 @@ namespace psmrts::algorithms::conversions {
     public:
       size_t index_t;
       size_t count_t;
-      bool get_all_t;
       ConversionTraits traits_t;
   };
 
