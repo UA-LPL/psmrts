@@ -27,7 +27,7 @@ namespace psmrts::algorithms::conversions {
       static inline const Type TypeDefault = psmrts::null();
 
       DoublesVisitor( TypeVector &data,
-                      const double &default_v,
+                      const Type &default_v,
                       const ConversionParameters &parms = ConversionParameters() ) : 
                       m_datum( data ),m_default( default_v ),
                       m_parameters( parms ) { }
@@ -61,7 +61,7 @@ namespace psmrts::algorithms::conversions {
 
       inline void operator()( const int i )  {
         if ( add_it( 0, 1 ) ) {
-          m_datum.push_back( static_cast<double>( i ) );
+          m_datum.push_back( static_cast<Type>( i ) );
         }
         else {
           m_datum.push_back ( default_value() );
@@ -70,7 +70,7 @@ namespace psmrts::algorithms::conversions {
 
       inline void operator()( const size_t i )  {
         if ( add_it( 0, 1 ) ) {
-          m_datum.push_back( static_cast<double>( i ) );
+          m_datum.push_back( static_cast<Type>( i ) );
         }
         else {
           m_datum.push_back ( default_value() );
@@ -101,7 +101,7 @@ namespace psmrts::algorithms::conversions {
 
         for ( size_t i = ith ; i < nth ; i++ ) {
           if ( add_it( i, i_array.size() ) ) {
-            m_datum.push_back( static_cast<double>( i_array[i] ) ); 
+            m_datum.push_back( static_cast<Type>( i_array[i] ) ); 
           }
           else {
             m_datum.push_back ( default_value() );
@@ -115,7 +115,7 @@ namespace psmrts::algorithms::conversions {
 
         for ( size_t i = ith ; i < nth  ; i++ ) {
           if ( add_it( i, i_array.size() ) ) {
-            m_datum.push_back( static_cast<double>( i_array[i] ) ); 
+            m_datum.push_back( static_cast<Type>( i_array[i] ) ); 
           }
           else {
             m_datum.push_back ( default_value());
@@ -123,7 +123,7 @@ namespace psmrts::algorithms::conversions {
         }            
       }
 
-      inline void operator()( const TypeVector &d_array ) {
+      inline void operator()( const std::vector<double> &d_array ) {
         size_t ith = parameters().index();
         size_t nth = parameters().count() + ith;
 
@@ -155,7 +155,7 @@ namespace psmrts::algorithms::conversions {
         // Not simple but look for the easiest way to process this
         auto it_j = j_data.begin();
 
-        double value = default_value();  // Set default return condition
+        Type value = default_value();  // Set default return condition
         size_t level = 0;
         try { 
 
@@ -220,7 +220,7 @@ namespace psmrts::algorithms::conversions {
         return;
       }
 
-      inline const double &default_value() const {
+      inline const Type &default_value() const {
         return ( m_default );
       }
 
@@ -246,7 +246,7 @@ namespace psmrts::algorithms::conversions {
       Type                 m_default; 
     
       /** Convert strings to double precision with error checking */
-      inline double string_to_double( const std::string &s) const {
+      inline Type string_to_double( const std::string &s) const {
         size_t bad_char_index;
         try {
           double d = std::stod( s, &bad_char_index );

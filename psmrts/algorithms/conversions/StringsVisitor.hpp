@@ -22,7 +22,7 @@ namespace psmrts::algorithms::conversions {
       static inline const Type TypeDefault = "";  
        
       StringsVisitor( TypeVector &data,
-                      const std::string &default_v,
+                      const Type &default_v,
                       const ConversionParameters parms = ConversionParameters() ) : 
                       m_datum( data ),m_default( default_v),
                       m_parameters( parms ) { }
@@ -79,7 +79,7 @@ namespace psmrts::algorithms::conversions {
           m_datum.push_back( out.str() );
         }
         else {
-          m_datum.push_back ( default_value());
+          m_datum.push_back ( default_value() );
         }                
       }
 
@@ -153,7 +153,7 @@ namespace psmrts::algorithms::conversions {
       inline void operator()( const ordered_json &j_data ) {
         if ( add_it( 0, 1 ) ) {
           if ( j_data.is_primitive() ) {
-            std::string str_t = j_data;
+            Type str_t = j_data;
             m_datum.push_back( str_t );
           }
           else {        
@@ -165,7 +165,7 @@ namespace psmrts::algorithms::conversions {
         }
       }
 
-      inline const std::string &default_value() const {
+      inline const Type &default_value() const {
         return ( m_default );
       }
 
@@ -182,12 +182,12 @@ namespace psmrts::algorithms::conversions {
       inline TypeVector &data() const {
         return ( m_datum );
       }    
-      
+
     private:
       /** Reference to vector that collects strings */
-      std::vector<std::string> &m_datum;
-      ConversionParameters     m_parameters;
-      std::string              m_default; 
+      TypeVector           &m_datum;
+      ConversionParameters  m_parameters;
+      Type                  m_default; 
       
       /** Determine if the index is valid given traits and array size */
       inline bool add_it(const size_t index, const size_t max_valid_size ) const {

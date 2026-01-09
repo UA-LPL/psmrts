@@ -203,7 +203,7 @@ namespace psmrts {
        * 
        * @tparam T       A visitor functor or overload lambda function set 
        *                   to PsmrtsParameter
-       * @param visitor One of OptionStrings, OptionDoubles, etc...,
+       * @param visitor One of StringsVisitor, DoublesVisitor, etc...,
        *                  or a compatible functor object/overload lambdas
        */
       template <typename T>
