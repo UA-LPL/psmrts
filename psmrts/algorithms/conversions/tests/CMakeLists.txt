@@ -5,8 +5,8 @@ find_package( Catch2 CONFIG REQUIRED )
 
 # Build all-in-one renderer test application
 add_executable( conversions_test_suite  conversions_catch2_main.cpp
-                                        test_OptionStrings.cpp
-                                        test_OptionDoubles.cpp )
+                                        test_DoublesVisitor.cpp
+                                        test_StringsVisitor.cpp)
 
 # Add required libraries as needed for conversions_test_suite
 target_link_libraries( conversions_test_suite PRIVATE psmrts::psmrts )

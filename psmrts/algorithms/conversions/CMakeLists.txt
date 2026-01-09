@@ -8,8 +8,6 @@ target_sources( psmrts PUBLIC
                                  DoublesVisitor.hpp
                                  Extractor.hpp                           
                                  OptionBools.hpp
-                                 OptionStrings.hpp
-                                 OptionDoubles.hpp
                                  OptionInts.hpp
                                  StringsVisitor.hpp                                 
               )
