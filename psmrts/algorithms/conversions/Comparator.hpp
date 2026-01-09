@@ -12,13 +12,27 @@ namespace psmrts::algorithms::conversions {
 
 
 /**
-   * @brief Option conversion extracts double values from ProductOptions
+   * @brief Extract data from option-like data containers
    * 
-   * This functor object will extract, converting if necessary, any of the
-   * stored intrinsic types. This must be maintained alongside any changes
-   * made to ProductOption, paticular any new types added or removed.
+   * This class utilizes variant visitor structures to extract data from PSMRTS
+   * option data containers. These data containers maintain information
+   * regarding PSRMTS products such as shapes and tracers. Product
+   * configurations are maintained for each product. Users provide product
+   * options that are used to compare with existing instances that have
+   * particular paramerizations. The instance parameterizations are compared
+   * with product configurations for reuse purposes to minimize data
+   * requirements.
    * 
-   * @author 2026-01-06 Kris J Becker
+   * This class supports comparisons of any of the supported types in
+   * ProductOptions. String types are perhaps the best general comparisons as
+   * ConversionsTraits structs allows users to customize output data conversion
+   * of strings from particularly double precision data. This can be used to
+   * compare instances of ProductOptions that can differ at micrometer scales
+   * (see ConversionTraits). However, the same comparison can be made with
+   * direct double precision vistors and comparator combinatons, e.g.,
+   * Comparator<ProductOption,DoublesVisitor>. 
+   * 
+   * @author 2026-01-08 Kris J Becker
    */
   template <typename Container, typename Visitor>
     class Comparator {
@@ -124,12 +138,13 @@ namespace psmrts::algorithms::conversions {
          * This comparison is convenient for options that contain the same number
          * of values, since the same default is used. 
          * 
-         * @param option1 
-         * @param option2 
-         * @param default_v 
-         * @param traits 
-         * @return true 
-         * @return false 
+         * @param option1   First data container to compare
+         * @param option2   Second data container to compare with option1
+         * @param default1  Provide default for option1
+         * @param default2  Provide default for option1
+         * @param traits    Set of conversion traits for both extraction processing 
+         * @return true     If both options data compare precisely
+         * @return false    If the options do not compare
          */
         static inline bool compare( const Container &option1, 
                                     const Container &option2,
@@ -195,9 +210,6 @@ namespace psmrts::algorithms::conversions {
 
           return ( all_good  );
        }
-
-
-
 
       private:
         Container        m_option;

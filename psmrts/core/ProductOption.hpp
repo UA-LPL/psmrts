@@ -18,11 +18,16 @@ namespace psmrts {
   template<typename...Func> overload(Func...) -> overload<Func...>;
 
   /**
-   * @brief Manage configuration keywords with limited data type support
+   * @brief Data container for PSMRTS product options and features
    * 
-   * The keys are required to be lower case. This is enforced in the
-   * get/add methods. A series of configuration methods are provided
-   * as static methods to be used for formatting needs PSMRTS-wide.
+   * This data container is used to represent data in PSMRTS products that
+   * is used to describe products. Product configurations and feature
+   * specifications can be compared for reuse purposes. The product names are 
+   * required to be lower case. This is enforced in the get/add methods.
+   * 
+   * This class is implemented as a std::variant container so mainipulations use
+   * visit/visitor strategies implemented in the conversion algorithms. See the
+   * classes in the pmsrts/algiorithms/conversions for details.
    *
    * @author 2025-07-04 Kris J. Becker, UA Original Version
    */
@@ -157,7 +162,7 @@ namespace psmrts {
       }
 
       /** 
-       * @brief veturns size of the data -  1 for scalars, DataTypes::size() otherwise
+       * @brief Returns size of the data -  1 for scalars, DataTypes::size() otherwise
        * 
        * This method returns the sise of the data element contained within this instance
        * of the class. All interisic types report asize of 1, where as all other vectors
@@ -194,7 +199,7 @@ namespace psmrts {
        * the ProductOption::DataTypes variant. Unless you use the overload()
        * method as shown above.
        * 
-       * See classes in algorithms/conversions.
+       * See classes in psmrts/algorithms/conversions.
        * 
        * @tparam T       A visitor functor or overload lambda function set 
        *                   to PsmrtsParameter

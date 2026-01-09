@@ -11,15 +11,35 @@ namespace psmrts::algorithms::conversions {
 
 
 /**
-   * @brief Extract double values from ProductOption like containers
+   * @brief Extract template visitor for ProductOption like containers
    * 
    * This functor object will extract, converting if necessary, any of the
    * stored intrinsic types. This must be maintained alongside any changes
    * made to the ProductOption types and constraints that are added/removed.
    * 
-   * Note that it is entirely possible to create a default value filled data
-   * return where no extract of data occurs but it fills the entire array with
-   * default values. See fill().
+   * Note that it is entirely possible to create a default value filled with
+   * constant data where no extraction of data occurs but it fills the entire
+   * array with default values.
+   * 
+   * Most any datatype can be converted to strings and compared (see Comparator)
+   * to determine if a product configuration satisfies a product specifation for
+   * creation of data containers, such as PsmrtsShapes, and processes, such as
+   * PsmrtsTracers.
+   * 
+   * This extractor supports customization of dataset covnersions using the
+   * ConversionTraits structs that determine digits of output for double
+   * precision data to strings. It contains specifications of direct double
+   * precision comparisons and formatting of JSON string output.
+   * 
+   * This example will construct an ProductOption of strings and extracts them
+   * as integers.
+   * 
+   * @code {.C++}
+   *   ProductOption radii( "radii", { 1, 2, 3 } );
+   *   ProductOption::StringsVisitor(radii).get_all() == std::vector<std::string>({"1","2","3"}); 
+   * code
+   * @endcode
+   * 
    * 
    * @author 2026-01-08 Kris J Becker
    */
@@ -64,12 +84,7 @@ namespace psmrts::algorithms::conversions {
           return ( m_option.size() );
         }
               
-        /** Return the enum data type */
-        // inline typename Container::DataEnums type() const {
-        //   return ( m_option.type() );
-        // }
-
-                /** Return the data default */
+        /** Return the data default */
         static inline const Type &visitor_default( ) {
           return ( Visitor::TypeDefault );
         }
@@ -90,6 +105,64 @@ namespace psmrts::algorithms::conversions {
 
           return ( one.front() );
         }
+        
+        
+        /**
+         * @brief Get the all data values and return in a user provided vector values
+         * 
+         * This method extracts value from a option potenitally converting the
+         * the type based upon the Visitor type. Some conversions may fail and
+         * return a default value as specifed in constructors (a resonable
+         * default is provided by the Visitor).
+         * 
+         * @param d  Vector<Type> is returned containing all the
+         *             converted/extracted data with potentai default/invalid
+         *             elements.
+         * @return const std::vector<Type>& Returns a reference to the return
+         *             data vector
+         */
+        inline TypeVector &get_all( TypeVector&d ) const {
+          ConversionParameters p = compute_range( 0, this->size(), this->size() );
+
+          d.reserve( p.count() );
+          Visitor visitor(  d, p );
+          m_option.visit( visitor );
+
+          return ( d);
+        }
+
+        /** Extract data from container and return a vector of data
+         * 
+         * This method creates a local vector to data to extract the contents of
+         * the stored containter of the given visitor template type. Users can
+         * specify a sub section of the array to extract. No parameters will
+         * result in all values in the option to be converted, extracted and
+         * returned to the caller.
+         * 
+         * Here is an example demonstating how to fill a ProductOption (e) with
+         * 10 values of the constant 1.0 (d).
+         * 
+         * @code
+         *   auto d = ProductOption("d", 1.0);
+         *   auto e = ProductOption(Extractor(d,d.get(0)).get_all(1,10));
+         * @endcode
+         *
+         * @return TypeVector Vector of data extracted from option 
+         */
+        inline TypeVector get_all( const size_t index = 0,
+                                   const size_t nvals = 0 ) const {
+
+          size_t n = ( nvals == 0 ) ? this->size() : nvals;
+          ConversionParameters p = compute_range( index, nvals, this->size() );
+
+          TypeVector d;
+          d.reserve( p.count() );
+
+          Visitor visitor(  d, p );
+          m_option.visit( visitor );
+
+          return ( d);
+        }        
 
         /**
          * @brief Get range of data from an array of option values
@@ -117,6 +190,9 @@ namespace psmrts::algorithms::conversions {
           return ( d );
         }
 
+
+
+
         /**
          * @brief Get range of data from an array of option values
          * 
@@ -138,30 +214,6 @@ namespace psmrts::algorithms::conversions {
           Extractor e( c, t, default_v );
           ConversionParameters p  = e.compute_range( 0, c.size(), c.size() );
           return ( Visitor ( d, p ) );
-        }
-
-        /**
-         * @brief Get the all data values and return in a vector values
-         * 
-         * This method extracts value from a option potenitally converting the
-         * the type based upon the Visitor type. Some conversions may fail and
-         * return a default value as specifed in constructors (a resonable
-         * default is provided by the Visitor).
-         * 
-         * @param d  Vector<Type> is returned containing all the
-         *             converted/extracted data with potentai default/invalid
-         *             elements.
-         * @return const std::vector<Type>& Returns a reference to the return
-         *             data vector
-         */
-        inline TypeVector &get_all( TypeVector&d ) const {
-          ConversionParameters p = compute_range( 0, this->size(), this->size() );
-
-          d.reserve( p.count() );
-          Visitor visitor(  d, p );
-          m_option.visit( visitor );
-
-          return ( d);
         }
 
 
