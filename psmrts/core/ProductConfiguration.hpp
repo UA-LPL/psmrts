@@ -7,7 +7,6 @@
 #include <initializer_list>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
-#include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/ProductOption.hpp>
 
 namespace psmrts { 
@@ -48,6 +47,12 @@ namespace psmrts {
         return ( m_options.size() );
       }
 
+      /** Deemed invalid if there are no options in this configuration */
+      inline bool isValid() const {
+        return ( this->size() > 0 );
+      }
+
+      /** Check for an existing option */
       inline bool contains( const std::string &name ) const {
         std::string name_l = psmrts_tolower( name );
         for ( const auto &option : m_options ) {
@@ -142,23 +147,28 @@ namespace psmrts {
 
       inline bool compare( const ProductConfiguration &config,
                            const bool throw_errors = false ) const {
-        PsmrtsRequest errors_t;
+        std::string errors_t;
+        std::string newline("");
         for ( const auto &opt_t : this->options() ) {
           try {
-            if ( !opt_t.equals( config.find( opt_t.name() ) ) ) {
-              errors_t.add_error( std::runtime_error( "Option " + opt_t.name() + " does not match!") );
+            if ( !( opt_t == config.find( opt_t.name() ) ) ) {
+              std::string mess = newline + "Option " + opt_t.name() + " does not match!";
+              errors_t += mess;
+              newline = "\n";
             }
           }
           catch ( const std::runtime_error &e ) {
             // Doesn't exist
-            errors_t.add_error( e );
+            std::string mess = newline + "*** RuntimeError: " + opt_t.name() + " - " + e.what();            
+            errors_t += mess;
+            newline = "\n";
           }
         }
 
-        if ( errors_t.error_count() > 0 ) {
+        if ( errors_t.length() > 0 ) {
           if ( true == throw_errors ) {
-            errors_t.add_error( std::runtime_error( "*** ProductConfiguration::compare( " + config.name() + " with errors:") );
-            errors_t.throw_errors();
+            errors_t += newline + "*** ProductConfiguration::compare( " + config.name() + " with errors:";
+            throw std::runtime_error( errors_t );
           }
           return ( false );
         }
@@ -171,14 +181,14 @@ namespace psmrts {
         return ( m_options );
       }
 
+      inline bool matches( const ProductConfiguration &conf ) const {
+        return ( this->compare( conf ) );
+      }
+
     private:
       std::string       m_name;
       ProductOptionList m_options;
   };
-
-
-  // Temporary? definition of ProductMetaData
-  using ProductMetaData = ProductConfiguration;
 
 } // namespace psmrts
 

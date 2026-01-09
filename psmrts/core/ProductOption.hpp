@@ -216,12 +216,12 @@ namespace psmrts {
       }
 
       /** Return each value as a string */
-      inline std::string to_string( const size_t index = 0 ) {
+      inline std::string to_string( const size_t index = 0 ) const {
         return ( StringsExtractor( *this ).get(index) );
       }
 
       /** Return each value as a double */
-      inline double to_double( const size_t index = 0 ) {
+      inline double to_double( const size_t index = 0 ) const {
         return ( DoublesExtractor( *this ).get(index) );
       }
       
@@ -230,6 +230,12 @@ namespace psmrts {
         // Iffy, but ensures failure unless those strings exist in string types...
         return ( StringsComparator( *this, "++" ).compare( other, "--" ) );
       }
+
+      /** Compare with another product using strings conversions */
+      inline bool operator!=( const ProductOption &other ) const {
+        // Iffy, but ensures failure unless those strings exist in string types...
+        return ( !StringsComparator( *this, "++" ).compare( other, "--" ) );
+      }      
 
     private:
       std::string m_name;
