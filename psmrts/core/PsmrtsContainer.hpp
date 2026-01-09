@@ -118,13 +118,10 @@ namespace psmrts {
          */
         inline bool replace( const T &data ) {
           std::scoped_lock mylocker( this->mutex() );
-          ContainerIter data_t = m_data.begin();
-          while ( data_t != m_data.end() ) {
-            if ( data.name() == data_t->name() ) {
-               *data_t = data;
-              return ( true );
-            }
-            ++data_t;
+          ContainerIter data_t = iterator_find( data.name() );
+          if ( data_t != m_data.end() ) {
+            *data_t = data;
+            return ( true );
           }   
 
           m_data.push_back( data );
@@ -134,14 +131,11 @@ namespace psmrts {
         /** Remove the specified data object */
         inline bool remove( const std::string &key ) {
           std::scoped_lock mylocker( this->mutex() );
-          ContainerIter data_t = m_data.begin();
-          while ( data_t != m_data.end() ) {
-            if ( key == data_t->name() ) {
-              m_data.erase( data_t );
-              return ( true );
-            }
-            ++data_t;
-          } 
+          ContainerIter data_t = iterator_find( key );
+          if ( data_t != m_data.end() ) {
+            m_data.erase( data_t );
+            return ( true );
+          }
           return ( false );
         }
         
@@ -220,6 +214,18 @@ namespace psmrts {
         std::string        m_name;
         Container          m_data;
         mutable std::mutex m_mutex;
+
+        /** Return an iterator (no mutex locking!) data position associated with the key */
+        inline ContainerIter iterator_find( const std::string &key  ) {
+          ContainerIter data_t = m_data.begin();
+          while ( data_t != m_data.end() ) {
+            if ( key == data_t->name() ) {
+              return ( data_t );
+            }
+            ++data_t;   
+          }
+          return ( m_data.end() );
+        }
     };
 
 } // namespace psmrts
