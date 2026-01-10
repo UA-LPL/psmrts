@@ -37,8 +37,8 @@ namespace psmrts::algorithms::conversions {
   template <typename Container, typename Visitor>
     class Comparator {
       public:
-        using Type            =  typename Visitor::Type;
-        using TypeVector      =  typename Visitor::TypeVector;
+        using Type             =  typename Visitor::Type;
+        using TypeVector       =  typename Visitor::TypeVector;
         using VisitorExtractor = Extractor<Container, Visitor>;
 
         Comparator() : m_traits( ConversionTraits() ), 
@@ -81,6 +81,7 @@ namespace psmrts::algorithms::conversions {
           return ( m_default );
         }
 
+        /** Get reference to traits data */
         inline const ConversionTraits &traits() const {
           return ( m_traits );
         }
@@ -90,12 +91,13 @@ namespace psmrts::algorithms::conversions {
           return ( compare( other) );
         }
         
+        /** Compare another container using the Visitor */
         inline bool compare( const Container &other ) const {
           return ( this->compare( other, this->default_value() ) );
         }
 
         /**
-         * @brief Compare two products with differing defaults
+         * @brief Compare two products with potential differing defaults
          * 
          * This function computes the difference of two double options where
          * differing default values detect extended arrays resulting in a failing
@@ -133,7 +135,7 @@ namespace psmrts::algorithms::conversions {
         }
 
         /**
-         * @brief Compare doubles conversions of two products with same parameters
+         * @brief Compare Visitor conversions of two products with same parameters
          * 
          * This comparison is convenient for options that contain the same number
          * of values, since the same default is used. 
@@ -160,27 +162,27 @@ namespace psmrts::algorithms::conversions {
         }
 
         /**
-         * @brief Compare two container datasets of presumable same sizes
+         * @brief Compare two container datasets of presumably same sizes
          * 
          * If the two vectors are not of of the same size, they are deemed
          * unequal. Note that both arrays have differing default/invalid types
          * so ensure that condition is considered. If both any dataset contains
          * an invalid data value, the values are considered unequal.
          * 
-         * The first option is used to cmpare the data values for equality.
+         * The first option is used to compare the data values for equality.
          * 
          * 
          * @param visitor1 First dataset vistor
          * @param v1       First dataset
          * @param visitor2 Second dataset visitor
          * @param v2       Second dataset
-         * @param anymap  An option bool map that maps valid and invalid data
+         * @param matches  An option bool map that maps valid and invalid data
          * @return true    If the all data values are equivalent
          * @return false   if any value is not equivalent
          */
         inline bool isequal( const Visitor &visitor1, const TypeVector &v1,
                              const Visitor &visitor2, const TypeVector &v2,
-                             std::vector<bool> *anymap = nullptr ) 
+                             std::vector<bool> *matches = nullptr ) 
                              const {
 
           /// If they are not the same size, we are done!
@@ -191,7 +193,7 @@ namespace psmrts::algorithms::conversions {
 
           // Robust comparison of two dataset values
           size_t n = std::min( v1.size(), v2.size() );
-          if ( nullptr == anymap ) {
+          if ( nullptr == matches ) {
             for ( size_t i = 0  ; i < n ; i++ ) {
               if ( visitor1.isvalid( v1[i] ) && visitor2.isvalid( v2[i] ) ) {
                 if ( !visitor1.isequal( v1[i], v2[i] ) ) return ( false );
@@ -199,11 +201,11 @@ namespace psmrts::algorithms::conversions {
             }
           }
           else {
-            anymap->reserve( v1.size() );
+            matches->reserve( n );
             for ( size_t i = 0  ; i < n ; i++ ) {
               if ( visitor1.isvalid( v1[i] ) && visitor2.isvalid( v2[i] ) ) {
-                anymap->push_back( !visitor1.isequal( v1[i], v2[i] ) );
-                if ( !anymap->back() ) all_good = false;
+                matches->push_back( !visitor1.isequal( v1[i], v2[i] ) );
+                if ( !matches->back() ) all_good = false;
               }
             }            
           }

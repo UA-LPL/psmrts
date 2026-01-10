@@ -100,11 +100,37 @@ namespace psmrts::algorithms::conversions {
           TypeVector one;
           
           one.reserve( 1 );
-          Visitor visitor( one, p );
+          Visitor visitor( one, default_value(), p );
           m_option.visit( visitor );
 
           return ( one.front() );
         }
+
+        /** Get the first value in the array  */
+        inline Type front( ) const {
+          ConversionParameters p( compute_range( 0, 1, this->size() ) );
+          TypeVector one;
+          
+          one.reserve( 1 );
+          Visitor visitor( one, default_value(), p );
+          m_option.visit( visitor );
+
+          return ( one.front() );
+        }
+        
+        /** Get the last value in the array */
+        inline Type back( ) const {
+          size_t last_i = ( this->size() == 0 ) ? 0 : this->size() - 1;
+          ConversionParameters p( compute_range( last_i, 1, this->size() ) );
+          TypeVector one;
+          
+          one.reserve( 1 );
+          Visitor visitor( one, default_value(), p );
+          m_option.visit( visitor );
+
+          return ( one.front() );
+        }        
+        
         
         
         /**
@@ -125,7 +151,7 @@ namespace psmrts::algorithms::conversions {
           ConversionParameters p = compute_range( 0, this->size(), this->size() );
 
           d.reserve( p.count() );
-          Visitor visitor(  d, p );
+          Visitor visitor(  d, default_value(), p );
           m_option.visit( visitor );
 
           return ( d);
@@ -158,7 +184,7 @@ namespace psmrts::algorithms::conversions {
           TypeVector d;
           d.reserve( p.count() );
 
-          Visitor visitor(  d, p );
+          Visitor visitor(  d, default_value(), p );
           m_option.visit( visitor );
 
           return ( d);
@@ -184,13 +210,11 @@ namespace psmrts::algorithms::conversions {
           ConversionParameters p = compute_range( index, nvals, this->size() );
           
           d.reserve( p.count() );
-          Visitor visitor(  d, p );
+          Visitor visitor(  d, default_value(), p );
           m_option.visit( visitor );
 
           return ( d );
         }
-
-
 
 
         /**
@@ -213,7 +237,8 @@ namespace psmrts::algorithms::conversions {
 
           Extractor e( c, t, default_v );
           ConversionParameters p  = e.compute_range( 0, c.size(), c.size() );
-          return ( Visitor ( d, p ) );
+          d.reserve( c.size() );
+          return ( Visitor ( d, default_v, p ) );
         }
 
 

@@ -86,3 +86,32 @@ TEST_CASE("DoublesVisitor JSON Conversion Test", "[conversions][option][doubles]
   CHECK( StringsExtractor( option_j5 ).get() == std::string( text5 ) ); 
 }
 
+TEST_CASE("DoublesVisitor Oddities Conversion Test", "[conversions][option][doubles][oddities]") {
+
+  auto d = psmrts::ProductOption("d", 1.0);
+  auto xtr = StringsExtractor(d, "null" );
+
+  std::vector<std::string> data;
+  auto v   = xtr.create_visitor( data, d, xtr.traits(), "null" );
+  auto cvp = v.parameters();
+  CHECK( cvp.index() == 0 );
+  CHECK( cvp.count() == 1 );
+
+  CHECK( cvp.done( 1, d.size() )           == true );
+  CHECK( cvp.add_valid_value(1, d.size() ) == false );
+  CHECK( cvp.dataset_index(1, d.size() )   == 0 );
+
+  CHECK( cvp.traits().digits()     == 9 );
+  CHECK( cvp.traits().tolerance()  == 1.0e-9 );
+  CHECK( cvp.traits().spaces()  == -1 );
+
+  CHECK( xtr.size() == 1 );
+  CHECK( xtr.default_value() == "null" );
+  CHECK( xtr.get_all( 1, 2) == std::vector<std::string>( { "null", "null"} ) );
+  CHECK( xtr.get(1) == "null" );
+  auto e = psmrts::ProductOption("e", xtr.get_all(1, 10) );
+  CHECK( e.size() == 10 );
+  CHECK( e.to_string(0) == "null" );
+
+
+}

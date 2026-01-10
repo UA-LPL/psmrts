@@ -46,123 +46,143 @@ namespace psmrts::algorithms::conversions {
       
       
       inline void operator()( const bool b ) {
-        if ( add_it( 0, 1 ) ) {
-          m_datum.push_back( ( b ? "true" : "false" ) );
-        }
-        else {
-          m_datum.push_back ( default_value());
-        }
+
+        auto process = [&]( const bool addit, const size_t index ) {
+          if ( addit ) {
+            m_datum.push_back( ( b ? "true" : "false" ) );
+          }
+          else {
+            m_datum.push_back ( default_value() );
+          }
+        };
+
+        parameters().extractor( 1, process );
       }
 
       inline void operator()( const int i )  {
-        if ( add_it( 0, 1 ) ) {
-          m_datum.push_back( std::to_string( i ));
-        }
-        else {
-          m_datum.push_back ( default_value());
-        }            
+        auto process = [&]( const bool addit, const size_t index ) {
+          if ( addit ) {
+            m_datum.push_back( std::to_string( i ) );
+          }
+          else {
+            m_datum.push_back ( default_value() );
+          }
+        };
+        parameters().extractor( 1, process );
       }
 
       inline void operator()( const size_t i )  {
-        if ( add_it( 0, 1 ) ) {
-          m_datum.push_back( std::to_string( i ));
-        }
-        else {
-          m_datum.push_back ( default_value() );
-        }    
+
+        auto process = [&]( const bool addit, const size_t index ) {
+          if ( addit ) {
+            m_datum.push_back( std::to_string( i ) );
+          }
+          else {
+            m_datum.push_back ( default_value() );
+          }
+        };
+        parameters().extractor( 1, process );        
       }          
 
       inline void operator()( const double d ) {
-        if ( add_it( 0, 1 ) ) {
-          std::ostringstream out;
-          out << std::fixed << std::setprecision( parameters().traits().digits() ) << d;               
-          m_datum.push_back( out.str() );
-        }
-        else {
-          m_datum.push_back ( default_value() );
-        }                
+
+        auto process = [&]( const bool addit, const size_t index ) {
+          if ( addit ) {
+            std::ostringstream out;
+            out << std::fixed << std::setprecision( parameters().traits().digits() ) << d;               
+            m_datum.push_back( out.str() );
+          }
+          else {
+            m_datum.push_back ( default_value() );
+          }
+        };
+        parameters().extractor( 1, process );         
       }
 
       inline void operator()( const std::string &s ) {
-        if ( add_it( 0, 1 ) ) {
-          m_datum.push_back( s );
-        }
-        else {
-          m_datum.push_back ( default_value() );
-        }               
+
+       auto process = [&]( const bool addit, const size_t index ) {
+          if ( addit ) {
+            m_datum.push_back( s );
+          }
+          else {
+            m_datum.push_back ( default_value() );
+          }
+        };
+        parameters().extractor( 1, process );         
       }    
 
       inline void operator()( const std::vector<int> i_array ) {
-        size_t ith = parameters().index();
-        size_t nth = parameters().count() + ith;
 
-        for (size_t i = ith ; i < nth ; i++ ) {
-          if ( add_it( i, i_array.size() ) ) {
-            m_datum.push_back( std::to_string( i_array[i] ) ); 
+       auto process = [&]( const bool addit, const size_t index ) {
+          if ( addit ) {
+            m_datum.push_back( std::to_string( i_array[index] ) ); 
           }
           else {
             m_datum.push_back ( default_value() );
-          }             
-        }
+          }
+        };
+        parameters().extractor( i_array.size(), process ); 
       }
 
       inline void operator()( const std::vector<size_t> i_array ) {
-          size_t ith = parameters().index();
-        size_t nth = parameters().count() + ith;
 
-        for (size_t i = ith ; i < nth  ; i++ ) {
-          if ( add_it( i, i_array.size() ) ) {
-            m_datum.push_back( std::to_string( i_array[i] ) ); 
+       auto process = [&]( const bool addit, const size_t index ) {
+          if ( addit ) {
+            m_datum.push_back( std::to_string( i_array[index] ) ); 
           }
           else {
-            m_datum.push_back ( default_value());
-          }             
-        }            
+            m_datum.push_back ( default_value() );
+          }
+        };
+        parameters().extractor( i_array.size(), process ); 
       }
 
       inline void operator()( const std::vector<double> &d_array ) {
-        size_t ith = parameters().index();
-        size_t nth = parameters().count() + ith;
-
-        for (size_t i = ith ; i < nth  ; i++ ) {
-          if ( add_it( i, d_array.size() ) ) {
+       auto process = [&]( const bool addit, const size_t index ) {
+          if ( addit ) {
             std::ostringstream out;
-            out << std::fixed << std::setprecision( parameters().traits().digits() ) << d_array[i];               
-            m_datum.push_back( out.str() );                
+            out << std::fixed << std::setprecision( parameters().traits().digits() ) << d_array[index];               
+            m_datum.push_back( out.str() );  
           }
           else {
             m_datum.push_back ( default_value() );
-          }             
-        }             
+          }
+        };
+        parameters().extractor( d_array.size(), process ); 
       }
       
       inline void operator()( const std::vector<std::string> &s_array ) {
-        size_t ith = parameters().index();
-        size_t nth = parameters().count() + ith;
 
-        for (size_t i = ith ; i < nth  ; i++ ) {
-          if ( add_it( i, s_array.size() ) ) {
-            m_datum.push_back( s_array[i] );                
+       auto process = [&]( const bool addit, const size_t index ) {
+          if ( addit ) {
+            m_datum.push_back( s_array[index] ); 
           }
           else {
             m_datum.push_back ( default_value() );
-          }             
-        }              
+          }
+        };
+        parameters().extractor( s_array.size(), process ); 
       }      
       
       inline void operator()( const ordered_json &j_data ) {
-        if ( add_it( 0, 1 ) ) {
-          if ( j_data.is_primitive() ) {
-            Type str_t = j_data;
-            m_datum.push_back( str_t );
-          }
-          else {        
-            m_datum.push_back( j_data.dump( parameters().traits().spaces() ) );
-          }
-        }
-        else {
-          m_datum.push_back( default_value() );
-        }
+
+       auto process = [&]( const bool addit, const size_t index ) {
+         if ( addit ) {
+           if ( j_data.is_primitive() ) {
+             Type str_t = j_data;
+             m_datum.push_back( str_t );
+           }
+           else {        
+              m_datum.push_back( j_data.dump( parameters().traits().spaces() ) );
+           }
+         }
+         else {
+           m_datum.push_back( default_value() );
+         }              
+        };
+
+        parameters().extractor( 1, process );
       }
 
       inline const Type &default_value() const {
@@ -188,14 +208,6 @@ namespace psmrts::algorithms::conversions {
       TypeVector           &m_datum;
       ConversionParameters  m_parameters;
       Type                  m_default; 
-      
-      /** Determine if the index is valid given traits and array size */
-      inline bool add_it(const size_t index, const size_t max_valid_size ) const {
-        if ( ( index >= parameters().index() ) && ( index < max_valid_size ) ) {
-          return ( true );
-        }
-        return ( false );
-      }
   };
 
 
