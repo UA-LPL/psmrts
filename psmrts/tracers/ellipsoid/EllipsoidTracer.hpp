@@ -260,7 +260,7 @@ namespace psmrts  {
       /** Retuns the vector normal of an input point */
       void compute_normal( const double *point, double *normal ) const;
     
-      static inline ProductSpecification specifications() {
+      static inline ProductSpecification product_specifications() {
         ProductInfo  info( "ellipsoid", { 
                                  ProductOption( "name", "ellipsoid"),
                                  ProductOption( "product", "tracer"),
@@ -301,15 +301,11 @@ namespace psmrts  {
                                                const std::string &source = ""  ) {
 
         ProductConfiguration config( "ellipsoid" );
-
         config.add( ProductOption( "name", name) );
-        config.add( ProductOption( "product", "shape") );
-        config.add( ProductOption( "description", "Ellipsoid, spheroid, sphere definition" ) );
-
         config.add( ProductOption( "radii", radii ) );
         if ( !source.empty() ) config.add( ProductOption( "source", source ) );
 
-        return ( ProductConfiguration( name ) );
+        return ( config );
       }
 
   };

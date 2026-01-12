@@ -194,7 +194,7 @@ namespace psmrts  {
       /** Report all remaining features not available - e.g., PRQFacet not relevant to Ellipsoid format */
       PSMRTS_PROCESS_CATCHALL( "NaifDskTracer" )
 
-      static inline ProductSpecification specifications() {
+      static inline ProductSpecification product_specifications() {
         ProductInfo  info( "naifdsk", { 
                                  ProductOption( "name", "naifdsk"),
                                  ProductOption( "product", "tracer"),
@@ -217,10 +217,17 @@ namespace psmrts  {
                                  ProductOption( "type", "int"),
                                  ProductOption( "description", "NAIF ID of the target body whose surface is described"),
                                  ProductOption( "status", "optional"),
+                                 ProductOption( "default", 0),
                                  ProductOption( "aliases", { "segment", "dsk_segment"} ) } );
+        ProductFeature kernels( "kernels", {
+                                 ProductOption( "name", "kernels"),
+                                 ProductOption( "type", "string"),
+                                 ProductOption( "description", "Additional kernels required to load for target"),
+                                 ProductOption( "status", "optional"),
+                                 ProductOption( "aliases", "required_kernels" ) } );
 
         // This validates the JSON structure and provides product info to callers
-        return ( ProductSpecification( info, { dfile, bodyid, segid } ) );
+        return ( ProductSpecification( info, { dfile, bodyid, segid, kernels } ) );
       }
       
       

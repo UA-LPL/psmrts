@@ -519,16 +519,16 @@ TEST_CASE( "NAIF Dsk Shape Tracer Ray-Facet Test", "[naifdsk][shapetracer][raytr
 }
 
 TEST_CASE( "NAIF Dsk Shape Tracer Product Specification Test", "[naifdsk][shapetracer][product][specification]") {
-    psmrts::ProductSpecification spec = psmrts::NaifDskTracer::specifications();
+    psmrts::ProductSpecification spec = psmrts::NaifDskTracer::product_specifications();
 
     CHECK( spec.name()              == "naifdsk"     );
     CHECK( spec.product()           == "tracer" ); 
-    CHECK( spec.size()              == 3             );
-    CHECK( spec.features().size()   == 3             );
+    CHECK( spec.size()              == 4             );
+    CHECK( spec.features().size()   == 4             );
     CHECK( spec.required().size()   == 1             );
-    CHECK( spec.optional().size()   == 2             );
+    CHECK( spec.optional().size()   == 3             );
 
-    CHECK( spec.contains( "obj_mtl_search_path" )    == false );
-    CHECK( spec.contains( "naif_dsk_kernel_paths" )  == false  );
+    CHECK( spec.contains( "obj_mtl_search_path" ) == false );
+    CHECK( spec.contains( "kernels" )             == true  );
 
 }
