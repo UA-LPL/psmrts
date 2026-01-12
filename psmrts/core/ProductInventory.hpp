@@ -33,7 +33,7 @@ namespace psmrts {
     class ProductInventory : public PsmrtsProduct {
       public:
         using CacheType       = PsmrtsCache<K,P>;
-        using UIDType         = typename CacheType::UIDType; // == K
+        using KeyType         = typename CacheType::KeyType; // == K
 
         /** Static method used for case-insensitive string keys */
         static std::string case_insensitive_key( const std::string &key ) {
@@ -83,7 +83,7 @@ namespace psmrts {
          * 
          * @param key      Cache key for product
          * @param product  Product to add to cache
-         * @return UIDType Returns the unique cache ID
+         * @return KeyType Returns the unique cache ID
          *                   of the product
          */
         inline bool add( const K &key, const P &product ) {
@@ -154,6 +154,11 @@ namespace psmrts {
             m_cache.remove( m_key_t( p_it->first ) );
           }
           return;
+        }
+
+        /** Return the list of keys in cache */
+        inline std::vector<KeyType> keys() const {
+          return ( m_cache.keys() );
         }
 
         /** Const access direct to the PsmrtsCache for iterator use mainly */
