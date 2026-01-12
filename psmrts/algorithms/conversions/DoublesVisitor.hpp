@@ -1,4 +1,5 @@
-#pragma once
+#ifndef DoublesVisitor_hpp
+#define DoublesVisitor_hpp
 
 #include <iostream>
 #include <cstdlib>
@@ -277,3 +278,5 @@ namespace psmrts::algorithms::conversions {
   };
 
 }    // namespace psmrts::algoriths::conversions
+
+#endif

@@ -3,10 +3,12 @@
 
 #include <string>
 
-#include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
+#include <psmrts/core/ProductOption.hpp>
+#include <psmrts/core/ProductFeature.hpp>
+#include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
 #include <psmrts/algorithms/TracingBasics.hpp>
 #include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
@@ -19,15 +21,18 @@ namespace psmrts  {
    */
   class NaifDskTracer : public PsmrtsProduct {
     public:
+      using ProductInfo     = ProductSpecification::ProductInfo;
+      using ProductFeatures = ProductSpecification::ProductFeatures;
+
       NaifDskTracer( ) : PsmrtsProduct( "naifdsktracer", "tracer" ), 
                          m_model() {
-                          //m_configured = init_naifdsk( "naifdsk" );
-                           }
+        m_configured = init_naifdsk( "naifdsk" );
+      }
       NaifDskTracer( const naif::DskKernelModel &dsktracer ) : 
                      PsmrtsProduct( dsktracer.shapefile(), "tracer" ),
                      m_model( dsktracer ) { 
-                       //m_configured = init_naifdsk( dsktracer, dsktracer.shapefile() );
-                      }
+        m_configured = init_naifdsk( dsktracer, dsktracer.shapefile() );
+      }
       NaifDskTracer( const std::string &dsk ) : 
                      PsmrtsProduct( dsk, "tracer" ),
                      m_model( dsk ) { 
@@ -189,55 +194,57 @@ namespace psmrts  {
       /** Report all remaining features not available - e.g., PRQFacet not relevant to Ellipsoid format */
       PSMRTS_PROCESS_CATCHALL( "NaifDskTracer" )
 
-      static inline ProductSpecification product_specifications() {
-        char text[] = R"(
-        {
-          "name": "naifdsk",
-          "product": "tracer",
-          "type": "tracer",
-          "description": "NAIF DSK ray tracing system specifications",
-          "driver": {
-            "name": "naifdsk",
-            "type": "system"
-          },
-          "features": [
-            {
-              "name": "naif_dsk_kernel_paths",
-              "type": "list[string]",
-              "description": "List of NAIF kernel file paths (DSK, SPK, PCK, etc.) to load",
-              "status": "optional",
-              "default": []
-            },
-            {
-              "name": "naif_dsk_segment_priority",
-              "type": "string",
-              "description": "How to resolve multiple DSK segments",
-              "status": "optional",
-              "default": "last",
-              "valid": ["first", "last"]
-            }
-          ]       
-        } )";
+      static inline ProductSpecification specifications() {
+        ProductInfo  info( "naifdsk", { 
+                                 ProductOption( "name", "naifdsk"),
+                                 ProductOption( "product", "tracer"),
+                                 ProductOption( "description", "NAIF DSK ray tracing system specifications") } );
+        ProductFeature dfile( "dsk_file", {
+                                 ProductOption( "name", "dsk_file"),
+                                 ProductOption( "type", "file"),
+                                 ProductOption( "description", "Name of DSK kernel"),
+                                 ProductOption( "status", "required"),
+                                 ProductOption( "aliases", "file" ),
+                                 ProductOption( "file_suffixes", { "bds", "BDS" } ) } );
+        ProductFeature bodyid( "dsk_body_id", {
+                                 ProductOption( "name", "dsk_body_id"),
+                                 ProductOption( "type", "int"),
+                                 ProductOption( "description", "NAIF ID of the target body whose surface is described"),
+                                 ProductOption( "status", "optional"),
+                                 ProductOption( "aliases", { "target_id", "naif_id" } ) } );
+        ProductFeature segid( "dsk_segment_index", {
+                                 ProductOption( "name", "dsk_segment_index"),
+                                 ProductOption( "type", "int"),
+                                 ProductOption( "description", "NAIF ID of the target body whose surface is described"),
+                                 ProductOption( "status", "optional"),
+                                 ProductOption( "aliases", { "segment", "dsk_segment"} ) } );
 
         // This validates the JSON structure and provides product info to callers
-        return ( ProductSpecification( "naifdsk", "tracer", "shapetracer", json_utils::parse_json_string( text )));
+        return ( ProductSpecification( info, { dfile, bodyid, segid } ) );
       }
-
+      
+      
       inline const ProductConfiguration &config() const {
         return ( m_configured );
       }
       
+      inline bool matches( const ProductConfiguration &conf ) const {
+        return ( this->config().matches( conf ) );
+      }
+
     private:
       naif::DskKernelModel m_model;
       ProductConfiguration m_configured;
 
       inline ProductConfiguration init_naifdsk( const std::string &source ) {
-        auto config = ProductConfiguration( source, { ProductOption( "tracer", "naifdsk" ) } );
+        auto config = ProductConfiguration( source, { ProductOption( "tracer", "naifdsk" ),
+                                                      ProductOption( "file", source ) } );
         return ( config );
       }
 
       inline ProductConfiguration init_naifdsk( const naif::DskKernelModel &model, const std::string &source ) {
         auto config = ProductConfiguration( source, { ProductOption( "tracer", "naifdsk" ),
+                                                      ProductOption( "file", source ),
                                                       ProductOption( "plates", std::to_string(model.plate_count())),
                                                       ProductOption( "segments", std::to_string(model.n_dsk_segments())) } );
         return ( config );

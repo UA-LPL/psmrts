@@ -1,4 +1,5 @@
-#pragma once
+#ifndef StringsVisitor_hpp
+#define StringsVisitor_hpp
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/algorithms/conversions/ConversionTraits.hpp>
@@ -212,3 +213,5 @@ namespace psmrts::algorithms::conversions {
 
 
 }    // namespace psmrts::algoriths::conversions
+
+#endif

@@ -1,4 +1,6 @@
-#pragma once
+#ifndef TrainingBasics_hpp
+#define TrainingBasics_hpp
+
 #include <string>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
@@ -181,3 +183,5 @@ namespace psmrts::algorithms  {
     }
 
 } // namespace psmrts
+
+#endif

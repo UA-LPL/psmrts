@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ConversionTraits_hpp
+#define ConversionTraits_hpp
 
 #include <algorithm>
 #include <functional>
@@ -296,3 +297,5 @@ namespace psmrts::algorithms::conversions {
   };
 
 } // namspace psmrts::algorithms::conversions
+
+#endif

@@ -104,6 +104,26 @@ namespace psmrts {
         return ( !std::holds_alternative<MissingProcessRequestHandler>( m_product ) );
       }
 
+      inline const ProductConfiguration &config() const {
+        const auto visitor = overload{            
+                  [](auto &&tracer ) -> const ProductConfiguration & {
+                       return ( tracer.config() ); 
+                  }
+        };
+       
+        return ( std::visit(visitor, m_product ) ); 
+      }        
+
+      inline bool matches( const ProductConfiguration &conf ) const {
+        const auto visitor = overload{            
+                  [&conf]( auto &&tracer ) -> bool {
+                       return ( tracer.matches( conf ) ); 
+                  }
+        };
+      
+        return ( std::visit(visitor, m_product ) );        
+      }
+
   };
 
 } // namespace psmrts

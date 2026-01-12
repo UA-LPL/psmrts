@@ -1,4 +1,5 @@
-#pragma once
+#ifndef OptionInts_hpp
+#define OptionInts_hpp
 
 #include <iostream>
 #include <cstdlib>
@@ -418,3 +419,5 @@ namespace psmrts::algorithms::conversions {
   };  
 
 }    // namespace psmrts::algoriths::conversions
+
+#endif

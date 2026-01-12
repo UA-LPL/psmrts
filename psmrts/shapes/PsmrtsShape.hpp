@@ -69,23 +69,24 @@ namespace psmrts {
       }
 
       inline const ProductConfiguration &config() const {
-        static const ProductConfiguration empty_config{};
-        const auto visitor = overload{
-          [](const ObjShape &obj) -> const ProductConfiguration& {
-            return obj.config();
-          },
-          [](const PlyShape &ply) -> const ProductConfiguration& {
-            return ply.config();
-          },
-          [](const DskShape &dsk) -> const ProductConfiguration& {
-            return dsk.config();
-          },
-          [](auto &&) -> const ProductConfiguration& {
-            return empty_config;
-          }
+        const auto visitor = overload{            
+                  [](auto &&shape ) -> const ProductConfiguration & {
+                       return ( shape.config() ); 
+                  }
         };
-        return std::visit(visitor, m_product);
+       
+        return ( std::visit(visitor, m_product ) ); 
+      }        
+
+      inline bool matches( const ProductConfiguration &conf ) const {
+        const auto visitor = overload{            
+                  [&conf]( auto &&tracer ) -> bool {
+                       return ( tracer.matches( conf ) ); 
+                  }
+        };
+        return ( std::visit(visitor, m_product ) );        
       }
+      
       
       inline double minimum_radius() const {
         return this->get_mesh().minimum_radius();
@@ -94,7 +95,7 @@ namespace psmrts {
       inline double maximum_radius() const {
         return this->get_mesh().maximum_radius();
       }
-      
+
   };
 } // namespace psmrts
 

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef Extractor_hpp
+#define Extractor_hpp
 
 #include <iostream>
 #include <cstdlib>
@@ -283,3 +284,5 @@ namespace psmrts::algorithms::conversions {
   };  
 
 }    // namespace psmrts::algoriths::conversions
+
+#endif

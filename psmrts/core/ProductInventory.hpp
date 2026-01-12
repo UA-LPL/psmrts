@@ -1,6 +1,5 @@
 #ifndef ProductInventory_hpp
 #define ProductInventory_hpp
-#pragma once
 
 #include <string>
 #include <functional>
@@ -55,14 +54,11 @@ namespace psmrts {
                           PsmrtsProduct( product_name, itype ), 
                           m_cache(),
                           m_key_t( &get_real_map_key ) { }
-
-          /** This constructor requires a static function! */
-          ProductInventory( std::function<K(const K)> &func  ) : 
-                           PsmrtsProduct( "product", "inventory" ),
-                           m_cache(),
-                           m_key_t( func ) { } 
-        
-        
+        /** This constructor requires a static function! */
+        ProductInventory( std::function<K(const K)> &func  ) : 
+                          PsmrtsProduct( "product", "inventory" ),
+                          m_cache(),
+                          m_key_t( func ) { } 
         template<typename KeyMapFunc>
           ProductInventory( const std::string &product_name,
                             const std::string &itype,
@@ -72,7 +68,6 @@ namespace psmrts {
                             m_key_t( std::forward<KeyMapFunc>(func) ) { }
         virtual ~ProductInventory() { }
 
-              
         inline size_t size( ) const {
           return ( m_cache.size() );
         }
@@ -181,8 +176,6 @@ namespace psmrts {
       private:
         CacheType                 m_cache;  ///!  The product cache
         std::function<K(const K)> m_key_t;  ///!  Instance of map key translator
-
-
 
     };
 

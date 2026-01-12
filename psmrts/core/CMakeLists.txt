@@ -2,7 +2,8 @@
 target_sources( psmrts PUBLIC
                          FILE_SET psmrts_headers 
                            TYPE HEADERS 
-                           FILES  ProductConfiguration.hpp
+                           FILES  AllOptionConversions.hpp
+                                  ProductConfiguration.hpp
                                   ProductFeature.hpp
                                   ProductInventory.hpp
                                   ProductOption.hpp

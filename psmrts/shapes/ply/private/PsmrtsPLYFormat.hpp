@@ -152,7 +152,7 @@ namespace psmrts {
             // Config header data to json
             //parse_config(reader);
             m_data_type = get_facet_vector_type( reader );
-            parse_config();
+            // parse_config();
             //PSMRTS_SYSTEM_CLOCK_TIME end = psmrts::system_clock_time();
             //double total = elapsed_clock_time_ms(start, end);
             //double total = timer.runtime_ms();
@@ -200,6 +200,7 @@ namespace psmrts {
             // compute min/max radius, store internally (Mesh class has related functions)
             return ( m_mesh.isValid() );
         }
+#if 0
 
         /**
          * @brief Returns an ordered JSON containing relative product options
@@ -219,7 +220,6 @@ namespace psmrts {
             )";
             return (ProductSpecification("ply", "mesh", json_utils::parse_json_string( text )));
         }
-
         /**
          * @brief Conversion of ply file header data to json
          * 
@@ -236,10 +236,10 @@ namespace psmrts {
             m_config = ProductSpecification("ply", "mesh", options);
             return;
         }
-
+#endif
         inline ProductConfiguration get_metadata( ) {
           ProductConfiguration meta( "ply" );
-          meta.add( ProductOption( "file", this->ply_source() ) );
+          meta.add( ProductOption( "ply_file", this->ply_source() ) );
           meta.add( ProductOption( "ply_file_type", m_file_type ) );
           meta.add( ProductOption( "data_type", m_data_type ) );
           meta.add( ProductOption( "n_vertices", (int) this->nVertexes() ) );
@@ -322,8 +322,8 @@ namespace psmrts {
         static inline PsmrtsMeshData create( const ProductSpecification &params ) {
 
             try {
-                if ( params.has_parameter( "ply_file" ) ) {
-                    ProductFeature plyfile = params.get_parameter("ply_file");
+                if ( params.contains( "ply_file" ) ) {
+                    ProductFeature plyfile = params.find("ply_file");
                     return ( PsmrtsPLYFormat(  plyfile.value<std::string>( "ply_file" ) ).get_mesh() );
                 }
             }

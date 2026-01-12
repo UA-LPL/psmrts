@@ -9,18 +9,15 @@ TEST_CASE( "DSK SHAPE - Default Test", "[dsk][shape][specification]") {
 
     CHECK( spec.name()              == "dsk"   );
     CHECK( spec.product()           == "shape" ); 
-    CHECK( spec.type()              == "mesh"  );
-    CHECK( spec.driver().name()     == "dsk" ); 
     CHECK( spec.size()              == 4 );
-    CHECK( spec.parameters().size() == 4 );
-    CHECK( spec.required().size()   == 0 );
-    CHECK( spec.optional().size()   == 4 );
+    CHECK( spec.features().size()   == 4 );
+    CHECK( spec.required().size()   == 1 );
+    CHECK( spec.optional().size()   == 3 );
 
-    CHECK( spec.has_parameter( "obj_mtl_search_path" ) == false );
-    CHECK( spec.has_parameter( "dsk_string" )          == true );
-    CHECK( spec.has_parameter( "dsk_data_type" )       == true );
-    CHECK( spec.has_parameter( "dsk_body_id" )         == true );
-    CHECK( spec.has_parameter( "dsk_segment_index" )   == true );
+    CHECK( spec.contains( "dsk_mtl_search_path" ) == false );
+    CHECK( spec.contains( "dsk_data_type" )       == true );
+    CHECK( spec.contains( "dsk_body_id" )         == true );
+    CHECK( spec.contains( "dsk_segment_index" )   == true );
 
 }
 

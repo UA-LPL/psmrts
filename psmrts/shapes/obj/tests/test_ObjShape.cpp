@@ -10,13 +10,11 @@ TEST_CASE( "OBJ SHAPE - Default Test", "[obj][shape][specification]") {
 
   CHECK( spec.name()              == "obj"   );
   CHECK( spec.product()           == "shape" );
-  CHECK( spec.type()              == "mesh"  );
-  CHECK( spec.driver().name()     == "obj" );
   CHECK( spec.size()              == 4 );
-  CHECK( spec.parameters().size() == 4 );
+  CHECK( spec.features().size() == 4 );
   CHECK( spec.required().size()   == 1 );
   CHECK( spec.optional().size()   == 3 );
-  CHECK( spec.has_parameter( "obj_mtl_search_path" ) == true );
+  CHECK( spec.contains( "obj_mtl_search_path" ) == true );
 }
 
 TEST_CASE( "PSMRTS Product OBJ Specification Test", "[product][type][mesh][obj]") {

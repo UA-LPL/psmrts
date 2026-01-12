@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PsmrtsJson_hpp
+#define PsmrtsJson_hpp
 
 #include <string>
 #include <vector>
@@ -143,3 +144,5 @@ namespace psmrts {
   } // namespace json_utils
 
 } // namespace psmrts
+
+#endif

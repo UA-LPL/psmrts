@@ -1,4 +1,5 @@
-#pragma once
+#ifndef OptionBools_hpp
+#define OptionBools_hpp
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/ProductOption.hpp>
@@ -385,3 +386,5 @@ namespace psmrts::algorithms::conversions {
  };
 
 } // namespace psrmts::algorithms::conversions
+
+#endif

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef Comparator_hpp
+#define Comparator_hpp
 
 #include <iostream>
 #include <cstdlib>
@@ -220,3 +221,5 @@ namespace psmrts::algorithms::conversions {
   };  
 
 }    // namespace psmrts::algoriths::conversions
+
+#endif

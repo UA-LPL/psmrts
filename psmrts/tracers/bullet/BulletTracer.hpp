@@ -7,7 +7,7 @@
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
-#include <psmrts/core/ProductConfiguration.hpp>
+#include <psmrts/core/ProductFeature.hpp>
 #include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/algorithms/TracingBasics.hpp>
 
@@ -20,9 +20,13 @@ namespace psmrts  {
    */
   class BulletTracer : public PsmrtsProduct {
     public:
-     BulletTracer( );
-     BulletTracer( const PsmrtsShape &shape );
-     virtual ~BulletTracer();
+      using ProductInfo   = ProductSpecification::ProductInfo;
+      using FeatureOption = ProductFeature::FeatureOption;
+      using FeatureList   = ProductFeature::FeatureOptionList;
+
+      BulletTracer( );
+      BulletTracer( const PsmrtsShape &shape );
+      virtual ~BulletTracer();
 
       double maximum_radius() const;
 
@@ -176,55 +180,46 @@ namespace psmrts  {
                        PsmrtsRayTrace::FacetDatum &facet) const;
             
       static inline ProductSpecification product_specifications() {
-        char text[] = R"(
-        {
-          "name": "bullet",
-          "product": "tracer",
-          "type": "tracer",
-          "description": "The Bullet Physics ray tracing system specification",
-          "driver": {
-            "name": "bullet",
-            "type": "system"
-          },
-          "features": [
-            {
-              "name": "bullet_optimize_bvh",
-              "type": "bool",
-              "description": "Use optimized bounding volume hierachy (BVH) when created",
-              "status": "optional",
-              "default": "false",
-              "valid": ["true", "1", "yes", "false", "0", "no"]
-            },
-            {
-              "name": "bullet_compressed",
-              "type": "bool",
-              "description": "Compress Bullet data during construction",
-              "status": "optional",
-              "default": "false",
-              "valid": ["true", "1", "yes", "false", "0", "no"]
-            },            
-            {
-              "name": "bullet_thread_safety",
-              "type": "bool",
-              "description": "Utilize thread locking before Bullet ray traces are run",
-              "status": "optional",
-              "default": "false",
-              "valid": ["true", "1", "yes", "false", "0", "no"]
-            }
-          ]       
-        } )";
+        ProductInfo  info( "bullet", { 
+                                 FeatureOption( "name", "bullet"),
+                                 FeatureOption( "product", "tracer"),
+                                 FeatureOption( "description", "The Bullet Physics ray tracing system specification") } );
+        ProductFeature bvh( "bullet_optimize_bvh", {
+                                 FeatureOption( "name", "bullet_optimize_bvh"),
+                                 FeatureOption( "type", "bool"),
+                                 FeatureOption( "description", "Use optimized bounding volume hierachy (BVH) when created"),
+                                 FeatureOption( "status", "optional"),
+                                 FeatureOption( "default", "false"),
+                                 FeatureOption( "valid", {"true", "1", "yes", "false", "0", "no"} ) } );
+        ProductFeature cmp( "bullet_compressed", {
+                                 FeatureOption( "name", "bullet_compressed"),
+                                 FeatureOption( "type", "bool"),
+                                 FeatureOption( "description", "Compress Bullet data during construction"),
+                                 FeatureOption( "status", "optional"),
+                                 FeatureOption( "default", "false"),
+                                 FeatureOption( "valid", {"true", "1", "yes", "false", "0", "no"} ) } );
 
         // This validates the JSON structure and provides product info to callers
-        return ( ProductSpecification( "bullet", "tracer", "tracer", json_utils::parse_json_string( text )));
+        return ( ProductSpecification( info, { bvh, cmp } ) );
       }
 
       inline const PsmrtsShape &shape() const {
         return ( m_shape );
       }
 
+      /** Return the current product configuration */
       inline const ProductConfiguration &config() const {
         return ( m_configured );
       }
+
+      inline bool matches( const ProductConfiguration &conf ) const {
+        if ( this->shape().matches( conf ) && this->config().matches( conf ) ) {
+          return ( true );
+        }
+
+        return ( false );
+      }
+
 
       /** Report all remaining features not available - e.g., PRQFacet not relevant to Ellipsoid format */
       PSMRTS_PROCESS_CATCHALL( "BulletTracer" )
