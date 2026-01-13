@@ -1,6 +1,5 @@
 #ifndef PsmrtsProduct_hpp
 #define PsmrtsProduct_hpp
-#pragma once
 
 #include <string>
 

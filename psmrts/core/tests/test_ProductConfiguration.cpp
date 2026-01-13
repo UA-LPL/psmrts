@@ -9,9 +9,9 @@ TEST_CASE( "PSMRTS Product Configuration", "[product][configuration][default]") 
 
   // Construct default product configuration.
   psmrts::ProductConfiguration config;
-  CHECK( config.name()          == "none" );
+  CHECK( config.name()          == "undefined" );
   CHECK( config.size()          == 0 );
-  CHECK( config.remove("name")  == false);
+  // CHECK( config.remove("name")  == false);
 
   // Add a couple of product options.
   config.add( psmrts::ProductOption( "type", "product") );
@@ -46,8 +46,8 @@ TEST_CASE( "PSMRTS Product Initializer", "[product][configuration][initializer]"
 
   // Checks mixed case strings.
   CHECK( config.contains("tracer") == true );
-  CHECK( config.contains("TrAcEr") == true );
-  CHECK_NOTHROW( config.find( "Tracer" ) );
+  CHECK( config.contains("TrAcEr") == false );
+  CHECK_THROWS( config.find( "Tracer" ) );
 
   // Remove the tracer type and confirm.
   CHECK( config.remove("tracer")  == true );

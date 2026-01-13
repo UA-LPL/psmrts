@@ -194,7 +194,7 @@ TEST_CASE ( "PLY FORMAT Asset Test - Default Constructor", "[format][ply][defaul
     psmrts::ProductConfiguration meta_data = ply.get_metadata();
     CHECK( meta_data.name() == "ply" );
     CHECK( meta_data.size() == 7 );
-    CHECK( psmrts::psmrts_filename(meta_data.find("file").to_string()) == "Bennu_Radar.ply" );
+    CHECK( psmrts::psmrts_filename(meta_data.find("ply_file").to_string() )  == "Bennu_Radar.ply" );
     CHECK( meta_data.find("ply_file_type").to_string()  == "binary" );
     CHECK( meta_data.find("data_type").to_string()      == "float" );
     CHECK( meta_data.find("n_vertices").to_string()     == "1348" );

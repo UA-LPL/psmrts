@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PRQProduct_hpp
+#define PRQProduct_hpp
 
 #include <vector>
 #include <string>
@@ -155,3 +156,5 @@ namespace psmrts {
   };
 
 }  // namespace psmrts
+
+#endif

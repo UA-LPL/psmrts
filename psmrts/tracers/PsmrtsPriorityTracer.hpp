@@ -3,6 +3,8 @@
 
 #include <string>
 #include <vector>
+#include <algorithm>
+#include <functional>
 
 #include <Eigen/Geometry>
 #include <psmrts/core/PsmrtsUtilities.hpp>
@@ -19,6 +21,9 @@ namespace psmrts {
       using UIDType         = PsmrtsUID::UIDType;
       using TracerList      = std::vector<UIDType>;
       using TracerInventory = ProductInventory<UIDType, PsmrtsTracer>;
+      using PriorityFunc    = std::function<TracerList(const TracerList &current,
+                                                       const TracerInventory &inventory)>;
+
 
       PsmrtsPriorityTracer( ) : PsmrtsProduct("prioritytracer") { init(); }
       PsmrtsPriorityTracer( const std::string &name ) : PsmrtsProduct( name ) { init(); }
@@ -168,6 +173,50 @@ namespace psmrts {
       /** Empties the priority list not the inventory */
       inline void clear() {
         m_tracers.clear();
+      }
+
+      /**
+       * @brief Prioritization functor processing method
+       * 
+       * Users can create/recompute the preferred priority of the tracers
+       * contained in this priority tracer. Each tracer has a unique ID that is
+       * contained in the local PSMRTS inventory of tracers. This method
+       * provides a safe way to reestablish a tracer process with the list of
+       * currently available tracers.
+       * 
+       * @see reverse().
+       * 
+       * @param processor Priority function to establish new order
+       * @return size_t   Number of tracers in the result of processor()
+       */
+      inline size_t prioritize( PriorityFunc processor ) {
+        m_tracers = processor( m_tracers, m_inventory_t );
+        return ( m_tracers.size() );
+      }
+
+      /**
+       * @brief Reverse the order of the tracer list
+       * 
+       * This method will reverse the order of the list of tracers which
+       * essentially reverses the order in which the tracers are executed for
+       * every ray trace.
+       * 
+       * This method demonstrates the use of the prioritize() functor method.
+       * 
+       * @return size_t Number of tracers in the resulting list
+       */
+      inline size_t reverse_priority() {
+        auto reverse_tracers = []( const TracerList &current_order, 
+                                   const TracerInventory &inventory ) -> TracerList {
+          TracerList reversed;
+          reversed.reserve( current_order.size() );
+          std::transform( current_order.rbegin(), current_order.rend(), 
+                          std::back_insert_iterator( reversed ),
+                         []( UIDType t ) { return ( t ); } );
+          return ( reversed );
+        };
+       
+        return ( prioritize( reverse_tracers ) );
       }
       
     private:

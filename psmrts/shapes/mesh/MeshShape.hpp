@@ -5,8 +5,8 @@
 
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/PsmrtsProduct.hpp>
-#include <psmrts/core/ProductSpecification.hpp>
 #include <psmrts/core/PsmrtsMeshData.hpp>
+#include <psmrts/core/ProductSpecification.hpp>
 #include <psmrts/core/ProductConfiguration.hpp>
 
 namespace psmrts {
@@ -16,13 +16,16 @@ namespace psmrts {
      */
     class MeshShape : public PsmrtsProduct {
         public:
-         MeshShape() : PsmrtsProduct( "none", "mesh"), 
-                       m_mesh(), 
-                       m_configured( init_mesh("mesh") ) { }
+        using ProductInfo     = ProductSpecification::ProductInfo;
+        using ProductFeatures = ProductSpecification::ProductFeatures; 
+
+         MeshShape() : PsmrtsProduct( "mesh", "mesh"),
+                       m_mesh( ), m_config( init_mesh( "mesh") )  { }
          MeshShape( const PsmrtsMeshData &mesh, 
-          const std::string &name = "mesh") : PsmrtsProduct( name, "mesh" ),
-                                              m_mesh( mesh ),
-                                              m_configured( init_mesh( mesh, name ) ) { }
+                    const std::string &name = "mesh") : 
+                    PsmrtsProduct( name, "mesh" ),
+                    m_mesh( mesh ),
+                    m_config( mesh.config() ) { }
          virtual ~MeshShape() = default;
          
          /**
@@ -33,43 +36,32 @@ namespace psmrts {
           * @return false 
           */
          inline bool process( PRQFeatures &features ) const {
-            features.add_feature( this->product_specifications().json_specs() );
+            features.add_feature( this->product_specifications().to_json() );
             return ( true );
          }
         
 
          static inline ProductSpecification product_specifications() {
-            char text[] = R"(
-            {
-                "name": "mesh",
-                "product": "shape",
-                "type": "mesh",
-                "description": "Provides support for a genric user defined shape",
-                "driver": {
-                    "name": "mesh",
-                    "type": "system",
-                    "aliases": [ "generic" ]
-                },
-                "features": [
-                    {
-                        "name": "mesh_name",
-                        "type": "file",
-                        "description": "Name of mesh data",
-                        "status": "required",
-                        "aliases": ["mesh", "name"],
-                        "file_suffixes": []
-                    },
-                    {
-                        "name": "mesh_data_type",
-                        "type": "string",
-                        "description": "Type of mesh vector data provided",
-                        "status": "optional",
-                        "aliases": ["mesh_data_type"],
-                        "valid": ["double", "float"]
-                    }
-                ]
-            })";
-            return ( ProductSpecification( "mesh", "mesh", "shape", json_utils::parse_json_string(text)));
+          ProductInfo  info( "mesh", { 
+                        ProductOption( "name",        "mesh"),
+                        ProductOption( "product",     "shape"),
+                        ProductOption( "description", "Provides support for a genric user defined shape" ) } );
+          ProductFeature source( "mesh_name", {
+                                  ProductOption( "name", "mesh_name"),
+                                  ProductOption( "type", "file"),
+                                  ProductOption( "description", "Name of mesh data" ),
+                                  ProductOption( "status", "required"),
+                                  ProductOption( "aliases", { "mesh", "source" } ) } );
+          ProductFeature dtype( "mesh_data_type", {
+                                  ProductOption( "name", "data_type"),
+                                  ProductOption( "type", "string"),
+                                  ProductOption( "description", "Type of mesh vector data provided" ),
+                                  ProductOption( "status", "optional"),
+                                  ProductOption( "aliases", "mesh_data_type" ), 
+                                  ProductOption( "valid", { "double", "float" } ) });
+
+          // This validates the JSON structure and provides product info to callers
+          return ( ProductSpecification( info, { source, dtype } ) );             
          }
 
          inline const PsmrtsMeshData &get_mesh() const {
@@ -77,35 +69,29 @@ namespace psmrts {
          }
 
          inline const ProductConfiguration &config() const {
-            return m_configured;
+            return m_config;
          }
+
+        inline bool matches( const ProductConfiguration &conf ) const {
+          return ( this->config().matches( conf ) );
+        }
 
          PSMRTS_PROCESS_CATCHALL( "MeshShape" )
 
         protected:
           PsmrtsMeshData m_mesh;
-          ProductConfiguration m_configured;
+          ProductConfiguration m_config;
 
           inline ProductConfiguration init_mesh( const std::string &name ) {
-            ProductConfiguration config( name );
+            ProductConfiguration config( name, PsmrtsMeshData().config() );
             config.add( ProductOption( "file", "mesh" ) );
-            config.add( ProductOption( "data_type", "double") );
-            config.add( ProductOption( "n_vertices", 0 ) );
-            config.add( ProductOption( "n_facets", 0 ) );
-            config.add( ProductOption( "minimum_radius", 0 ) );
-            config.add( ProductOption( "maximum_radius", 0 ) );
-            return config;
+            return ( config );
           }
 
           inline ProductConfiguration init_mesh( const PsmrtsMeshData &mesh, const std::string &name ) {
-            ProductConfiguration config( name );
+            ProductConfiguration config( name, mesh.config() );
             config.add( ProductOption( "file", "mesh" ) );
-            config.add( ProductOption( "data_type", mesh.vector_type_string() ) );
-            config.add( ProductOption( "n_vertices", mesh.nvectors() ) );
-            config.add( ProductOption( "n_facets", mesh.nfacets() ) );
-            config.add( ProductOption( "minimum_radius", mesh.minimum_radius() ) );
-            config.add( ProductOption( "maximum_radius", mesh.maximum_radius() ) );
-            return config;
+            return ( config );
           }
     };  
 

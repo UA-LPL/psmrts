@@ -1,6 +1,5 @@
 #ifndef ProductProcessDispatch_hpp
 #define ProductProcessDispatch_hpp
-#pragma once
 
 #include <exception>
 #include <variant>

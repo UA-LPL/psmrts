@@ -127,7 +127,7 @@ target_include_directories( psmrts PUBLIC
 target_link_libraries( psmrts PUBLIC
     nlohmann_json::nlohmann_json
     Eigen3::Eigen
-    cspice::cspice
+    ${CSPICE_LIBRARY_TARGET}
 )
 
 target_link_libraries( psmrts PRIVATE

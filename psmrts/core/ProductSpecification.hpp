@@ -1,15 +1,17 @@
-#pragma once
 #ifndef ProductSpecification_hpp
 #define ProductSpecification_hpp
 
 #include <string>
 #include <vector>
 #include <exception>
+#include <optional>
 
 #include <psmrts/core/PsmrtsJson.hpp>
 #include <psmrts/core/ProductFeature.hpp>
 #include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
+#include <psmrts/core/PsmrtsContainer.hpp>
+// #include <psmrts/core/PRQProduct.hpp>
 
 
 namespace psmrts { 
@@ -18,278 +20,165 @@ namespace psmrts {
   /**
    * @brief Process/maintain product specification data
    * 
-   * This class maintains the specifications for PMSRTS product.
+   * This class maintains the specifications for PMSRTS product. It contains
+   * several required sections which include "info" and "features". 
+   * 
+   * The "info" section contains, at a minimum, the "name" of the product,
+   * "type", which is the type of product described such as "shape", "tracer" or
+   * "prioritytracer" and a "description" entry which provides a short
+   * description of the product.
    * 
    * @author Kris J. Becker, University of Arizona
    * @history 2025-05-19 Kris J. Becker - Original Version
    */
   class ProductSpecification {
     public:
-      using ProductFeatureList = std::vector<ProductFeature>;
+      using ProductInfo      = PsmrtsContainer<ProductOption>;
+      using ProductFeatures  = PsmrtsContainer<ProductFeature>;
+      using Creator = std::function<void(const ProductConfiguration &config)>;
 
-      ProductSpecification( )  {
-        initialize( "null", "", "" );
-      }
 
-      ProductSpecification( const std::string &name, const std::string &type,
-                             const ordered_json &options = json_utils::json_null() ) { 
-        initialize( name , type, "", options );
-      }
-
+      ProductSpecification( ) : m_name( "" ), m_product( "" ),
+                                m_info( "info" ), m_features( "features" ),
+                                m_creator( std::nullopt ) { }
       ProductSpecification( const std::string &name,
-                            const std::string &type,
-                            const std::string &product,
-                            const ordered_json &options = json_utils::json_null() ) { 
-        initialize( name , type, product, options );
+                            const std::string &product ) :
+                            m_name( name ), m_product( product ),
+                            m_info( "info" ), m_features( "features" ),
+                            m_creator( std::nullopt ) {
+        m_info.add( ProductOption( "name", name) );
+        m_info.add( ProductOption( "product", product) );
       }
-
-
-      ProductSpecification( const ordered_json &specs ) { 
-        initialize( "", "", "",specs );
-      }
-
+      explicit ProductSpecification( const ProductInfo &info, 
+                                     const std::initializer_list<ProductFeature> &features ) :
+                                     m_name( info.find( "name" ).to_string() ),
+                                     m_product( info.find( "product" ).to_string() ),
+                                     m_info( "info", info.data() ),
+                                     m_features( "features", features ),
+                                     m_creator( std::nullopt ) { }                                
+      explicit ProductSpecification( const ProductInfo &info,
+                                     const std::vector<ProductFeature> &features ) : 
+                                     m_name( info.find( "name" ).to_string() ),
+                                     m_product( info.find( "product" ).to_string() ),                                     
+                                     m_info( "info", info.data() ),
+                                     m_features( "features", features ),
+                                     m_creator( std::nullopt ) { }         
       virtual ~ProductSpecification() = default;
 
 
-      inline const std::string &name() const {
+      inline std::string name() const {
         return ( m_name );
       }
 
-      inline const std::string &product() const {
+      inline std::string product() const {
         return ( m_product );
       }
 
-      inline const std::string &type() const {
-        return ( m_type);
+      inline size_t size() const {
+        return ( m_features.size() );
+      }
+
+      inline const ProductInfo &info() const {
+        return ( m_info );
+      }
+
+      inline const ProductFeatures &features() const {
+        return ( m_features );
+      }
+
+      inline std::vector<std::string> info_keys() const {
+        return ( m_info.keys() );
+      }
+
+      inline std::vector<std::string> feature_names() const {
+        return ( m_features.keys() );
+      }
+
+      inline void add_info( const ProductOption &option ) {
+        m_info.replace( option );
+      }
+
+      inline void add_feature( const ProductFeature &feature ) {
+        m_features.replace( feature );
+      }
+
+      inline bool contains( const std::string &name ) const {
+        return ( m_features.contains( name ) );
+      }
+
+      inline const ProductFeature &find( const std::string &name ) const {
+        return ( m_features.find( name ) );
       }      
 
-      inline ProductFeature specs( ) const {
-        return ( ProductFeature( m_specs ) );
-      }
-
-      inline const ordered_json &json_specs() const {
-        return ( m_specs );
-      }
-
-      inline size_t size() const {
-        return ( m_parameters.size() );
-      }
-
-      inline const ProductFeatureList &parameters() const {
-        return ( m_parameters );
-      }
-
-      inline std::vector<std::string> get_parameter_names() const {
-        std::vector<std::string> pnames_t;
-        for ( const auto &parm_t : this->parameters() ) {
-          pnames_t.push_back( parm_t.name() );
-        }
-        return ( pnames_t );
-      }
-
-      inline bool has_parameter( const std::string &name ) const {
-        for ( const auto &parm_t : this->parameters() ) {
-          if ( parm_t.name() == name ) return ( true );
-        }
-        return ( false );
-      }
-
-      inline const ProductFeature &get_parameter( const std::string &name ) const {
-        for ( const auto &parm_t : this->parameters() ) {
-          if ( parm_t.name() == name ) return ( parm_t );
-        }
-
-        // Gotta toss an exception
-        throw std::runtime_error( "*** ProductSpecification::get_parameter(" + name + ") - named parameter does not exist!" );
-      }
-     
-      inline ProductFeature driver() const {
-        if ( this->specs().contains( "driver" ) ) {
-          return ( ProductFeature( this->specs().value<ordered_json>( "driver" ) ) );
-        }
-        return ( ProductFeature( "driver" ) );
-      }
-      
       inline std::vector<std::string> required() const {
-        std::vector<std::string> result;
-        ProductFeatureList param_specs = this->parameters();
-        if (param_specs.size() > 0 ) {
-          for ( const auto &param : param_specs ) {
-            if ( param.is_required() ) {
-                auto req = param.name();
-                if (std::find(result.begin(), result.end(), req) == result.end()) {
-                  result.push_back(req);
-                }
-            }
-          }
+        std::vector<std::string> keys;
+        for ( const auto &f : this->features() ) {
+          if ( f.is_required() ) keys.push_back( f.name() );
         }
-        return result;
+        return ( keys );
       }
-      
+
       inline std::vector<std::string> optional() const {
-        std::vector<std::string> result;
-        ProductFeatureList param_specs = this->parameters();
-        if (param_specs.size() > 0 ) {
-          for ( const auto &param : param_specs ) {
-            if ( !param.is_required() ) {
-                auto opt = param.name();
-                if (std::find(result.begin(), result.end(), opt) == result.end()) {
-                  result.push_back(opt);
-                }
-            }
-          }
+        std::vector<std::string> keys;
+        for ( const auto &f : this->features() ) {
+          if ( !f.is_required() ) keys.push_back( f.name() );
         }
-        return result;
+        return ( keys );
       }
 
-      /** Checks if this spec supports the configuration */ 
-      inline bool extract( const ProductConfiguration &config, 
-                           ProductConfiguration &options ) const {
-
-        options = ProductConfiguration( this->name() );
-
-        size_t n_missing = 0;
-        for ( const auto &key : this->required() ) {
-          if ( config.contains( key ) ) {
-            options.add( config.find( key ) );
-          }
-          else {
-            n_missing++;
-          }
+      /**
+       * @brief Get feature name that contains an alias key of name
+       * 
+       * This method will return the name of a feature if any of the features in
+       * the specification contains an alias name. If it does not exist, an
+       * empty string is returned.
+       * 
+       * If a non-blank string is returned, find() can safely be called to
+       * return a reference to the associated ProductFeature associated with the
+       * alias name.
+       * 
+       * @param name         name of potential alias key
+       * @return std::string If an alias name exits, the real name of the
+       *                       feature is returned. If no alias exists, an empty
+       *                       string is returned.
+       */
+      inline std::string get_alias_feature_name( const std::string &name ) const {
+        for ( const auto &f : this->features() ) {
+          if ( !f.isa_alias( name ) ) return ( f.name() );
         }
-
-        // Check for any optional keywords
-        size_t n_optional = 0;
-        for ( const auto &key : this->optional() ) {
-          if ( config.contains( key ) ) {
-            options.add( config.find( key ) );
-            n_optional++;
-          }
-        }
-
-        if ( n_missing > 0 ) { return ( false ); }
-        return ( true );
+        return ( "" );        
       }
 
-      /** Compares two specfications for a match */
-      inline bool matches( const ProductSpecification &other, const bool throwException = false ) const {
+      /** Return the JSON specification */
+      inline ordered_json to_json() const {
 
-        bool it_matches = false;
-        if ( this->name() != other.name() )       return ( false ); 
-        if ( this->type() != other.type() )       return ( false );
-        if ( this->product() != other.product() ) return ( false );
-        if ( this->size() != other.size() )       return ( false );
-
-        // Now check required
-        PsmrtsRequest spec_errors_t( "PsmrtsSpecification::matches()");
-
-        for ( const auto &parm_t : this->parameters() ) {
-          try {
-           ProductFeature other_parm_t = this->get_parameter( parm_t.name() );
-            if ( !parm_t.validate( other_parm_t ) ) {
-              spec_errors_t.add_error( std::runtime_error( spec_errors_t.name() + " - parameter " + 
-                                                            parm_t.name() + " does not exist in other" ) );
-            }
-          }
-          catch ( const std::exception &se ) {
-            spec_errors_t.add_error( se );
-          }
+        ordered_json j_info = ordered_json::array();
+        for ( const auto &j_data : info().data()  ) {
+          j_info.push_back( j_data.to_json() );
         }
 
-#if 0        
-        // Check for parameter size equivalency? Not if its a config. FIX THIS!
-        if ( this->size() != other.size() ) {
-              spec_errors_t.add_error( std::runtime_error( spec_errors_t.name() + " - number parameters differ in " +
-                                                            this->name() + "/" + other.name() + " product specs" ) );          
-        }
-#endif        
-        // Now check for any errors and return a match if none
-        if ( ( spec_errors_t.error_count() > 0 ) && ( throwException == true ) ) {
-          spec_errors_t.throw_errors();
-        }  
+        ordered_json j_features = ordered_json::array();
+        for ( const auto &j_feature : features().data()  ) {
+          j_features.push_back( j_feature.to_json() );
+        } 
         
-        // Return match status...WE REALLY SHOULD RETURN spec_errors_t.
-        return ( spec_errors_t.error_count() == 0 );
+        ordered_json j = ordered_json::object();
+        if ( j_info.size() > 0 ) j["info"]      = j_info;
+        if ( j_info.size() > 0 ) j["features"]  = j_features;
+        return ( j );
       }
 
+      inline void add_creator( const Creator &creator ) {
+        m_creator = creator;
+      }
 
     private:
-      std::string          m_name;
-      std::string          m_product;
-      std::string          m_type;
-      ordered_json         m_specs;
-      ProductFeatureList  m_parameters;
-
-
-      /** Parse/internalize the contents of the JSON struct */
-      inline ProductFeatureList get_parameter_set() const {
-        ProductFeatureList parms;
-
-        if ( m_specs.contains( "features" ) ) {
-          ordered_json parms_t = m_specs["features"];
-          if ( ( parms_t.is_array() && ( parms_t.size() > 0 ) ) ) {
-            for ( const auto & [key, j_parm_t ] : parms_t.items() ) {
-              parms.push_back( ProductFeature( j_parm_t ) );
-            }
-          }
-        }
-
-        return ( parms );
-      }
-      
-      /** Initialize the product specfication with expected values */
-      inline void initialize( const std::string &name, 
-                              const std::string &type,
-                              const std::string &product,
-                              const ordered_json &options = json_utils::json_null() ) {
-        
-        
-        auto get_json_value = [] ( ordered_json &json_t,
-                                   const std::string &key, 
-                                   const std::string &value_t = "" ) -> std::string {
-          
-          std::string o_value = value_t;
-          if ( o_value.size() == 0 ) {
-            if ( !json_t.is_null() ) {
-              // See if it exits and return it
-              if ( json_t.contains( key ) ) {
-                o_value = json_t[key];
-              }
-            }
-          }
-          else {
-            if ( !json_t.is_null() ) {
-              // See if it exists in the JSON object and return it
-              if ( !json_t.contains( key ) ) {
-                json_t[key] = o_value;
-              }
-            }
-          }
-          return ( o_value );
-        };
-
-        // Set up specs for the product          
-        m_specs = ( options.is_null() ) ? ordered_json::object() : options;
-        m_name = get_json_value( m_specs, "name", name );
-        m_type = get_json_value( m_specs, "type", type );
-        m_product = get_json_value( m_specs, "product", product );
-
-        // Now ensure the required types are defined
-        try {
-          // m_name = m_specs["name"];
-         //  m_type = m_specs["type"];
-        }
-        catch ( const json::exception &je ) {
-          std::string mess = std::string("*** ProductSpecification name/type error - ").append( je.what() );
-          throw std::runtime_error( mess );
-        }
-
-        // Create the parameters list
-        m_parameters = this->get_parameter_set( );
-      }
-
+      std::string     m_name;
+      std::string     m_product;
+      ProductInfo     m_info;
+      ProductFeatures m_features;
+      std::optional<Creator> m_creator;
   };
-
 
 } // namespace psmrts
 

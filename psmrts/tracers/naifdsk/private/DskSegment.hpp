@@ -4,6 +4,8 @@
 #include <string>
 
 #include <Eigen/Geometry>
+#include <psmrts/core/ProductOption.hpp>
+#include <psmrts/core/ProductConfiguration.hpp>
 
 namespace naif {
 
@@ -18,6 +20,8 @@ namespace naif {
    */
   class DskSegment {
     public:
+      using ProductOption       = psmrts::ProductOption;
+      using ProductConfiguration = psmrts::ProductConfiguration;
       DskSegment( ) { init(); }
 
       /** DSK segment constructor w/all data */
@@ -139,6 +143,25 @@ namespace naif {
       /** Returns the data class of the segment (aspects of topology) */
       inline SpiceInt dclass() const {
         return ( dskdsc().dclass );
+      }
+
+      inline ProductConfiguration config() const {
+        ProductConfiguration config( "dsksegment" );
+
+        config.add( ProductOption( "dsk_body_id", this->bodyid() ) );
+        config.add( ProductOption( "dsk_segment_index", this->segment_number() ) );
+        config.add_metadata( ProductOption( "dsk_frame_id", this->frameid() ) );
+        config.add_metadata( ProductOption( "dsk_surface_id", this->surfaceid() ) );
+        config.add_metadata( ProductOption( "dsk_body_id", this->bodyid() ) );
+        config.add_metadata( ProductOption( "dsk_segment_type", this->dtype() ) );
+        config.add_metadata( ProductOption( "dsk_class_type", this->dclass() ) );
+        config.add_metadata( ProductOption( "n_vertices",     this->n_vectors() ) );
+        config.add_metadata( ProductOption( "n_facets",       this->n_plates() ) );
+        config.add_metadata( ProductOption( "maximum_radius", this->maximum_radius() ) );
+        config.add_metadata( ProductOption( "maximum_radius", this->maximum_radius() ) );
+
+        return ( config );
+
       }
 
     private:

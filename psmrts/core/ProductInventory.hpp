@@ -1,6 +1,5 @@
 #ifndef ProductInventory_hpp
 #define ProductInventory_hpp
-#pragma once
 
 #include <string>
 #include <functional>
@@ -34,7 +33,7 @@ namespace psmrts {
     class ProductInventory : public PsmrtsProduct {
       public:
         using CacheType       = PsmrtsCache<K,P>;
-        using UIDType         = typename CacheType::UIDType; // == K
+        using KeyType         = typename CacheType::KeyType; // == K
 
         /** Static method used for case-insensitive string keys */
         static std::string case_insensitive_key( const std::string &key ) {
@@ -55,14 +54,11 @@ namespace psmrts {
                           PsmrtsProduct( product_name, itype ), 
                           m_cache(),
                           m_key_t( &get_real_map_key ) { }
-
-          /** This constructor requires a static function! */
-          ProductInventory( std::function<K(const K)> &func  ) : 
-                           PsmrtsProduct( "product", "inventory" ),
-                           m_cache(),
-                           m_key_t( func ) { } 
-        
-        
+        /** This constructor requires a static function! */
+        ProductInventory( std::function<K(const K)> &func  ) : 
+                          PsmrtsProduct( "product", "inventory" ),
+                          m_cache(),
+                          m_key_t( func ) { } 
         template<typename KeyMapFunc>
           ProductInventory( const std::string &product_name,
                             const std::string &itype,
@@ -72,7 +68,6 @@ namespace psmrts {
                             m_key_t( std::forward<KeyMapFunc>(func) ) { }
         virtual ~ProductInventory() { }
 
-              
         inline size_t size( ) const {
           return ( m_cache.size() );
         }
@@ -88,7 +83,7 @@ namespace psmrts {
          * 
          * @param key      Cache key for product
          * @param product  Product to add to cache
-         * @return UIDType Returns the unique cache ID
+         * @return KeyType Returns the unique cache ID
          *                   of the product
          */
         inline bool add( const K &key, const P &product ) {
@@ -161,6 +156,11 @@ namespace psmrts {
           return;
         }
 
+        /** Return the list of keys in cache */
+        inline std::vector<KeyType> keys() const {
+          return ( m_cache.keys() );
+        }
+
         /** Const access direct to the PsmrtsCache for iterator use mainly */
         inline const CacheType &cache() const {
           return ( m_cache );
@@ -181,8 +181,6 @@ namespace psmrts {
       private:
         CacheType                 m_cache;  ///!  The product cache
         std::function<K(const K)> m_key_t;  ///!  Instance of map key translator
-
-
 
     };
 

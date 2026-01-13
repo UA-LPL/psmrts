@@ -11,16 +11,13 @@ TEST_CASE ("MESH SHAPE - Default Test", "[mesh][shape][default]") {
 
     CHECK( spec.name()              == "mesh" );
     CHECK( spec.product()           == "shape" );
-    CHECK( spec.type()              == "mesh" );
-    CHECK( spec.driver().name()     == "mesh" );
-    CHECK( spec.driver().type()     == "system" );
-    CHECK( spec.parameters().size() == 2 );
+    CHECK( spec.features().size() == 2 );
     CHECK( spec.required().size()   == 1 );
     CHECK( spec.optional().size()   == 1 );
 
-    CHECK( spec.has_parameter( "obj_mtl_search_path" ) == false );
-    CHECK( spec.has_parameter( "mesh_name" )           == true );
-    CHECK( spec.has_parameter( "mesh_data_type" )      == true );
+    CHECK( spec.contains( "obj_mtl_search_path" ) == false );
+    CHECK( spec.contains( "mesh_name" )           == true );
+    CHECK( spec.contains( "data_type" )           == true );
 
     psmrts::MeshShape shape;
     CHECK( shape.get_mesh().isValid()  == false );
@@ -30,12 +27,12 @@ TEST_CASE ("MESH SHAPE - Default Test", "[mesh][shape][default]") {
     psmrts_json mesh_json = mesh_config.to_json();
 
     CHECK( mesh_config.name()          == "mesh" ); // possible constructor error in PConfig file?
-    CHECK( mesh_config.size()          == 6 );
-    CHECK( mesh_json["data_type"]      == "double" );
-    CHECK( mesh_json["n_vertices"]     == 0 );
-    CHECK( mesh_json["n_facets"]       == 0 );
-    CHECK( mesh_json["minimum_radius"] == 0 );
-    CHECK( mesh_json["maximum_radius"] == 0 );
+    CHECK( mesh_config.size()          == 3 );
+    CHECK( mesh_json["data_type"]      == "undefined" );
+    CHECK( mesh_json["metadata"]["n_vertices"]     == 0 );
+    CHECK( mesh_json["metadata"]["n_facets"]       == 0 );
+    CHECK( mesh_json["metadata"]["minimum_radius"] == 0 );
+    CHECK( mesh_json["metadata"]["maximum_radius"] == 0 );
 }
 
 TEST_CASE( "MESH SHAPE - Values Test", "[mesh][shape][values]") {
@@ -62,6 +59,8 @@ TEST_CASE( "MESH SHAPE - Values Test", "[mesh][shape][values]") {
         data_y[2] = i;
     }
 
+    CHECK( sizeof( psmrts::MeshShape ) == 784 );  
+
     psmrts::PsmrtsMeshData mesh( i_model, v_model );
     psmrts::MeshShape shape( mesh, "mesh" );
 
@@ -70,12 +69,14 @@ TEST_CASE( "MESH SHAPE - Values Test", "[mesh][shape][values]") {
 
     psmrts::ProductConfiguration mesh_config = shape.config();
     psmrts_json mesh_json = mesh_config.to_json();
+    psmrts_json meta_json = mesh_config.to_json( mesh_config.metadata() );
 
     CHECK( mesh_config.name()      == "mesh" );
-    CHECK( mesh_config.size()      == 6 );
-    CHECK( mesh_json["data_type"]  == "double" ); // outputs 1?
-    CHECK( mesh_json["n_vertices"] == 10 );
-    CHECK( mesh_json["n_facets"]   == 10 );
-    CHECK_THAT( mesh_json["minimum_radius"], Catch::Matchers::WithinAbs( 3.7416573867739413, tolerance ) );
-    CHECK_THAT( mesh_json["maximum_radius"], Catch::Matchers::WithinAbs( 50.24937810560445,  tolerance ) );
+    CHECK( mesh_config.size()      == 2 );
+    CHECK( mesh_json["name"]       == "mesh" ); 
+    CHECK( mesh_json["data_type"]  == "double" );
+    CHECK( mesh_json["metadata"]["n_vertices"] == 10 );
+    CHECK( mesh_json["metadata"]["n_facets"]   == 10 );
+    CHECK_THAT( mesh_json["metadata"]["minimum_radius"], Catch::Matchers::WithinAbs( 3.7416573867739413, tolerance ) );
+    CHECK_THAT( mesh_json["metadata"]["maximum_radius"], Catch::Matchers::WithinAbs( 50.24937810560445,  tolerance ) );
 }

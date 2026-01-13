@@ -1,4 +1,3 @@
-#pragma once
 #ifndef ProductConfiguration_hpp
 #define ProductConfiguration_hpp
 
@@ -7,6 +6,7 @@
 #include <initializer_list>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsContainer.hpp>
 #include <psmrts/core/ProductOption.hpp>
 
 namespace psmrts { 
@@ -23,86 +23,117 @@ namespace psmrts {
    */
   class ProductConfiguration {
     public:
-      using ProductOptionList = std::vector<ProductOption>;
+      using ContainerType     = PsmrtsContainer<ProductOption>;
+      using ProductOptionList = ContainerType;
+      using ProductMetadata   = ContainerType;
 
-      ProductConfiguration( ) : m_name("none"), m_options{} { }
-      ProductConfiguration(const std::string &name ) : m_name( psmrts_tolower(name) ), m_options{} { }
-      explicit ProductConfiguration( const std::string &name, 
+      ProductConfiguration( ) : m_identifier("undefined"), 
+                                m_options( "options"),
+                                m_metadata( "metadata" ) { }
+      ProductConfiguration( const std::string &cid ) :
+                            m_identifier( cid ), 
+                            m_options( "options" ), 
+                            m_metadata( "metadata" ) { }
+      ProductConfiguration( const std::string &cid,
+                            const ProductConfiguration &config ) :
+                            m_identifier( cid ), 
+                            m_options( config.options() ), 
+                            m_metadata( config.metadata() ) { }                            
+      ProductConfiguration( const std::string &cid,
+                            const ProductOptionList &info ) :
+                            m_identifier( cid ), 
+                            m_options( info ), 
+                            m_metadata( "metadata" ) { }                            
+      explicit ProductConfiguration( const std::string &cid, 
                                      const std::initializer_list<ProductOption> &options ) : 
-                                     m_name( psmrts_tolower(name) ),
-                                     m_options( options.begin(), options.end() ) { }                                
-      explicit ProductConfiguration( const std::string &name, 
+                                     m_identifier( cid ),
+                                     m_options( "options", options ),
+                                     m_metadata( "metadata" ) { }                                
+      explicit ProductConfiguration( const std::string &cid, 
                                      const std::vector<ProductOption> &options ) : 
-                                     m_name( psmrts_tolower(name) ),
-                                     m_options( options ) { }      
+                                     m_identifier( cid ),
+                                     m_options( "options", options ),
+                                     m_metadata( "metadata" ) { }      
 
       virtual ~ProductConfiguration() = default;
 
-
       inline const std::string &name() const {
-        return ( m_name );
+        return ( m_identifier );
       }
 
       inline size_t size() const {
         return ( m_options.size() );
       }
 
-      /** Deemed invalid if there are no options in this configuration */
-      inline bool isValid() const {
-        return ( this->size() > 0 );
+      inline const ProductOptionList &options( ) const {
+        return ( m_options );
       }
 
-      /** Check for an existing option */
+      inline const ProductMetadata &metadata( ) const {
+        return ( m_metadata );
+      }      
+
+
+      /** Check for an existing option, not including metadata */
       inline bool contains( const std::string &name ) const {
-        std::string name_l = psmrts_tolower( name );
-        for ( const auto &option : m_options ) {
-          if ( option.name() == name_l ) {
-            return ( true );
-          }
-        }
-        return ( false );
-      }
-
-      inline void add( const ProductOption &option ) {
-        m_options.push_back( option );
-        return;
+        return ( m_options.contains( name  ) );
       }
 
       inline const ProductOption &find( const std::string &name ) const {       
-        std::string name_l = psmrts_tolower( name );
-        for ( const auto &option : m_options ) {
-          if ( option.name() == name_l ) {
-            return ( option );
-          }
-        }  
-        throw std::runtime_error( "*** ProductOption::get(" +  name +  " ) error - option not found" );
+        return ( m_options.find( name ) );
       }
 
-      /** Remove the specifed option */
-      inline bool remove( const std::string &name ) {   
-        std::string name_l = psmrts_tolower( name );
-        ProductOptionList::iterator opt_t = m_options.begin();
-
-        while ( opt_t != m_options.end() ) {
-          if ( opt_t->name() == name_l ) {
-            m_options.erase( opt_t );
-            return ( true );
-          }
-          ++opt_t;
-        }  
-        return ( false );
+     inline void add( const ProductOption &option ) {
+        m_options.replace( option );
+        return;
       }
 
-      inline void clear() {
-        m_options.clear();
+      inline void add_option( const ProductOption &option ) {
+        m_options.replace( option );
+        return;
+      }
+      
+      inline void add_metadata( const ProductOption &option ) {
+        m_metadata.replace( option );
+        return;
       }
 
-      inline psmrts_json to_json( ) const {
-        psmrts_json option_j;
-        for ( const auto &opt_j : m_options ) {
-          option_j.update( opt_j.to_json() );
+      inline void add_metadata( const ProductMetadata &metadata ) {
+        for ( const auto &m : metadata.data() ) {
+          m_metadata.replace( m );
         }
-        return ( option_j );
+        return;
+      }      
+
+      inline const ProductOption &find_option( const std::string &name ) const {       
+        return ( m_options.find( name ) );
+      }
+
+      inline const ProductOption &find_metadata( const std::string &name ) const {       
+        return ( m_metadata.find( name ) );
+      }
+
+      inline bool remove( const std::string &name ) {
+        return ( m_options.remove( name ) );
+      }
+
+      inline bool remove_metadata( const std::string &name ) {
+        return ( m_metadata.remove( name ) );
+      }
+
+      inline ordered_json to_json( ) const {
+        ordered_json j_opts = this->to_json( this->options() );
+        j_opts["metadata"].update( to_json( this->metadata() ) );
+        return ( j_opts );
+      }
+
+      inline ordered_json to_json( const ContainerType &c ) const {
+
+        ordered_json j_opts;
+        for ( const auto &opt_t : c ) {
+          j_opts.update( opt_t.to_json() );
+        }
+        return ( j_opts );
       }
 
       /**
@@ -176,18 +207,14 @@ namespace psmrts {
         return ( true );
       }
 
-      /** Return the list of options in this configuration */
-      inline const ProductOptionList &options() const {
-        return ( m_options );
-      }
-
       inline bool matches( const ProductConfiguration &conf ) const {
         return ( this->compare( conf ) );
       }
 
     private:
-      std::string       m_name;
+      std::string       m_identifier;
       ProductOptionList m_options;
+      ProductMetadata   m_metadata;
   };
 
 } // namespace psmrts

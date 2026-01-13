@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ProductOption_hpp
+#define ProductOption_hpp
 
 #include <string>
 #include <vector>
@@ -11,6 +12,8 @@
 #include <psmrts/algorithms/conversions/AllConversionsVisitors.hpp>
 
 namespace psmrts {
+
+  using namespace psmrts::algorithms::conversions;
 
   // Overload helper type for the ProductOption visitor. See the size()
   // method for how this can be used.
@@ -33,21 +36,14 @@ namespace psmrts {
    */
   class ProductOption {
     public:
-      using DoublesVisitor = psmrts::algorithms::conversions::DoublesVisitor;
-      using StringsVisitor = psmrts::algorithms::conversions::StringsVisitor;
-      // using SizetsVisitor = psmrts::algorithms::conversions::SizetsVisitor;
-      // using BoolsVisitor = psmrts::algorithms::conversions::BoolsVisitor;
-      // using IntsVisitor = psmrts::algorithms::conversions::IntsVisitor;
-      // using JsonVisitor = psmrts::algorithms::conversions::JsonVisitor;
+      using DoublesExtractor = Extractor<ProductOption, DoublesVisitor>;
+      using StringsExtractor = Extractor<ProductOption, StringsVisitor>;
+      // using SizetsExtractor  = Extractor<ProductOption, SizetsVisitor>;
+      // using IntsExtractor    = Extractor<ProductOption, IntsVisitor>;
+      // using BoolsExtractor   = Extractor<ProductOption, BoolsVisitor>;
+      // using JsonExtractor    = Extractor<ProductOption, JsonVisitor>;
       
-      using DoublesExtractor = psmrts::algorithms::conversions::Extractor<ProductOption, DoublesVisitor>;
-      using StringsExtractor = psmrts::algorithms::conversions::Extractor<ProductOption, StringsVisitor>;
-      // using SizetsExtractor  = psmrts::algorithms::conversions::Extractor<ProductOption, SizetsVisitor>;
-      // using IntsExtractor    = psmrts::algorithms::conversions::Extractor<ProductOption, IntsVisitor>;
-      // using BoolsExtractor   = psmrts::algorithms::conversions::Extractor<ProductOption, BoolsVisitor>;
-      // using JsonExtractor    =  psmrts::algorithms::conversions::Extractor<ProductOption, JsonVisitor>;
-      
-      using StringsComparator = psmrts::algorithms::conversions::Comparator<ProductOption, StringsVisitor>;
+      using StringsComparator = Comparator<ProductOption, StringsVisitor>;
 
       
       using DataTypes = std::variant< bool,
@@ -249,3 +245,5 @@ namespace psmrts {
   };
 
 } // namespace psmrts
+
+#endif

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PsmrtsRequest_hpp
+#define PsmrtsRequest_hpp
 
 #include <vector>
 #include <deque>
@@ -7,6 +8,7 @@
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
+#include <psmrts/core/ProductConfiguration.hpp>
 
 namespace psmrts { 
 
@@ -22,11 +24,13 @@ namespace psmrts {
   class MissingProcessRequestHandler {
     public:
       MissingProcessRequestHandler() : m_name( "Product" ),
-                                       m_type( "missing" ) { }
+                                       m_type( "missing" ),
+                                       m_config( "none" ) { }
       MissingProcessRequestHandler( const std::string &name,
                                     const std::string &type_t = "missing" ) : 
                                    m_name ( name ),
-                                   m_type( type_t ) { }
+                                   m_type( type_t ),
+                                   m_config( name ) { }
       virtual ~MissingProcessRequestHandler() = default;
       
       inline const std::string &name() const {
@@ -42,6 +46,14 @@ namespace psmrts {
         return ( PsmrtsUID::null_uid() );
       }
 
+      inline const ProductConfiguration &config() const {
+        return ( m_config );
+      }
+
+      inline bool matches( const ProductConfiguration &conf ) const {
+        return ( false );
+      }
+      
       template <class PRQ>
         bool process( PRQ &request ) const {
           request.reset();
@@ -55,6 +67,7 @@ namespace psmrts {
     private:
       std::string m_name;
       std::string m_type;
+      ProductConfiguration m_config;
   };
 
   /**
@@ -665,3 +678,5 @@ class PRQPhotometricTraceArray : public PsmrtsRequest {
 
 
 } // namespace psmrts
+
+#endif

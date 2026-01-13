@@ -41,13 +41,13 @@ macro(psmrts_add_cspice_target)
   if ( NOT TARGET cspice::cspice )
     if ( TARGET unofficial::cspice::cspice )
       # VCPKG target name
-      set(_cspice_target_name unofficial::cspice::cspice )
+      set( CSPICE_LIBRARY_TARGET unofficial::cspice::cspice )
     elseif( TARGET CSPICE::cspice )
       # Conda target name
-      set(_cspice_target_name CSPICE::cspice )
+      set( CSPICE_LIBRARY_TARGET CSPICE::cspice )
     elseif( TARGET cspice )
       # Conan target name
-      set(_cspice_target_name cspice )
+      set( CSPICE_LIBRARY_TARGET cspice )
     elseif( CSPICE_LIBRARY )
       # Detects a very limited ISIS cspice setup, sets up the cspice target
       # if it doesn't exist.
@@ -64,26 +64,24 @@ macro(psmrts_add_cspice_target)
         unset(_libdir)
         unset(_libname)  
         set(cspice_FOUND TRUE)
-        set(CSPICE_FOUND TRUE)
       endif()        
       
-      set(_cspice_target_name cspice )
+      set( CSPICE_LIBRARY_TARGET cspice )
     else()
       message(FATAL_ERROR "cspice library import not found - must be one of "
                           "unofficial::cspice::cspice, CSPICE::cspice or cspice ")
       set(cspice_FOUND FALSE)
     endif()
 
-    get_target_property(_cspice_include_dir "${_cspice_target_name}" INTERFACE_INCLUDE_DIRECTORIES)
+    get_target_property(_cspice_include_dir "${CSPICE_LIBRARY_TARGET}" INTERFACE_INCLUDE_DIRECTORIES)
     add_library( cspice::cspice INTERFACE IMPORTED)
     set_target_properties(cspice::cspice PROPERTIES 
-                              INTERFACE_LINK_LIBRARIES      "${_cspice_target_name}"
+                              INTERFACE_LINK_LIBRARIES      "${CSPICE_LIBRARY_TARGET}"
                               INTERFACE_INCLUDE_DIRECTORIES "${_cspice_include_dir}" 
     )
     set(cspice_FOUND TRUE)
-    message(STATUS "cspice Target Created/Confirmed: cspice::cspice")
-
-    unset(_cspice_target_name )
+    message(STATUS "Found cspice Target:   ${CSPICE_LIBRARY_TARGET}")
+    message(STATUS "cspice Target Created: cspice::cspice")
     unset(_cspice_include_dir )
   endif()
 
@@ -124,7 +122,8 @@ macro(psmrts_add_bullet_target)
       )
 
       set(Bullet_double_FOUND TRUE)
-      message(STATUS "Bullet Double Target Created/Confirmed: Bullet::Bullet_double")
+      set(BULLET_DOUBLE_LIBRARY_TARGET Bullet::Bullet_double)
+      message(STATUS "Bullet Double Target Created: Bullet::Bullet_double")
       message(STATUS "Bullet Includes:  ${BULLET_INCLUDE_DIR}")
       message(STATUS "Bullet Libdirs:   ${BULLET_LIBRARY_DIRS}")
       message(STATUS "Bullet Libraries: ${BULLET_LIBRARIES}")

@@ -1,6 +1,5 @@
 #ifndef PsmrtsInventory_hpp
 #define PsmrtsInventory_hpp
-#pragma once
 
 #include <exception>
 #include <string>
