@@ -3,12 +3,12 @@ target_sources( psmrts PUBLIC
                          FILE_SET psmrts_headers
                            TYPE HEADERS 
                            FILES AllConversionsVisitors.hpp
+                                 BoolsVisitor.hpp
                                  Comparator.hpp
                                  ConversionTraits.hpp
                                  DoublesVisitor.hpp
                                  Extractor.hpp                           
-                                 OptionBools.hpp
-                                 OptionInts.hpp
+                                 IntegersVisitor.hpp
                                  StringsVisitor.hpp                                 
               )
 

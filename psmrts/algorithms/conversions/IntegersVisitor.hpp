@@ -1,4 +1,5 @@
-#pragma once
+#ifndef IntegersVisitor_hpp
+#define IntegersVisitor_hpp
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/algorithms/conversions/ConversionTraits.hpp>
@@ -33,38 +34,48 @@ namespace psmrts::algorithms::conversions {
       }
 
       inline void operator()( const bool b ) {
-        if ( add_it( 0, 1 ) ) {
-          m_datum.push_back( ( b ? 1 : 0 ) );
-        }
-        else {
-          m_datum.push_back ( default_value());
-        }
+        auto process = [&]( const bool addit, const size_t index ) {
+          if ( addit ) {
+            m_datum.push_back( ( b ? 1 : 0 ) );
+          }
+          else {
+            m_datum.push_back ( default_value() );
+          }
+        };
+        parameters().extractor( 1, process );          
       }
 
       inline void operator()( const int i )  {
-        if ( add_it( 0, 1 ) ) {
-          m_datum.push_back( i );
-        }
-        else {
-          m_datum.push_back ( default_value() );
-        }            
+        auto process = [&]( const bool addit, const size_t index ) {
+          if ( addit ) {
+            m_datum.push_back( i );
+          }
+          else {
+            m_datum.push_back ( default_value() );
+          }
+        };
+        parameters().extractor( 1, process );            
       }
 
       inline void operator()( const size_t i )  {
-        if ( add_it( 0, 1 ) ) {
-          if ( i >= std::numeric_limits<Type>::max() ) {
-            m_datum.push_back( std::numeric_limits<Type>::max() );
-          } else {
-            m_datum.push_back( static_cast<Type>( i ) );
+        auto process = [&]( const bool addit, const size_t index ) {
+          if ( addit ) {
+            if ( i >= std::numeric_limits<Type>::max() ) {
+              m_datum.push_back( std::numeric_limits<Type>::max() );
+            } else {
+              m_datum.push_back( static_cast<Type>( i ) );
+            }
           }
-        }
-        else {
-          m_datum.push_back ( default_value() );
-        }    
+          else {
+            m_datum.push_back ( default_value() );
+          }
+        };
+        parameters().extractor( 1, process );    
       }          
 
       inline void operator()( const double d ) {
-        if ( add_it( 0, 1 ) ) { 
+        auto process = [&]( const bool addit, const size_t index ) {        
+          if ( addit ) {
             if (d >= std::numeric_limits<Type>::max() ) {
                 m_datum.push_back( std::numeric_limits<Type>::max() );
             }
@@ -74,94 +85,121 @@ namespace psmrts::algorithms::conversions {
             else {
                 m_datum.push_back( static_cast<Type>( d ) );
             }
-        }
-        else {
-          m_datum.push_back ( default_value());
-        }                
+          }
+          else {
+            m_datum.push_back ( default_value() );
+          }
+        };
+        parameters().extractor( 1, process );                         
       }
 
       inline void operator()( const std::string &s ) {
-        if ( add_it( 0, 1 ) ) {
-          m_datum.push_back( string_to_int( s ) );
-        }
-        else {
-          m_datum.push_back ( default_value() );
-        }               
+        auto process = [&]( const bool addit, const size_t index ) {
+          if ( addit ) {
+            m_datum.push_back( string_to_int( s ) );
+          }
+          else {
+            m_datum.push_back ( default_value() );
+          }
+        };
+        parameters().extractor( 1, process );            
       }    
 
       inline void operator()( const std::vector<int> i_array ) {
-        size_t ith = parameters().index();
-        size_t nth = parameters().count() + ith;
-
-        for ( size_t i = ith ; i < nth ; i++ ) {
-          if ( add_it( i, i_array.size() ) ) {
-            m_datum.push_back( i_array[i]  ); 
+        auto process = [&]( const bool addit, const size_t index ) {
+          if ( addit ) {
+            m_datum.push_back(  i_array[index]  ); 
           }
           else {
             m_datum.push_back ( default_value() );
-          }             
-        }
+          }
+        };
+        parameters().extractor( i_array.size(), process ); 
       }
 
       inline void operator()( const std::vector<size_t> i_array ) {
-        size_t ith = parameters().index();
-        size_t nth = parameters().count() + ith;
-
-        for ( size_t i = ith ; i < nth  ; i++ ) {
-          if ( add_it( i, i_array.size() ) ) {
-            if ( i_array[i] >= std::numeric_limits<Type>::max() ) {
+        auto process = [&]( const bool addit, const size_t index ) {
+          if ( addit ) {
+            if ( i_array[index] >= std::numeric_limits<Type>::max() ) {
                 m_datum.push_back( std::numeric_limits<Type>::max() );
             } else {
-                m_datum.push_back( static_cast<int>( i_array[i] ) );
-            }
+                m_datum.push_back( static_cast<int>( i_array[index] ) );
+            } 
           }
           else {
-            m_datum.push_back ( default_value());
-          }             
-        }            
+            m_datum.push_back ( default_value() );
+          }
+        };
+        parameters().extractor( i_array.size(), process );            
       }
 
       inline void operator()( const std::vector<double> &d_array ) {
-        size_t ith = parameters().index();
-        size_t nth = parameters().count() + ith;
-
-        for ( size_t i = ith ; i < nth  ; i++ ) {
-          if ( add_it( i, d_array.size() ) ) {
-            if (d_array[i] >= std::numeric_limits<Type>::max() ) {
+        auto process = [&]( const bool addit, const size_t index ) {
+          if ( addit ) {
+            //m_datum.push_back( d_array[index] );                
+            if (d_array[index] >= std::numeric_limits<Type>::max() ) {
                 m_datum.push_back( std::numeric_limits<Type>::max() );
             }
-            else if (d_array[i] <= std::numeric_limits<Type>::min() ) {
+            else if (d_array[index] <= std::numeric_limits<Type>::min() ) {
                 m_datum.push_back( std::numeric_limits<Type>::min() );
             } 
             else {
-                m_datum.push_back( static_cast<int>( d_array[i] ) );
-            }              
+                m_datum.push_back( static_cast<int>( d_array[index] ) );
+            }
           }
           else {
             m_datum.push_back ( default_value() );
-          }             
-        }             
+          }
+        };
+        parameters().extractor( d_array.size(), process );           
       }
       
       inline void operator()( const std::vector<std::string> &s_array ) {
-        size_t ith = parameters().index();
-        size_t nth = parameters().count() + ith;
-
-        for ( size_t i = ith ; i < nth  ; i++ ) {
-          if ( add_it( i, s_array.size() ) ) {
-            m_datum.push_back( string_to_int( s_array[i] ) );                
+        auto process = [&]( const bool addit, const size_t index ) {
+          if ( addit ) {
+            m_datum.push_back( string_to_int( s_array[index] ) );                
           }
           else {
             m_datum.push_back ( default_value() );
-          }             
-        }              
+          }
+        };
+        parameters().extractor( s_array.size(), process );           
       }      
       
       inline void operator()( const ordered_json &j_data ) {
-        // Not simple but look for the easiest way to process this
+        // Set default and initial processing connditions
+        Type value = default_value();  
         auto it_j = j_data.begin();
 
-        int value = default_value();  // Set default return condition
+        /** This lambda processes a scalar value  */
+        auto process_scalar = [&]( const bool addit, const size_t index ) {
+          if ( addit ) {
+            if ( it_j->is_number() ) {
+              // Try direct assignement
+              value = *it_j;
+            }
+            else if ( it_j->is_string() ) {
+              std::string temp_s = *it_j;
+              value = string_to_int( temp_s );
+            }
+          }
+        };
+
+        /** This lambda processes a JSON array at the index */
+        auto process_array = [&]( const bool addit, const size_t index ) {
+          if ( addit ) {
+            // Got an array, these values must be a number of string
+            if ( it_j->at(index).is_number( ) ) {
+              value = it_j->at(index);
+            }
+            else if ( it_j->at(index).is_string() ) {
+              std::string temp_s = it_j->at(index);
+              value = string_to_int( temp_s );
+            }
+          }
+        }; 
+
+        // Preliminary processing of the JSON structure to determine its nature
         size_t level = 0;
         try { 
 
@@ -169,39 +207,15 @@ namespace psmrts::algorithms::conversions {
           while ( it_j->is_structured() && ( it_j != j_data.end() )) {
             if ( it_j->is_array() )     break;
             if ( it_j->is_primitive() ) break;
-
             level++;
             ++it_j;
           }
-
           // Now check if we actually have primitives or arrays
           if ( it_j->is_primitive() ) {
-
-            // Check if its ok to get a scaler
-            if ( add_it( 0, it_j->size() ) ) {  
-              if ( it_j->is_number() ) {
-                // Try direct assignement
-                value = *it_j;
-              }
-              else if ( it_j->is_string() ) {
-                std::string temp_s = *it_j;
-                value = string_to_int( temp_s );
-              }
-            }            
+            parameters().extractor( 1, process_scalar );        
           }
           else if ( it_j->is_array() ) {
-            // Got an array, these values must be a number of string
-            size_t ith = parameters().index();
-            size_t nth = parameters().count() + ith;
-            if ( add_it( ith, it_j->size() ) ) {
-              if ( it_j->at(ith).is_number( ) ) {
-                value = it_j->at(ith);
-              }
-              else if ( it_j->at(ith).is_string() ) {
-                std::string temp_s = it_j->at(ith);
-                value = string_to_int( temp_s );
-              }
-            }
+            parameters().extractor( it_j->size(), process_array );        
           }
         }
         catch ( json::exception & j ) {
@@ -210,8 +224,7 @@ namespace psmrts::algorithms::conversions {
         }
 
         // It is what it is...
-        m_datum.push_back( static_cast<Type>( value ) );
-        return;
+        m_datum.push_back( value );
       }
 
       inline const Type &default_value() const {
@@ -224,7 +237,7 @@ namespace psmrts::algorithms::conversions {
       }
 
       /** Return conversion parameter traits */
-      inline const ConversionParameters &traits() const {
+      inline const ConversionTraits &traits() const {
         return ( this->parameters().traits() );
       }
 
@@ -251,13 +264,15 @@ namespace psmrts::algorithms::conversions {
 
             return ( default_value() );
         }
-
+        /** -- May be unnecessary with lambda implementation / remove when directed --
         inline bool add_it(const size_t index, const size_t max_valid_size ) const {
             if ( ( index >= parameters().index() ) && ( index < max_valid_size ) ) {
               return ( true );
             }
             return ( false );
-        }
+        }*/
   };
 
 }   // namespace psmrts::algorithms::conversions
+
+#endif

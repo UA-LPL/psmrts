@@ -6,8 +6,8 @@
 #include <psmrts/algorithms/conversions/StringsVisitor.hpp>
 #include <psmrts/algorithms/conversions/DoublesVisitor.hpp>
 // #include <psmrts/algorithms/conversions/SizetVisitor.hpp>
-// #include <psmrts/algorithms/conversions/BoolsVisitor.hpp>
-// #include <psmrts/algorithms/conversions/IntsVisitor.hpp>
+#include <psmrts/algorithms/conversions/BoolsVisitor.hpp>
+#include <psmrts/algorithms/conversions/IntegersVisitor.hpp>
 // #include <psmrts/algorithms/conversions/JsonVisitor.hpp>
 
 #include <psmrts/algorithms/conversions/Extractor.hpp>

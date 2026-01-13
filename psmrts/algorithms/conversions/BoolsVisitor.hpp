@@ -1,10 +1,21 @@
-#pragma once
+#ifndef BoolsVisitor_hpp
+#define BoolsVisitor_hpp
+
+#include <stdexcept>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/algorithms/conversions/ConversionTraits.hpp>
 
 namespace psmrts::algorithms::conversions {
 
+  /**
+   * @brief Option conversion extracts boolean values from ProductOptions
+   * 
+   * This functor object will extract, converting if necessary, any of the
+   * stored intrinsic types. This must be maintained alongside ay changes
+   * made to ProductOption, particularly any new types added or removed.
+   * 
+   */
   class BoolsVisitor {
     public:
         using Type       = bool;
@@ -24,7 +35,7 @@ namespace psmrts::algorithms::conversions {
 
         /** Check if a value is valid and not the default type */
         inline bool isvalid( const Type &t ) const {
-            return ( t ); // Might need a change
+            return ( t != m_default ); // value is not the set default
         }
         
         inline bool isequal( const Type &t1, const Type &t2 ) const {
@@ -32,166 +43,169 @@ namespace psmrts::algorithms::conversions {
         }
 
         inline void operator()( const bool b ) {
-            if ( add_it( 0, 1 ) ) {
+          auto process = [&]( const bool addit, const size_t index ) {
+            if ( addit ) {
               m_datum.push_back( b );
+            } else {
+              m_datum.push_back( default_value() );
             }
-            else {
-              m_datum.push_back ( default_value());
-            }
+          };
+          parameters().extractor( 1 , process );
         }
 
         inline void operator()( const int i )  {
-            if ( add_it( 0, 1 ) ) {
+          auto process = [&]( const bool addit, const size_t index ) {
+            if ( addit ) {
               m_datum.push_back( ( ( i != 0 ) ? true : false ) );
-            }
-            else {
+            } else {
               m_datum.push_back ( default_value() );
-            }            
+            }
+          };
+          parameters().extractor( 1, process ); 
         }
 
         inline void operator()( const size_t i )  {
-            if ( add_it( 0, 1 ) ) {
+          auto process = [&]( const bool addit, const size_t index ) {
+            if ( addit ) {
               m_datum.push_back( ( ( i != 0 ) ? true : false ));
-            }
-            else {
+            } else {
               m_datum.push_back ( default_value() );
-            }    
+            }
+          };
+          parameters().extractor( 1, process );  
         }          
 
         inline void operator()( const double d ) {
-            if ( add_it( 0, 1 ) ) {
+          auto process = [&]( const bool addit, const size_t index ) {
+            if ( addit ) {
               m_datum.push_back( ( ( d != 0.0 ) ? true : false ) );
+            } else {
+              m_datum.push_back ( default_value() );
             }
-            else {
-              m_datum.push_back ( default_value());
-            }                
+          };
+          parameters().extractor( 1, process );              
         }
 
         inline void operator()( const std::string &s ) {
-            if ( add_it( 0, 1 ) ) {
-              // m_datum.push_back( s );
+          auto process = [&]( const bool addit, const size_t index ) {
+            if ( addit ) {
               m_datum.push_back( string_to_bool(s, m_default) );
-            }
-            else {
+            } else {
               m_datum.push_back ( default_value() );
-            }               
+            }
+          };
+          parameters().extractor( 1, process );            
         }    
 
         inline void operator()( const std::vector<int> i_array ) {
-            size_t ith = parameters().index();
-            size_t nth = parameters().count() + ith;
-
-            for (size_t i = ith ; i < nth ; nth++ ) {
-              if ( add_it( i, i_array.size() ) ) {
-                //m_datum.push_back( std::to_string( i_array[i] ) ); 
-                m_datum.push_back( ( ( i_array[i] != 0 ) ? true : false ) );
-              }
-              else {
-                m_datum.push_back ( default_value() );
-              }             
+          auto process = [&]( const bool addit, const size_t index ) {
+            if ( addit ) {
+              m_datum.push_back( ( ( i_array[index] != 0 ) ? true : false ) );
             }
+            else {
+              m_datum.push_back ( default_value() );
+            }
+          };
+          parameters().extractor( i_array.size(), process ); 
         }
 
         inline void operator()( const std::vector<size_t> i_array ) {
-            size_t ith = parameters().index();
-            size_t nth = parameters().count() + ith;
-
-            for (size_t i = ith ; i < nth  ; i++ ) { // Should be i++?
-              if ( add_it( i, i_array.size() ) ) {
-                //m_datum.push_back( std::to_string( i_array[i] ) );
-                m_datum.push_back( ( ( i_array[i] != 0 ) ? true : false ) ); 
-              }
-              else {
-                m_datum.push_back ( default_value());
-              }             
-            }            
+          auto process = [&]( const bool addit, const size_t index ) {
+            if ( addit ) {
+              m_datum.push_back( ( ( i_array[index] != 0 ) ? true : false ) ); 
+            }
+            else {
+              m_datum.push_back ( default_value() );
+            }
+          };
+          parameters().extractor( i_array.size(), process );            
         }
 
         inline void operator()( const std::vector<double> &d_array ) {
-            size_t ith = parameters().index();
-            size_t nth = parameters().count() + ith;
-
-            for (size_t i = ith ; i < nth  ; i++ ) {
-              if ( add_it( i, d_array.size() ) ) {
-                //std::ostringstream out;
-                m_datum.push_back( ( ( d_array[i] != 0.0 ) ? true : false ) );                
-              }
-              else {
-                m_datum.push_back ( default_value() );
-              }             
-            }             
+          auto process = [&]( const bool addit, const size_t index ) {
+            if ( addit ) {
+              m_datum.push_back( ( ( d_array[index] != 0.0 ) ? true : false ) );                
+            }
+            else {
+              m_datum.push_back ( default_value() );
+            }
+          };
+          parameters().extractor( d_array.size(), process );             
         }
           
         inline void operator()( const std::vector<std::string> &s_array ) {
-            size_t ith = parameters().index();
-            size_t nth = parameters().count() + ith;
-
-            for (size_t i = ith ; i < nth  ; i++ ) {
-              if ( add_it( i, s_array.size() ) ) {
-                //m_datum.push_back( s_array[i] );
-                m_datum.push_back( ( string_to_bool(s_array[i], m_default) ) );                
-              }
-              else {
-                m_datum.push_back ( default_value() );
-              }             
-            }              
+          auto process = [&]( const bool addit, const size_t index ) {
+            if ( addit ) {
+              m_datum.push_back( ( string_to_bool(s_array[index], m_default) ) );                
+            }
+            else {
+              m_datum.push_back ( default_value() );
+            }
+          };
+          parameters().extractor( s_array.size(), process );             
         }
 
         inline void operator()( const ordered_json &j_data ) {
-            // Not simple but look for the easiest way to process this
-            auto it_j = j_data.begin();
+          // Set default and initial processing conditions
+          Type value = default_value();  
+          auto it_j = j_data.begin();
 
-            bool value = default_value();  // Set default return condition
-            size_t level = 0;
-            try { 
-
-              // Find the first primitive or array
-              while ( it_j->is_structured() && ( it_j != j_data.end() )) {
-                if ( it_j->is_array() )     break;
-                if ( it_j->is_primitive() ) break;
-
-                level++;
-                ++it_j;
+          /** This lambda processes a scalar value  */
+          auto process_scalar = [&]( const bool addit, const size_t index ) {
+            if ( addit ) {
+              if ( it_j->is_number() ) {
+                // Try direct assignement
+                //value = *it_j;
+                value = ( ( *it_j != 0.0 ) ? true : false );
               }
-
-              // Now check if we actually have primitives or arrays
-              if ( it_j->is_primitive() ) {
-
-                // Check if its ok to get a scaler
-                if ( add_it( 0, it_j->size() ) ) {  
-                  if ( it_j->is_number() ) {
-                    // Try direct assignement
-                    value = *it_j;  // THIS IS A PROBLEM! SHOULD be bool!
-                  }
-                  else if ( it_j->is_string() ) {
-                    std::string temp_s = *it_j;
-                    value = string_to_bool( temp_s );
-                  }
-                }            
-              }
-              else if ( it_j->is_array() ) {
-                // Got an array, these values must be a number of string
-                size_t ith = parameters().index();
-                size_t nth = parameters().count() + ith;
-                if ( add_it( ith, it_j->size() ) ) {
-                  if ( it_j->at(ith).is_number( ) ) {
-                    value = it_j->at(ith);
-                  }
-                  else if ( it_j->at(ith).is_string() ) {
-                    std::string temp_s = it_j->at(ith);
-                    value = string_to_bool( temp_s );
-                  }
-                }
+              else if ( it_j->is_string() ) {
+                std::string temp_s = *it_j;
+                value = string_to_bool( temp_s, m_default );
               }
             }
-            catch ( json::exception & j ) {
-              // All errors just result in default value
-              value = default_value();
+          };
+          /** This lambda processes a JSON array at the index */
+          auto process_array = [&]( const bool addit, const size_t index ) {
+            if ( addit ) {
+              // Got an array, these values must be a number of string
+              if ( it_j->at(index).is_number( ) ) {
+                //value = it_j->at(index);
+                value = ( ( it_j->at(index) != 0.0 ) ? true : false );
+              }
+              else if ( it_j->at(index).is_string() ) {
+                std::string temp_s = it_j->at(index);
+                value = string_to_bool( temp_s, m_default );
+              }
+            }
+          }; 
+
+          // Preliminary processing of the JSON structure to determine its nature
+          size_t level = 0;
+          try { 
+
+            // Find the first primitive or array
+            while ( it_j->is_structured() && ( it_j != j_data.end() )) {
+              if ( it_j->is_array() )     break;
+              if ( it_j->is_primitive() ) break;
+              level++;
+              ++it_j;
             }
 
-            // It is what it is.. 
-            m_datum.push_back( ( ( value != 0.0 ) ? true : false ) );
-            return;
+            // Now check if we actually have primitives or arrays
+            if ( it_j->is_primitive() ) {
+              parameters().extractor( 1, process_scalar );        
+            }
+            else if ( it_j->is_array() ) {
+              parameters().extractor( it_j->size(), process_array );        
+            }
+          }
+          catch ( json::exception & j ) {
+            // All errors just result in default value
+            value = default_value();
+          }
+
+          // It is what it is...
+          m_datum.push_back( value );
         }
 
         inline const Type &default_value() const {
@@ -229,12 +243,15 @@ namespace psmrts::algorithms::conversions {
 
             return default_v;
         }
-
+        /** -- May be unnecessary with lambda implementation / remove when directed --
         inline bool add_it(const size_t index, const size_t max_valid_size ) const {
             if ( ( index >= parameters().index() ) && ( index < max_valid_size ) ) {
                 return ( true );
             }
             return ( false );
         }
+        */
   };
 }   // namespace psmrts::algorithms::conversions
+
+#endif

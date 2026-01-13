@@ -5,6 +5,7 @@ find_package( Catch2 CONFIG REQUIRED )
 
 # Build all-in-one renderer test application
 add_executable( conversions_test_suite  conversions_catch2_main.cpp
+                                        test_BoolsVisitor.cpp
                                         test_ConversionTraits.cpp
                                         test_DoublesVisitor.cpp
                                         test_StringsVisitor.cpp )
