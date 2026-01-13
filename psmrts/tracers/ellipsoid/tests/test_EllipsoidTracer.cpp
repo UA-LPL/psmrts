@@ -9,6 +9,9 @@
 
 
 TEST_CASE( "Ellipsoid Shape Tracer - Request Default Constructor", "[default][ellipsoid][shapetracer]") {
+
+    CHECK( sizeof( psmrts::EllipsoidTracer ) == 400 );  
+
     psmrts::EllipsoidTracer e_tracer;
 
     psmrts::PRQFeatures features;

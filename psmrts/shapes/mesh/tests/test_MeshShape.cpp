@@ -59,6 +59,8 @@ TEST_CASE( "MESH SHAPE - Values Test", "[mesh][shape][values]") {
         data_y[2] = i;
     }
 
+    CHECK( sizeof( psmrts::MeshShape ) == 784 );  
+
     psmrts::PsmrtsMeshData mesh( i_model, v_model );
     psmrts::MeshShape shape( mesh, "mesh" );
 

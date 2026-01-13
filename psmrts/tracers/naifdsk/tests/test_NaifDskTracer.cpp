@@ -6,6 +6,9 @@
 
 TEST_CASE("NAIF Dsk Shape Tracer - Default Constructor", "[default][naifdsk][shapetracer]"){
     const double tolerance = 1.0e-6;
+
+    CHECK( sizeof( psmrts::NaifDskTracer ) == 680 );  
+
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
     psmrts::NaifDskTracer dsk_string_tracer( dskfile );
     

@@ -17,10 +17,12 @@ namespace psmrts {
    */
   class BulletTracer::BulletTracerImpl : public PsmrtsProduct {
     public:
-      BulletTracerImpl( ) : PsmrtsProduct( "bulletmodel", "tracer" ), 
+      BulletTracerImpl( ) : PsmrtsProduct( "bulletmodel", "tracer" ),
+                            m_shape(), 
                             m_bullet_model() { }
       BulletTracerImpl( const PsmrtsShape &shape  ) : 
                         PsmrtsProduct( shape.name(), "tracer" ),
+                        m_shape( shape ),
                         m_bullet_model( bullet::PsmrtsBulletMeshMap( shape.get_mesh(), 
                                                                      shape.name(), 0), 
                                                                      shape.name() ) { 
@@ -38,7 +40,12 @@ namespace psmrts {
         return ( m_bullet_model.get_facet( ray, facet ) );
       } 
 
+      inline const PsmrtsShape &shape() const {
+        return ( m_shape );
+      }
+
      private:
+        PsmrtsShape m_shape;
         bullet::BulletTracerModel m_bullet_model;
   };
 
@@ -48,13 +55,11 @@ namespace psmrts {
    * 
    */
   BulletTracer::BulletTracer( ) : PsmrtsProduct( "bullet", "tracer" ),
-                                  m_shape(),
                                   m_configured("bullet"),
                                   m_model( std::make_shared<BulletTracerImpl>() ) {  }
 
   BulletTracer::BulletTracer( const PsmrtsShape &shape ) : 
                               PsmrtsProduct( shape.config().name(), "tracer"),
-                              m_shape( shape ),
                               m_configured("bullet") {
     m_model = std::make_shared<BulletTracerImpl> ( shape );
     m_configured.add( ProductOption( "bullet_optimize_bvh", "false" ) );
@@ -65,12 +70,13 @@ namespace psmrts {
   BulletTracer::~BulletTracer() = default;
 
       
+  
   double BulletTracer::maximum_radius() const {
-    return ( m_shape.maximum_radius() );
+    return ( shape().maximum_radius() );
   }
 
   double BulletTracer::minimum_radius() const { 
-    return ( m_shape.minimum_radius() );
+    return ( shape().minimum_radius() );
   }
 
   bool BulletTracer::ray_trace( PsmrtsRayTrace &ray ) const {
@@ -82,6 +88,10 @@ namespace psmrts {
   bool BulletTracer::get_facet(  const PsmrtsRayTrace &ray, 
                                  PsmrtsRayTrace::FacetDatum &facet) const {
     return ( m_model->get_facet( ray, facet ) );                                 
+  }
+
+  const PsmrtsShape &BulletTracer::shape() const {
+    return ( m_model->shape() );
   }
 
 } // namespace psmrts

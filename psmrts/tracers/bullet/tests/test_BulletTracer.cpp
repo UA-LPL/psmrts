@@ -7,6 +7,9 @@
 #include <cspice/SpiceUsr.h>
 
 TEST_CASE ( "Bullet Tracer - Default Constructor", "[default][bullet][tracer]" ) {
+
+    CHECK( sizeof( psmrts::BulletTracer ) == 392 );  
+
     psmrts::BulletTracer b_tracer;
 
     psmrts::PRQFeatures features;

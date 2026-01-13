@@ -203,9 +203,8 @@ namespace psmrts  {
         return ( ProductSpecification( info, { bvh, cmp } ) );
       }
 
-      inline const PsmrtsShape &shape() const {
-        return ( m_shape );
-      }
+      /** Return reference to PsmrtsShape used in this instance */
+      const PsmrtsShape &shape() const;
 
       /** Return the current product configuration */
       inline const ProductConfiguration &config() const {
@@ -228,7 +227,6 @@ namespace psmrts  {
     private:
       class BulletTracerImpl;
       std::shared_ptr<BulletTracerImpl> m_model;
-      PsmrtsShape                       m_shape;
       ProductConfiguration              m_configured;
   };
 

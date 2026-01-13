@@ -24,10 +24,10 @@ TEST_CASE( "DSK SHAPE - Default Test", "[dsk][shape][specification]") {
 
 TEST_CASE( "PSMRTS Product DSK Specification Test", "[product][type][mesh][dsk]") {
     double tolerance = 1.0e-6;
+    CHECK( sizeof( psmrts::DskShape ) == 1280 );  
 
     std::string dskfile = psmrts_shapes_path( "dsk/data/bennu_20facets.bds" );
     psmrts::DskShape dsk_m( dskfile );
-  
     CHECK( dsk_m.name() == dskfile );
     CHECK( dsk_m.type() == "dsk" );
     CHECK( psmrts::PsmrtsUID::is_valid_uid( dsk_m.uid() ) );

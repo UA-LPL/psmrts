@@ -11,6 +11,9 @@
 #include <psmrts/shapes/PsmrtsShape.hpp>
 
 TEST_CASE("PsmrtsShape Default Test", "[shape][default]") {
+
+    CHECK( sizeof( psmrts::PsmrtsShape) == 1296 );
+
     psmrts::PsmrtsShape test_shape;
     CHECK( test_shape.isValid() == false );
 
