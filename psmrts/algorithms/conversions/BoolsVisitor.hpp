@@ -35,7 +35,9 @@ namespace psmrts::algorithms::conversions {
 
         /** Check if a value is valid and not the default type */
         inline bool isvalid( const Type &t ) const {
-            return ( t != m_default ); // value is not the set default
+        // If value is successfully converted to a bool, it will always be valid 
+        // ( ignores comparison to default )
+            return ( true );
         }
         
         inline bool isequal( const Type &t1, const Type &t2 ) const {

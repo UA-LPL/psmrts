@@ -36,11 +36,11 @@ namespace psmrts {
    */
   class ProductOption {
     public:
-      using DoublesExtractor = Extractor<ProductOption, DoublesVisitor>;
-      using StringsExtractor = Extractor<ProductOption, StringsVisitor>;
+      using DoublesExtractor  = Extractor<ProductOption, DoublesVisitor>;
+      using StringsExtractor  = Extractor<ProductOption, StringsVisitor>;
       // using SizetsExtractor  = Extractor<ProductOption, SizetsVisitor>;
-      // using IntsExtractor    = Extractor<ProductOption, IntsVisitor>;
-      // using BoolsExtractor   = Extractor<ProductOption, BoolsVisitor>;
+      using IntegersExtractor = Extractor<ProductOption, IntegersVisitor>;
+      using BoolsExtractor    = Extractor<ProductOption, BoolsVisitor>;
       // using JsonExtractor    = Extractor<ProductOption, JsonVisitor>;
       
       using StringsComparator = Comparator<ProductOption, StringsVisitor>;
