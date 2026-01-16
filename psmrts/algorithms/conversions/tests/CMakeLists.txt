@@ -9,6 +9,7 @@ add_executable( conversions_test_suite  conversions_catch2_main.cpp
                                         test_ConversionTraits.cpp
                                         test_DoublesVisitor.cpp
                                         test_IntegersVisitor.cpp
+                                        test_SizetsVisitor.cpp
                                         test_StringsVisitor.cpp )
 
 # Add required libraries as needed for conversions_test_suite

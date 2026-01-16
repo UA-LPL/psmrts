@@ -20,7 +20,7 @@ namespace psmrts::algorithms::conversions {
    * regarding PSRMTS products such as shapes and tracers. Product
    * configurations are maintained for each product. Users provide product
    * options that are used to compare with existing instances that have
-   * particular paramerizations. The instance parameterizations are compared
+   * particular parameterizations. The instance parameterizations are compared
    * with product configurations for reuse purposes to minimize data
    * requirements.
    * 
@@ -30,7 +30,7 @@ namespace psmrts::algorithms::conversions {
    * of strings from particularly double precision data. This can be used to
    * compare instances of ProductOptions that can differ at micrometer scales
    * (see ConversionTraits). However, the same comparison can be made with
-   * direct double precision vistors and comparator combinatons, e.g.,
+   * direct double precision visitors and comparator combinations, e.g.,
    * Comparator<ProductOption,DoublesVisitor>. 
    * 
    * @author 2026-01-08 Kris J Becker
@@ -67,12 +67,12 @@ namespace psmrts::algorithms::conversions {
         virtual ~Comparator() = default;
 
 
-        /** Return refernce to the current container */
+        /** Return reference to the current container */
         inline const Container &container() const {
           return ( m_option );
         }
 
-        /** Return refernce to the current container */
+        /** Return reference to the current container */
         inline size_t size() const {
           return ( this->container().size() );
         }

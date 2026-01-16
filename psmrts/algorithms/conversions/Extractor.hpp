@@ -23,11 +23,11 @@ namespace psmrts::algorithms::conversions {
    * array with default values.
    * 
    * Most any datatype can be converted to strings and compared (see Comparator)
-   * to determine if a product configuration satisfies a product specifation for
+   * to determine if a product configuration satisfies a product specification for
    * creation of data containers, such as PsmrtsShapes, and processes, such as
    * PsmrtsTracers.
    * 
-   * This extractor supports customization of dataset covnersions using the
+   * This extractor supports customization of dataset conversions using the
    * ConversionTraits structs that determine digits of output for double
    * precision data to strings. It contains specifications of direct double
    * precision comparisons and formatting of JSON string output.
@@ -137,13 +137,13 @@ namespace psmrts::algorithms::conversions {
         /**
          * @brief Get the all data values and return in a user provided vector values
          * 
-         * This method extracts value from a option potenitally converting the
+         * This method extracts value from a option potentially converting the
          * the type based upon the Visitor type. Some conversions may fail and
-         * return a default value as specifed in constructors (a resonable
+         * return a default value as specified in constructors (a reasonable
          * default is provided by the Visitor).
          * 
          * @param d  Vector<Type> is returned containing all the
-         *             converted/extracted data with potentai default/invalid
+         *             converted/extracted data with potential default/invalid
          *             elements.
          * @return const std::vector<Type>& Returns a reference to the return
          *             data vector
@@ -161,12 +161,12 @@ namespace psmrts::algorithms::conversions {
         /** Extract data from container and return a vector of data
          * 
          * This method creates a local vector to data to extract the contents of
-         * the stored containter of the given visitor template type. Users can
+         * the stored container of the given visitor template type. Users can
          * specify a sub section of the array to extract. No parameters will
          * result in all values in the option to be converted, extracted and
          * returned to the caller.
          * 
-         * Here is an example demonstating how to fill a ProductOption (e) with
+         * Here is an example demonstrating how to fill a ProductOption (e) with
          * 10 values of the constant 1.0 (d).
          * 
          * @code

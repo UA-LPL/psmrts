@@ -221,8 +221,8 @@ namespace psmrts::algorithms::conversions {
        * @brief Extraction method to apply to a dataset using a lambda/function
        * 
        * This method provides a extraction processor using the configuration of 
-       * the parameters contain herein. This is intended to simplify Vistor
-       * functors that need to interate safely and consistently for all data
+       * the parameters contain herein. This is intended to simplify Visitor
+       * functors that need to iterate safely and consistently for all data
        * types.
        * 
        * Visitor datatype extractor functions (defined above) require the
@@ -230,7 +230,7 @@ namespace psmrts::algorithms::conversions {
        * arrays) and a function that accepts a bool and size_t index into its
        * data set array. NOTE users of this extractor method must provide the
        * correct/exact size of the data array being processed. However, not when
-       * the "addit" parameter is false, the index cannot be guarenteed to be
+       * the "addit" parameter is false, the index cannot be guaranteed to be
        * valid and the result is typically the last index in the array/scalar.
        * The only exception when that datasize is 0, which in that case, the
        * default value should always result within the process() function.

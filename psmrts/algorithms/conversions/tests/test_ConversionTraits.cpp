@@ -8,12 +8,16 @@
 // Extractor tyoes
 using DoublesVisitor   = psmrts::algorithms::conversions::DoublesVisitor;
 using StringsVisitor   = psmrts::algorithms::conversions::StringsVisitor;
+using SizetsVisitor    = psmrts::algorithms::conversions::SizetsVisitor;
 
 using DoublesExtractor = psmrts::algorithms::conversions::Extractor<psmrts::ProductOption, DoublesVisitor>;
 using StringsExtractor = psmrts::algorithms::conversions::Extractor<psmrts::ProductOption, StringsVisitor>;
+using SizetsExtractor  = psmrts::algorithms::conversions::Extractor<psmrts::ProductOption, SizetsVisitor>;
 
-using StringsComparator = psmrts::algorithms::conversions::Comparator<psmrts::ProductOption, StringsVisitor>;
 using DoublesComparator = psmrts::algorithms::conversions::Comparator<psmrts::ProductOption, DoublesVisitor>;
+using StringsComparator = psmrts::algorithms::conversions::Comparator<psmrts::ProductOption, StringsVisitor>;
+using SizetsComparator  = psmrts::algorithms::conversions::Comparator<psmrts::ProductOption, SizetsVisitor>;
+
 
 TEST_CASE("ConversionTraits Basic Test", "[conversions][option][traits]") {
 
