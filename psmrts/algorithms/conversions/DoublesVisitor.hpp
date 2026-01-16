@@ -16,7 +16,7 @@ namespace psmrts::algorithms::conversions {
    * 
    * This functor object will extract, converting if necessary, any of the
    * stored intrinsic types. This must be maintained alongside any changes
-   * made to ProductOption, paticular any new types added or removed.
+   * made to ProductOption, particularly any new types added or removed.
    * 
    * @author 2026-01-06 Kris J Becker
    */
