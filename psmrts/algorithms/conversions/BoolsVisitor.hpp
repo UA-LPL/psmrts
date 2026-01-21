@@ -231,6 +231,21 @@ namespace psmrts::algorithms::conversions {
         ConversionParameters m_parameters;
         Type                 m_default;
 
+        /**
+         * @brief Converts a string to the associable boolean equivalent
+         * 
+         * This fuction anticipates the following string values:
+         * 
+         *   { true, 1, yes, on, false, 0, no, off }
+         * 
+         * String inputs that contain numerical types will need to be converted to those 
+         * actual types for conversion. 
+         * 
+         * @param s          String input to be converted
+         * @param default_v  Default bool value
+         * @return true      
+         * @return false 
+         */
         static bool string_to_bool(const std::string &s, const bool default_v) {
             if (s.empty()) return default_v;
             

@@ -285,12 +285,30 @@ namespace psmrts::algorithms::conversions {
     
       //! Convert strings to size_ts with error checking
       //! std::stoul throws std::out_of_range if necessary
-      inline double string_to_sizet( const std::string &s ) const {
+      inline size_t string_to_sizet( const std::string &s ) const {
         // checking for negative sign in string
         if ( s[0] == '-' ) {                
           return ( default_value() );
         }
 
+        try {
+          size_t len;
+          double val = std::stod( s, &len );
+          if (len != s.length() ) return ( default_value() );
+
+          if (val >= std::numeric_limits<size_t>::min() &&
+              val <= std::numeric_limits<size_t>::max() ) {
+            return static_cast<Type>( val );
+          }
+          else {
+            return default_value();
+          }
+        }
+        catch ( ... ) {
+          return default_value();
+        }
+        return default_value();
+        /** 
         size_t bad_char_index;
         try {
           size_t szt = std::stoul( s, &bad_char_index );          
@@ -303,8 +321,9 @@ namespace psmrts::algorithms::conversions {
         catch ( std::exception &e) {
           return ( default_value() );
         }
-
+        
         return ( default_value() );
+        */
       }
   };
 }    // namespace psmrts::algorithms::conversions

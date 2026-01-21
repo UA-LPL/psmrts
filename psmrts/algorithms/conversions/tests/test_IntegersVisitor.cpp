@@ -42,7 +42,7 @@ TEST_CASE("IntegersVisitor Conversion Test", "[conversions][option][integers][vi
     CHECK( psmrts::OptionIntegersComparator::compare( option_double, option_sizet ) == true );
     CHECK( psmrts::OptionIntegersComparator::compare( option_sizet, option_str )    == true );
 
-    psmrts::ProductOption option_array( "Double Array", std::vector<double>{0.0, 1.1, 2.2, 3.3, 4.4} );
+    psmrts::ProductOption option_array( "Double Array", std::vector<double>{0.0, 1.1, 2.2, 3.8, 4.4} );
     psmrts::OptionIntegersExtractor array_dbl( option_array );
     CHECK( array_dbl.name() == "double array" ); // Strings are coverted to lowercase
     CHECK( array_dbl.size() == 5 );
@@ -74,16 +74,14 @@ TEST_CASE("IntegersVisitor Conversion Test", "[conversions][option][integers][vi
     CHECK( psmrts::OptionIntegersComparator::compare( option_array2, option_array3 ) == true );
     CHECK( psmrts::OptionIntegersComparator::compare( option_array, option_array2 )  == false );
 
-    psmrts::ProductOption option_array4( "StRiNG ArRay", std::vector<std::string>{"10", "0.2", "-42"} );
+    psmrts::ProductOption option_array4( "StRiNG ArRay", std::vector<std::string>{"10", "4.2", "-42"} );
     psmrts::OptionIntegersExtractor array_str( option_array4 );
     CHECK( array_str.name() == "string array" ); // Strings are coverted to lowercase
     CHECK( array_str.size() == 3 );
     CHECK( array_str.get()  == 10 );
-    CHECK( array_str.get(1) == std::numeric_limits<int>::min() ); //should I do a check for double in strings?
+    CHECK( array_str.get(1) == 4 ); 
     CHECK( array_str.get(2) == -42 );
     CHECK( array_str.get(3) == std::numeric_limits<int>::min() );
-
-    //Should we implement a bool array operator as well?
 }
 
 TEST_CASE("IntegersVisitor JSON Conversion Test", "[conversions][option][integers][comparator][json]") {

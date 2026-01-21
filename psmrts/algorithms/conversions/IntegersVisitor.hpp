@@ -251,7 +251,27 @@ namespace psmrts::algorithms::conversions {
         ConversionParameters m_parameters;
         Type                 m_default;
 
-        inline double string_to_int( const std::string &s ) const {
+        inline int string_to_int( const std::string &s ) const {
+          try {
+            size_t len;
+            double val = std::stod( s, &len );
+            if (len != s.length() ) return ( default_value() );
+
+            if ( val >= std::numeric_limits<Type>::max() ) {
+                return std::numeric_limits<Type>::max();
+            }
+            else if (val <= std::numeric_limits<Type>::min() ) {
+                return std::numeric_limits<Type>::min();
+            } 
+            else {
+                return static_cast<Type>( val );
+            }
+          }
+          catch( ... ) {
+            return ( default_value() );
+          }
+          return ( default_value() );
+          /**
             size_t bad_char_index;
             try {
               int i = std::stoi( s, &bad_char_index );
@@ -263,6 +283,7 @@ namespace psmrts::algorithms::conversions {
             }
 
             return ( default_value() );
+            */
         }
         /** -- May be unnecessary with lambda implementation / remove when directed --
         inline bool add_it(const size_t index, const size_t max_valid_size ) const {
