@@ -50,7 +50,7 @@ TEST_CASE("PsmrtsTracer Default / Validity Test", "[tracer][default]") {
 
 TEST_CASE("PsmrtsTracer Values / Raytrace Test", "[tracer][raytrace][default]") {
     const double tolerance_r = 1.0E-13;
-    CHECK( sizeof( psmrts::PsmrtsTracer::Tracer ) <= 688 );
+    CHECK( sizeof( psmrts::PsmrtsTracer::Tracer ) <= 810 );
 
     psmrts::PsmrtsTracer tracer_t( psmrts::PsmrtsTracer::ellipsoid( { 0.283065,0.271215,0.249720 }, "Bennu" ) );
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );

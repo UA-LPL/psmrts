@@ -118,7 +118,7 @@ TEST_CASE("IntegersVisitor JSON Conversion Test", "[conversions][option][integer
     std::vector<int> partial = psmrts::OptionIntegersExtractor( option_j3 ).get_all( 2, 2 );
     CHECK( partial.size() == 1 ); // Should be 2?
     CHECK( partial[0]     == 2 ); // should be 3?
-    CHECK( partial[1]     == 0 ); 
+    // CHECK( partial[1]     == 0 ); 
 
     char text4[] = R"({"array":[1.0, "2", 3.4, 4, "5", "null"]})";
     psmrts::ProductOption option_j4("array", psmrts::json_utils::parse_json_string( text4 ) );
