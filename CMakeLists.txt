@@ -238,9 +238,9 @@ if( BUILD_TESTING )
     setup_target_for_coverage_gcovr_html(
       NAME coverage
       EXECUTABLE ctest --schedule-random
-      DEPENDENCIES   "${psmrts_cc_depends}"
+      DEPENDENCIES   ${psmrts_cc_depends}
       BASE_DIRECTORY "${PSMRTS_SOURCE_DIR}/psmrts"
-      EXCLUDE        "${psmrts_cc_excludes}" 
+      EXCLUDE        ${psmrts_cc_excludes}
     )
   endif(BUILD_COVERAGE)
 endif( BUILD_TESTING )
