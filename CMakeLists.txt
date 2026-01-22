@@ -222,6 +222,8 @@ if( BUILD_TESTING )
     psmrts_register_code_coverage(EXCLUDES "${CMAKE_BINARY_DIR}/vcpkg_installed/*")
     psmrts_register_code_coverage(EXCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg_installed/*")
     psmrts_register_code_coverage(EXCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/*")
+    psmrts_register_code_coverage(EXCLUDES "/usr/include/*")
+    psmrts_register_code_coverage(EXCLUDES "deps/*")
 
     # Set code coverage dependencies and exclude properties 
     get_property(psmrts_cc_depends  GLOBAL PROPERTY PSMRTS_COVERAGE_DEPENDENCIES )
