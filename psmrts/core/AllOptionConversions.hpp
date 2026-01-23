@@ -7,22 +7,22 @@
 
 namespace psmrts { 
 
-  using namespace psmrts::algorithms::conversions;
+  namespace optvis = psmrts::algorithms::conversions;
 
-  using OptionDoublesExtractor  = Extractor<ProductOption, DoublesVisitor>;
-  using OptionBoolsExtractor    = Extractor<ProductOption, BoolsVisitor>;
-  using OptionIntegersExtractor = Extractor<ProductOption, IntegersVisitor>;
-  using OptionSizetsExtractor   = Extractor<ProductOption, SizetsVisitor>;
-  using OptionStringsExtractor  = Extractor<ProductOption, StringsVisitor>;
-  // using OptionJsonExtractor    = Extractor<ProductOption, JsonVisitor>;
+  using OptionDoublesExtractor  = optvis::Extractor<ProductOption, optvis::DoublesVisitor>;
+  using OptionBoolsExtractor    = optvis::Extractor<ProductOption, optvis::BoolsVisitor>;
+  using OptionIntegersExtractor = optvis::Extractor<ProductOption, optvis::IntegersVisitor>;
+  using OptionSizetsExtractor   = optvis::Extractor<ProductOption, optvis::SizetsVisitor>;
+  using OptionStringsExtractor  = optvis::Extractor<ProductOption, optvis::StringsVisitor>;
+  // using OptionJsonExtractor    = optvis::Extractor<ProductOption, optvis:: JsonVisitor>;
   
-  using OptionStringsComparator  = Comparator<ProductOption, StringsVisitor>;
-  using OptionDoublesComparator  = Comparator<ProductOption, DoublesVisitor>;
-  using OptionSizetsComparator   = Comparator<ProductOption, SizetsVisitor>;
-  using OptionIntegersComparator = Comparator<ProductOption, IntegersVisitor>;
-  using OptionBoolsComparator    = Comparator<ProductOption, BoolsVisitor>;
-  // using OptionJsonComparator   = Comparator<ProductOption, JsonVisitor>;
+  using OptionStringsComparator  = optvis::Comparator<ProductOption, optvis::StringsVisitor>;
+  using OptionDoublesComparator  = optvis::Comparator<ProductOption, optvis::DoublesVisitor>;
+  using OptionSizetsComparator   = optvis::Comparator<ProductOption, optvis::SizetsVisitor>;
+  using OptionIntegersComparator = optvis::Comparator<ProductOption, optvis::IntegersVisitor>;
+  using OptionBoolsComparator    = optvis::Comparator<ProductOption, optvis::BoolsVisitor>;
+  // using OptionJsonComparator   = optvis::Comparator<ProductOption, optvis::JsonVisitor>;
 
-} // namespace psmrts::algorithms::conversions
+} // namespace psmrts
 
 #endif
