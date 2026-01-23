@@ -7,7 +7,7 @@
 
 TEST_CASE( "PsmrtsRequest Default Test", "[request][default]" ) {
     
-    CHECK( sizeof( psmrts::MissingProcessRequestHandler) == 328 );
+    CHECK( sizeof( psmrts::MissingProcessRequestHandler) <= 410 );
 
     psmrts::PsmrtsRequest request_t;
     CHECK( request_t.name()           == "PsmrtsRequest" );

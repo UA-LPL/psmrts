@@ -63,8 +63,8 @@ endif(BUILD_SHARED)
 #-----------------------------------------------------------------------------
 # PSMRTS project configuration. PROJECT_SOURCE_DIR=psmrts
 #-----------------------------------------------------------------------------
-project(PSMRTS VERSION 0.3.7 LANGUAGES CXX C)
-set( PSMRTS_VERSION_DATE  "2025-11-04")
+project(PSMRTS VERSION 0.4.0 LANGUAGES CXX C)
+set( PSMRTS_VERSION_DATE  "2026-01-22")
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -222,6 +222,8 @@ if( BUILD_TESTING )
     psmrts_register_code_coverage(EXCLUDES "${CMAKE_BINARY_DIR}/vcpkg_installed/*")
     psmrts_register_code_coverage(EXCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg_installed/*")
     psmrts_register_code_coverage(EXCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/*")
+    psmrts_register_code_coverage(EXCLUDES "/usr/include/*")
+    psmrts_register_code_coverage(EXCLUDES "deps/*")
 
     # Set code coverage dependencies and exclude properties 
     get_property(psmrts_cc_depends  GLOBAL PROPERTY PSMRTS_COVERAGE_DEPENDENCIES )
@@ -236,9 +238,9 @@ if( BUILD_TESTING )
     setup_target_for_coverage_gcovr_html(
       NAME coverage
       EXECUTABLE ctest --schedule-random
-      DEPENDENCIES   "${psmrts_cc_depends}"
+      DEPENDENCIES   ${psmrts_cc_depends}
       BASE_DIRECTORY "${PSMRTS_SOURCE_DIR}/psmrts"
-      EXCLUDE        "${psmrts_cc_excludes}" 
+      EXCLUDE        ${psmrts_cc_excludes}
     )
   endif(BUILD_COVERAGE)
 endif( BUILD_TESTING )

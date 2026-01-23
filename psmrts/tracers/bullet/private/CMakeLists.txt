@@ -14,4 +14,3 @@ target_sources(psmrts PRIVATE PsmrtsBulletClosestRayCallback.cpp
                               PsmrtsBulletAllHitsRayCallback.hpp
                               PsmrtsBulletWorldModel.hpp
 )
-                              
