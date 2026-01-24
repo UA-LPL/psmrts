@@ -200,43 +200,7 @@ namespace psmrts {
             // compute min/max radius, store internally (Mesh class has related functions)
             return ( m_mesh.isValid() );
         }
-#if 0
 
-        /**
-         * @brief Returns an ordered JSON containing relative product options
-         * and possible values 
-         * 
-         * @return ordered_json of product options
-         */
-        static inline ProductSpecification product_options() {
-            char text[] = R"(
-            {
-              "ply_file": "<filename>",
-              "ply_file_type": ["binary", "ascii"],
-              "ply_data_type": ["char", "uchar", "short", "ushort", "int", "uint", "float", "double"],
-              "required": ["ply_file"],
-              "optional": ["ply_file_type", "ply_data_type"]
-            }
-            )";
-            return (ProductSpecification("ply", "mesh", json_utils::parse_json_string( text )));
-        }
-        /**
-         * @brief Conversion of ply file header data to json
-         * 
-         * Used in load_ply_file() to create a json version of the product related
-         * data options
-         * 
-         * @param reader miniply file reader 
-         */
-        inline void parse_config( )  {
-            ordered_json options;
-            options["ply_file"] = m_ply_source;
-            options["ply_file_type"] = m_file_type;
-            options["ply_data_type"] = m_data_type;
-            m_config = ProductSpecification("ply", "mesh", options);
-            return;
-        }
-#endif
         inline ProductConfiguration get_metadata( ) {
           ProductConfiguration meta( "ply" );
           meta.add( ProductOption( "ply_file", this->ply_source() ) );
