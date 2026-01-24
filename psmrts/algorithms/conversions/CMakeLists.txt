@@ -9,6 +9,7 @@ target_sources( psmrts PUBLIC
                                  DoublesVisitor.hpp
                                  Extractor.hpp                           
                                  IntegersVisitor.hpp
+                                 SizetsVisitor.hpp
                                  StringsVisitor.hpp                                 
               )
 
