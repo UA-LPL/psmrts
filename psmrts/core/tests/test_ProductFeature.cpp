@@ -113,7 +113,7 @@ TEST_CASE( "ProductFeature Values Test", "[product][feature][values]") {
     CHECK( p_param2.isa_alias( "bad_alias" ) == false );
 }
 
-TEST_CASE( "ProductParamater Validate Test", "[product][feature][validate]") {
+TEST_CASE( "ProductParameter Validate Test", "[product][feature][validate]") {
     char vals1[] = R"({
         "name": "obj_file",
         "type": "test",
@@ -122,8 +122,16 @@ TEST_CASE( "ProductParamater Validate Test", "[product][feature][validate]") {
         "aliases": ["file", "obj_mesh", "mesh_file"],
         "file_suffixes": [ "obj", "OBJ" ]
     })";
-    psmrts::ProductFeature param1( psmrts::json_utils::parse_json_string( vals1 ) );
 
+    psmrts::ProductFeature param1( "obj_file" );
+    ordered_json vals_j1 =  psmrts::json_utils::parse_json_string( vals1 );
+    auto it_j1 = vals_j1.begin();
+    while( it_j1 != vals_j1.end() ) {
+      CHECK_NOTHROW( psmrts::ProductOption( it_j1.key(), it_j1.value() ) );
+      param1.add( psmrts::ProductOption( it_j1.key(), it_j1.value() ) );
+      ++it_j1;
+    }
+   
     CHECK( param1.size()                   == 6 );
     CHECK( param1.contains( "name" )       == true );
     CHECK( param1.contains( "obj" )        == false );
@@ -131,7 +139,7 @@ TEST_CASE( "ProductParamater Validate Test", "[product][feature][validate]") {
     CHECK( param1.type()                   == "test" );
     CHECK( param1.description()            == "Name of OBJ file to read" );
     CHECK( param1.status()                 == "required" );
-    CHECK( param1.keywords()               == std::vector<std::string> {"aliases","description","file_suffixes","name","status","type"});
+    CHECK( param1.keywords()               == std::vector<std::string> {"name","aliases","description","file_suffixes","status","type"});
     CHECK( param1.aliases()                == std::vector<std::string> {"file","obj_mesh","mesh_file"});
     CHECK( param1.file_suffixes()          == std::vector<std::string> {"obj", "OBJ"});
     CHECK( param1.is_required()            == true );
@@ -146,8 +154,14 @@ TEST_CASE( "ProductParamater Validate Test", "[product][feature][validate]") {
         "file_suffixes": [ "obj", "OBJ" ],
         "file": "test_file.obj"
     })";
-    psmrts::ProductFeature param2( psmrts::json_utils::parse_json_string( vals2 ) );
-    
+
+    psmrts::ProductFeature param2( "file" );
+    ordered_json vals_j2 =  psmrts::json_utils::parse_json_string( vals2 );
+    for( auto it_j2 = vals_j2.begin() ; it_j2 != vals_j2.end() ; ++it_j2 ) {
+      CHECK_NOTHROW( psmrts::ProductOption( it_j2.key(), it_j2.value() ) );
+      param2.add( psmrts::ProductOption( it_j2.key(), it_j2.value() ) );
+    }
+
     CHECK( param1.validate( param2 ) == true ); 
 
     REQUIRE( param2.contains(param2.name()) == true );

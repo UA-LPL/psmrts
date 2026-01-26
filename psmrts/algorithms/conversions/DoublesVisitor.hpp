@@ -165,21 +165,19 @@ namespace psmrts::algorithms::conversions {
       
       inline void operator()( const ordered_json &j_data ) {
 
-        // Set default and initial processing connditions
-        Type value = default_value();  
-        auto it_j = j_data.begin();
+        Type value = default_value();
 
         /** This lambda processes a scalar value  */
         auto process_scalar = [&]( const bool addit, const size_t index ) {
           if ( addit ) {
-            if ( it_j->is_number() ) {
+            if ( j_data.is_number() ) {
               // std::cout << "DoublesVisitor::Json::number..." << std::endl;
               // Try direct assignement
-              value = *it_j;
+              value = j_data;
             }
-            else if ( it_j->is_string() ) {
+            else if ( j_data.is_string() ) {
               // std::cout << "DoublesVisitor::Json::string..." << std::endl;
-              std::string temp_s = *it_j;
+              std::string temp_s = j_data;
               //  std::cout << "DoublesVisitor::Json::string: " << temp_s << std::endl;
               value = string_to_double( temp_s );
             }
@@ -191,13 +189,13 @@ namespace psmrts::algorithms::conversions {
           if ( addit ) {
             // Got an array, these values must be a number of string
             // std::cout << "DoublesVisitor::Json::array..." << std::endl;
-            if ( it_j->at(index).is_number( ) ) {
+            if ( j_data.at(index).is_number( ) ) {
               // std::cout << "DoublesVisitor::Json::number..." << std::endl;
-              value = it_j->at(index);
+              value = j_data.at(index);
             }
-            else if ( it_j->at(index).is_string() ) {
+            else if ( j_data.at(index).is_string() ) {
               // std::cout << "DoublesVisitor::Json::string..." << std::endl;
-              std::string temp_s = it_j->at(index);
+              std::string temp_s = j_data.at(index);
               // std::cout << "DoublesVisitor::Json::string: " << temp_s << std::endl;
               value = string_to_double( temp_s );
             }
@@ -208,27 +206,17 @@ namespace psmrts::algorithms::conversions {
         size_t level = 0;
         try { 
 
-          // Find the first primitive or array
-          while ( it_j->is_structured() && ( it_j != j_data.end() )) {
-            if ( it_j->is_array() )     break;
-            if ( it_j->is_primitive() ) break;
-            level++;
-            ++it_j;
-          }
-          // std::cout << "DoublesVisitor::Json::level: " << level << std::endl;
-          // std::cout << "DoublesVisitor::Json::value: " << *it_j << std::endl;
-
           // Now check if we actually have primitives or arrays
-          if ( it_j->is_primitive() ) {
+          if ( j_data.is_primitive() ) {
             parameters().extractor( 1, process_scalar );        
           }
-          else if ( it_j->is_array() ) {
-            parameters().extractor( it_j->size(), process_array );        
+          else if ( j_data.is_array() ) {
+            parameters().extractor( j_data.size(), process_array );        
           }
         }
         catch ( json::exception & j ) {
           // All errors just result in default value
-          // std::cout << "DoublesVisitor::Json::exception!" << std::endl;
+          //  std::cout << "DoublesVisitor::Json::exception!" << std::endl;
           value = default_value();
         }
 

@@ -384,7 +384,6 @@ namespace psmrts {
         for( auto &[ j_key, j_value ] : j_feature.items() ) {
           if ( "name" == j_key ) {
             name_t = j_value;
-            // std::cout << "FeatureOptionList::create::from_json: " << name_t << std::endl;
           }
             
           options_t.push_back( FeatureOption( j_key, j_value ) );

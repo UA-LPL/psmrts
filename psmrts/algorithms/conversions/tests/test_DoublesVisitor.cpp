@@ -49,6 +49,7 @@ TEST_CASE("DoublesVisitor JSON Conversion Test", "[conversions][option][doubles]
   char text3[] = R"({"array":[1,2,3,4,5]})";
   psmrts::ProductOption option_j3( "array", psmrts::json_utils::parse_json_string( text3 ) );
   psmrts::OptionDoublesExtractor d3( option_j3 );
+  CHECK( d3.size() == 5 );
   CHECK( d3.get()  == 1.0 );
   CHECK( d3.get(1) == 2.0 );
   CHECK( d3.get(2) == 3.0 );
@@ -63,6 +64,7 @@ TEST_CASE("DoublesVisitor JSON Conversion Test", "[conversions][option][doubles]
   char text4[] = R"({"array":[1.0,"2",3,4,"5","null"]})";
   psmrts::ProductOption option_j4( "array", psmrts::json_utils::parse_json_string( text4 ) );
   psmrts::OptionDoublesExtractor d4( option_j4 );
+  CHECK( d4.size() == 6 );
   CHECK( d4.get()  == 1.0 );
   CHECK( d4.get(1) == 2.0 );
   CHECK( d4.get(2) == 3.0 );

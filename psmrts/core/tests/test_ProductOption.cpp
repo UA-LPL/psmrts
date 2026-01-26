@@ -228,19 +228,8 @@ TEST_CASE( "ProductOption Parameter Values Tests", "[parameter][values]") {
   CHECK( StringsExtractor(m).get_all( ) == std::vector<std::string>({"a","b","c"}));
 
   ordered_json jvals = {{"key1", "value1"}, {"key2", 2}};
-  psmrts::ProductOption o("JsonTest", jvals);
-  psmrts::ProductOption p("jsontest", jvals);
-  CHECK(o.name() == p.name());
-  CHECK(o.to_string() == p.to_string() );
-  CHECK(o.to_json() == p.to_json());
-  CHECK(o.size() == p.size());
-
-  CHECK(o.name()  == "jsontest" );
-  CHECK(o.type()  == psmrts::ProductOption::PsmrtsJsonObject);
-  CHECK(o.size()  == 2 );
-  CHECK(o.to_string(0)  == R"({"key1":"value1","key2":2})" );
-  // CHECK(o.array() == std::vector<std::string>({ "{\"key1\":\"value1\",\"key2\":2}" }));
-  // CHECK(std::string(o.data()[0]) == "{\"key1\":\"value1\",\"key2\":2}");
+  CHECK_THROWS( psmrts::ProductOption("JsonTest", jvals) );
+  CHECK_THROWS( psmrts::ProductOption("jsontest", jvals) );
 
   Eigen::Vector3d v3dvals(1.0, 2.0, 3.0);
   psmrts::ProductOption q("Vec3D", v3dvals);
