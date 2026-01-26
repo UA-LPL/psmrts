@@ -109,10 +109,10 @@ TEST_CASE("StringsVisitor JSON Conversion Test", "[conversion][option][strings][
   psmrts::ProductOption option_j4("array", psmrts::json_utils::parse_json_string( text4 ) );
   psmrts::OptionStringsExtractor s4( option_j4 );
   CHECK( s4.get()  == "1.0" ); 
-  CHECK( s4.get(1) == "\"2\"" ); 
+  CHECK( s4.get(1) == "2" ); 
   CHECK( s4.get(2) == "3.4" );
   CHECK( s4.get(3) == "4" ); 
-  CHECK( s4.get(4) == "\"5\"" );
-  CHECK( s4.get(5) == "\"null\"" ); 
+  CHECK( s4.get(4) == "5" );
+  CHECK( s4.get(5) == "null" ); 
 }
 

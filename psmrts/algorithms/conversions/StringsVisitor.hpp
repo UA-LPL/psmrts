@@ -186,7 +186,7 @@ namespace psmrts::algorithms::conversions {
         auto process_array = [&]( const bool addit, const size_t index ) {
           if ( addit ) {
             // Got an array, these values must be a number of string
-            if ( j_data.is_string() ) {
+            if ( j_data.at(index).is_string() ) {
               value = j_data.at(index);
             }
             else {            
