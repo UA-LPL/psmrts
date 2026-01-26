@@ -127,7 +127,7 @@ TEST_CASE( "BoolsVisitor JSON Conversion Test", "[conversions][option][bools][co
     char text4[] = R"({"array":[1, 1.0, "no", 0]})";
     psmrts::ProductOption option_j4( "array", psmrts::json_utils::parse_json_string( text4 ) );
     psmrts::OptionBoolsExtractor b4( option_j4 );
-    CHECK( b4.size() == 1 ); // should this be 4? Or is it a single "option" cuz array?
+    CHECK( b4.size() == 4 );
     CHECK( b4.get(0) == true );
     CHECK( b4.get(1) == true );
     CHECK( b4.get(2) == false );

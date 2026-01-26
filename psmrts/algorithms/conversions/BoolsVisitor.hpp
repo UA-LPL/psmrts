@@ -150,18 +150,16 @@ namespace psmrts::algorithms::conversions {
         inline void operator()( const ordered_json &j_data ) {
           // Set default and initial processing conditions
           Type value = default_value();  
-          auto it_j = j_data.begin();
 
           /** This lambda processes a scalar value  */
           auto process_scalar = [&]( const bool addit, const size_t index ) {
             if ( addit ) {
-              if ( it_j->is_number() ) {
+              if ( j_data.is_number() ) {
                 // Try direct assignement
-                //value = *it_j;
-                value = ( ( *it_j != 0.0 ) ? true : false );
+                value = ( ( j_data != 0.0 ) ? true : false );
               }
-              else if ( it_j->is_string() ) {
-                std::string temp_s = *it_j;
+              else if ( j_data.is_string() ) {
+                std::string temp_s = j_data;
                 value = string_to_bool( temp_s, m_default );
               }
             }
@@ -170,12 +168,11 @@ namespace psmrts::algorithms::conversions {
           auto process_array = [&]( const bool addit, const size_t index ) {
             if ( addit ) {
               // Got an array, these values must be a number of string
-              if ( it_j->at(index).is_number( ) ) {
-                //value = it_j->at(index);
-                value = ( ( it_j->at(index) != 0.0 ) ? true : false );
+              if ( j_data.at(index).is_number( ) ) {
+                value = ( ( j_data.at(index) != 0.0 ) ? true : false );
               }
-              else if ( it_j->at(index).is_string() ) {
-                std::string temp_s = it_j->at(index);
+              else if ( j_data.at(index).is_string() ) {
+                std::string temp_s = j_data.at(index);
                 value = string_to_bool( temp_s, m_default );
               }
             }
@@ -184,21 +181,12 @@ namespace psmrts::algorithms::conversions {
           // Preliminary processing of the JSON structure to determine its nature
           size_t level = 0;
           try { 
-
-            // Find the first primitive or array
-            while ( it_j->is_structured() && ( it_j != j_data.end() )) {
-              if ( it_j->is_array() )     break;
-              if ( it_j->is_primitive() ) break;
-              level++;
-              ++it_j;
-            }
-
             // Now check if we actually have primitives or arrays
-            if ( it_j->is_primitive() ) {
+            if ( j_data.is_primitive() ) {
               parameters().extractor( 1, process_scalar );        
             }
-            else if ( it_j->is_array() ) {
-              parameters().extractor( it_j->size(), process_array );        
+            else if ( j_data.is_array() ) {
+              parameters().extractor( j_data.size(), process_array );        
             }
           }
           catch ( json::exception & j ) {
@@ -260,14 +248,6 @@ namespace psmrts::algorithms::conversions {
 
             return default_v;
         }
-        /** -- May be unnecessary with lambda implementation / remove when directed --
-        inline bool add_it(const size_t index, const size_t max_valid_size ) const {
-            if ( ( index >= parameters().index() ) && ( index < max_valid_size ) ) {
-                return ( true );
-            }
-            return ( false );
-        }
-        */
   };
 }   // namespace psmrts::algorithms::conversions
 

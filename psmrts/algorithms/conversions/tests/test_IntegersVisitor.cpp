@@ -106,7 +106,7 @@ TEST_CASE("IntegersVisitor JSON Conversion Test", "[conversions][option][integer
     psmrts::OptionIntegersExtractor i3( option_j3 );
 
     CHECK( i3.name() == "array" );
-    CHECK( i3.size() == 1 ); // does whole array count as 1?
+    CHECK( i3.size() == 5 ); 
     CHECK( i3.get(0) == 5 );
     CHECK( i3.get(1) == 4 );
     CHECK( i3.get(2) == 3 );
