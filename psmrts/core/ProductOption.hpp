@@ -13,7 +13,7 @@
 
 namespace psmrts {
 
-  using namespace psmrts::algorithms::conversions;
+  namespace optvis = psmrts::algorithms::conversions;
 
   // Overload helper type for the ProductOption visitor. See the size()
   // method for how this can be used.
@@ -36,14 +36,14 @@ namespace psmrts {
    */
   class ProductOption {
     public:
-      using DoublesExtractor  = Extractor<ProductOption, DoublesVisitor>;
-      using StringsExtractor  = Extractor<ProductOption, StringsVisitor>;
-      // using SizetsExtractor  = Extractor<ProductOption, SizetsVisitor>;
-      using IntegersExtractor = Extractor<ProductOption, IntegersVisitor>;
-      using BoolsExtractor    = Extractor<ProductOption, BoolsVisitor>;
-      // using JsonExtractor    = Extractor<ProductOption, JsonVisitor>;
+      using DoublesExtractor  = optvis::Extractor<ProductOption, optvis::DoublesVisitor>;
+      using StringsExtractor  = optvis::Extractor<ProductOption, optvis::StringsVisitor>;
+      using SizetsExtractor   = optvis::Extractor<ProductOption, optvis::SizetsVisitor>;
+      using IntegersExtractor = optvis::Extractor<ProductOption, optvis::IntegersVisitor>;
+      using BoolsExtractor    = optvis::Extractor<ProductOption, optvis::BoolsVisitor>;
+      // using JsonExtractor    = optvis::Extractor<ProductOption, optvis::JsonVisitor>;
       
-      using StringsComparator = Comparator<ProductOption, StringsVisitor>;
+      using StringsComparator = optvis::Comparator<ProductOption, optvis::StringsVisitor>;
 
       
       using DataTypes = std::variant< bool,
@@ -134,11 +134,12 @@ namespace psmrts {
                               m_name( psmrts_tolower(name) ), 
                               m_data( std::vector<int> (i_v.data(), i_v.data()+3) ), 
                               m_enum( PsmrtsIntegerArray ) { }                                                                
-      explicit ProductOption( const std::string &name, const ordered_json &j_data ) : 
-                              m_name(psmrts_tolower(name) ),
-                              m_data( j_data ),
-                              m_enum( PsmrtsJsonObject ) {
+      explicit ProductOption( const std::string &name, const ordered_json &j_data ) {
+        validate_json_object( j_data, name );
       }
+      explicit ProductOption( const ordered_json &j_data ) {
+        validate_json_object( j_data );
+      }          
       virtual ~ProductOption() { }
 
 
@@ -242,6 +243,85 @@ namespace psmrts {
       std::string m_name;
       DataTypes   m_data;
       DataEnums   m_enum;
+
+      /**
+       * @brief Validate and initialize JSON data set
+       * 
+       * This class support for JSON data is limited to a single object that
+       * contains a scaler intrinsic/primitive value or an array of
+       * scalars/primitives. It will accept nlohmann object types of primitives
+       * that are numbers or strings. It also accepts arrays of primitive types.
+       * Complex objects of arrays of objects or any other construct is not
+       * allowed. 
+       * 
+       * Supported single objects that contain a key and value pair or an object
+       * with a value only. The value can be an array of primitives. But that is
+       * it. 
+       * 
+       * Therefore, support for complex JSON objects is limited. See
+       * ProductConfiguration or ProductSpecifications for more details.
+       * 
+       * @param j_data An object that contains a key/value or just a value
+       *                 object.
+       * @param name   An object name if the JSON object contains a key,
+       *                 otherwise the user must provide a key name.
+       */
+      inline void validate_json_object( const ordered_json &j, 
+                                        const std::string &name = "" ) {
+
+
+        // Check for valid structures
+        ordered_json j_data;
+        if ( j.is_array() || j.is_primitive() ) {
+          j_data = j;
+          m_name = name;
+        }
+        else {
+          if ( j.size() != 1 ) {
+            std::string j_string = j_data.dump(-1);
+            std::string mess = "***ERROR - ProductOption(json): JSON object must be a single value or array structure only!\n"
+                               " Invalid JSON Object: " + j_string;
+            throw std::runtime_error( mess );
+          }
+
+          m_name = name;
+          auto it_j = j.begin();
+          if ( name.length() == 0) m_name = it_j.key();
+          j_data = it_j.value();
+
+          if ( !( j_data.is_array() || j_data.is_primitive() ) ) {
+            std::string j_string = j_data.dump(-1);
+            std::string mess = "***ERROR - ProductOption(json): JSON values must be a primitive or array of primitives only!!\n"
+                               " Invalid JSON Object: " + j_string;
+            throw std::runtime_error( mess );
+          }
+        }
+
+        // Now ensure a name is determined
+        if ( m_name.length() == 0 ) {
+          std::string j_string = j_data.dump(-1);
+          std::string mess = "***ERROR - ProductOption(json): Name is required but missing for this option data.\n"
+                              " Invalid JSON Object: " + j_string;
+        }
+          
+        if ( j_data.is_array() ) {
+          size_t nvalues = j_data.size();
+          size_t i = 0;
+          for ( auto it_v = j_data.begin() ; it_v != j_data.end() ; ++it_v, i++ ) {
+            if ( !it_v->is_primitive() ) {
+            std::string j_string = j_data.dump(-1);
+            std::string mess = "***ERROR - ProductOption(json): JSON array value at index [" +
+                                std::to_string(i) + "] is not a required primitive type!\n" +
+                                " Invalid JSON Object: " + j_string;            
+              throw std::runtime_error( mess );
+            }
+          }
+        }
+
+        // JSON data is good
+        m_data = j_data;
+        m_enum = PsmrtsJsonObject;        
+      }
   };
 
 } // namespace psmrts
