@@ -168,22 +168,52 @@ namespace psmrts::algorithms::conversions {
       
       inline void operator()( const ordered_json &j_data ) {
 
-       auto process = [&]( const bool addit, const size_t index ) {
-         if ( addit ) {
-           if ( j_data.is_primitive() ) {
-             Type str_t = j_data;
-             m_datum.push_back( str_t );
-           }
-           else {        
-              m_datum.push_back( j_data.dump( parameters().traits().spaces() ) );
-           }
-         }
-         else {
-           m_datum.push_back( default_value() );
-         }              
+        Type value = default_value();
+
+        /** This lambda processes a scalar value  */
+        auto process_scalar = [&]( const bool addit, const size_t index ) {
+          if ( addit ) {
+            if ( j_data.is_string() ) {
+              value = j_data;
+            }
+            else {
+              value = to_string( j_data );
+            }
+          }
         };
 
-        parameters().extractor( 1, process );
+        /** This lambda processes a JSON array at the index */
+        auto process_array = [&]( const bool addit, const size_t index ) {
+          if ( addit ) {
+            // Got an array, these values must be a number of string
+            if ( j_data.is_string() ) {
+              value = j_data.at(index);
+            }
+            else {            
+              value = to_string( j_data.at(index) );
+            }
+          }
+        }; 
+
+        // Preliminary processing of the JSON structure to determine its nature
+        size_t level = 0;
+        try { 
+
+          // Now check if we actually have primitives or arrays
+          if ( j_data.is_primitive() ) {
+            parameters().extractor( 1, process_scalar );        
+          }
+          else if ( j_data.is_array() ) {
+            parameters().extractor( j_data.size(), process_array );        
+          }
+        }
+        catch ( json::exception & j ) {
+          // All errors just result in default value
+          value = default_value();
+        }
+
+        // It is what it is...
+        m_datum.push_back( value );        
       }
 
       inline const Type &default_value() const {
