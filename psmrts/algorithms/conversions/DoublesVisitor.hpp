@@ -171,14 +171,11 @@ namespace psmrts::algorithms::conversions {
         auto process_scalar = [&]( const bool addit, const size_t index ) {
           if ( addit ) {
             if ( j_data.is_number() ) {
-              // std::cout << "DoublesVisitor::Json::number..." << std::endl;
               // Try direct assignement
               value = j_data;
             }
             else if ( j_data.is_string() ) {
-              // std::cout << "DoublesVisitor::Json::string..." << std::endl;
               std::string temp_s = j_data;
-              //  std::cout << "DoublesVisitor::Json::string: " << temp_s << std::endl;
               value = string_to_double( temp_s );
             }
           }
@@ -188,15 +185,11 @@ namespace psmrts::algorithms::conversions {
         auto process_array = [&]( const bool addit, const size_t index ) {
           if ( addit ) {
             // Got an array, these values must be a number of string
-            // std::cout << "DoublesVisitor::Json::array..." << std::endl;
             if ( j_data.at(index).is_number( ) ) {
-              // std::cout << "DoublesVisitor::Json::number..." << std::endl;
               value = j_data.at(index);
             }
             else if ( j_data.at(index).is_string() ) {
-              // std::cout << "DoublesVisitor::Json::string..." << std::endl;
               std::string temp_s = j_data.at(index);
-              // std::cout << "DoublesVisitor::Json::string: " << temp_s << std::endl;
               value = string_to_double( temp_s );
             }
           }
@@ -216,7 +209,6 @@ namespace psmrts::algorithms::conversions {
         }
         catch ( json::exception & j ) {
           // All errors just result in default value
-          //  std::cout << "DoublesVisitor::Json::exception!" << std::endl;
           value = default_value();
         }
 
