@@ -34,13 +34,13 @@ TEST_CASE("DoublesVisitor JSON Conversion Test", "[conversions][option][doubles]
   CHECK( d1.size() == 1 );
   CHECK( d1.get() == 3.14159 );
   CHECK( psmrts::isnull( d1.get(1) ) );
-  CHECK( psmrts::OptionStringsExtractor( option_j1 ).get() == std::string( text1 ) );
+  CHECK( psmrts::OptionStringsExtractor( option_j1 ).get() == "3.14159" );
 
   char text2[] = R"({"key2":3.14159154})";
   psmrts::ProductOption option_j2( "key2", psmrts::json_utils::parse_json_string( text2 ) );
   psmrts::OptionDoublesExtractor d2( option_j2 );
   CHECK( d2.get() == 3.14159154 );
-  CHECK( psmrts::OptionStringsExtractor( option_j2 ).get() == std::string( text2 ) );
+  CHECK( psmrts::OptionStringsExtractor( option_j2 ).get() == "3.14159154" );
 
   CHECK(psmrts::OptionDoublesComparator::compare(option_j1, option_j2 ) == true );
   CHECK(psmrts::OptionDoublesComparator::compare(option_j1, option_j1 ) == true );
@@ -56,7 +56,7 @@ TEST_CASE("DoublesVisitor JSON Conversion Test", "[conversions][option][doubles]
   CHECK( d3.get(3) == 4.0 );
   CHECK( d3.get(4) == 5.0 );
   CHECK( psmrts::isnull( d3.get(6) ) );
-  CHECK( psmrts::OptionStringsExtractor( option_j3 ).get() == std::string( text3 ) ); 
+  CHECK( psmrts::OptionStringsExtractor( option_j3 ).get() == "1" ); 
 
   const bool GetAll = true;
   std::vector<double> partial = psmrts::OptionDoublesExtractor( option_j3 ).get_all( 2, 2 );
@@ -71,13 +71,13 @@ TEST_CASE("DoublesVisitor JSON Conversion Test", "[conversions][option][doubles]
   CHECK( d4.get(3) == 4.0 );
   CHECK( d4.get(4) == 5.0 );
   CHECK( psmrts::isnull( d4.get(6) ) );
-  CHECK( psmrts::OptionStringsExtractor( option_j4 ).get() == std::string( text4 ) ); 
+  CHECK( psmrts::OptionStringsExtractor( option_j4 ).get() == "1.0" ); 
 
   ordered_json text5 = "2.0";
   psmrts::ProductOption option_j5( "array", text5 );
   psmrts::OptionDoublesExtractor d5( option_j5 );
   CHECK( d5.get()  == 2.0 );  
-  CHECK( psmrts::OptionStringsExtractor( option_j5 ).get() == std::string( text5 ) ); 
+  CHECK( psmrts::OptionStringsExtractor( option_j5 ).get() == "2.0"); 
 }
 
 TEST_CASE("DoublesVisitor Oddities Conversion Test", "[conversions][option][doubles][oddities]") {
