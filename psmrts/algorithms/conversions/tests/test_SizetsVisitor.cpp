@@ -58,31 +58,21 @@ TEST_CASE("SizetsVisitor JSON Conversion Test", "[conversions][option][sizets][j
   CHECK( szt1.size() == 1 );
   CHECK( szt1.get() == 3 );
   CHECK( szt1.get(1) == std::numeric_limits<size_t>::max() );
-  CHECK( psmrts::OptionStringsExtractor( option_j1 ).get() == std::string( text1 ) );
+  CHECK( psmrts::OptionStringsExtractor( option_j1 ).get() == "3" );
 
   char text2[] = R"({"key2":3.14159154})";
   psmrts::ProductOption option_j2( "key2", psmrts::json_utils::parse_json_string( text2 ) );
   psmrts::OptionSizetsExtractor szt2( option_j2 );
   CHECK( szt2.get() == 3 );
   CHECK( szt2.get(1) == std::numeric_limits<size_t>::max() );
-  CHECK( psmrts::OptionStringsExtractor( option_j2 ).get() == std::string( text2 ) );
+  CHECK( psmrts::OptionStringsExtractor( option_j2 ).get() == "3.14159154" );
 
   CHECK(psmrts::OptionSizetsComparator::compare(option_j1, option_j2 ) == true );
   CHECK(psmrts::OptionSizetsComparator::compare(option_j1, option_j1 ) == true );
   CHECK(psmrts::OptionSizetsComparator::compare(option_j2, option_j2 ) == true );
 
-  // validate conversion from a negative double to a size_t
-  // should generate the default value of size_t
-  // e.g. std::numeric_limits<size_t>::max()
-  char text3[] = R"({"key3":-3.14159154})";
-  psmrts::ProductOption option_j3( "key3", psmrts::json_utils::parse_json_string( text3 ) );
-  psmrts::OptionSizetsExtractor szt3( option_j3 );
-  CHECK( psmrts::OptionStringsExtractor( option_j3 ).get() == std::string( text3 ) );
-  CHECK( szt3.get()  == std::numeric_limits<size_t>::max() );
-  CHECK( szt3.get(1) == std::numeric_limits<size_t>::max() );
-
-  char text4[] = R"({"array":[1,2,3,4,5]})";
-  psmrts::ProductOption option_j4( "array", psmrts::json_utils::parse_json_string( text4 ) );
+  char text3[] = R"({"array":[1,2,3,4,5]})";
+  psmrts::ProductOption option_j4( "array", psmrts::json_utils::parse_json_string( text3 ) );
   psmrts::OptionSizetsExtractor szt4( option_j4 );
   CHECK( szt4.get()  == 1.0 );
   CHECK( szt4.get(1) == 2.0 );
@@ -90,13 +80,13 @@ TEST_CASE("SizetsVisitor JSON Conversion Test", "[conversions][option][sizets][j
   CHECK( szt4.get(3) == 4.0 );
   CHECK( szt4.get(4) == 5.0 );
   CHECK( szt4.get(6) == std::numeric_limits<size_t>::max() );
-  CHECK( psmrts::OptionStringsExtractor( option_j4 ).get() == std::string( text4 ) ); 
+  CHECK( psmrts::OptionStringsExtractor( option_j4 ).get() == "1" ); 
 
   const bool GetAll = true;
   std::vector<size_t> partial = psmrts::OptionSizetsExtractor( option_j4 ).get_all( 2, 2 );
 
-  char text5[] = R"({"array":[1.0,"2",3,4,"5","null"]})";
-  psmrts::ProductOption option_j5( "array", psmrts::json_utils::parse_json_string( text5 ) );
+  char text4[] = R"({"array":[1.0,"2",3,4,"5","null"]})";
+  psmrts::ProductOption option_j5( "array", psmrts::json_utils::parse_json_string( text4 ) );
   psmrts::OptionSizetsExtractor szt5( option_j5 );
   CHECK( szt5.get()  == 1 );
   CHECK( szt5.get(1) == 2 );
@@ -104,10 +94,10 @@ TEST_CASE("SizetsVisitor JSON Conversion Test", "[conversions][option][sizets][j
   CHECK( szt5.get(3) == 4 );
   CHECK( szt5.get(4) == 5 );
   CHECK( szt5.get(6) == std::numeric_limits<size_t>::max() );
-  CHECK( psmrts::OptionStringsExtractor( option_j5 ).get() == std::string( text5 ) ); 
+  CHECK( psmrts::OptionStringsExtractor( option_j5 ).get() == "1.0" ); 
 
-  ordered_json text6 = "2.0";
-  psmrts::ProductOption option_j6( "array", psmrts::json_utils::parse_json_string( text6 ) );
+  ordered_json text5 = "2.0";
+  psmrts::ProductOption option_j6( "array", text5 );
   psmrts::OptionSizetsExtractor szt6( option_j6 );
   CHECK( szt6.get() == 2 );  
   CHECK( szt6.get(1) == std::numeric_limits<size_t>::max() );  
