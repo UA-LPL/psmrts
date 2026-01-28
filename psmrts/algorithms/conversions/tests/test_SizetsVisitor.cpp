@@ -40,7 +40,8 @@ TEST_CASE("SizetsVisitor Conversion Test", "[conversions][option][sizets][visito
          std::numeric_limits<size_t>::max() );  // beyond input index limit generates default
   
   // ensure option_double and option_bool are equivalent
-  CHECK(psmrts::OptionSizetsComparator::compare(option_double, option_bool ) == true );
+  CHECK(psmrts::OptionSizetsComparator::compare(option_double, option_bool ) == false );
+  CHECK(psmrts::OptionBoolsComparator::compare(option_double, option_bool )  == true );
 }
 
 /**

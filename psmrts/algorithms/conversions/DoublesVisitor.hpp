@@ -41,7 +41,14 @@ namespace psmrts::algorithms::conversions {
 
       /** Check if a value is valid and not the default type */
       inline bool isvalid( const Type &t ) const {
-        if ( psmrts::isnull( default_value() ) || psmrts::isnull( t ) ) return ( false );
+        if ( psmrts::isnull( default_value() ) ) {
+          if ( psmrts::isnull( t ) ) {
+            return ( false );
+          }
+          else {
+            return ( true );
+          }
+        }
         return ( !psmrts::isApprox( t, default_value(), traits().tolerance() ) );
       }
 

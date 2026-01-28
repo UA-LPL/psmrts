@@ -36,7 +36,7 @@ namespace psmrts::algorithms::conversions {
 
       /** Check if a value is valid and not the default type */
       inline bool isvalid( const Type &t ) const {
-        return ( default_value() == t );
+        return ( default_value() != t );
       }
 
       /** Check if a value is valid and not the default type */

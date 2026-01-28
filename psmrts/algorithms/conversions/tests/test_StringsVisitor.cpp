@@ -19,7 +19,8 @@ TEST_CASE("StringsVisitor Conversion Test", "[conversions][option][strings][visi
   psmrts::OptionStringsExtractor string_bool( option_bool );
   CHECK( string_bool.get() == "true" );
 
-  CHECK(psmrts::OptionStringsComparator::compare(option_int, option_bool ) == true );
+  CHECK(psmrts::OptionStringsComparator::compare(option_int, option_bool ) == false );
+  CHECK(psmrts::OptionBoolsComparator::compare(option_int, option_bool )   == true );
 
   psmrts::ProductOption option_dbl("double", 42.123 );
   psmrts::OptionStringsExtractor string_dbl( option_dbl );

@@ -44,7 +44,7 @@ TEST_CASE("Comparator Default Test", "[comparators][default]") {
 
   // validate default ProductOption values
   CHECK( boolsComp.default_value()   == false );
-//CHECK( doublesComp.default_value() == psmrts::null() );
+  CHECK( psmrts::isnull( doublesComp.default_value() ) );
   CHECK( intsComp.default_value()    == std::numeric_limits<int>::min() );
   CHECK( sizetsComp.default_value()  == std::numeric_limits<size_t>::max() );
   CHECK( stringsComp.default_value() == "" );
@@ -59,9 +59,12 @@ TEST_CASE("Comparator Doubles Test", "[comparators][doubles]") {
   psmrts::ProductOption option_d2( "double", 3.14159154 );
   psmrts::ProductOption option_string( "double", "527.987" );
 
-  DoublesComparator doubleComp;
+  DoublesComparator d1_cmp( option_d1 );
+  CHECK( d1_cmp.size()                  == 1 );
+  CHECK( d1_cmp.container().to_string() == "1.234567800" );
+  CHECK( option_d2.to_string()          == "3.141591540" );
 
   // why are these failing?
-  CHECK( doubleComp.compare(option_d1, option_d2) == false );
-  CHECK( doubleComp.compare(option_d1, option_string) == false );
+  CHECK( DoublesComparator::compare(option_d1, option_d2) == false );
+  CHECK( DoublesComparator::compare(option_d1, option_string) == false );
 }
