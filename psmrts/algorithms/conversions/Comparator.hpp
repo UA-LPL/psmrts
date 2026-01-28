@@ -194,16 +194,13 @@ namespace psmrts::algorithms::conversions {
 
           // Robust comparison of two dataset values
           size_t n = std::min( v1.size(), v2.size() );
-          std::cout << "isequal n = " << n  << std::endl;
           if ( nullptr == matches ) {
             for ( size_t i = 0  ; i < n ; i++ ) {
               if ( visitor1.isvalid( v1[i] ) && visitor2.isvalid( v2[i] ) ) {
                 if ( !visitor1.isequal( v1[i], v2[i] ) ) all_good = false;
               }
               else {
-                std::cout << "isequal v1 != v2 = " << v1[i] << "," << v2[i] << std::endl;
                 all_good = false;
-
               }
             }
           }
@@ -211,8 +208,12 @@ namespace psmrts::algorithms::conversions {
             matches->reserve( n );
             for ( size_t i = 0  ; i < n ; i++ ) {
               if ( visitor1.isvalid( v1[i] ) && visitor2.isvalid( v2[i] ) ) {
-                matches->push_back( !visitor1.isequal( v1[i], v2[i] ) );
+                matches->push_back( visitor1.isequal( v1[i], v2[i] ) );
                 if ( !matches->back() ) all_good = false;
+              }
+              else {
+                matches->push_back( false );
+                all_good = false;
               }
             }            
           }

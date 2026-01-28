@@ -21,13 +21,16 @@ TEST_CASE("DoublesVisitor Conversion Test", "[conversions][option][doubles][visi
   psmrts::OptionDoublesExtractor string_bool( option_bool );
   CHECK( string_bool.get() == 1.0 );
 
-  CHECK( psmrts::OptionDoublesComparator::compare(option_int, option_bool ) == true );
+  CHECK( psmrts::OptionDoublesComparator::compare(option_int, option_bool ) == false );
+  CHECK( psmrts::OptionBoolsComparator::compare(option_int, option_bool )   == true );
 }
 
 TEST_CASE("DoublesVisitor JSON Conversion Test", "[conversions][option][doubles][comparator][json]") {
 
   char text1[] = R"({"key1":3.14159})";
   psmrts::ProductOption option_j1( "key1", psmrts::json_utils::parse_json_string( text1 ) );
+  CHECK( option_j1.to_string() == "3.14159") ;
+
   psmrts::OptionDoublesExtractor d1( option_j1 );
 
   CHECK( d1.name() == "key1" );
@@ -42,7 +45,7 @@ TEST_CASE("DoublesVisitor JSON Conversion Test", "[conversions][option][doubles]
   CHECK( d2.get() == 3.14159154 );
   CHECK( psmrts::OptionStringsExtractor( option_j2 ).get() == "3.14159154" );
 
-  CHECK(psmrts::OptionDoublesComparator::compare(option_j1, option_j2 ) == true );
+  CHECK(psmrts::OptionDoublesComparator::compare(option_j1, option_j2 ) == false );
   CHECK(psmrts::OptionDoublesComparator::compare(option_j1, option_j1 ) == true );
   CHECK(psmrts::OptionDoublesComparator::compare(option_j2, option_j2 ) == true );
 

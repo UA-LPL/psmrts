@@ -49,13 +49,15 @@ namespace psmrts::algorithms::conversions {
             return ( true );
           }
         }
+        if ( psmrts::isnull( t ) ) return ( false );
+
         return ( !psmrts::isApprox( t, default_value(), traits().tolerance() ) );
       }
 
       /** Check if a value is valid and not the default type */
       inline bool isequal( const Type &t1, const Type &t2 ) const {
-        if ( !( isvalid( t1 ) && isvalid( t2) ) ) return ( false );
-        return ( !psmrts::isApprox( t1, t2, traits().tolerance() ) );
+        if ( !( isvalid( t1 ) || isvalid( t2) ) ) return ( false );
+        return ( psmrts::isApprox( t1, t2, traits().tolerance() ) );
       }
       
       inline void operator()( const bool b ) {
