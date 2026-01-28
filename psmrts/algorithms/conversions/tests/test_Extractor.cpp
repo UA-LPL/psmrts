@@ -148,4 +148,59 @@ TEST_CASE("Extractor Visitor/Parameters/Traits Test", "[extractor][vistor][param
   CHECK( s_array.size() == v_array.size() );
   CHECK( svis.data()    == v_array );
   CHECK( v_array        == std::vector<std::string>( { "one", "two", "three" } ) );
+
+  OptionStringsExtractor s_xtr( s_array );
+  optvis::ConversionParameters sparms = s_xtr.compute_range(1, s_xtr.size(), s_xtr.size() );
+  CHECK( sparms.count() == 3 );
+  CHECK( sparms.index() == 1 );
+
+  CHECK( sparms.done(0, s_array.size() )            == false );
+  CHECK( sparms.add_valid_value(0, s_array.size() ) == true );
+  CHECK( sparms.dataset_index(0, s_array.size() )   == 1 );
+
+  CHECK( sparms.done(1, s_array.size() )            == false );
+  CHECK( sparms.add_valid_value(1, s_array.size() ) == true );
+  CHECK( sparms.dataset_index(1, s_array.size() )   == 2 );
+
+  CHECK( sparms.done(2, s_array.size() )            == false );
+  CHECK( sparms.add_valid_value(2, s_array.size() ) == false );
+  CHECK( sparms.dataset_index(2, s_array.size() )   == 2 );
+
+  CHECK( sparms.done(3, s_array.size() )            == true );
+  CHECK( sparms.add_valid_value(3, s_array.size() ) == false );
+  CHECK( sparms.dataset_index(3, s_array.size() )   == 2 );
+
+  CHECK( sparms.done(100, s_array.size() )            == true );
+  CHECK( sparms.add_valid_value(100, s_array.size() ) == false );
+  CHECK( sparms.dataset_index(100, s_array.size() )   == 2 );
+}
+
+TEST_CASE("Extractor Functor Test", "[extractor][parameters][functor]") {
+
+  bool expected_add;
+  size_t expected_index;
+  auto ftester = [&] (const bool addit, const size_t index ) {
+    CHECK( addit == expected_add );
+    CHECK( index == expected_index );
+  };
+
+  optvis::ConversionParameters parms_t;
+
+  expected_add = false;
+  expected_index = 0;
+  parms_t.extractor( 1, ftester );
+
+  parms_t = optvis::ConversionParameters( 0, 1 );
+
+  expected_add = true;
+  expected_index = 0;
+  parms_t.extractor( 1, ftester );  
+
+  parms_t = optvis::ConversionParameters( 1, 1 );
+  CHECK( parms_t.index() == 1 );
+  CHECK( parms_t.count() == 1 );
+
+  expected_add = false;
+  expected_index = 0;
+  parms_t.extractor( 1, ftester );  
 }
