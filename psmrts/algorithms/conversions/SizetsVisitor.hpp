@@ -197,7 +197,11 @@ namespace psmrts::algorithms::conversions {
         // This lambda processes a scalar value
         auto process_scalar = [&]( const bool addit, const size_t index ) {
           if ( addit ) {
-            if ( j_data.is_number() ) {
+            if ( j_data.is_boolean() ) {
+              // Try direct assignement
+              value = ( j_data == true ) ? static_cast<size_t>(1) : 0;
+            }  
+            else if ( j_data.is_number() ) {
               // Try direct assignment
               value = j_data;
               // confirm value is within valid range
@@ -218,8 +222,12 @@ namespace psmrts::algorithms::conversions {
         /** This lambda processes a JSON array at the index */
         auto process_array = [&]( const bool addit, const size_t index ) {
           if ( addit ) {
+            if ( j_data.at(index).is_boolean() ) {
+              // Try direct assignement
+              value = ( j_data.at(index)  == true ) ? static_cast<size_t>(1) : 0;
+            }   
             // Got an array, these values must be a number or a string
-            if ( j_data.at(index).is_number( ) ) {
+            else if ( j_data.at(index).is_number( ) ) {
               value = j_data.at(index);
             }
             else if ( j_data.at(index).is_string() ) {
@@ -300,22 +308,6 @@ namespace psmrts::algorithms::conversions {
           return default_value();
         }
         return default_value();
-        /** 
-        size_t bad_char_index;
-        try {
-          size_t szt = std::stoul( s, &bad_char_index );          
-          if ( bad_char_index != s.length() ) {
-            return ( default_value() );
-          }
-          
-          return ( szt );
-        }
-        catch ( std::exception &e) {
-          return ( default_value() );
-        }
-        
-        return ( default_value() );
-        */
       }
   };
 }    // namespace psmrts::algorithms::conversions

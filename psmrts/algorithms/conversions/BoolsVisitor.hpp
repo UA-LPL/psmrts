@@ -154,7 +154,11 @@ namespace psmrts::algorithms::conversions {
           /** This lambda processes a scalar value  */
           auto process_scalar = [&]( const bool addit, const size_t index ) {
             if ( addit ) {
-              if ( j_data.is_number() ) {
+              if ( j_data.is_boolean() ) {
+                // Try direct assignement
+                value = j_data;
+              } 
+              else if ( j_data.is_number() ) {
                 // Try direct assignement
                 value = ( ( j_data != 0.0 ) ? true : false );
               }
@@ -167,8 +171,12 @@ namespace psmrts::algorithms::conversions {
           /** This lambda processes a JSON array at the index */
           auto process_array = [&]( const bool addit, const size_t index ) {
             if ( addit ) {
+              if ( j_data.at(index).is_boolean() ) {
+                // Try direct assignement
+                value = j_data.at(index);
+              }  
               // Got an array, these values must be a number of string
-              if ( j_data.at(index).is_number( ) ) {
+              else if ( j_data.at(index).is_number( ) ) {
                 value = ( ( j_data.at(index) != 0.0 ) ? true : false );
               }
               else if ( j_data.at(index).is_string() ) {
