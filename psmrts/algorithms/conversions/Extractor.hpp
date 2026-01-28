@@ -80,6 +80,11 @@ namespace psmrts::algorithms::conversions {
           return ( m_option.name() );
         }
 
+        /** Return reference to the current container */
+        inline const Container &container() const {
+          return ( m_option );
+        }        
+
         /** Return the size of the options data set */
         inline size_t size() const {
           return ( m_option.size() );
@@ -131,8 +136,6 @@ namespace psmrts::algorithms::conversions {
 
           return ( one.front() );
         }        
-        
-        
         
         /**
          * @brief Get the all data values and return in a user provided vector values
