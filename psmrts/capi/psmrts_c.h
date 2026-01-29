@@ -114,6 +114,11 @@ PSMRTS_C_EXPORT PSMRTS_Vector3d psmrts_scale( const PSMRTS_Vector3d *v,
                                      const double scale );
 PSMRTS_C_EXPORT double          psmrts_length( const PSMRTS_Vector3d *v );
 
+/*============ PSMRTS_Vector3i functions ================*/
+PSMRTS_C_EXPORT PSMRTS_Vector3i psmrts_vector3i( const int v1, 
+                                                 const int v2,
+                                                 const int v3 );
+
 /*============ PSMRTS Trace functions ===================*/
 PSMRTS_C_EXPORT PSMRTS_RayTrace *psmrts_create_ray( const PSMRTS_Vector3d *observer,
                                            const PSMRTS_Vector3d *lookdir );
@@ -153,7 +158,7 @@ PSMRTS_C_EXPORT size_t psmrts_trace_array_add_trace( PSMRTS_TraceArray *tracearr
                                             const PSMRTS_RayTrace *trace );
 PSMRTS_C_EXPORT PSMRTS_BOOL psmrts_trace_array_trace( PSMRTS_TraceArray *tracearray,
                                              const PSMRTS_Tracer *tracer);
-//PSMRTS_C_EXPORT void psmrts_trace_array_clear(PSMRTS_TraceArray *tracearray);
+PSMRTS_C_EXPORT void psmrts_trace_array_clear(PSMRTS_TraceArray *tracearray);
 PSMRTS_C_EXPORT const PSMRTS_RayTrace *psmrts_trace_array_get_trace( const PSMRTS_TraceArray *tracearray,
                                                             size_t index );
 
@@ -180,7 +185,7 @@ PSMRTS_C_EXPORT size_t psmrts_photometric_trace_array_add_trace( PSMRTS_Photomet
                                                         const PSMRTS_PhotometricRayTrace *trace );
 PSMRTS_C_EXPORT PSMRTS_BOOL psmrts_photometric_trace_array_trace( PSMRTS_PhotometricTraceArray *tracearray,
                                                          const PSMRTS_Tracer *tracer);
-//PSMRTS_C_EXPORT void psmrts_photometric_trace_array_clear(PSMRTS_PhotometricTraceArray *tracearray);
+PSMRTS_C_EXPORT void psmrts_photometric_trace_array_clear(PSMRTS_PhotometricTraceArray *tracearray);
 PSMRTS_C_EXPORT const PSMRTS_PhotometricRayTrace *psmrts_photometric_trace_array_get_trace( const PSMRTS_PhotometricTraceArray *tracearray,
                                                                                    size_t index );
 

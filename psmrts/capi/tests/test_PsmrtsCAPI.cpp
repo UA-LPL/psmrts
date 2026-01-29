@@ -134,6 +134,11 @@ TEST_CASE ( "PSMRTS C API - Vector3D", "[capi][c++][Vector3D]" ) {
     // compute vector length
     CHECK_THAT( psmrts_length( &v1 ),
                 Catch::Matchers::WithinAbs( 1014.508705, tolerance ) );
+
+    PSMRTS_Vector3i v3i = psmrts_vector3i( 1, 2, 3 );
+    CHECK( v3i.i == 1 );
+    CHECK( v3i.j == 2 );
+    CHECK( v3i.k == 3 );
 }
 
 /**
@@ -621,6 +626,7 @@ TEST_CASE ( "PSMRTS C API - Bullet Trace Array", "[capi][c++][BulletTraceArray]"
   psmrts_free_ray( ray1 );
   psmrts_free_ray( ray2 );
   psmrts_free_ray( ray3 );
+  psmrts_trace_array_clear( tracearray );
   psmrts_free_trace_array( tracearray );
 }
 
