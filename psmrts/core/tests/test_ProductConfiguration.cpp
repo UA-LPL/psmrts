@@ -62,6 +62,12 @@ TEST_CASE( "PSMRTS Product Initializer", "[product][configuration][initializer]"
   psmrts::ProductConfiguration comp_check = config.difference( config2 );
   CHECK( comp_check.name() == "single" );
   CHECK( comp_check.size() == 1 );
+
+  const bool TwoWay = true;
+  psmrts::ProductConfiguration comp_check_twoway = config.difference( config2, TwoWay );
+  CHECK( comp_check_twoway.name() == "single" );
+  CHECK( comp_check_twoway.size() == 2 );
+
   
   // Add second option, remove "shape" and check difference.
   config2.add( psmrts::ProductOption( "obj_file", "l_00050mm_alt_ptm_5595n04217_v020.obj" ) );

@@ -25,11 +25,14 @@ TEST_CASE( "Bullet Tracer Model - Ray Trace / Values Test", "[default][bullet][t
     psmrts::bullet::BulletTracerModel b_model( b_shape.get_mesh(), objfile );
 
     std::string b_shapefile = psmrts::psmrts_filename( b_model.shapefile() );
+    CHECK( b_model.isValid()            == true );
     CHECK( b_model.tracer_model_name()  == "bullet" );
     CHECK( b_shapefile                  == "bennu_20facets.obj" );
     CHECK( b_model.plate_count()        == 36 );
     CHECK( b_model.vertex_count()       == 20 ); 
     CHECK_THAT( b_model.maximum_radius(), Catch::Matchers::WithinAbs( 0.283065, tolerance ));
+
+    
 
     Eigen::Vector3d obs;
     double radius = 1.0;
@@ -49,6 +52,10 @@ TEST_CASE( "Bullet Tracer Model - Ray Trace / Values Test", "[default][bullet][t
     
     CHECK( b_model.ray_trace(obs, lookdir, ray) == true );
     CHECK( ray.hasHit() == true );
+
+    psmrts::bullet::PsmrtsBulletWorldModel bw_model = b_model.model();
+    CHECK( bw_model.isValid() == true );
+    CHECK( bw_model.name()    == b_model.shapefile() );
 
     psmrts::PsmrtsRayTrace::FacetDatum facet;
 

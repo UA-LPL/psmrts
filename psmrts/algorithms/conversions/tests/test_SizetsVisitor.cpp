@@ -25,6 +25,7 @@ TEST_CASE("SizetsVisitor Conversion Test", "[conversions][option][sizets][visito
   CHECK( sizet_double.get() == 3 );             // input double has been converted to a size_t
   CHECK( sizet_double.get(1) ==
          std::numeric_limits<size_t>::max() );  // beyond input index limit generates default
+  CHECK( sizet_double.get(1) == sizet_double.default_value() );
 
   // construct ProductOption object with name "bool" and a single boolean entry 
   psmrts::ProductOption option_bool( "bool", true );
@@ -38,6 +39,7 @@ TEST_CASE("SizetsVisitor Conversion Test", "[conversions][option][sizets][visito
   CHECK( sizet_bool.get() == 1 );               // input bool has been converted to a size_t
   CHECK( sizet_bool.get(1) ==
          std::numeric_limits<size_t>::max() );  // beyond input index limit generates default
+  CHECK( sizet_bool.get(1) == sizet_bool.default_value() );
   
   // ensure option_double and option_bool are equivalent
   CHECK(psmrts::OptionSizetsComparator::compare(option_double, option_bool ) == false );

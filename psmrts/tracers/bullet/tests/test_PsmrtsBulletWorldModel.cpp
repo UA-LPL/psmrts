@@ -89,6 +89,13 @@ TEST_CASE( "Bullet Tracer Test", "[bullet][tracer]" ) {
     CHECK_THAT( xyz[0], Catch::Matchers::WithinAbs( raysurf.xyz()[0], tolerance_km ) );
     CHECK_THAT( xyz[1], Catch::Matchers::WithinAbs( raysurf.xyz()[1], tolerance_km ) );
     CHECK_THAT( xyz[2], Catch::Matchers::WithinAbs( raysurf.xyz()[2], tolerance_km ) );
+
+    CHECK( bt_world.track_count()         > 0 );
+    CHECK( bt_world.elapsed_life_time_s() >= 0.0 );
+    
+    psmrts::PsmrtsThreadSafeCounter count_t = bt_world.performance_snapshot();
+    CHECK( count_t.count()     > 0 );
+    CHECK( count_t.runtime_s() >= 0.0 );
 }
 
 TEST_CASE("Bullet-DSK Comparison Test", "[bullet][dsk][raytrace]") {
