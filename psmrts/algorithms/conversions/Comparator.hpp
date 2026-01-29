@@ -97,6 +97,12 @@ namespace psmrts::algorithms::conversions {
           return ( this->compare( other, this->default_value() ) );
         }
 
+        /** Compare another container using the Visitor with matches */
+        inline bool compare( const Container &other,
+                             std::vector<bool> &matches ) const {
+          return ( this->compare( other, this->default_value(), &matches ) );
+        }
+
         /**
          * @brief Compare two products with potential differing defaults
          * 
@@ -116,7 +122,8 @@ namespace psmrts::algorithms::conversions {
          * @return true     If all corresponding values compare within tolerance
          * @return false    If option sizes differ or are not within tolerance
          */
-        inline bool compare( const Container &other, const Type default_o ) const {
+        inline bool compare( const Container &other, const Type default_o,
+                             std::vector<bool> *matches = nullptr ) const {
                          
           size_t this_size  = this->size();
           size_t other_size = other.size();
@@ -132,7 +139,7 @@ namespace psmrts::algorithms::conversions {
           this->container().visit( this_visitor );
           other.visit( other_visitor );
 
-          return ( this->isequal( this_visitor, this_data, other_visitor, other_data ) );
+          return ( this->isequal( this_visitor, this_data, other_visitor, other_data, matches ) );
         }
 
         /**
@@ -205,6 +212,7 @@ namespace psmrts::algorithms::conversions {
             }
           }
           else {
+            matches->clear();
             matches->reserve( n );
             for ( size_t i = 0  ; i < n ; i++ ) {
               if ( visitor1.isvalid( v1[i] ) && visitor2.isvalid( v2[i] ) ) {

@@ -157,63 +157,6 @@ namespace psmrts::bullet {
        */
       int partId() const;
 
-
-      /** 
-       * Returns the distance from the intersection point to the beginning of the ray.
-       * 
-       * @return @b btScalar Distance between observer and point in kilometers. If
-       *                     no intersection exists, then DBL_MAX is returned.
-       */
-      btScalar distance() const;
-
-
-      /** 
-       * Returns the distance from the intersection point of this callback to the
-       * intersection point of another callback.
-       *  
-       * @param other The other callback to find the distance to.
-       * 
-       * @return @b btScalar Distance between the intersection point and the other
-       *                     callback's intersection point in kilometers. If this
-       *                     callback or the other callback does not have an
-       *                     intersection, then DBL_MAX is returned.
-       */
-      btScalar distance(const PsmrtsBulletClosestRayCallback &other) const;
-
-
-      /** 
-       * Returns the distance from the intersection point to another point.
-       * 
-       * @param other The point to calculate the distance to.
-       * 
-       * @return @b btScalar Distance between intersection and point in kilometers.
-       *                     If no intersection exists, then DBL_MAX is returned.
-       */
-      btScalar distance(const btVector3 &other) const;
-
-
-      /**
-       * Equality operator to check if this callback is equivalent to another callback.
-       * 
-       * @param other The callback to compare with.
-       * 
-       * @return @b bool If both callbacks are valid and intersected the same
-       *                 triangle on the same collision body.
-       */
-      bool operator==(const PsmrtsBulletClosestRayCallback &other) const;
-
-      /**
-       * @breif Return pointer to target shape 
-       *  
-       * This method assumes the creators have properly set the user pointer in (at 
-       * least) the btCollisionObject. 
-       * 
-       * @author 2017-03-17 Kris Becker
-       * 
-       * @return const BulletTargetShape* 
-       */
-      const void *body() const;
-
       /**
        * Return the default ray cast flags. The flags come from the EFlags
        * enumeration in the Bullet class btTriangleRaycastCallback.

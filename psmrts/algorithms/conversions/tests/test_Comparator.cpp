@@ -49,7 +49,6 @@ TEST_CASE("Comparator Default Test", "[comparators][default]") {
   CHECK( sizetsComp.default_value()  == std::numeric_limits<size_t>::max() );
   CHECK( stringsComp.default_value() == "" );
 
-
   CHECK( boolsComp.compare( doublesComp.container() ) == true );
 }
 
@@ -64,7 +63,42 @@ TEST_CASE("Comparator Doubles Test", "[comparators][doubles]") {
   CHECK( d1_cmp.container().to_string() == "1.234567800" );
   CHECK( option_d2.to_string()          == "3.141591540" );
 
-  // why are these failing?
-  CHECK( DoublesComparator::compare(option_d1, option_d2) == false );
+  CHECK( DoublesComparator::compare(option_d1, option_d2)     == false );
   CHECK( DoublesComparator::compare(option_d1, option_string) == false );
+
+  CHECK( DoublesComparator::compare(option_d1, option_d1)     == true );
+  CHECK( DoublesComparator::compare(option_d2, option_d2)     == true );
+
+  psmrts::ProductOption dbl1( "dbl1", { 0.000005, 5.0e-6 } );
+  psmrts::ProductOption dbl2( "dbl2", { 5.0e-6 ,  0.000005} );
+
+  CHECK( DoublesComparator::compare( dbl1, dbl2 )  == true );
+  CHECK( DoublesComparator::compare( dbl2, dbl1 )  == true );
+
+  CHECK( StringsComparator::compare( dbl1, dbl2 )  == true );
+  CHECK( SizetsComparator::compare( dbl1, dbl2 )   == true );
+  CHECK( IntegersComparator::compare( dbl1, dbl2 ) == true );
+  
+  CHECK( DoublesComparator::compare(dbl1, dbl1 )   == true );
+  CHECK( DoublesComparator::compare(dbl2, dbl2 )   == true );
+
+  std::vector<bool> matches;
+  DoublesComparator dbl_cmp( dbl1 );
+  CHECK ( dbl_cmp.compare( dbl2, matches ) == true );
+  CHECK( matches.size()     == 2 );
+  CHECK( matches[0]         == true );
+  CHECK( matches[1]         == true );
+
+  psmrts::ProductOption i_arr( "iarray", { 1, 2, 3, 4, 5 } );
+  psmrts::ProductOption st_arr( "starray", std::vector<size_t>( { 1, 2, 3, 4, 5 } ) );
+  psmrts::ProductOption s_arr( "sarray", { "1", "2", "3", "4", "5" } );
+  CHECK( DoublesComparator::compare( i_arr, s_arr )   == true );
+  CHECK( DoublesComparator::compare( i_arr, st_arr )  == true );
+  CHECK( DoublesComparator::compare( s_arr, st_arr )  == true );
+
+  CHECK( StringsComparator::compare( s_arr, st_arr )   == true );
+  CHECK( IntegersComparator::compare( s_arr, st_arr )  == true );
+  CHECK( SizetsComparator::compare( i_arr, s_arr )     == true );
+  CHECK( SizetsComparator::compare( s_arr, st_arr )     == true );
+
 }
