@@ -61,7 +61,7 @@ namespace psmrts::algorithms::conversions {
         auto process = [&]( const bool addit, const size_t index ) {
           if ( addit ) {
             if ( i >= std::numeric_limits<Type>::max() ) {
-              m_datum.push_back( std::numeric_limits<Type>::max() );
+              m_datum.push_back( default_value());
             } else {
               m_datum.push_back( static_cast<Type>( i ) );
             }
@@ -77,10 +77,10 @@ namespace psmrts::algorithms::conversions {
         auto process = [&]( const bool addit, const size_t index ) {        
           if ( addit ) {
             if (d >= std::numeric_limits<Type>::max() ) {
-                m_datum.push_back( std::numeric_limits<Type>::max() );
+                m_datum.push_back( default_value());
             }
             else if (d <= std::numeric_limits<Type>::min() ) {
-                m_datum.push_back( std::numeric_limits<Type>::min() );
+                m_datum.push_back( default_value() );
             } 
             else {
                 m_datum.push_back( static_cast<Type>( d ) );
@@ -121,7 +121,7 @@ namespace psmrts::algorithms::conversions {
         auto process = [&]( const bool addit, const size_t index ) {
           if ( addit ) {
             if ( i_array[index] >= std::numeric_limits<Type>::max() ) {
-                m_datum.push_back( std::numeric_limits<Type>::max() );
+                m_datum.push_back( default_value() );
             } else {
                 m_datum.push_back( static_cast<int>( i_array[index] ) );
             } 
@@ -136,12 +136,11 @@ namespace psmrts::algorithms::conversions {
       inline void operator()( const std::vector<double> &d_array ) {
         auto process = [&]( const bool addit, const size_t index ) {
           if ( addit ) {
-            //m_datum.push_back( d_array[index] );                
             if (d_array[index] >= std::numeric_limits<Type>::max() ) {
-                m_datum.push_back( std::numeric_limits<Type>::max() );
+                m_datum.push_back( default_value() );
             }
             else if (d_array[index] <= std::numeric_limits<Type>::min() ) {
-                m_datum.push_back( std::numeric_limits<Type>::min() );
+                m_datum.push_back( default_value() );
             } 
             else {
                 m_datum.push_back( static_cast<int>( d_array[index] ) );
@@ -257,10 +256,10 @@ namespace psmrts::algorithms::conversions {
             if (len != s.length() ) return ( default_value() );
 
             if ( val >= std::numeric_limits<Type>::max() ) {
-                return std::numeric_limits<Type>::max();
+                return ( default_value() );
             }
             else if (val <= std::numeric_limits<Type>::min() ) {
-                return std::numeric_limits<Type>::min();
+                return ( default_value() );
             } 
             else {
                 return static_cast<Type>( val );
