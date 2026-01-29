@@ -12,10 +12,13 @@
 TEST_CASE ( "Bullet Mesh Map Test - Default Constructor", "[default][bullet][mesh]" ) {
     psmrts::bullet::PsmrtsBulletMeshMap b_map;
 
-    CHECK ( b_map.isValid() == false );
-    CHECK ( b_map.name() == "bullet" );
-    CHECK ( b_map.id() == 0 );
-    CHECK ( b_map.mesh() == nullptr );
+    CHECK ( b_map.isValid()      == false );
+    CHECK ( b_map.name()         == "bullet" );
+    CHECK ( b_map.id()           == 0 );
+    CHECK ( b_map.mesh()         == nullptr );
+    CHECK( b_map.mesh_data_id()  == "bullet::bullet::0::0" );
+    CHECK( b_map.shapes().size() == 0 );
+    CHECK_THROWS( b_map.create_collision_shape( nullptr ) );
 }
 
 TEST_CASE ( "Bullet Mesh Map Test - Small Dataset", "[bullet][mesh]" ) {

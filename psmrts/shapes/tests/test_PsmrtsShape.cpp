@@ -15,14 +15,17 @@ TEST_CASE("PsmrtsShape Default Test", "[shape][default]") {
     CHECK( sizeof( psmrts::PsmrtsShape) <= 1390 );
 
     psmrts::PsmrtsShape test_shape;
-    CHECK( test_shape.isValid() == false );
+    CHECK( test_shape.isValid()         == false );
+    CHECK( test_shape.minimum_radius()  == 0 );
+    CHECK( test_shape.maximum_radius()  == 0 );
 
     psmrts::PsmrtsMeshData test_data = test_shape.get_mesh();
     CHECK( test_data.nvectors() == 0 );
     CHECK( test_data.nfacets()  == 0 );
 
-    // This test is not the same on all OSes but tracks the size PSMRTS shapes!
-    // CHECK( sizeof( psmrts::PsmrtsShape ) == 1288 );
+    CHECK_THROWS( psmrts::PsmrtsShape("bad_name.txt" ) );
+
+    CHECK( psmrts::PsmrtsShape( psmrts::MeshShape() ).get_mesh().isValid() == false );
 }
 
 TEST_CASE("NAIF DSK Shape Test", "[naif][shape]") {

@@ -82,6 +82,25 @@ TEST_CASE("IntegersVisitor Conversion Test", "[conversions][option][integers][vi
     CHECK( array_str.get(1) == 4 ); 
     CHECK( array_str.get(2) == -42 );
     CHECK( array_str.get(3) == std::numeric_limits<int>::min() );
+
+    size_t st = std::numeric_limits<size_t>::max();
+    psmrts::ProductOption st_data( "sdata", st);
+    psmrts::OptionIntegersExtractor stxtr( st_data );
+    CHECK( stxtr.get(1) == stxtr.default_value() );
+
+    psmrts::ProductOption dblsclmax( "dblscl", 1.0e+200 );
+    psmrts::OptionIntegersExtractor dblsclmaxtr( dblsclmax );
+    CHECK( dblsclmaxtr.get(0)  == dblsclmaxtr.default_value() );
+
+    psmrts::ProductOption dblsclmin( "dblscl", -1.0e+200 );
+    psmrts::OptionIntegersExtractor dblsclminxtr( dblsclmin );
+    CHECK( dblsclminxtr.get(0)  == dblsclminxtr.default_value() );
+
+    psmrts::ProductOption baddbl( "baddbl",  { -1.0e+200, 1.0e+200 } );
+    psmrts::OptionIntegersExtractor bdblxtr( baddbl );
+    CHECK( bdblxtr.get(0)  == bdblxtr.default_value() );
+    CHECK( bdblxtr.get(1)  == bdblxtr.default_value() );  
+
 }
 
 TEST_CASE("IntegersVisitor JSON Conversion Test", "[conversions][option][integers][comparator][json]") {

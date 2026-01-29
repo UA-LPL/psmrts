@@ -42,6 +42,18 @@ TEST_CASE("SizetsVisitor Conversion Test", "[conversions][option][sizets][visito
   // ensure option_double and option_bool are equivalent
   CHECK(psmrts::OptionSizetsComparator::compare(option_double, option_bool ) == false );
   CHECK(psmrts::OptionBoolsComparator::compare(option_double, option_bool )  == true );
+
+  size_t st = 101;
+  psmrts::ProductOption st_data( "sdata", st);
+  psmrts::OptionSizetsExtractor stxtr( st_data );
+  CHECK( stxtr.get()  == 101 );
+  CHECK( stxtr.get(1) == stxtr.default_value() );
+
+  psmrts::ProductOption baddbl( "baddbl",  { -1.0, 1.0e+200 } );
+  psmrts::OptionSizetsExtractor bdblxtr( baddbl );
+  CHECK( bdblxtr.get(0)  == bdblxtr.default_value() );
+  CHECK( bdblxtr.get(1)  == bdblxtr.default_value() );
+
 }
 
 /**
