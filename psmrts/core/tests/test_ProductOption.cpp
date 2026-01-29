@@ -231,6 +231,9 @@ TEST_CASE( "ProductOption Parameter Values Tests", "[parameter][values]") {
   CHECK_THROWS( psmrts::ProductOption("JsonTest", jvals) );
   CHECK_THROWS( psmrts::ProductOption("jsontest", jvals) );
 
+  ordered_json jvals_bad = {"key1", {"key2", 2}};
+  CHECK_THROWS( psmrts::ProductOption("JsonBad", jvals_bad) );
+
   Eigen::Vector3d v3dvals(1.0, 2.0, 3.0);
   psmrts::ProductOption q("Vec3D", v3dvals);
   psmrts::ProductOption r("vec3d", {1.0, 2.0, 3.0});

@@ -346,8 +346,6 @@ TEST_CASE("Bullet-DSK Comparison Test - float", "[bullet][dsk][raytrace][float]"
 
 }
 
-
-
 TEST_CASE( "BulletTracerModel Test", "[bullet][tracer][model]" ) {
     const double tolerance_km = 1.0e-6;
 
@@ -417,4 +415,62 @@ TEST_CASE( "BulletTracerModel Test", "[bullet][tracer][model]" ) {
     CHECK_THAT( xyz[0], Catch::Matchers::WithinAbs( raysurf.xyz()[0], tolerance_km ) );
     CHECK_THAT( xyz[1], Catch::Matchers::WithinAbs( raysurf.xyz()[1], tolerance_km ) );
     CHECK_THAT( xyz[2], Catch::Matchers::WithinAbs( raysurf.xyz()[2], tolerance_km ) );
+}
+
+TEST_CASE( "BulletTracerModel Callback Test", "[bullet][tracer][callback]" ) {
+  const double tolerance_km = 1.0e-6;
+
+  // Tetst default construction
+  psmrts::bullet::PsmrtsBulletClosestRayCallback callback_none;
+  CHECK( callback_none.isValid()  == false );
+  CHECK( callback_none.hasHit()   == false );
+  CHECK( callback_none.fraction() == 1.0 );
+  CHECK( callback_none.triangleIndex() == -1 );
+  CHECK( callback_none.partId() == -1 );
+
+  // Create a shape a test a trace operation with callbacks
+  std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
+  psmrts::PsmrtsShape b_shape{ objfile };
+
+  // This spec saves significant memory... and confirms Bullet preserves data
+  psmrts::bullet::PsmrtsBulletWorldModel bt_world_model{ psmrts::bullet::PsmrtsBulletMeshMap ( b_shape.get_mesh(), objfile, 0 ), objfile };
+  REQUIRE( bt_world_model.isValid() == true );
+
+  // Compute the position of the observer at ( 45,45 ) degrees
+  Eigen::Vector3d obs;
+  double radius = 1.0;
+  double obs_long = 45.0 * rpd_c();
+  double obs_lat = 45.0 * rpd_c();
+  latrec_c ( radius, obs_long, obs_lat, obs.data() );
+  obs = obs * 10.0;
+
+  // Compute the surface point at (45, 50 ). This is our surface target
+  Eigen::Vector3d surf;
+  double surf_lon = 45.0 * rpd_c();
+  double surf_lat = 50.0 * rpd_c();
+  latrec_c ( radius, surf_lon, surf_lat, surf.data() );
+
+  // Find the real surface point using bullet
+  Eigen::Vector3d observer = surf * 1.5;
+  Eigen::Vector3d lookdir = -observer;
+
+  psmrts::bullet::PsmrtsBulletClosestRayCallback callback_t( observer, lookdir );
+  CHECK( callback_t.toStdVector( callback_t.observer() ) == observer );
+  CHECK( callback_t.toStdVector( callback_t.lookdir() )  == lookdir );
+
+  psmrts::PsmrtsRayTrace ray_t;
+  psmrts::bullet::PsmrtsBulletClosestRayCallback results;
+  bool gothit = bt_world_model.bullet_ray_trace( observer, lookdir, results );
+  CHECK( bt_world_model.extract_ray_trace_results( results, ray_t ) == true );
+  CHECK( results.isValid() == true );   
+  CHECK( results.hasHit()  == ray_t.hasHit() ); 
+  CHECK_THAT( results.fraction(), Catch::Matchers::WithinAbs(0.41580917311320742, tolerance_km ));
+  CHECK( callback_t.toStdVector( results.point() )  == ray_t.xyz() );
+  CHECK( callback_t.toStdVector( results.normal() ) == ray_t.normal() );
+
+  psmrts::bullet::PsmrtsBulletClosestRayCallback copy_t( results, 
+                                                         results.point(),
+                                                         results.normal() );
+  CHECK( copy_t.isValid() == true);
+  CHECK( copy_t.hasHit()  == true );
 }
