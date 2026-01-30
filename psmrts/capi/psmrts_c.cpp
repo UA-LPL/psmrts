@@ -1388,19 +1388,6 @@ void psmrts_free_tracer( PSMRTS_Tracer *tracer ){
 }
 
 /**
- * @brief psmrts_free_shapetracer - Frees memory allocated to input
- *                                  PSMRTS_ShapeTracer pointer.
- *
- * This function frees memory allocated to the input PSMRTS_ShapeTracer pointer.
- *
- * @param stracer Pointer to PSMRTS_ShapeTracer.
- * @return void
- */
-void psmrts_free_shapetracer( PSMRTS_Tracer *stracer ) {
-  delete stracer;
-}
-
-/**
  * @brief psmrts_free_priority_tracer - Frees memory allocated to input
  *                      PSMRTS_PriorityTracer pointer.
  *
