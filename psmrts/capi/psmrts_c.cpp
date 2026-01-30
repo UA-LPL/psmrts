@@ -154,7 +154,7 @@ extern "C" {
 /**
  * @brief psmrts_version - Returns a string with the PSMRTS version.
  *
- * This function returns a string with the PSMRTS version.
+ * This function returns a string with the PSMRTS Project version.
  *
  * @return char* String with PSMRTS version.
  */
@@ -951,7 +951,7 @@ size_t psmrts_photometric_trace_array_add_trace( PSMRTS_PhotometricTraceArray *t
  */
 extern PSMRTS_BOOL psmrts_photometric_trace_array_trace( PSMRTS_PhotometricTraceArray *tracearray,
                                                          const PSMRTS_Tracer *tracer) {
-    return ( tracer->process( *tracearray ) );
+  return ( tracer->process( *tracearray ) );
 }
 
 /**
