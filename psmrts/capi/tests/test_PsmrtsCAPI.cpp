@@ -1258,4 +1258,54 @@ TEST_CASE( "PSMRTS C API - Ellipsoid V Shape Tracer Test", "[capi][c++][ellipsoi
   psmrts_free_ray( trace_45_45_10 );
 }
 
+/**
+ * @brief Tests PSMRTS C API Mesh methods.
+ *
+ * This test creates meshes from obj, dsk, and ply files with the methods...
+ *   psmrts_create_obj_shape
+ *   psmrts_create_dsk_shape
+ *   psmrts_create_ply_shape
+ * 
+ * And further verifies surface area and volume of all three meshes with...
+ *   psmrts_mesh_surface_area
+ *   psmrts_mesh_volume
+ * 
+ * And finally frees the memory for all shapes with...
+ *   psmrts_free_shape
+ */
+TEST_CASE( "PSMRTS C API - Mesh Test", "[capi][c++][mesh][obj]" ) {
+  double tolerance = 1.0e-6;
+
+  std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
+  PSMRTS_Shape *objshape = psmrts_create_obj_shape( objfile.c_str() );
+  
+  CHECK_THAT( psmrts_mesh_surface_area( objshape ),
+              Catch::Matchers::WithinAbs( 0.842492, tolerance ) );
+  CHECK_THAT( psmrts_mesh_volume( objshape ),
+              Catch::Matchers::WithinAbs( 0.063170, tolerance ) );
+
+  // testing dsk mesh
+  std::string dskfile = psmrts_shapes_path( "dsk/data/bennu_20facets.bds" );
+  PSMRTS_Shape *dskshape = psmrts_create_dsk_shape( dskfile.c_str() );
+  
+  CHECK_THAT( psmrts_mesh_surface_area( dskshape ),
+              Catch::Matchers::WithinAbs( 0.842492, tolerance ) );
+  CHECK_THAT( psmrts_mesh_volume( dskshape ),
+              Catch::Matchers::WithinAbs( 0.063170, tolerance ) );
+
+  // testing ply mesh
+  std::string plyfile = psmrts_shapes_path( "ply/data/Bennu_Radar.ply" );
+  PSMRTS_Shape *plyshape = psmrts_create_ply_shape( plyfile.c_str() );
+  
+  CHECK_THAT( psmrts_mesh_surface_area( plyshape ),
+              Catch::Matchers::WithinAbs( 0.785467, tolerance ) );
+  CHECK_THAT( psmrts_mesh_volume( plyshape ),
+              Catch::Matchers::WithinAbs( 0.062265, tolerance ) );
+
+  // free memory
+  psmrts_free_shape( objshape );
+  psmrts_free_shape( dskshape );
+  psmrts_free_shape( plyshape );
+}
+
 

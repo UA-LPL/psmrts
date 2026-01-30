@@ -210,18 +210,21 @@ PSMRTS_C_EXPORT PSMRTS_Tracer *psmrts_create_ellipsoid( const double a_radius_km
                                                const double c_radius_km,
                                                const char *name );
 PSMRTS_C_EXPORT PSMRTS_Tracer *psmrts_create_ellipsoid_v( const PSMRTS_Vector3d *radii,
-                                                 const char *name );
+                                                          const char *name );
 PSMRTS_C_EXPORT PSMRTS_Tracer *psmrts_create_bullet( const char *objfile );
 PSMRTS_C_EXPORT PSMRTS_Tracer *psmrts_create_naifdsk( const char *dskfile );
 PSMRTS_C_EXPORT PSMRTS_BOOL psmrts_tracer_valid( const PSMRTS_Tracer *trace );
 
 /*============ PSMRTS Facet functions ===================*/
 PSMRTS_C_EXPORT PSMRTS_BOOL psmrts_get_facet( PSMRTS_RayTrace *ray, const PSMRTS_Tracer *tracer,
-                                     PSMRTS_Facet *facet );
+                                              PSMRTS_Facet *facet );
 PSMRTS_C_EXPORT double psmrts_facet_surface_area( const PSMRTS_Facet *facet );
 PSMRTS_C_EXPORT double psmrts_facet_volume( const PSMRTS_Facet *facet );
 
 /*============ PSMRTS Shape (Mesh) functions ============*/
+PSMRTS_C_EXPORT PSMRTS_Shape *psmrts_create_obj_shape( const char *objfile );
+PSMRTS_C_EXPORT PSMRTS_Shape *psmrts_create_dsk_shape( const char *dskfile );
+PSMRTS_C_EXPORT PSMRTS_Shape *psmrts_create_ply_shape( const char *plyfile );
 PSMRTS_C_EXPORT double psmrts_mesh_surface_area( const PSMRTS_Shape *shape );
 PSMRTS_C_EXPORT double psmrts_mesh_volume( const PSMRTS_Shape *shape );
 
