@@ -174,3 +174,11 @@ TEST_CASE("PsmrtsTracer Values / Raytrace Test", "[tracer][raytrace][default]") 
     CHECK(facet_d.facet().m_vector3 == facet_b.facet().m_vector3 );
     CHECK(facet_d.facet().m_normal == facet_b.facet().m_normal );
   }
+
+  TEST_CASE("PsmrtsTracer Configuration Test", "[tracer][config]") {
+    std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
+    psmrts::PsmrtsTracer bullet_t( psmrts::PsmrtsTracer::bullet( dskfile ) );
+
+    psmrts::ProductConfiguration config = bullet_t.config();
+    CHECK( bullet_t.matches( config ) == true );
+  }
