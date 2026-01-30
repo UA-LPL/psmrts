@@ -235,6 +235,8 @@ if( BUILD_TESTING )
       message("CC_BaseDir:      ${PSMRTS_SOURCE_DIR}/psmrts")
     endif(CODE_COVERAGE_VERBOSE)
 
+    # Omit closing scope braces from counts
+    set(GCOVR_ADDITIONAL_ARGS --exclude-noncode-lines)
     setup_target_for_coverage_gcovr_html(
       NAME coverage
       EXECUTABLE ctest --schedule-random
