@@ -1,0 +1,7 @@
+@PACKAGE_INIT@
+
+include ("${CMAKE_CURRENT_LIST_DIR}/psmrts_dependency_standards.cmake")
+psmrts_create_dependency_targets()
+include ("${CMAKE_CURRENT_LIST_DIR}/psmrts-targets.cmake")
+
+check_required_components(psmrts)

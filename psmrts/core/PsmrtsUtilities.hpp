@@ -20,6 +20,15 @@
 #include <time.h>
 #include <vector>
 
+// For Windows
+#if !defined(M_PI)
+#define M_PI   3.14159265358979323846
+#endif
+
+#if !defined(M_PI_2)
+#define M_PI_2 1.57079632679489661923
+#endif
+
 #include <Eigen/Geometry>
 
 #include <psmrts/core/psmrts_version.h>
@@ -140,6 +149,11 @@ namespace psmrts {
   inline double null() {
     return ( std::numeric_limits<double>::quiet_NaN() );
   }
+
+  /** Standardize a null vector */
+  inline Eigen::Vector3d null_vector( ) {
+    return ( Eigen::Vector3d( { null(), null(), null() } ) );
+  }  
 
   /** Test for the NULL value */
   inline bool isnull( const double &v ) {
@@ -282,6 +296,13 @@ namespace psmrts {
       }
 
       return ( llr );
+  }
+
+    /** Nothing fancy about checking if two doubles are approximately equivalent */
+    inline bool isApprox( const double &v1, 
+                          const double &v2,
+                          const double v_tolerance = 1.0e-12 ) {
+    return ( std::abs( v1 - v2 ) < v_tolerance );                    
   }
 
   /** Returns true if the data of two Eigen::Vector3d have same relative values, with adjustable tolerance */
@@ -750,16 +771,26 @@ namespace psmrts {
     class PsmrtsUID {
       public:
         using UIDType = unsigned long long;
-        inline static const UIDType UID_Reserved{0};
+
+        inline static const  UIDType &null_uid() {
+          return ( UID_Reserved );
+        }
 
         /** Return a unique ID which should never assumed to be negative */
         inline static UIDType get_uid() {
           return ( ++m_uid );  // This reserves ID <= UID_Reserved!
         }
 
+        /** Checks for a valid ID */
+        inline static bool is_valid_uid( const UIDType uid ) {
+          return ( uid > null_uid() );
+        }
+
       private:
         PsmrtsUID()  = default;
         ~PsmrtsUID() = default;
+
+        inline static const UIDType UID_Reserved{0};
         inline static std::atomic<UIDType> m_uid{UID_Reserved};
     };
 

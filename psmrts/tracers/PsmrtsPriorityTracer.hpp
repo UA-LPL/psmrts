@@ -3,6 +3,8 @@
 
 #include <string>
 #include <vector>
+#include <algorithm>
+#include <functional>
 
 #include <Eigen/Geometry>
 #include <psmrts/core/PsmrtsUtilities.hpp>
@@ -19,11 +21,18 @@ namespace psmrts {
       using UIDType         = PsmrtsUID::UIDType;
       using TracerList      = std::vector<UIDType>;
       using TracerInventory = ProductInventory<UIDType, PsmrtsTracer>;
+      using PriorityFunc    = std::function<TracerList(const TracerList &current,
+                                                       const TracerInventory &inventory)>;
+
 
       PsmrtsPriorityTracer( ) : PsmrtsProduct("prioritytracer") { init(); }
+      PsmrtsPriorityTracer( const std::string &name ) : PsmrtsProduct( name ) { init(); }
       
-      PsmrtsPriorityTracer( const PsmrtsTracer &tracer ) : PsmrtsProduct("prioritytracer") { 
+      PsmrtsPriorityTracer( const PsmrtsTracer &tracer,
+                            const std::string &name = "" ) : 
+                            PsmrtsProduct( name ) { 
         init();
+        if ( name.length() == 0 ) set_name( tracer.name() );
         this->add_tracer( tracer );
       }
 
@@ -42,14 +51,15 @@ namespace psmrts {
       /** Adds a tracer to Priority Tracer list */
       inline void add_tracer( const PsmrtsTracer &tracer ) {
         m_tracers.push_back( tracer.uid() );
-        m_inventory_t.add_product( tracer );
+        if ( !m_inventory_t.contains( tracer.uid() ) ) {
+          m_inventory_t.add_product( tracer );
+        }
       }
       
       inline bool process ( PRQRayTrace &ray ) const {
-
-        // Just loop through linear like
-        for ( auto const &uid : tracers() ) {
-          auto const &tracer = m_inventory_t.find( uid );
+        // Trace through list as ordered in the current UID set
+        for ( const auto &uid : tracers() ) {
+          const auto &tracer = m_inventory_t.find( uid );
           if ( tracer.process( ray )  ) {
             return ( ray.isValid() );
           }
@@ -58,11 +68,11 @@ namespace psmrts {
       }
 
       inline bool process ( PRQRayTraceArray &tracelist ) const {
-     // Just loop through linear like
+        // Trace through list as ordered in the current UID set
         size_t ngood = 0;
         for ( auto &ray : tracelist.traces() ) {
-          for ( auto const &uid : tracers() ) {
-            auto const &tracer = m_inventory_t.find( uid );
+          for ( const auto &uid : tracers() ) {
+            const auto &tracer = m_inventory_t.find( uid );
             if ( tracer.process( ray ) == true ) ngood++;
           }
         }
@@ -72,9 +82,9 @@ namespace psmrts {
 
 
      inline bool process ( PRQPhotometricTrace &ray_p ) const {
-     // Just loop through linear like
-        for ( auto const &uid : tracers() ) {
-          auto const &tracer = m_inventory_t.find( uid );
+        // Trace through list as ordered in the current UID set
+        for ( const auto &uid : tracers() ) {
+          const auto &tracer = m_inventory_t.find( uid );
           if ( tracer.process( ray_p ) == true ) return ( true );
         }
         return ( false ); // Not a one intercepted
@@ -82,11 +92,11 @@ namespace psmrts {
 
       
       inline bool process ( PRQPhotometricTraceArray &tracelist ) const {
-     // Just loop through linear like
+        // Trace through list as ordered in the current UID set
         size_t ngood = 0;
         for ( auto &ray : tracelist.traces() ) {
-          for ( auto const &uid : tracers() ) {
-            auto const &tracer = m_inventory_t.find( uid );
+          for ( const auto &uid : tracers() ) {
+            const auto &tracer = m_inventory_t.find( uid );
             if ( tracer.process( ray ) == true ) ngood++;
           }
         }
@@ -94,7 +104,7 @@ namespace psmrts {
       } 
       
       
-      /** Report all remaining features not available - e.g., PRQFacet not relevant to Ellipsoid format */
+      /** Report all remaining features not available  */
       PSMRTS_PROCESS_CATCHALL( "PsmrtsPriorityTracer" )
 
 
@@ -123,9 +133,10 @@ namespace psmrts {
         return ( tracer.process( ray ) );
       }
 
+      /** Run a trace on the priority list */
       inline bool ray_trace( PRQRayTrace &ray ) const {
-        for ( auto const &uid : tracers() ) {
-          auto const &tracer = m_inventory_t.find( uid );
+        for ( const auto &uid : tracers() ) {
+          const auto &tracer = m_inventory_t.find( uid );
           if ( this->ray_trace( tracer, ray ) == true ) {
             return ( ray.isValid() );
           }
@@ -133,13 +144,79 @@ namespace psmrts {
         return ( ray.isValid() );
       }
 
+      /** Return list of tracers in this object */
       inline const TracerList &tracers() const {
         return ( m_tracers );
       }
 
-      /** Empties the Priority list */
+      /** Return list of tracers in this object */
+      inline const TracerInventory &inventory() const {
+        return ( m_inventory_t );
+      }
+
+      /** Find and return pointer to tracer in list, otherwise an invalid
+       * tracer is returned */
+      inline PsmrtsTracer get_tracer( const UIDType &uid ) const {
+        if ( m_inventory_t.contains( uid ) ) {
+          return( m_inventory_t.find( uid ) );
+        }
+
+        // Return an invalid tracer
+        return ( PsmrtsTracer( "invalid" ) );
+      }
+
+      /** Find the tracer of a valid ray trace result */
+      inline PsmrtsTracer get_tracer( const PsmrtsRayTrace &ray ) const {
+        return ( get_tracer( ray.get_tracer_id() ) );
+      }
+
+      /** Empties the priority list not the inventory */
       inline void clear() {
         m_tracers.clear();
+      }
+
+      /**
+       * @brief Prioritization functor processing method
+       * 
+       * Users can create/recompute the preferred priority of the tracers
+       * contained in this priority tracer. Each tracer has a unique ID that is
+       * contained in the local PSMRTS inventory of tracers. This method
+       * provides a safe way to reestablish a tracer process with the list of
+       * currently available tracers.
+       * 
+       * @see reverse().
+       * 
+       * @param processor Priority function to establish new order
+       * @return size_t   Number of tracers in the result of processor()
+       */
+      inline size_t prioritize( PriorityFunc processor ) {
+        m_tracers = processor( m_tracers, m_inventory_t );
+        return ( m_tracers.size() );
+      }
+
+      /**
+       * @brief Reverse the order of the tracer list
+       * 
+       * This method will reverse the order of the list of tracers which
+       * essentially reverses the order in which the tracers are executed for
+       * every ray trace.
+       * 
+       * This method demonstrates the use of the prioritize() functor method.
+       * 
+       * @return size_t Number of tracers in the resulting list
+       */
+      inline size_t reverse_priority() {
+        auto reverse_tracers = []( const TracerList &current_order, 
+                                   const TracerInventory &inventory ) -> TracerList {
+          TracerList reversed;
+          reversed.reserve( current_order.size() );
+          std::transform( current_order.rbegin(), current_order.rend(), 
+                          std::back_insert_iterator( reversed ),
+                         []( UIDType t ) { return ( t ); } );
+          return ( reversed );
+        };
+       
+        return ( prioritize( reverse_tracers ) );
       }
       
     private:
@@ -149,7 +226,6 @@ namespace psmrts {
       inline void init( ) {
         m_tracers.clear();
         m_inventory_t.clear();
-
       }
   };
 

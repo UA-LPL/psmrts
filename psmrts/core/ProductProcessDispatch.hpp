@@ -1,6 +1,5 @@
 #ifndef ProductProcessDispatch_hpp
 #define ProductProcessDispatch_hpp
-#pragma once
 
 #include <exception>
 #include <variant>
@@ -8,6 +7,7 @@
 #include <Eigen/Geometry>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 
 namespace psmrts {
@@ -16,11 +16,27 @@ namespace psmrts {
   template <typename... Ts>
     class ProductProcessDispatch {
       public:
-        using ProductType = std::variant<Ts ...>;
+        using ProductType = std::variant<Ts...>;
 
         ProductProcessDispatch( )         = default;
         ProductProcessDispatch( const ProductType &product ) : m_product( product ) {  }
         virtual ~ProductProcessDispatch() = default;
+
+        /** Returns the name of the product */
+        inline const std::string &name() const {
+          auto get_product_name = []( auto &product ) -> const std::string& {
+            return ( product.name() );
+          };
+          return ( std::visit( get_product_name, m_product ) );
+        }
+
+        /** Return the product id for the variant */
+        inline const PsmrtsUID::UIDType &uid() const {
+          auto get_product_uid = []( auto &product ) -> const PsmrtsUID::UIDType& {
+            return ( product.uid() );
+          };
+          return ( std::visit( get_product_uid, m_product ) );
+        }
 
         /**
          * @brief Product dispatch template runs the PSMRTS product line interface

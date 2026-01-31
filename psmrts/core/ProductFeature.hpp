@@ -1,4 +1,3 @@
-#pragma once
 #ifndef ProductFeature_hpp
 #define ProductFeature_hpp
 
@@ -13,6 +12,7 @@
 #include <algorithm>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsContainer.hpp>
 #include <psmrts/core/ProductOption.hpp>
 
 namespace psmrts { 
@@ -36,51 +36,27 @@ namespace psmrts {
    */
   class ProductFeature {
     public:
-      // Empty default, no name handling?
-      ProductFeature( ) : m_spec_j() { }
+      using FeatureOption     = ProductOption;
+      using FeatureOptionList = PsmrtsContainer<FeatureOption>;
+      using FeatureList       = FeatureOptionList::Container;
       
-      explicit ProductFeature( const std::string &name  ) {
-        m_spec_j["name"] = name;
-      }
 
-      explicit ProductFeature( const char *name  ) {
-        m_spec_j["name"] = name;
-      }
-
-      ProductFeature( const std::string &name, 
-                        const ordered_json &options ) {
-        m_spec_j = options;
-        m_spec_j["name"] = name;
-      }
-
-      /** Create a feature from contents of a JSON object */
-      explicit ProductFeature( const ordered_json &specs ) {
-        m_spec_j = specs;
-        if (!m_spec_j.contains( "name" ) ) {
-          throw std::invalid_argument("Error: Feature requires a 'name' key with specifying value.");
-        }
-      }
-
-      ProductFeature( const std::string &key, const std::string &value,
-                        const ordered_json &options = json_utils::json_null() ) { 
-        m_spec_j = options;
-        m_spec_j["name"] = key;
-        m_spec_j[key] = value;
-      }
-
-      ProductFeature( const std::string &key, const double &value,
-                        const ordered_json &options = json_utils::json_null() ) { 
-        m_spec_j = options;
-        m_spec_j["name"] = key;
-        m_spec_j[key] = value;
-      }      
-
-      ProductFeature( const std::string &key, const int &value,
-                        const ordered_json &options = json_utils::json_null() ) { 
-        m_spec_j = options;
-        m_spec_j["name"] = key;
-        m_spec_j[key] = value;
-      }
+      ProductFeature( ) : m_options( "feature", { } ) { }
+      explicit ProductFeature( const std::string &name  ) : 
+                               m_options(create( name, { } ) )  { }
+      explicit ProductFeature( const char *name  ) : 
+                               m_options(create( name, { } ) ) { }
+      explicit ProductFeature( const std::string &name, 
+                               const std::initializer_list<FeatureOption> &options ) :
+                              m_options( create( name,  options ) ) { }     
+      explicit ProductFeature( const std::string &name, 
+                               const std::vector<FeatureOption> &options ) :
+                               m_options( create( name, options ) ) { }
+      explicit ProductFeature( const std::string &name, 
+                               const ordered_json &options ) : 
+                               m_options( from_json( options, name ) ) {  }
+      explicit ProductFeature( const ordered_json &specs ) :
+                               m_options( from_json( specs ) ) {  }
 
       virtual ~ProductFeature() = default;
 
@@ -103,7 +79,8 @@ namespace psmrts {
        * @return ProductFeature   A ProductFeature with the PVL string specifications
        */
       static inline ProductFeature from_pvl( const std::string &s ) {
-        ordered_json s_specs;
+        std::vector<FeatureOption> f_specs;
+        std::string name_t( "" );
 
         size_t start = 0;
         size_t length = 0;
@@ -134,7 +111,11 @@ namespace psmrts {
           }
           std::string value = s.substr(equals + 1, length);
 
-          s_specs[psmrts::psmrts_tolower(key)] = value;
+          std::string key_t = psmrts::psmrts_tolower(key);
+          if ( "name" == key_t ) name_t = value;
+
+          // Append the key to the list
+          f_specs.push_back( FeatureOption( psmrts::psmrts_tolower(key), value ) );
 
           if (delimiter == std::string::npos) {
             start = s.length();
@@ -143,25 +124,32 @@ namespace psmrts {
           }
         }
 
-        return ProductFeature( s_specs );
+        // Check for an empty structure
+        if ( f_specs.size() == 0 ) {
+          // Gotta throw here
+          throw std::runtime_error("*** PsmrtsFeature::from_pvl() - no features found!" );
+        }
+
+        return ( ProductFeature( name_t, { f_specs } ) );
       }   
       
 
       /** Returns number of objects/keys in the specs */
       inline size_t size() const {
-        return ( this->specs().size() );
+        return ( m_options.size() );
       }
 
       /** Returns boolean confirmation if target key is in features */
       inline bool contains( const std::string &key ) const {
-        return ( this->specs().contains( psmrts_tolower( key ) ) );
+        return ( m_options.contains( key ) );
       }
 
       template <class T>
         inline T value( const std::string &key, const T &v_default = T{} ) const {
           std::string key_t = psmrts_tolower( key );
-          if ( this->specs().contains(  key_t ) ) {
-            return ( this->specs().at( key_t ).template get<T>() );
+          if ( m_options.contains( key_t ) ) {
+            ordered_json value_j = m_options.find( key_t ).to_json();
+            return ( value_j.at( key_t ).template get<T>() );
           }
 
           // Not found - error!
@@ -171,15 +159,19 @@ namespace psmrts {
       template <class T>
         inline void add_key( const std::string &key, const T &value ) {
           std::string key_t = psmrts_tolower( key );
-          if (key_t == "name" && m_spec_j.size() > 0) { // to add name to empty default
-            throw std::invalid_argument("Error: 'name' key is reserved and cannot be modified after object creation.");
-          }
-          m_spec_j[key_t] = value;
+          m_options.add( FeatureOption( key_t, value ) );
         }
 
+      inline bool add( const FeatureOption &option ) {
+        return ( m_options.add( option ) );
+      }
+
+      inline bool replace( const FeatureOption &option ) {
+        return ( m_options.replace( option ) );
+      }      
+
       inline std::string name() const {
-        std::string p_name("");
-        return ( this->value( "name", p_name ) );
+        return ( m_options.name() );
       }
 
       inline std::string type() const {
@@ -198,11 +190,7 @@ namespace psmrts {
       }      
 
       inline std::vector<std::string> keywords() const {
-        std::vector<std::string> p_keys{};
-        for ( auto &[key, value] : this->specs().items() ) {
-          p_keys.push_back( key );
-        }
-        return ( p_keys );
+        return ( m_options.keys() );
       } 
 
       inline std::vector<std::string> aliases() const {
@@ -226,8 +214,8 @@ namespace psmrts {
       }   
 
       /** Return the JSON structure */
-      inline const ordered_json &specs( ) const {
-        return ( m_spec_j );
+      inline ordered_json specs( ) const {
+        return ( this->to_json() );
       }
 
       inline bool is_required() const {
@@ -303,13 +291,50 @@ namespace psmrts {
         return true;
       }
 
-      inline const ordered_json &config() const {
-        return ( m_spec_j );
+      inline ordered_json to_json() const {
+        ordered_json json_t;
+        json_t["name"] =  m_options.name();
+
+        for ( const FeatureOption &feature : m_options.data() ) {
+          json_t.merge_patch( feature.to_json() );
+        }
+        return ( json_t );
+      }
+
+      inline const FeatureList &features() const {
+        return ( m_options.data() );
       }
 
 
-    protected:
-      ordered_json  m_spec_j;
+    private:
+      FeatureOptionList m_options;
+
+      inline FeatureOptionList create( const std::string &name = "", 
+                                       const std::vector<FeatureOption> &options = {} ) {
+        
+        std::string name_t = name;
+        for ( const FeatureOption &opt : options ) {
+          if ( opt.name() == "name" ) {
+            name_t = opt.to_string();
+            // std::cout << "FeatureOptionList::create::name_T: " << name_t << std::endl;
+            break;
+          }
+        }
+
+        // Create the list
+        FeatureOptionList feature_t( name_t, options );
+
+        // Check for a valid name
+        if ( feature_t.name().length() == 0 ) {
+          // throw std::runtime_error( "ProductFeature must have a valid name!" );
+        }
+     
+        // Ensure it has a name structure
+        feature_t.add( FeatureOption( "name", feature_t.name() ) );
+
+        return ( feature_t );
+      }
+
 
       inline bool validate_file( const ProductFeature &other ) const {
         if (other.contains(other.name())) { //name-value becomes key that contains file ref
@@ -348,6 +373,23 @@ namespace psmrts {
           }
         }
         return false;
+      }
+
+      inline FeatureOptionList from_json( const ordered_json &j_feature,
+                                          const std::string &name = "feature" ) {
+    
+        // Assume its an object that contains keywords
+        std::string name_t = name;
+        std::vector<FeatureOption> options_t;
+        for( auto &[ j_key, j_value ] : j_feature.items() ) {
+          if ( "name" == j_key ) {
+            name_t = j_value;
+          }
+            
+          options_t.push_back( FeatureOption( j_key, j_value ) );
+        }
+
+        return ( FeatureOptionList( name_t, options_t) );
       }
   };
 } // namespace psmrts

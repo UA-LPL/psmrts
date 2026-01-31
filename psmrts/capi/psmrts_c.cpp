@@ -154,7 +154,7 @@ extern "C" {
 /**
  * @brief psmrts_version - Returns a string with the PSMRTS version.
  *
- * This function returns a string with the PSMRTS version.
+ * This function returns a string with the PSMRTS Project version.
  *
  * @return char* String with PSMRTS version.
  */
@@ -727,14 +727,7 @@ void psmrts_trace_array_clear(PSMRTS_TraceArray *tracearray) {
  */
 const PSMRTS_RayTrace *psmrts_trace_array_get_trace( const PSMRTS_TraceArray *tracearray,
                                                      size_t index ) {
-  try {
-    return ( &tracearray->get_trace( index ) );
-  }
-  catch( const std::exception &e ) {
-    tracearray->add_error(e);
-    //  return nullptr;
-  }
-  return nullptr;
+  return ( &tracearray->get_trace( index ) );
 }
 
 /* Photometric Tracer methods */
@@ -958,7 +951,7 @@ size_t psmrts_photometric_trace_array_add_trace( PSMRTS_PhotometricTraceArray *t
  */
 extern PSMRTS_BOOL psmrts_photometric_trace_array_trace( PSMRTS_PhotometricTraceArray *tracearray,
                                                          const PSMRTS_Tracer *tracer) {
-    return ( tracer->process( *tracearray ) );
+  return ( tracer->process( *tracearray ) );
 }
 
 /**
@@ -987,14 +980,7 @@ void psmrts_photometric_trace_array_clear(PSMRTS_PhotometricTraceArray *tracearr
  */
 const PSMRTS_PhotometricRayTrace *psmrts_photometric_trace_array_get_trace( const PSMRTS_PhotometricTraceArray *tracearray,
                                                                             size_t index ) {
-  try {
-    return ( &tracearray->get_trace( index ) );
-  }
-  catch( const std::exception &e ) {
-    tracearray->add_error(e);
-  //  return nullptr;
-  }
-  return nullptr;
+  return ( &tracearray->get_trace( index ) );
 }
 
 /**
@@ -1193,7 +1179,7 @@ PSMRTS_Tracer *psmrts_create_ellipsoid_v( const PSMRTS_Vector3d *radii,
  *
  * It is the responsibility of the caller to check for valid pointer return.
  *
- * @param meshfile const char*, mesh filename.
+ * @param objfile const char*, mesh filename.
  * @return Pointer to the resulting PSMRTS_Tracer object.
  */
 PSMRTS_Tracer *psmrts_create_bullet( const char *objfile ) {
@@ -1208,7 +1194,7 @@ PSMRTS_Tracer *psmrts_create_bullet( const char *objfile ) {
  *
  * It is the responsibility of the caller to check for valid pointer return.
  *
- * @param meshfile const char*, mesh filename.
+ * @param dskfile const char*, mesh filename.
  * @return Pointer to the resulting PSMRTS_Tracer object.
  */
 PSMRTS_Tracer *psmrts_create_naifdsk( const char *dskfile ) {
@@ -1246,6 +1232,42 @@ PSMRTS_BOOL psmrts_get_facet( PSMRTS_RayTrace *ray, const PSMRTS_Tracer *tracer,
   *facet = psmrts_facet_to_capi( prqFacet );
 
   return ( b );
+}
+
+/**
+ * @brief psmrts_create_obj_shape - Creates obj PSMRTS_Shape.
+ *
+ * Given a const char* obj filename, this method creates a PSMRTS_Shape.
+ *
+ * @param objfile const char*.
+ * @return PSMRTS_Shape*.
+ */
+PSMRTS_Shape *psmrts_create_obj_shape( const char *objfile ) {
+  return ( new PSMRTS_Shape( psmrts::PsmrtsShape( psmrts::ObjShape( objfile ) ) ) );
+}
+
+/**
+ * @brief psmrts_create_dsk_shape - Creates dsk PSMRTS_Shape.
+ *
+ * Given a const char* dsk filename, this method creates a PSMRTS_Shape.
+ *
+ * @param objfile const char*.
+ * @return PSMRTS_Shape*.
+ */
+PSMRTS_Shape *psmrts_create_dsk_shape( const char *dskfile ) {
+  return ( new PSMRTS_Shape( psmrts::PsmrtsShape( psmrts::DskShape( dskfile ) ) ) );
+}
+
+/**
+ * @brief psmrts_create_ply_shape - Creates ply PSMRTS_Shape.
+ *
+ * Given a const char* ply filename, this method creates a PSMRTS_Shape.
+ *
+ * @param objfile const char*.
+ * @return PSMRTS_Shape*.
+ */
+PSMRTS_Shape *psmrts_create_ply_shape( const char *plyfile ) {
+  return ( new PSMRTS_Shape( psmrts::PsmrtsShape( psmrts::PlyShape( plyfile ) ) ) );
 }
 
 /**
@@ -1363,19 +1385,6 @@ void psmrts_free_shape( PSMRTS_Shape *shape ) {
  */
 void psmrts_free_tracer( PSMRTS_Tracer *tracer ){
   delete tracer;
-}
-
-/**
- * @brief psmrts_free_shapetracer - Frees memory allocated to input
- *                                  PSMRTS_ShapeTracer pointer.
- *
- * This function frees memory allocated to the input PSMRTS_ShapeTracer pointer.
- *
- * @param stracer Pointer to PSMRTS_ShapeTracer.
- * @return void
- */
-void psmrts_free_shapetracer( PSMRTS_Tracer *stracer ) {
-  delete stracer;
 }
 
 /**

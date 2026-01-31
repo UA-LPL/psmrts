@@ -7,6 +7,8 @@
 #include <psmrts/core/PsmrtsStridingBuffer.hpp>
 #include <psmrts/core/PsmrtsVector3.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
+#include <psmrts/core/ProductOption.hpp>
+#include <psmrts/core/ProductConfiguration.hpp>
 
 namespace psmrts {
 
@@ -100,7 +102,6 @@ namespace psmrts {
           }
 
 
-
         private:
           // Only one type should be active
           PsmrtsDataType m_data_type;
@@ -148,6 +149,19 @@ namespace psmrts {
       /** Returns the data type of the vectors - float / double */
       inline PsmrtsDataType vector_type( ) const {
         return ( m_vectors.type() );
+      }
+
+      inline std::string vector_type_string() const {
+        switch ( m_vectors.type() ) {
+          case PsmrtsDouble:
+            return "double";
+          case PsmrtsFloat:
+            return "float";
+          case PsmrtsInteger:
+            return "integer";
+          default:
+            return "undefined";
+          }
       }
 
       /** Returns boolean confirmation if vectors are double */
@@ -259,6 +273,22 @@ namespace psmrts {
       inline double maximum_radius() const {
         return ( m_max_radius );
       }     
+
+      inline ProductConfiguration config() const {
+        ProductConfiguration config( "mesh" );
+
+        config.add( ProductOption( "name", "mesh") );
+        config.add( ProductOption( "data_type", this->vector_type_string() ) );
+
+        config.add_metadata( ProductOption( "n_vertices",     this->nvectors() ) );
+        config.add_metadata( ProductOption( "n_facets",       this->nfacets() ) );
+        config.add_metadata( ProductOption( "minimum_radius", this->minimum_radius() ) );
+        config.add_metadata( ProductOption( "maximum_radius", this->maximum_radius() ) );
+        config.add_metadata( ProductOption( "bytes",  m_indexes.volume_size() + 
+                                                      m_vectors.buffer().volume_size() ) );
+
+        return config;            
+      }
 
     protected:
 

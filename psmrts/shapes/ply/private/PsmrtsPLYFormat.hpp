@@ -18,7 +18,7 @@
 #include <psmrts/core/PsmrtsMeshData.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
 
-#include <miniply.h>
+#include "miniply/miniply.h"
 
 
 namespace psmrts {
@@ -72,6 +72,10 @@ namespace psmrts {
           return ( m_file_type );
         }
         
+        /** Returns the type of the file's data - ie. float or double */
+        inline std::string data_type() const {
+            return ( m_data_type );
+        }
         /** Returns number of vertexes */
         inline size_t nVertexes() const {
             return ( m_mesh.nvectors() );
@@ -148,7 +152,7 @@ namespace psmrts {
             // Config header data to json
             //parse_config(reader);
             m_data_type = get_facet_vector_type( reader );
-            parse_config();
+            // parse_config();
             //PSMRTS_SYSTEM_CLOCK_TIME end = psmrts::system_clock_time();
             //double total = elapsed_clock_time_ms(start, end);
             //double total = timer.runtime_ms();
@@ -193,53 +197,19 @@ namespace psmrts {
 
             // Allocate a mesh now    
             m_mesh = PsmrtsMeshData( p_indexes, p_vectors);
-
+            // compute min/max radius, store internally (Mesh class has related functions)
             return ( m_mesh.isValid() );
         }
 
-        /**
-         * @brief Returns an ordered JSON containing relative product options
-         * and possible values 
-         * 
-         * @return ordered_json of product options
-         */
-        static inline ProductSpecification product_options() {
-            char text[] = R"(
-            {
-              "ply_file": "<filename>",
-              "ply_file_type": ["binary", "ascii"],
-              "ply_data_type": ["char", "uchar", "short", "ushort", "int", "uint", "float", "double"],
-              "required": ["ply_file"],
-              "optional": ["ply_file_type", "ply_data_type"]
-            }
-            )";
-            return (ProductSpecification("ply", "mesh", json_utils::parse_json_string( text )));
-        }
-
-        /**
-         * @brief Conversion of ply file header data to json
-         * 
-         * Used in load_ply_file() to create a json version of the product related
-         * data options
-         * 
-         * @param reader miniply file reader 
-         */
-        inline void parse_config( )  {
-            ordered_json options;
-            options["ply_file"] = m_ply_source;
-            options["ply_file_type"] = m_file_type;
-            options["ply_data_type"] = m_data_type;
-            m_config = ProductSpecification("ply", "mesh", options);
-            return;
-        }
-
-        inline ProductMetaData get_metadata( ) {
-          ProductMetaData meta( "ply" );
+        inline ProductConfiguration get_metadata( ) {
+          ProductConfiguration meta( "ply" );
           meta.add( ProductOption( "ply_file", this->ply_source() ) );
           meta.add( ProductOption( "ply_file_type", m_file_type ) );
-          meta.add( ProductOption( "ply_data_type", m_data_type ) );
-          meta.add( ProductOption( "ply_vertices", (int) this->nVertexes() ) );
-          meta.add( ProductOption( "ply_facets", (int) this->nIndexes() ) );
+          meta.add( ProductOption( "data_type", m_data_type ) );
+          meta.add( ProductOption( "n_vertices", (int) this->nVertexes() ) );
+          meta.add( ProductOption( "n_facets", (int) this->nIndexes() ) );
+          meta.add( ProductOption( "minimum_radius", m_mesh.minimum_radius() ) );
+          meta.add( ProductOption( "maximum_radius", m_mesh.maximum_radius() ) );
           return ( meta );
         }        
 
@@ -316,8 +286,8 @@ namespace psmrts {
         static inline PsmrtsMeshData create( const ProductSpecification &params ) {
 
             try {
-                if ( params.has_parameter( "ply_file" ) ) {
-                    ProductFeature plyfile = params.get_parameter("ply_file");
+                if ( params.contains( "ply_file" ) ) {
+                    ProductFeature plyfile = params.find("ply_file");
                     return ( PsmrtsPLYFormat(  plyfile.value<std::string>( "ply_file" ) ).get_mesh() );
                 }
             }

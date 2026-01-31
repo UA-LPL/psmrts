@@ -40,11 +40,21 @@ class bulletTraceFixture {
                   Catch::Matchers::WithinAbs( 1500.0, tolerance ) );
       CHECK_THAT( observer.z,
                   Catch::Matchers::WithinAbs( 2121.320344, tolerance ) );
+
       CHECK_THAT( lookdir.x,
                   Catch::Matchers::WithinAbs( -1500.0, tolerance ) );
       CHECK_THAT( lookdir.y,
                   Catch::Matchers::WithinAbs( -1500.0, tolerance ) );
       CHECK_THAT( lookdir.z,
+                  Catch::Matchers::WithinAbs( -2121.320344, tolerance ) );
+
+      // explicit test of psmrts_ray_lookdir method
+      PSMRTS_Vector3d lookdir_result = psmrts_ray_lookdir(ray);
+      CHECK_THAT( lookdir_result.x,
+                  Catch::Matchers::WithinAbs( -1500.0, tolerance ) );
+      CHECK_THAT( lookdir_result.y,
+                  Catch::Matchers::WithinAbs( -1500.0, tolerance ) );
+      CHECK_THAT( lookdir_result.z,
                   Catch::Matchers::WithinAbs( -2121.320344, tolerance ) );
 
       // create bullet tracer from input obj file
@@ -73,6 +83,17 @@ class bulletTraceFixture {
     PSMRTS_RayTrace *ray;            // ray trace
     PSMRTS_Tracer *bulletTracer;     // bullet tracer
 };
+
+/**
+ * @brief PSMRTS C API Test to verify PSMRTS Version and Info strings
+ *
+ * This test verifies psmrts_version() and psmrts_info() methods in the C API.
+ *
+ */
+TEST_CASE ( "PSMRTS C API - Version and Info", "[capi][c++][version][info]" ) {
+  CHECK(std::string(psmrts_version()) == "0.4.0");
+  CHECK(std::string(psmrts_info()) == "PSMRTS-0.4.0");
+}
 
 /**
  * @brief PSMRTS C API Vector3D tests
@@ -134,6 +155,11 @@ TEST_CASE ( "PSMRTS C API - Vector3D", "[capi][c++][Vector3D]" ) {
     // compute vector length
     CHECK_THAT( psmrts_length( &v1 ),
                 Catch::Matchers::WithinAbs( 1014.508705, tolerance ) );
+
+    PSMRTS_Vector3i v3i = psmrts_vector3i( 1, 2, 3 );
+    CHECK( v3i.i == 1 );
+    CHECK( v3i.j == 2 );
+    CHECK( v3i.k == 3 );
 }
 
 /**
@@ -621,8 +647,146 @@ TEST_CASE ( "PSMRTS C API - Bullet Trace Array", "[capi][c++][BulletTraceArray]"
   psmrts_free_ray( ray1 );
   psmrts_free_ray( ray2 );
   psmrts_free_ray( ray3 );
+  psmrts_trace_array_clear( tracearray );
   psmrts_free_trace_array( tracearray );
 }
+
+/**
+ * @brief Tests PSMRTS C API functionality for PSMRTS Photometric Trace methods
+ *
+ * This test exercises the following photometric trace methods in the PSMRTS C API...
+ *
+ *  1. psmrts_create_photometric_ray
+ *  2. psmrts_photo_ray_trace
+ *  3. psmrts_photometric_incidence
+ *  4. psmrts_photometric_emission
+ *  5. psmrts_photometric_phase
+ *  6. psmrts_photometric_observer_trace
+ *  7. psmrts_photometric_sun_trace
+ *  8. psmrts_free_photometric_ray
+ *
+ */
+TEST_CASE ( "PSMRTS C API - Photometric Trace", "[capi][c++][photometric][trace]" ) {
+  const double tolerance = 1.0e-6;
+
+  PSMRTS_Tracer *ellipse = psmrts_create_sphere( 1.0, "test" );
+
+  PSMRTS_Vector3d obs = psmrts_vector3d( 45.0, 45.0, 1.0 );
+  obs = psmrts_lonlatrad_to_xyz_d( &obs );
+  obs = psmrts_scale( &obs, 10.0 );
+
+  PSMRTS_Vector3d surf = psmrts_vector3d( 45.0, 50.0, 1.0 );
+  surf = psmrts_lonlatrad_to_xyz_d( &surf );
+  surf = psmrts_scale( &surf, 1.5 );
+  PSMRTS_Vector3d surf_neg = psmrts_negate( &surf );
+
+  PSMRTS_RayTrace *surf_ray = psmrts_ray_trace_v( &surf, &surf_neg, ellipse );
+  PSMRTS_Vector3d surf_xyz = psmrts_ray_xyz( surf_ray );
+  double x = surf_xyz.x - obs.x;
+  double y = surf_xyz.y - obs.y;
+  double z = surf_xyz.z - obs.z;
+  PSMRTS_Vector3d lkdr = psmrts_vector3d( x, y, z );
+
+  PSMRTS_RayTrace *observer_ray = psmrts_ray_trace_v( &obs, &lkdr, ellipse );
+  PSMRTS_BOOL obs_hit = psmrts_ray_has_hit( observer_ray );
+  CHECK( obs_hit == 1 );
+
+  PSMRTS_Vector3d sun_pos = psmrts_vector3d( 20.0, 20.0, 1.0 );
+  sun_pos = psmrts_lonlatrad_to_xyz_d( &sun_pos );
+  sun_pos = psmrts_scale( &sun_pos, 50.0 );
+
+  PSMRTS_PhotometricRayTrace *p_ray = psmrts_create_photometric_ray( &obs, &lkdr, &sun_pos );
+  PSMRTS_PhotometricRayTrace *p_trace = psmrts_photo_ray_trace( p_ray, ellipse );
+
+  CHECK_THAT( psmrts_photometric_incidence( p_ray ), Catch::Matchers::WithinAbs( 0.639547, tolerance ) );
+  CHECK_THAT( psmrts_photometric_emission( p_ray ), Catch::Matchers::WithinAbs( 0.096946, tolerance ) );
+  CHECK_THAT( psmrts_photometric_phase( p_ray ), Catch::Matchers::WithinAbs( 0.571383, tolerance ) );
+
+  const PSMRTS_RayTrace *obs_ray = psmrts_photometric_observer_trace(p_ray);
+  PSMRTS_Vector3d obs_result = psmrts_ray_observer(obs_ray);
+  CHECK_THAT( obs_result.x, Catch::Matchers::WithinAbs( obs.x, tolerance ) );
+  CHECK_THAT( obs_result.y, Catch::Matchers::WithinAbs( obs.y, tolerance ) );
+  CHECK_THAT( obs_result.z, Catch::Matchers::WithinAbs( obs.z, tolerance ) );
+
+  const PSMRTS_RayTrace *sun_ray = psmrts_photometric_sun_trace(p_trace);
+  PSMRTS_Vector3d sun_result = psmrts_ray_observer(sun_ray);
+  CHECK_THAT( sun_result.x, Catch::Matchers::WithinAbs( sun_pos.x, tolerance ) );
+  CHECK_THAT( sun_result.y, Catch::Matchers::WithinAbs( sun_pos.y, tolerance ) );
+  CHECK_THAT( sun_result.z, Catch::Matchers::WithinAbs( sun_pos.z, tolerance ) );
+
+  PSMRTS_Vector3d new_obs = psmrts_vector3d( 2.0, 4.0, 6.0 );
+  PSMRTS_Vector3d new_lkdr = psmrts_negate( &new_obs );
+
+  psmrts_photometric_ray_set_observation( &new_obs, &new_lkdr, &sun_pos, p_ray );
+  const PSMRTS_RayTrace *new_obs_ray = psmrts_photometric_observer_trace( p_ray );
+  PSMRTS_Vector3d new_obs_result = psmrts_ray_observer( new_obs_ray );
+  CHECK_THAT( new_obs_result.x, Catch::Matchers::WithinAbs( new_obs.x, tolerance ) );
+  CHECK_THAT( new_obs_result.y, Catch::Matchers::WithinAbs( new_obs.y, tolerance ) );
+  CHECK_THAT( new_obs_result.z, Catch::Matchers::WithinAbs( new_obs.z, tolerance ) );
+
+  psmrts_free_tracer( ellipse );
+  psmrts_free_ray( observer_ray );
+  psmrts_free_photometric_ray( p_ray );
+}
+
+/**
+ * @brief Tests PSMRTS C API functionality for PSMRTS Photometric Array methods
+ *
+ * This test exercises the following photometric array methods in the PSMRTS C API...
+ *
+ *   1. psmrts_create_photometric_trace_array
+ *   2. psmrts_photometric_trace_array_size
+ *   3. psmrts_create_photometric_ray
+ *   4. psmrts_photometric_trace_array_add_trace
+ *   5. psmrts_photometric_trace_array_trace
+ *   6. psmrts_photometric_trace_array_get_trace
+ *   7. psmrts_photometric_observer_trace
+ *   8. psmrts_photometric_trace_array_clear
+ *   9. psmrts_free_photometric_trace_array
+ *  10. psmrts_free_photometric_ray
+ *
+ */
+TEST_CASE ( "PSMRTS C API - Photometric Array", "[capi][c++][photometric][array]" ) {
+  const double tolerance = 1.0e-6;
+
+  PSMRTS_Tracer *ellipse_tracer = psmrts_create_sphere( 1.0, "test" );
+
+  PSMRTS_PhotometricTraceArray *p_array = psmrts_create_photometric_trace_array();
+  int size = psmrts_photometric_trace_array_size( p_array );
+  CHECK( psmrts_photometric_trace_array_size( p_array ) == 0 );
+
+  PSMRTS_Vector3d sun = psmrts_vector3d( 9.0, 9.0, 9.0 );
+
+  PSMRTS_Vector3d obs1 = psmrts_vector3d( 1.0, 2.0, 3.0 );
+  PSMRTS_Vector3d lkdr1 = psmrts_negate( &obs1 );
+
+  PSMRTS_PhotometricRayTrace *p_ray1 = psmrts_create_photometric_ray( &obs1, &lkdr1, &sun );
+
+  PSMRTS_Vector3d obs2 = psmrts_vector3d( 4.0, 5.0, 6.0 );
+  PSMRTS_Vector3d lkdr2 = psmrts_negate( &obs2 );
+
+  PSMRTS_PhotometricRayTrace *p_ray2 = psmrts_create_photometric_ray( &obs2, &lkdr2, &sun );
+
+  CHECK( psmrts_photometric_trace_array_add_trace( p_array, p_ray1 ) == 0 );
+  CHECK( psmrts_photometric_trace_array_size( p_array ) == 1 );
+  CHECK( psmrts_photometric_trace_array_add_trace( p_array, p_ray2 ) == 1 );
+  CHECK( psmrts_photometric_trace_array_size( p_array ) == 2 );
+  CHECK( psmrts_photometric_trace_array_trace( p_array, ellipse_tracer ) == 1 );
+
+  const PSMRTS_PhotometricRayTrace *target = psmrts_photometric_trace_array_get_trace(p_array, 1);
+  const PSMRTS_RayTrace *target_ray = psmrts_photometric_observer_trace(target);
+  PSMRTS_Vector3d target_obs = psmrts_ray_observer(target_ray);
+  CHECK_THAT( target_obs.x, Catch::Matchers::WithinAbs( obs2.x, tolerance ) );
+  CHECK_THAT( target_obs.y, Catch::Matchers::WithinAbs( obs2.y, tolerance ) );
+  CHECK_THAT( target_obs.z, Catch::Matchers::WithinAbs( obs2.z, tolerance ) );
+
+  psmrts_photometric_trace_array_clear( p_array );
+  CHECK( psmrts_photometric_trace_array_size( p_array ) == 0 );
+
+  psmrts_free_photometric_trace_array( p_array );
+  psmrts_free_photometric_ray( p_ray1 );
+  psmrts_free_photometric_ray( p_ray2 );
+}  
 
 /**
  * @brief Tests PSMRTS C API functionality for the conversion from latitudinal to
@@ -1250,6 +1414,56 @@ TEST_CASE( "PSMRTS C API - Ellipsoid V Shape Tracer Test", "[capi][c++][ellipsoi
   psmrts_free_tracer( ev_tracer );
   psmrts_free_ray( trace_45_50_02 );
   psmrts_free_ray( trace_45_45_10 );
+}
+
+/**
+ * @brief Tests PSMRTS C API Mesh methods.
+ *
+ * This test creates meshes from obj, dsk, and ply files with the methods...
+ *   psmrts_create_obj_shape
+ *   psmrts_create_dsk_shape
+ *   psmrts_create_ply_shape
+ * 
+ * And further verifies surface area and volume of all three meshes with...
+ *   psmrts_mesh_surface_area
+ *   psmrts_mesh_volume
+ * 
+ * And finally frees the memory for all shapes with...
+ *   psmrts_free_shape
+ */
+TEST_CASE( "PSMRTS C API - Mesh Test", "[capi][c++][mesh][obj]" ) {
+  double tolerance = 1.0e-6;
+
+  std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
+  PSMRTS_Shape *objshape = psmrts_create_obj_shape( objfile.c_str() );
+  
+  CHECK_THAT( psmrts_mesh_surface_area( objshape ),
+              Catch::Matchers::WithinAbs( 0.842492, tolerance ) );
+  CHECK_THAT( psmrts_mesh_volume( objshape ),
+              Catch::Matchers::WithinAbs( 0.063170, tolerance ) );
+
+  // testing dsk mesh
+  std::string dskfile = psmrts_shapes_path( "dsk/data/bennu_20facets.bds" );
+  PSMRTS_Shape *dskshape = psmrts_create_dsk_shape( dskfile.c_str() );
+  
+  CHECK_THAT( psmrts_mesh_surface_area( dskshape ),
+              Catch::Matchers::WithinAbs( 0.842492, tolerance ) );
+  CHECK_THAT( psmrts_mesh_volume( dskshape ),
+              Catch::Matchers::WithinAbs( 0.063170, tolerance ) );
+
+  // testing ply mesh
+  std::string plyfile = psmrts_shapes_path( "ply/data/Bennu_Radar.ply" );
+  PSMRTS_Shape *plyshape = psmrts_create_ply_shape( plyfile.c_str() );
+  
+  CHECK_THAT( psmrts_mesh_surface_area( plyshape ),
+              Catch::Matchers::WithinAbs( 0.785467, tolerance ) );
+  CHECK_THAT( psmrts_mesh_volume( plyshape ),
+              Catch::Matchers::WithinAbs( 0.062265, tolerance ) );
+
+  // free memory
+  psmrts_free_shape( objshape );
+  psmrts_free_shape( dskshape );
+  psmrts_free_shape( plyshape );
 }
 
 

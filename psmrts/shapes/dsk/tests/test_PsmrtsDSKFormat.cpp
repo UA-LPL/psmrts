@@ -4,6 +4,7 @@
 #include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
 #include <psmrts/core/PsmrtsUtilities.hpp>
 
+
 TEST_CASE( "DSK FORMAT Asset Test - Default Constructor", "[format][dsk][default]") {
     std::string no_file = psmrts_shapes_path( "dsk/data/bad_path.bds" );
     psmrts::PsmrtsDSKFormat d_loader;
@@ -63,24 +64,24 @@ TEST_CASE( "DSK FORMAT Basic Load/Innit Test", "[format][dsk][shape][bennu]") {
 
     naif::DskKernelModel dsk( dsk_file );
 
-    psmrts::ProductConfiguration meta_data = d_loader.get_metadata( dsk.segment() );
+    psmrts::ProductConfiguration meta_data = d_loader.get_segment_metadata( dsk.segment() );
 
-    CHECK( meta_data.name() == "" );
-    CHECK( meta_data.size() == 14 ); 
-    CHECK( psmrts::psmrts_filename(meta_data.find("dsk_file").to_string() ) == "bennu_20facets.bds" );
-    CHECK( meta_data.find("dsk_data_type").to_string()                  == "double" );
-    CHECK( meta_data.find("dsk_segment_number").to_string() == "0" );
-    CHECK( meta_data.find("dsk_surface_id").to_string()     == "2101955" ); 
-    CHECK( meta_data.find("dsk_vertices").to_string()       == "20" );
-    CHECK( meta_data.find("dsk_facets").to_string()         == "36" );
-    CHECK( meta_data.find("dsk_reference_id").to_string()   == "2101955" );
-    CHECK( meta_data.find("dsk_body_id").to_string()        == "2101955" );
-    CHECK( meta_data.find("dsk_surface_id").to_string()     == "2101955" );
-    CHECK( meta_data.find("dsk_frame_id").to_string()       == "10106" );
-    CHECK( meta_data.find("dsk_type").to_string()           == "2" );
-    CHECK( meta_data.find("dsk_class").to_string()          == "1" );
-    CHECK( meta_data.find("dsk_minimum_radius").to_string() == "0.224938869" );
-    CHECK( meta_data.find("dsk_maximum_radius").to_string() == "0.283065000" );
+    CHECK( meta_data.name() == "dsk" );
+    CHECK( meta_data.size() == 13 ); 
+    CHECK( psmrts::psmrts_filename(  meta_data.find("file").to_string() )  == "bennu_20facets.bds" );
+    CHECK(  meta_data.find("data_type").to_string()                 == "double" );
+    CHECK(  meta_data.find("dsk_segment_number").to_string() == "0" );
+    CHECK(  meta_data.find("dsk_surface_id").to_string()     == "2101955" ); 
+    CHECK(  meta_data.find("n_vertices").to_string()         == "20" );
+    CHECK(  meta_data.find("n_facets").to_string()           == "36" );
+    CHECK(  meta_data.find("dsk_reference_id").to_string()   == "2101955" );
+    CHECK(  meta_data.find("dsk_body_id").to_string()        == "2101955" );
+    CHECK(  meta_data.find("dsk_surface_id").to_string()     == "2101955" );
+    CHECK(  meta_data.find("dsk_frame_id").to_string()       == "10106" );
+    CHECK(  meta_data.find("dsk_type").to_string()           == "2" );
+    CHECK(  meta_data.find("dsk_class").to_string()          == "1" );
+    CHECK(  meta_data.find("minimum_radius").to_string()     == "0.224938869" );
+    CHECK(  meta_data.find("maximum_radius").to_string()     == "0.283065000" );
     
 }
 

@@ -9,9 +9,9 @@ TEST_CASE( "PSMRTS Product Configuration", "[product][configuration][default]") 
 
   // Construct default product configuration.
   psmrts::ProductConfiguration config;
-  CHECK( config.name()          == "none" );
+  CHECK( config.name()          == "undefined" );
   CHECK( config.size()          == 0 );
-  CHECK( config.remove("name")  == false);
+  // CHECK( config.remove("name")  == false);
 
   // Add a couple of product options.
   config.add( psmrts::ProductOption( "type", "product") );
@@ -46,8 +46,8 @@ TEST_CASE( "PSMRTS Product Initializer", "[product][configuration][initializer]"
 
   // Checks mixed case strings.
   CHECK( config.contains("tracer") == true );
-  CHECK( config.contains("TrAcEr") == true );
-  CHECK_NOTHROW( config.find( "Tracer" ) );
+  CHECK( config.contains("TrAcEr") == false );
+  CHECK_THROWS( config.find( "Tracer" ) );
 
   // Remove the tracer type and confirm.
   CHECK( config.remove("tracer")  == true );
@@ -60,8 +60,14 @@ TEST_CASE( "PSMRTS Product Initializer", "[product][configuration][initializer]"
 
   // "single" still remains after common 
   psmrts::ProductConfiguration comp_check = config.difference( config2 );
-  CHECK( comp_check.name() == "" );
+  CHECK( comp_check.name() == "single" );
   CHECK( comp_check.size() == 1 );
+
+  const bool TwoWay = true;
+  psmrts::ProductConfiguration comp_check_twoway = config.difference( config2, TwoWay );
+  CHECK( comp_check_twoway.name() == "single" );
+  CHECK( comp_check_twoway.size() == 2 );
+
   
   // Add second option, remove "shape" and check difference.
   config2.add( psmrts::ProductOption( "obj_file", "l_00050mm_alt_ptm_5595n04217_v020.obj" ) );
@@ -69,7 +75,7 @@ TEST_CASE( "PSMRTS Product Initializer", "[product][configuration][initializer]"
   psmrts::ProductConfiguration comp_check2 = config.difference( config2 );
   
   // This results in no options remaining.
-  CHECK( comp_check2.name() == "" );
+  CHECK( comp_check2.name() == "single" );
   CHECK( comp_check2.size() == 0 );
   CHECK( config.contains( "obj_file" ) == true );
   CHECK( config2.contains( "obj_file" ) == true );

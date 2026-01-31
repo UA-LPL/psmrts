@@ -1,9 +1,8 @@
-
-
 #ifndef PsmrtsBulletAllHitsRayCallback_hpp
 #define PsmrtsBulletAllHitsRayCallback_hpp
 
-#include <BulletCollision/NarrowPhaseCollision/btRaycastCallback.h>
+#include "PsmrtsBulletClosestRayCallback.hpp"
+#include <BulletCollision/CollisionDispatch/btCollisionWorld.h>
 
 namespace psmrts::bullet {
 
@@ -14,19 +13,14 @@ namespace psmrts::bullet {
    * @internal 
    *   @history 2017-03-17  Kris Becker  Original Version
    */
-  class BulletAllHitsRayCallback : public btCollisionWorld::AllHitsRayResultCallback {
+  class PsmrtsBulletAllHitsRayCallback : public btCollisionWorld::AllHitsRayResultCallback {
     public:
 
       /**
        * Default constructor. The ray beginning and end default to the origin.
        * The intersections vector defaults to empty.
        */
-      PsmrtsBulletAllHitsRayCallback() : 
-        btCollisionWorld::AllHitsRayResultCallback(btVector3(0,0,0), btVector3(0,0,0)),
-        m_rayHits() {
-        m_flags = (btTriangleRaycastCallback::kF_KeepUnflippedNormal |
-                    btTriangleRaycastCallback::kF_UseGjkConvexCastRaytest);
-      }
+      PsmrtsBulletAllHitsRayCallback();
 
 
       /**
@@ -38,21 +32,13 @@ namespace psmrts::bullet {
        */
       PsmrtsBulletAllHitsRayCallback(const btVector3 &observer, 
                                       const btVector3 &lookdir,
-                                      const bool cullBackfacers) : 
-                                      btCollisionWorld::AllHitsRayResultCallback(observer, lookdir),
-                                      m_rayHits() {
-        m_flags = (btTriangleRaycastCallback::kF_KeepUnflippedNormal |
-                    btTriangleRaycastCallback::kF_UseGjkConvexCastRaytest);
-        if ( cullBackfacers ) {
-          m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
-        }
-      }
+                                      const bool cullBackfacers = true);
 
 
       /**
        * Destroy this callback.
        */
-      ~PsmrtsBulletAllHitsRayCallback() { }
+      virtual ~PsmrtsBulletAllHitsRayCallback() = default;
 
 
       /**
@@ -62,9 +48,7 @@ namespace psmrts::bullet {
        * 
        * @see ClosestRayResultCallback::hasHit()
        */
-      inline bool isValid() const {
-        return ( hasHit() );
-      }
+      bool isValid() const;
 
 
       /**
@@ -72,19 +56,14 @@ namespace psmrts::bullet {
        * 
        * @return @b int The number of stored intersections in this callback.
        */
-      inline int size() const {
-        return ( m_rayHits.size() );
-      }
-
+      int size() const;
 
       /**
        * Return the beginning of the ray.
        * 
        * @return @b btVector3 The beginning of the ray.
        */
-      inline btVector3 observer() const {
-        return ( AllHitsRayResultCallback::m_rayFromWorld );
-      }
+      btVector3 observer() const;
 
 
       /**
@@ -92,9 +71,7 @@ namespace psmrts::bullet {
        * 
        * @return @b btVector3 The end of the ray.
        */
-      inline btVector3 lookdir() const {
-        return ( AllHitsRayResultCallback::m_rayToWorld );
-      }
+      btVector3 lookdir() const;
 
 
       /**
@@ -102,13 +79,9 @@ namespace psmrts::bullet {
        * 
        * @param index The index of the intersection.
        * 
-       * @return @b BulletClosestRayCallback The callback for the intersection
+       * @return @b PsmrtsBulletClosestRayCallback The callback for the intersection
        */
-      inline const BulletClosestRayCallback &hit(const int &index) const {
-        btAssert( index >= 0 );
-        btAssert( index < size() );
-        return ( m_rayHits[index] );
-      }
+      const PsmrtsBulletClosestRayCallback &hit(const int &index) const;
 
 
       /**
@@ -123,11 +96,10 @@ namespace psmrts::bullet {
        * @return @b btScalar The hit fraction, fractional distance along the ray,
        *                     of the intersections
        */
-      inline btScalar addSingleResult(btCollisionWorld::LocalRayResult &rayResult, bool normalInWorldSpace) {
-        btCollisionWorld::AllHitsRayResultCallback::addSingleResult(rayResult, normalInWorldSpace);
-        m_rayHits.push_back(BulletClosestRayCallback(observer(), lookdir(), *this, rayResult, normalInWorldSpace));
-        return (rayResult.m_hitFraction);
-      }
+      btScalar addSingleResult(btCollisionWorld::LocalRayResult &rayResult, bool normalInWorldSpace);
+
+    protected:
+      std::vector<PsmrtsBulletClosestRayCallback> m_rayHits;
   };
   
 } // namespace Isis

@@ -79,7 +79,7 @@ namespace psmrts::bullet {
    * @return @b long The maximum number of triangles allowed in each collision objects.
    */
   inline size_t b3_MaxTrianglesPerPart() {
-  return ( bt_MaxTrianglesPerPart() );
+    return ( bt_MaxTrianglesPerPart() );
   }
 
   inline PHY_ScalarType bt_type_code( const double *bt_t ) {

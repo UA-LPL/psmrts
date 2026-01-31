@@ -3,10 +3,15 @@
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 #include <psmrts/tracers/ellipsoid/EllipsoidTracer.hpp>
-#include <psmrts/tracers/ellipsoid/private/EllipsoidTracerModel.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 
+#include <cspice/SpiceUsr.h>
+
+
 TEST_CASE( "Ellipsoid Shape Tracer - Request Default Constructor", "[default][ellipsoid][shapetracer]") {
+
+    CHECK( sizeof( psmrts::EllipsoidTracer ) <= 480 );  
+
     psmrts::EllipsoidTracer e_tracer;
 
     psmrts::PRQFeatures features;
@@ -52,6 +57,7 @@ TEST_CASE( "Ellipsoid Shape Tracer Test", "[ellipsoid][shapetracer]") {
     Eigen::Vector3d surf_obs = surf*1.5;
     psmrts::PRQRayTrace prq_ray(surf_obs, -surf_obs );
     REQUIRE( e_tracer.process( prq_ray ) == true ); 
+    REQUIRE( prq_ray.trace().get_tracer_id() == e_tracer.uid() ); 
 
     Eigen::Vector3d lkdr = prq_ray.trace().xyz() - obs;
 
@@ -157,6 +163,7 @@ TEST_CASE( "Ellipsoid Shape Tracer Ray Trace Array Test", "[ellipsoid][shapetrac
     Eigen::Vector3d surf_obs2 = surf2 * 1.5;
     psmrts::PRQRayTrace prq_ray2(surf_obs2, -surf_obs2 );
     REQUIRE( e_tracer.process( prq_ray2 ) == true );
+    REQUIRE( prq_ray2.trace().get_tracer_id() == e_tracer.uid() ); 
 
     Eigen::Vector3d lookdir2 = prq_ray2.trace().xyz() - obs2;
 
@@ -226,6 +233,7 @@ TEST_CASE("Ellipsoid Shape Tracer Photometric Values Test", "[ellipsoid][shapetr
     psmrts::PRQRayTrace prq_surf( surf_obs, -surf_obs );
     CHECK( e_tracer.process( prq_surf ) == true );
     CHECK( surf_obs == prq_surf.trace().observer() );
+    REQUIRE( prq_surf.trace().get_tracer_id() == e_tracer.uid() ); 
 
     // Now compute expected/precise look vector from observer to surface intercept point
     Eigen::Vector3d lookdir = prq_surf.trace().xyz() - observer;
@@ -415,8 +423,8 @@ TEST_CASE( "Ellipsoid Shape Tracer Photometric Array Test", "[ellipsoid][shapetr
     Eigen::Vector3d lookdir3 = surf3 - observer3;
 
     psmrts::PRQRayTrace prq_ray3( observer3, lookdir3 );
-    // CHECK( e_tracer.process( prq_ray3 ) == false ); - test reports true
-    // CHECK( prq_ray3.trace().hasHit() == false ); - test reports true
+    CHECK( e_tracer.process( prq_ray3 ) == true );
+    CHECK( prq_ray3.trace().hasHit()    == true ); 
 
     Eigen::Vector3d sun_pos3;
     double sun_lon3 = psmrts::degrees_to_radians( 20.0 );
@@ -426,21 +434,17 @@ TEST_CASE( "Ellipsoid Shape Tracer Photometric Array Test", "[ellipsoid][shapetr
 
     Eigen::Vector3d lookdir_s3 = prq_ray3.trace().xyz() - sun_pos3;
     psmrts::PRQRayTrace prq_sun3(sun_pos3, lookdir_s3 );
-    // CHECK( e_tracer.process( prq_sun3 ) == false ); - test reports true
-    // CHECK( prq_sun3.trace().hasHit()    == false ); - test reports true
+    CHECK( e_tracer.process( prq_sun3 ) == true );
+    CHECK( prq_sun3.trace().hasHit()    == true );
 
     psmrts::PRQPhotometricTrace prq_photo3( observer3, lookdir3, sun_pos3 );
-    //CHECK( e_tracer.process( prq_photo3 )         == false ); - test reports true
-    //CHECK( prq_photo3.isValid()                   == false ); - test reports true
-    //CHECK( prq_photo3.observer_trace().hasHit()   == false ); - test reports true
-    //CHECK( prq_photo3.sun_trace().hasHit()        == false ); - test reports true
+    CHECK( e_tracer.process( prq_photo3 )         == true );
+    CHECK( prq_photo3.isValid()                   == true );
+    CHECK( prq_photo3.observer_trace().hasHit()   == true );
+    CHECK( prq_photo3.sun_trace().hasHit()        == true );
 
     psmrts::PRQPhotometricTraceArray photo_array;
     CHECK( e_tracer.process( photo_array ) == false );
-
-    // add one miss, should still be false
-    photo_array.add_trace( prq_photo3 );
-    //CHECK( e_tracer.process( photo_array ) == false ); - test reports true
 
     // add two hits, should now be true - array needs at least 1 hit
     photo_array.add_trace( prq_photo1 );
@@ -450,40 +454,17 @@ TEST_CASE( "Ellipsoid Shape Tracer Photometric Array Test", "[ellipsoid][shapetr
 
 TEST_CASE( "Ellipsoid Shape Tracer Product Specification Test", "[ellipsoid][shapetracer][product][specification]") {
     // This must be a vector to get all three specs - it should be a PRQRegistration eventually
-    psmrts::ProductSpecification spec = psmrts::EllipsoidTracer::ellipsoid_product_spec();
+    psmrts::ProductSpecification spec = psmrts::EllipsoidTracer::product_specifications();
     CHECK( spec.name()              == "ellipsoid"   );
     CHECK( spec.product()           == "tracer"      ); 
-    CHECK( spec.type()              == "tracer"      );
-    CHECK( spec.driver().name()     == "ellipsoid"   ); 
-    CHECK( spec.size()              == 2             );
-    CHECK( spec.parameters().size() == 2             );
+    CHECK( spec.features().size()   == 2             );
     CHECK( spec.required().size()   == 1             );
     CHECK( spec.optional().size()   == 1             );
 
-    CHECK( spec.has_parameter( "obj_mtl_search_path" ) == false );
-    CHECK( spec.has_parameter( "ellipsoid_radii" )  == true  );
-
-    psmrts::ProductSpecification sphere_spec = psmrts::EllipsoidTracer::sphere_product_spec();
-    CHECK( sphere_spec.name()              == "sphere" );
-    CHECK( sphere_spec.product()           == "tracer" );
-    CHECK( sphere_spec.type()              == "tracer" );
-    CHECK( sphere_spec.driver().name()     == "sphere" );
-    CHECK( sphere_spec.size()              == 2 );
-    CHECK( sphere_spec.parameters().size() == 2 );
-    CHECK( sphere_spec.required().size()   == 1 );
-    CHECK( sphere_spec.optional().size()   == 1 );
-
-    psmrts::ProductSpecification spheroid_spec = psmrts::EllipsoidTracer::spheroid_product_spec();
-    CHECK( spheroid_spec.name()              == "spheroid" );
-    CHECK( spheroid_spec.product()           == "tracer" );
-    CHECK( spheroid_spec.type()              == "tracer" );
-    CHECK( spheroid_spec.driver().name()     == "spheroid" );
-    CHECK( spheroid_spec.size()              == 2 );
-    CHECK( spheroid_spec.parameters().size() == 2 );
-    CHECK( spheroid_spec.required().size()   == 1 );
-    CHECK( spheroid_spec.optional().size()   == 1 );
+    CHECK( spec.contains( "obj_mtl_search_path" ) == false );
+    CHECK( spec.contains( "radii" )               == true  );
+    CHECK( spec.contains( "source" )              == true  );
 }
-
 
 TEST_CASE ( "Ellipsoid Tracer Value-Range Test - Spheroid/Ellipsoid", "[raytrace][observer][spheroid][triaxial][ellipsoid]") {
   const double tolerance = 1.0e-6;

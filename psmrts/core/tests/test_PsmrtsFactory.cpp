@@ -109,7 +109,7 @@ TEST_CASE( "PSMRTS Factory Docs Example", "[factory][docs][example]") {
    // Removing a product in one factory affects all factory instances
    CHECK( factory2.find( "inv2" ).shapes().contains( uid2 ) == true );
    CHECK( factory1.find( "inv2" ).shapes().contains( uid2 ) == true );   
-   CHECK_NOTHROW( factory2.find( "inv2" ).shapes().remove( uid2 ) );
+   CHECK_NOTHROW( factory2.remove_shape( uid2, "inv2" ) );
 
    CHECK( factory2.find( "inv2" ).shapes().contains( uid2 ) == false );
    CHECK( factory1.find( "inv2" ).shapes().contains( uid2 ) == false );

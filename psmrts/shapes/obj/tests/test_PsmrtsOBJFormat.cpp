@@ -33,42 +33,20 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Basic Load/Init Tests", "[format][obj][benn
     CHECK( t_loader.shape() != nullptr );
     CHECK( t_loader.config().mtl_search_path == "" );
 
-    ordered_json options;
-    options["obj_file"] = objfile;
-    options["obj_data_type"] = "double";
-    options["obj_mtl_search_path"] = "";
-    options["required"] = {"obj_file"};
-    options["optional"] = {"obj_data_type", "obj_mtl_search_path"};
-    psmrts::ProductSpecification test("obj", "mesh", options);
-    
-    ordered_json options2;
-    options["obj_file"] = objfile;
-    options["obj_data_type"] = "float";
-    options["obj_mtl_search_path"] = "";
-    options["required"] = {"obj_file"};
-    options["optional"] = {"obj_data_type", "obj_mtl_search_path"};
-    psmrts::ProductSpecification test2("obj", "mesh", options2);
-
-
-    ordered_json options3;
-    options3["obj_file"] = objfile;
-    options3["obj_data_type"] = "double";
-    options3["required"] = {"obj_file"};
-    options3["optional"] = {"obj_data_type", "obj_mtl_search_path"};
-    psmrts::ProductSpecification test3("obj", "mesh", options2);
-
     tinyobj::ObjReader reader;
     REQUIRE( reader.ParseFromFile(objfile) == true );
     // Is param intentional? shape() returns const, function accepts non-const version
-    psmrts::ProductConfiguration meta_data = t_loader.get_metadata( &reader ); 
-    CHECK( meta_data.name() == "" );
-    CHECK( meta_data.size() == 6 );
-    CHECK( psmrts::psmrts_filename(meta_data.find("obj_file").to_string()) == "bennu_20facets.obj" );
-    CHECK( meta_data.find("obj_data_type").to_string()       == "double" );
-    CHECK( meta_data.find("obj_mtl_search_path").to_string() == "" );
-    CHECK( meta_data.find("obj_shapes").to_string()          == "1" );
-    CHECK( meta_data.find("obj_vertices").to_string()        == "20" );
-    CHECK( meta_data.find("obj_facets").to_string()          == "36" );
+    psmrts::ProductConfiguration meta_data = t_loader.get_config( &reader ); 
+    CHECK( meta_data.name()             == "obj" );
+    CHECK( meta_data.size()             == 2 );
+    CHECK( meta_data.metadata().size()  == 3 );
+    CHECK( psmrts::psmrts_filename( meta_data.find("obj_file").to_string() )  == "bennu_20facets.obj" );
+    CHECK( meta_data.find("data_type").to_string()           == "double" );
+    CHECK( meta_data.contains("obj_mtl_search_path")         == false );
+    CHECK( meta_data.find_metadata("n_shapes").to_string()   == "1" );
+    CHECK( meta_data.find_metadata("n_vertices").to_string() == "20" );
+    CHECK (meta_data.find_metadata("n_facets").to_string()   == "36" );
+
 }
 
 TEST_CASE ( "OBJ FORMAT Asset Test - Load Fail Tests", "[format][obj][failures]" ) {

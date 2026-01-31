@@ -3,10 +3,11 @@
 
 #include <string>
 
-#include <psmrts/shapes/ply/private/PsmrtsPLYFormat.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/core/PsmrtsMeshData.hpp>
+#include <psmrts/core/ProductConfiguration.hpp>
 
 namespace psmrts {
     /**
@@ -14,75 +15,71 @@ namespace psmrts {
      * 
      */
     class PlyShape : public PsmrtsProduct {
-        public:
-         PlyShape() : PsmrtsProduct( "none", "ply"), 
-                      m_model(), m_mesh() { }
-         PlyShape( const psmrts::PsmrtsPLYFormat &ply_t ) :
-                   PsmrtsProduct( ply_t.ply_source(), "ply" ), 
-                   m_model( ply_t ), m_mesh( ply_t.get_mesh() ) { }
-         PlyShape( const std::string &ply_file ) : 
-                   PsmrtsProduct( ply_file, "ply"), 
-                   m_model( ply_file ),
-                   m_mesh( m_model.get_mesh() ) { }
-         virtual ~PlyShape() { }
-         
-         /**
-          * @brief PRQFeatures holding Format-relevant specification data
-          *  - Possibly needs removal
-          * @param features 
-          * @return true 
-          * @return false 
-          */
-         inline bool process( PRQFeatures &features ) const {
-            features.add_feature( this->product_specifications().json_specs() );
-            return ( true );
-         }
+      public:
+        using ProductInfo     = ProductSpecification::ProductInfo;
+        using ProductFeatures = ProductSpecification::ProductFeatures;
+                 
+        PlyShape() : PsmrtsProduct( "none", "ply"), 
+                    m_mesh(),
+                    m_config( "ply" ) { }
+        PlyShape( const std::string &ply_file );
+        virtual ~PlyShape() = default;
+        
+        /**
+        * @brief PRQFeatures holding Format-relevant specification data
+        *  - Possibly needs removal
+        * @param features 
+        * @return true 
+        * @return false 
+        */
+        inline bool process( PRQFeatures &features ) const {
+          features.add_feature( this->product_specifications().to_json() );
+          return ( true );
+        }
         
 
-         static inline ProductSpecification product_specifications() {
-            char text[] = R"(
-            {
-                "name": "ply",
-                "product": "shape",
-                "type": "mesh",
-                "description": "Reads ASCII and Binary PLY mesh files and creates a PSMRTS mesh object",
-                "driver": {
-                    "name": "ply",
-                    "type": "system",
-                    "aliases": [ "PLY" ]
-                },
-                "features": [
-                    {
-                        "name": "ply_file",
-                        "type": "file",
-                        "description": "Name of PLY file to read",
-                        "status": "optional",
-                        "aliases": ["file", "ply_mesh", "mesh_file"],
-                        "file_suffixes": ["ply", "PLY"]
-                    },
-                    {
-                        "name": "ply_data_type",
-                        "type": "string",
-                        "description": "Type of mesh vector data requested/read",
-                        "status": "optional",
-                        "aliases": ["mesh_data_type"],
-                        "valid": ["double", "float"],
-                        "default": "double"
-                    }
-                ]
-            })";
-            return ( ProductSpecification( "ply", "mesh", "shape", json_utils::parse_json_string(text)));
-         }
+        static inline ProductSpecification product_specifications() {
+          ProductInfo  info( "ply", { 
+                        ProductOption( "name", "ply"),
+                        ProductOption( "product", "shape"),
+                        ProductOption( "description", "Reads ASCII and Binary PLY mesh files and creates a PSMRTS mesh object") } );
+          ProductFeature pfile( "ply_file", {
+                                  ProductOption( "name", "ply_file"),
+                                  ProductOption( "type", "file"),
+                                  ProductOption( "description", "Name of PLY file to read"),
+                                  ProductOption( "status", "required"),
+                                  ProductOption( "aliases", { "file", "ply_mesh", "mesh_file" } ),
+                                  ProductOption( "file_suffixes", { "ply", "PLY" } ) } );
+          ProductFeature dtype( "ply_data_type", {
+                                  ProductOption( "name", "ply_data_type"),
+                                  ProductOption( "type", "string"),
+                                  ProductOption( "description", "Type of mesh vector data requested/read" ),
+                                  ProductOption( "status", "optional"),
+                                  ProductOption( "aliases", "mesh_data_type" ), 
+                                  ProductOption( "valid", { "double", "float" } ),
+                                  ProductOption( "default", "double" ) });
+
+          // This validates the JSON structure and provides product info to callers
+          return ( ProductSpecification( info, { pfile, dtype } ) );                                             
+        }
 
          inline const PsmrtsMeshData &get_mesh() const {
             return m_mesh;
          }
 
+         inline const ProductConfiguration &config() const {
+            return m_config;
+         }
+
+        inline bool matches( const ProductConfiguration &conf ) const {
+          return ( this->config().matches( conf ) );
+        }
+
          PSMRTS_PROCESS_CATCHALL( "PlyShape" )
 
-        protected:
-         psmrts::PsmrtsPLYFormat m_model;
-         psmrts::PsmrtsMeshData m_mesh;
+        private:
+          PsmrtsMeshData m_mesh;
+          ProductConfiguration m_config;
     };
 
 } // namespace psmrts

@@ -1,6 +1,6 @@
 {
   "name": "psmrts",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "dependencies": [
     "vcpkg-cmake",
     "nlohmann-json",
@@ -8,16 +8,10 @@
     "eigen3",
     "cspice",
     "catch2",
-    "spdlog",
-    "miniply",
     "cmocka",
     {
       "name": "bullet3",
       "features": ["double-precision", "extras"]
-    },
-    {
-      "name": "tinyobjloader",
-      "features": [ "double" ]
     }
   ]
 }

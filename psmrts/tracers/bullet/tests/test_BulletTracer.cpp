@@ -1,12 +1,15 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
-#include <psmrts/tracers/bullet/private/PsmrtsBulletWorldModel.hpp>
-#include <psmrts/tracers/bullet/private/BulletTracerModel.hpp>
-#include <psmrts/tracers/bullet/BulletTracer.hpp>
-#include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
 #include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/shapes/PsmrtsShape.hpp>
+#include <psmrts/tracers/bullet/BulletTracer.hpp>
+
+#include <cspice/SpiceUsr.h>
 
 TEST_CASE ( "Bullet Tracer - Default Constructor", "[default][bullet][tracer]" ) {
+
+    CHECK( sizeof( psmrts::BulletTracer ) <= 470 );  
+
     psmrts::BulletTracer b_tracer;
 
     psmrts::PRQFeatures features;
@@ -119,14 +122,11 @@ TEST_CASE ( "Bullet Tracer - Default Constructor", "[default][bullet][tracer]" )
 TEST_CASE( "Bullet Tracer Test - Ray Trace / Values", "[bullet][tracer][values]" ) {
     const double tolerance_km = 1.0e-6;
 
-    std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
+    const std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
 
-    // This spec saves significant memory... and confirms Bullet preserves data
-    psmrts::bullet::PsmrtsBulletWorldModel bt_world( psmrts::bullet::PsmrtsBulletMeshMap ( psmrts::PsmrtsOBJFormat( objfile ) ), objfile );
-    REQUIRE( bt_world.isValid() == true );
-
-    psmrts::BulletTracer b_tracer( bt_world );
-    const double max_radius = bt_world.mesh().maximum_radius();
+    // Beware the most vexing parse (see https://www.fluentcpp.com/2018/01/30/most-vexing-parse/)
+    psmrts::BulletTracer b_tracer( psmrts::PsmrtsShape{ objfile } );
+    const double max_radius = b_tracer.maximum_radius();
     
     // Compute the position of the observer at ( 45,45 ) degrees
     Eigen::Vector3d obs;
@@ -224,12 +224,10 @@ TEST_CASE( "Bullet Tracer Ray Trace Array Test", "[bullet][tracer][raytrace][arr
     const double tolerance = 1.0e-6;
 
     std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" ); 
-
-    psmrts::bullet::PsmrtsBulletWorldModel bt_world( psmrts::bullet::PsmrtsBulletMeshMap ( psmrts::PsmrtsOBJFormat( objfile ) ), objfile );
-    psmrts::BulletTracer b_tracer( bt_world );
+    psmrts::BulletTracer b_tracer( psmrts::PsmrtsShape{ objfile } );
 
     // Max radius of object: 0.28306500000006685
-    const double max_radius = bt_world.mesh().maximum_radius();
+    const double max_radius = b_tracer.maximum_radius();
 
     // Ray Trace 1
     Eigen::Vector3d obs1;
@@ -319,12 +317,10 @@ TEST_CASE( "Bullet Tracer Photometric Values Test", "[bullet][tracer][photometri
     const double tolerance = 1.0e-6;
 
     std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
-
-    psmrts::bullet::PsmrtsBulletWorldModel bt_world( psmrts::bullet::PsmrtsBulletMeshMap ( psmrts::PsmrtsOBJFormat( objfile ) ), objfile );
-    psmrts::BulletTracer b_tracer( bt_world );
+    psmrts::BulletTracer b_tracer( psmrts::PsmrtsShape{ objfile } );
 
     // Max radius of object: 0.28306500000006685
-    const double max_radius = bt_world.mesh().maximum_radius();
+    const double max_radius = b_tracer.maximum_radius();
 
     // Compute the position of the observer at ( 45d, 45d, 10 km )
     Eigen::Vector3d observer;
@@ -438,12 +434,10 @@ TEST_CASE( "Bullet Tracer Photometric Array Test", "[bullet][tracer][photometric
     const double tolerance = 1.0e-6;
 
     std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
-
-    psmrts::bullet::PsmrtsBulletWorldModel bt_world( psmrts::bullet::PsmrtsBulletMeshMap ( psmrts::PsmrtsOBJFormat( objfile ) ), objfile );
-    psmrts::BulletTracer b_tracer( bt_world );
+    psmrts::BulletTracer b_tracer( psmrts::PsmrtsShape{ objfile } );
 
     // Max radius of object: 0.28306500000006685
-    const double max_radius = bt_world.mesh().maximum_radius();
+    const double max_radius = b_tracer.maximum_radius();
 
     // Photometric Trace 1
     Eigen::Vector3d observer1;
@@ -578,14 +572,12 @@ TEST_CASE( "Bullet Tracer Product Specification Test", "[bullet][tracer][product
 
     CHECK( spec.name()              == "bullet"      );
     CHECK( spec.product()           == "tracer" ); 
-    CHECK( spec.type()              == "tracer"      );
-    CHECK( spec.driver().name()     == "bullet"      ); 
-    CHECK( spec.size()              == 3             );
-    CHECK( spec.parameters().size() == 3             );
-    CHECK( spec.required().size()   == 0             );
-    CHECK( spec.optional().size()   == 3             );
+    CHECK( spec.size()              == 2 );
+    CHECK( spec.features().size()   == 2 );
+    CHECK( spec.required().size()   == 0 );
+    CHECK( spec.optional().size()   == 2 );
 
-    CHECK( spec.has_parameter( "obj_mtl_search_path" )  == false );
-    CHECK( spec.has_parameter( "bullet_optimize_bvh" )  == true  );
+    CHECK( spec.contains( "obj_mtl_search_path" )  == false );
+    CHECK( spec.contains( "bullet_optimize_bvh" )  == true  );
 
 }

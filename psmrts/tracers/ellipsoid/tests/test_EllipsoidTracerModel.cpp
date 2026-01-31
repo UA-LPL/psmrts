@@ -1,7 +1,7 @@
 
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
-#include <psmrts/tracers/ellipsoid/private/EllipsoidTracerModel.hpp>
+#include "../private/EllipsoidTracerModel.hpp"
 #include <psmrts/tracers/ellipsoid/EllipsoidTracer.hpp>
 
 TEST_CASE( "EllipsoidTracerModel Default Test", "[ellipsoid][default]") {

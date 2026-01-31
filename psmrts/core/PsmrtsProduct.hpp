@@ -1,6 +1,5 @@
 #ifndef PsmrtsProduct_hpp
 #define PsmrtsProduct_hpp
-#pragma once
 
 #include <string>
 
@@ -56,6 +55,15 @@ namespace psmrts {
       /** Returns a distinct timestamp since the product has been created */
       inline PsmrtsThreadSafeCounter timestamp() const {
         return ( m_tracker.clone() );
+      }
+    
+    protected:
+      inline void set_name( const std::string &name ) {
+        m_name = name;
+      }
+
+      inline void set_type( const std::string &type_p ) {
+        m_type = type_p;
       }
 
     private:

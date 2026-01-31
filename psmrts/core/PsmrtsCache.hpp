@@ -12,10 +12,13 @@ namespace psmrts {
    * @brief Template class for thread-safe caching PSMRTS data objects/elements
    * 
    * This class provides caching of PSMRTS data using K key-based maps for
-   * any T data/object. Each instance of the cache is thread-safe. Note that
-   * when the class is copied, the data is deep copied. As such a unique
-   * mutex is created for each copy and they are no longer considered the
-   * same cache (therefore not inherently a PsmrtsProduct).
+   * any T data/object. Each instance of the cache is mostly thread-safe,
+   * however, const and non-const references to existing cached values are
+   * returned.
+   * 
+   * Note that when the cache is copied, the data is deep copied. As such a 
+   * unique mutex is created for each copy and they are no longer considered the
+   * same cache.
    * 
    * @tparam K Key to use in the cache map
    * @tparam T Type stored in the cache map
@@ -23,7 +26,7 @@ namespace psmrts {
   template <typename K, typename T>
     class PsmrtsCache {
       public:
-        using UIDType           = K;  // Define the unique identifier of the map key
+        using KeyType           = K;  // Define the unique identifier of the map key
         using CacheMap          = std::map<K,T>;
         using CacheMapIter      = typename std::map<K,T>::iterator;
         using CacheMapConstIter = typename std::map<K,T>::const_iterator;
@@ -33,12 +36,15 @@ namespace psmrts {
                      m_cache(), 
                      m_mutex() {  }
         /** Required copy constructor due to std::mutex */
-        PsmrtsCache( const PsmrtsCache &other ) :
-                     m_cache( other.m_cache ), 
-                     m_mutex() {  }
+        PsmrtsCache( const PsmrtsCache &other )  {
+          std::scoped_lock mylocker( other.mutex() );
+          m_cache = other.m_cache; 
+        }
+
         /** Required copy operator due to std::mutex */
         PsmrtsCache &operator=( const PsmrtsCache &other ) {
           if (this != &other) {
+            std::scoped_lock mylocker( m_mutex, other.mutex() );
             m_cache = other.m_cache;
           }
           return ( *this );
@@ -112,18 +118,6 @@ namespace psmrts {
             return ( it_c->second );
           }
           return ( default_t );
-        }
-
-        /** Return the const begin iterator of the map */
-        inline CacheMapIter begin() {
-          std::scoped_lock mylocker( this->mutex() );
-          return ( m_cache.begin() );
-        }
-
-        /** Return the const end iterator of the map */
-        inline CacheMapIter end() {
-          std::scoped_lock mylocker( this->mutex() );
-          return ( m_cache.end() );
         }
 
         /** Return the const begin iterator of the map */

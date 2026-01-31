@@ -6,6 +6,9 @@
 
 TEST_CASE("NAIF Dsk Shape Tracer - Default Constructor", "[default][naifdsk][shapetracer]"){
     const double tolerance = 1.0e-6;
+
+    CHECK( sizeof( psmrts::NaifDskTracer ) <= 800 );  
+
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
     psmrts::NaifDskTracer dsk_string_tracer( dskfile );
     
@@ -522,15 +525,13 @@ TEST_CASE( "NAIF Dsk Shape Tracer Product Specification Test", "[naifdsk][shapet
     psmrts::ProductSpecification spec = psmrts::NaifDskTracer::product_specifications();
 
     CHECK( spec.name()              == "naifdsk"     );
-    CHECK( spec.product()           == "shapetracer" ); 
-    CHECK( spec.type()              == "tracer"      );
-    CHECK( spec.driver().name()     == "naifdsk"     ); 
-    CHECK( spec.size()              == 2             );
-    CHECK( spec.parameters().size() == 2             );
-    CHECK( spec.required().size()   == 0             );
-    CHECK( spec.optional().size()   == 2             );
+    CHECK( spec.product()           == "tracer" ); 
+    CHECK( spec.size()              == 4             );
+    CHECK( spec.features().size()   == 4             );
+    CHECK( spec.required().size()   == 1             );
+    CHECK( spec.optional().size()   == 3             );
 
-    CHECK( spec.has_parameter( "obj_mtl_search_path" )    == false );
-    CHECK( spec.has_parameter( "naif_dsk_kernel_paths" )  == true  );
+    CHECK( spec.contains( "obj_mtl_search_path" ) == false );
+    CHECK( spec.contains( "kernels" )             == true  );
 
 }

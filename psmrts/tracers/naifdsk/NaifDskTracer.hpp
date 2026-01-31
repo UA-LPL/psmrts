@@ -3,7 +3,12 @@
 
 #include <string>
 
+#include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
+#include <psmrts/core/ProductOption.hpp>
+#include <psmrts/core/ProductFeature.hpp>
+#include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
 #include <psmrts/algorithms/TracingBasics.hpp>
 #include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
@@ -14,19 +19,26 @@ namespace psmrts  {
    * 
    * 
    */
-  class NaifDskTracer {
+  class NaifDskTracer : public PsmrtsProduct {
     public:
-      NaifDskTracer( ) {  }
-      NaifDskTracer( const naif::DskKernelModel &dsktracer ) : 
-                          m_model( dsktracer ) {  }
-      NaifDskTracer( const std::string &dsk ) : 
-                          m_model( dsk ) {  }
-      virtual ~NaifDskTracer() { }
+      using ProductInfo     = ProductSpecification::ProductInfo;
+      using ProductFeatures = ProductSpecification::ProductFeatures;
 
-      /** Return the name of the shape file */
-      inline const std::string &name() const {
-        return ( m_model.shapefile() );
+      NaifDskTracer( ) : PsmrtsProduct( "naifdsktracer", "tracer" ), 
+                         m_model() {
+        m_configured = init_naifdsk( "naifdsk" );
       }
+      NaifDskTracer( const naif::DskKernelModel &dsktracer ) : 
+                     PsmrtsProduct( dsktracer.shapefile(), "tracer" ),
+                     m_model( dsktracer ) { 
+        m_configured = init_naifdsk( dsktracer, dsktracer.shapefile() );
+      }
+      NaifDskTracer( const std::string &dsk ) : 
+                     PsmrtsProduct( dsk, "tracer" ),
+                     m_model( dsk ) { 
+                      //m_configured = init_naifdsk( m_model, m_model.shapefile() );
+                      }
+      virtual ~NaifDskTracer() { }
 
       /**
        * @brief NAIF Dsk Ray Trace Processor
@@ -43,7 +55,7 @@ namespace psmrts  {
        * @return false  If no ray trace intercept was found
        */
       inline bool process ( PRQRayTrace &trace ) const {
-        return ( algorithms::process_basic_trace( m_model, trace ) );
+        return ( algorithms::process_basic_trace( *this, trace ) );
       }
 
       /**
@@ -63,7 +75,7 @@ namespace psmrts  {
        * @return false    If no trace intercepts were found
        */
       inline bool process ( PRQRayTraceArray &tracelist ) const {
-        return ( algorithms::process_basic_trace_array( m_model, tracelist ) );
+        return ( algorithms::process_basic_trace_array( *this, tracelist ) );
       }
 
       /**
@@ -82,7 +94,7 @@ namespace psmrts  {
        * @return false  If process fails to find facet/intercept
        */
       inline bool process( PRQFacet &facet ) const {
-        return ( algorithms::process_basic_facet( m_model, facet ) );
+        return ( algorithms::process_basic_facet( *this, facet ) );
       }
 
       /**
@@ -101,7 +113,7 @@ namespace psmrts  {
        * @return false  If either does not intercept the shape
        */
       inline bool process( PRQPhotometricTrace &trace_p ) const {
-        return ( algorithms::process_basic_photometric_trace( m_model, trace_p ) );
+        return ( algorithms::process_basic_photometric_trace( *this, trace_p ) );
       }
 
        /**
@@ -121,7 +133,7 @@ namespace psmrts  {
        * @return false    If no appropriate trace intercepts were found
        */
        inline bool process( PRQPhotometricTraceArray &tracelist ) const {
-        return ( algorithms::process_basic_photometric_trace_array( m_model, tracelist ) );
+        return ( algorithms::process_basic_photometric_trace_array( *this, tracelist ) );
       }
 
        /**
@@ -169,50 +181,81 @@ namespace psmrts  {
       }
       
       inline bool ray_trace( PsmrtsRayTrace &ray ) const {
-        // this->local_tracker()++;
-        return ( m_model.ray_trace( ray ) );
+        bool status = m_model.ray_trace( ray );
+        ray.set_tracer_id( this->uid() );
+        return ( status );
       } 
       
+      inline bool get_facet(  const PsmrtsRayTrace &ray, 
+                              PsmrtsRayTrace::FacetDatum &facet) const {
+        return ( m_model.get_facet( ray, facet ) );                                 
+      }
+
       /** Report all remaining features not available - e.g., PRQFacet not relevant to Ellipsoid format */
       PSMRTS_PROCESS_CATCHALL( "NaifDskTracer" )
 
       static inline ProductSpecification product_specifications() {
-        char text[] = R"(
-        {
-          "name": "naifdsk",
-          "product": "tracer",
-          "type": "tracer",
-          "description": "NAIF DSK ray tracing system specifications",
-          "driver": {
-            "name": "naifdsk",
-            "type": "system"
-          },
-          "features": [
-            {
-              "name": "naif_dsk_kernel_paths",
-              "type": "list[string]",
-              "description": "List of NAIF kernel file paths (DSK, SPK, PCK, etc.) to load",
-              "status": "optional",
-              "default": []
-            },
-            {
-              "name": "naif_dsk_segment_priority",
-              "type": "string",
-              "description": "How to resolve multiple DSK segments",
-              "status": "optional",
-              "default": "last",
-              "valid": ["first", "last"]
-            }
-          ]       
-        } )";
+        ProductInfo  info( "naifdsk", { 
+                                 ProductOption( "name", "naifdsk"),
+                                 ProductOption( "product", "tracer"),
+                                 ProductOption( "description", "NAIF DSK ray tracing system specifications") } );
+        ProductFeature dfile( "dsk_file", {
+                                 ProductOption( "name", "dsk_file"),
+                                 ProductOption( "type", "file"),
+                                 ProductOption( "description", "Name of DSK kernel"),
+                                 ProductOption( "status", "required"),
+                                 ProductOption( "aliases", "file" ),
+                                 ProductOption( "file_suffixes", { "bds", "BDS" } ) } );
+        ProductFeature bodyid( "dsk_body_id", {
+                                 ProductOption( "name", "dsk_body_id"),
+                                 ProductOption( "type", "int"),
+                                 ProductOption( "description", "NAIF ID of the target body whose surface is described"),
+                                 ProductOption( "status", "optional"),
+                                 ProductOption( "aliases", { "target_id", "naif_id" } ) } );
+        ProductFeature segid( "dsk_segment_index", {
+                                 ProductOption( "name", "dsk_segment_index"),
+                                 ProductOption( "type", "int"),
+                                 ProductOption( "description", "NAIF ID of the target body whose surface is described"),
+                                 ProductOption( "status", "optional"),
+                                 ProductOption( "default", 0),
+                                 ProductOption( "aliases", { "segment", "dsk_segment"} ) } );
+        ProductFeature kernels( "kernels", {
+                                 ProductOption( "name", "kernels"),
+                                 ProductOption( "type", "string"),
+                                 ProductOption( "description", "Additional kernels required to load for target"),
+                                 ProductOption( "status", "optional"),
+                                 ProductOption( "aliases", "required_kernels" ) } );
 
         // This validates the JSON structure and provides product info to callers
-        return ( ProductSpecification( "naifdsk", "tracer", "shapetracer", json_utils::parse_json_string( text )));
+        return ( ProductSpecification( info, { dfile, bodyid, segid, kernels } ) );
+      }
+      
+      
+      inline const ProductConfiguration &config() const {
+        return ( m_configured );
+      }
+      
+      inline bool matches( const ProductConfiguration &conf ) const {
+        return ( this->config().matches( conf ) );
       }
 
     private:
       naif::DskKernelModel m_model;
+      ProductConfiguration m_configured;
 
+      inline ProductConfiguration init_naifdsk( const std::string &source ) {
+        auto config = ProductConfiguration( source, { ProductOption( "tracer", "naifdsk" ),
+                                                      ProductOption( "file", source ) } );
+        return ( config );
+      }
+
+      inline ProductConfiguration init_naifdsk( const naif::DskKernelModel &model, const std::string &source ) {
+        auto config = ProductConfiguration( source, { ProductOption( "tracer", "naifdsk" ),
+                                                      ProductOption( "file", source ),
+                                                      ProductOption( "plates", std::to_string(model.plate_count())),
+                                                      ProductOption( "segments", std::to_string(model.n_dsk_segments())) } );
+        return ( config );
+      }
   };
 
 } // namespace psmrts

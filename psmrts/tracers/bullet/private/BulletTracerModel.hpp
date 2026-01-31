@@ -6,8 +6,8 @@
 #include <Eigen/Geometry>
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
+#include <psmrts/core/PsmrtsMeshData.hpp>
 #include "PsmrtsBulletWorldModel.hpp"
-#include <psmrts/tracers/ellipsoid/private/EllipsoidTracerModel.hpp>
 
 namespace psmrts::bullet {
   /**
@@ -18,36 +18,29 @@ namespace psmrts::bullet {
    */
   class BulletTracerModel  {
     public:
-      BulletTracerModel( ) {  }
-      BulletTracerModel( const PsmrtsBulletWorldModel &bt_model ) :
-                               m_bullet_model( bt_model ) {  }
+      BulletTracerModel( );
+      BulletTracerModel( const PsmrtsBulletWorldModel &bt_model );
+      BulletTracerModel( const PsmrtsMeshData &mesh, 
+                         const std::string &name );
 
-      virtual ~BulletTracerModel() { }
+      virtual ~BulletTracerModel() = default;
 
       /** Returns name of tracer model, ie. bullet */
-      inline std::string tracer_model_name() const {
-        return ( m_bullet_model.mesh().mesh_type() );
-      }
+      std::string tracer_model_name() const;
 
       /** Name of the shape model source */
-      inline const std::string &shapefile() const {
-        return ( m_bullet_model.name() );
-      }
+      const std::string &shapefile() const;
+
+      bool isValid() const;
 
       /** Total number of plates/facets in model */
-      inline size_t plate_count()  const {
-        return ( m_bullet_model.mesh().nfacets() );
-      }
+      size_t plate_count()  const;
 
       /** Total verticies in the model */
-      inline size_t vertex_count() const{
-        return ( m_bullet_model.mesh().nvectors() );
-      }
+      size_t vertex_count() const;
 
       /** Returns the maximum radius in the model */
-      inline double maximum_radius() const {
-        return ( m_bullet_model.mesh().maximum_radius() );
-      }
+      double maximum_radius() const;
 
       /**
        * @brief Ray trace method on the shape model in this tracer
@@ -71,17 +64,11 @@ namespace psmrts::bullet {
        * @return true    If the trace intercepts the shape
        * @return false   If no ray trace intercept was found
        */
-      inline bool ray_trace( const Eigen::Vector3d &observer,
+      bool ray_trace( const Eigen::Vector3d &observer,
                               const Eigen::Vector3d &lookdir,
-                              PsmrtsRayTrace &ray ) const {
-        // this->local_tracker()++;
-        return ( this->ray_trace( ray.reset( observer, lookdir ) ) );
-      }
+                              PsmrtsRayTrace &ray ) const;
 
-      inline bool ray_trace( PsmrtsRayTrace &ray ) const {
-        // this->local_tracker()++;
-        return ( m_bullet_model.ray_trace( ray ) );
-      }
+      bool ray_trace( PsmrtsRayTrace &ray ) const;
 
 
       /**
@@ -91,18 +78,11 @@ namespace psmrts::bullet {
        * @return true 
        * @return false 
        */
-      inline bool get_facet( const PsmrtsRayTrace &ray,
-                             PsmrtsRayTrace::FacetDatum &facet ) const {
+      bool get_facet( const PsmrtsRayTrace &ray,
+                             PsmrtsRayTrace::FacetDatum &facet ) const;
 
-       // Sanity check validity of raytrace
-        facet.m_has_facet = false;
 
-        if ( ray.hasHit() && m_bullet_model.mesh().isValid() ) {
-          facet = m_bullet_model.mesh().get_facet( ray.plateid(), ray.segment_number() );
-        }
-
-        return ( facet.isValid() );
-      }
+      const PsmrtsBulletWorldModel &model() const;
 
     private:
       PsmrtsBulletWorldModel   m_bullet_model;

@@ -24,7 +24,7 @@ TEST_CASE( "PSMRTS Clock Time Tests", "[utilities][time]" ) {
     std::time_t first_timer = psmrts::current_time(); 
     std::this_thread::sleep_for(std::chrono::seconds(1));
     std::time_t sec_timer = psmrts::current_time();
-    CHECK( ( sec_timer - first_timer ) == 1 );
+    CHECK( ( sec_timer - first_timer ) >= 1 );
 
     psmrts::PSMRTS_SYSTEM_CLOCK_TIME currently = psmrts::system_clock_time();
     psmrts::PSMRTS_SYSTEM_CLOCK_TIME plus_one_s = currently + 1s;

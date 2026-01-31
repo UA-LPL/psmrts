@@ -10,24 +10,24 @@ TEST_CASE( "OBJ SHAPE - Default Test", "[obj][shape][specification]") {
 
   CHECK( spec.name()              == "obj"   );
   CHECK( spec.product()           == "shape" );
-  CHECK( spec.type()              == "mesh"  );
-  CHECK( spec.driver().name()     == "obj" );
   CHECK( spec.size()              == 4 );
-  CHECK( spec.parameters().size() == 4 );
+  CHECK( spec.features().size() == 4 );
   CHECK( spec.required().size()   == 1 );
   CHECK( spec.optional().size()   == 3 );
-  CHECK( spec.has_parameter( "obj_mtl_search_path" ) == true );
+  CHECK( spec.contains( "obj_mtl_search_path" ) == true );
 }
 
 TEST_CASE( "PSMRTS Product OBJ Specification Test", "[product][type][mesh][obj]") {
   double tolerance = 1.0e-6;
+
+  CHECK( sizeof( psmrts::ObjShape ) <= 1370 );  
 
   std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
   psmrts::ObjShape obj_m( objfile );
   
   CHECK( obj_m.name() == objfile );
   CHECK( obj_m.type() == "obj" );
-  CHECK( obj_m.uid()  > psmrts::PsmrtsUID::UID_Reserved );
+  CHECK( psmrts::PsmrtsUID::is_valid_uid( obj_m.uid() ) );
     
   psmrts::PsmrtsMeshData mesh_d = obj_m.get_mesh( );
   CHECK( mesh_d.nfacets()        == 36 );

@@ -1,11 +1,16 @@
-#pragma once
+#ifndef EllipsoidTracer_hpp
+#define EllipsoidTracer_hpp
+
 #include <string>
 
+#include <Eigen/Geometry>
+
 #include <psmrts/core/PsmrtsRequest.hpp>
+#include <psmrts/core/ProductOption.hpp>
+#include <psmrts/core/ProductFeature.hpp>
 #include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
 #include <psmrts/algorithms/TracingBasics.hpp>
-#include "private/EllipsoidTracerModel.hpp"
 
 namespace psmrts  {
   /**
@@ -31,44 +36,69 @@ namespace psmrts  {
    * @history 2025-08-12 Kris J. Becker - Restructured to use private
    *                       implementation 
    */
-  class EllipsoidTracer {
+  class EllipsoidTracer : public PsmrtsProduct {
 
     public:
-      EllipsoidTracer( ) : m_model( 1.0, 1.0, 1.0 ) {  }
+      using ProductInfo     = ProductSpecification::ProductInfo;
+      using ProductFeatures = ProductSpecification::ProductFeatures;
+
+      EllipsoidTracer( ) : PsmrtsProduct( "ellipsoid", "tracer" ), 
+                           m_radii{ 1.0, 1.0, 1.0 },
+                           m_config( init_config( "sphere", { 1.0 } ) ) { }
       EllipsoidTracer( const double radius,
-                      const std::string &source = "sphere") :
-                      m_model( radius, radius, radius, source) { 
-        init_sphere( 1.0 , source );                        
-      }
+                       const std::string &source = "sphere") :
+                       PsmrtsProduct( source, "tracer" ),
+                       m_radii{ radius, radius, radius },
+                      m_config( init_config( "sphere", { radius} ) ) { }
       EllipsoidTracer( const double a, const double c,
-                      const std::string &source = "spheroid") :                      
-                      m_model( a, a, c, source) {
-        init_spheroid( a, c, source );                        
-
-      }     
+                       const std::string &source = "spheroid") :
+                       PsmrtsProduct( source, "tracer" ),                      
+                       m_radii{ a, a, c },
+                       m_config( init_config( "spheroid", { a, c} )  ) { }     
       EllipsoidTracer( const double a, const double b, const double c,
-                      const std::string &source = "ellipsoid") :
-                      m_model( a, b, c, source) { 
-        init_ellipsoid( a, b, c, source );                    
-
-      }     
+                       const std::string &source = "ellipsoid") :
+                       PsmrtsProduct( source, "tracer" ),
+                       m_radii{ a, b, c },
+                       m_config( init_config( "ellipsoid", { a, b, c} ) )  { }     
       EllipsoidTracer( const Eigen::Vector3d &radii,
-                      const std::string &source = "ellipsoid" ) : 
-                      m_model( radii.data(), source) { 
-        init_ellipsoid( radii[0], radii[1], radii[2], source );                    
-      }
-      EllipsoidTracer( const ProductConfiguration &config_p ) : 
-                      m_model() { 
-        init_config( config_p );
-      }                         
+                       const std::string &source = "ellipsoid" ) : 
+                       PsmrtsProduct("ellipsoid", "tracer" ),
+                       m_radii{ radii[0], radii[1],radii[2] },
+                       m_config( init_config( "ellipsoid", { radii[0], radii[1], radii[2] }, source ) ) { }
+      // EllipsoidTracer( const ProductConfiguration &config_p ) :
+      //                  PsmrtsProduct( "none", "tracer" ), 
+      //                  m_radii{0, 0, 0} { 
+      //  init_config( config_p );
+      // }                         
         
-      virtual ~EllipsoidTracer() { }
-
+      virtual ~EllipsoidTracer() = default;
  
 
-      inline const std::string &name() const {
-        return ( m_model.name() );
+      /** Returns value of a */
+      const double &a() const {
+        return ( m_radii[0] );
       }
+
+      /** Returns value of b */
+      const double &b() const {
+        return ( m_radii[1] );
+      }
+
+      /** Returns value of c */
+      const double &c() const {
+        return ( m_radii[2] );
+      }
+      
+      /** Return the maximum radius of the ellipsoid */
+      inline double maximum_radius() const {
+        return ( std::max( std::max( m_radii[0], m_radii[1]), m_radii[2] ) );
+      }
+
+      /** Return the minimum radius of the ellipsoid  */
+      inline double minimum_radius() const {
+        return ( std::min( std::min( m_radii[0], m_radii[1]), m_radii[2] ) );
+      }
+
 
       /**
        * @brief Ellipsoid Ray Trace Processor
@@ -166,9 +196,7 @@ namespace psmrts  {
         f_e["product"] = "shapetracer" ;
         f_e["mesh"] = false;
 
-        double radii[3];
-        m_model.get_radii( &radii[0] );
-        f_e["radii"] = { radii[0], radii[1], radii[2] } ;
+        f_e["radii"] = { m_radii[0], m_radii[1], m_radii[2] } ;
 
         features.add_feature( f_e );
         return ( true );
@@ -200,177 +228,88 @@ namespace psmrts  {
         return ( this->ray_trace( ray.reset( observer, lookdir ) ) );
       }
 
-      inline bool ray_trace( PsmrtsRayTrace &ray ) const {
+ 
+    /**
+     * @brief Ray Trace method for Ellipsoid Shape - PsmrtsRayTrace Result
+     * 
+     * The main method used to run individual body-fixed ray traces from 
+     * an observer point and a look direction vector. The origin of the
+     * "observer" vector is the origin of the planet body and extends
+     * outward, presumeably, beyond the maximum radius of the surface in
+     * this model. From that point, is the origin of the "lookdir" vector
+     * from which to trace for an intersection with the shape model
+     * surface. 
+     * 
+     * The PsmrtsRayTrace class contains the results of the ray trace and can
+     * be used in subsequent operations.
+     * 
+     * @param observer Location of the observer (s/c) relative to the
+     *                   center of the target body
+     * @param lookdir  Look direction of the ray from the observer to
+     *                   trace for intersections
+     * @param ray      PsmrtsRayTrace returns the results of the trace
+     * @return true    If the trace intercepts the shape
+     * @return false   If no ray trace intercept was found
+     */
+      bool ray_trace( PsmrtsRayTrace &ray ) const;
 
-        // Let the model do it!
-        ray.datum().m_hit = m_model.ray_trace( ray.observer().data(), 
-                                               ray.lookdir().data(), 
-                                               ray.datum().m_xyz.data(), 
-                                               ray.datum().m_normal.data() );
-        return ( ray.hasHit() );
-      }
-      
+      /** IMPL function to compute the rays */
+      bool ray_trace( const double *observer, const double *lookdir,
+                      double *xyz, double *normal ) const;
 
-
-      static inline ProductSpecification sphere_product_spec() {
-        char text[] = R"(
-        {
-          "name": "sphere",
-          "product": "tracer",
-          "type": "tracer",
-          "description": "Sphere ray tracing system specifications",
-          "driver": {
-            "name": "sphere",
-            "type": "system",
-            "aliases": ["tracer"]
-          },
-          "features": [
-            {
-              "name": "sphere_radius",
-              "type": "double",
-              "description": "Radius of the sphere in kilometers",
-              "status": "required"
-            },
-            {
-              "name": "sphere_source",
-              "type": "string",
-              "description": "Identifier or source of the sphere - e.g., naif IAU, planet",
-              "status": "optional",
-              "default": "sphere"
-            }
-          ]       
-        } )";
-
-        // This validates the JSON structure and provides product info to callers
-        return ( ProductSpecification( "sphere", "tracer", "tracer", json_utils::parse_json_string( text )));
-      }
-
-      static inline ProductSpecification spheroid_product_spec() {
-        char text[] = R"(
-        {
-          "name": "spheroid",
-          "product": "tracer",
-          "type": "tracer",
-          "description": "spheroid ray tracing system specifications",
-          "driver": {
-            "name": "spheroid",
-            "type": "system",
-            "aliases": ["tracer"]
-          },
-          "features": [
-            {
-              "name": "spheroid_radii",
-              "type": "double",
-              "description": "Radii (a,c) of the spheroid in kilometers",
-              "status": "required"
-            },
-            {
-              "name": "spheroid_source",
-              "type": "string",
-              "description": "Identifier or source of the spheroid - e.g., naif IAU, planet",
-              "status": "optional",
-              "default": "spheroid"
-            }
-          ]       
-        } )";
+      /** Retuns the vector normal of an input point */
+      void compute_normal( const double *point, double *normal ) const;
+    
+      static inline ProductSpecification product_specifications() {
+        ProductInfo  info( "ellipsoid", { 
+                                 ProductOption( "name", "ellipsoid"),
+                                 ProductOption( "product", "tracer"),
+                                 ProductOption( "description", "Ellipsoid, spheroid and sphere ray tracer") } );
+        ProductFeature radii( "radii", {
+                                 ProductOption( "name", "radii"),
+                                 ProductOption( "type", "double"),
+                                 ProductOption( "description", "Radius values of the object: 1, 2 or 3 double values"),
+                                 ProductOption( "status", "required"),
+                                 ProductOption( "aliases", "radius" ) } );
+        ProductFeature source( "source", {
+                                 ProductOption( "name", "source"),
+                                 ProductOption( "type", "string"),
+                                 ProductOption( "description", "Source of the radius definition"),
+                                 ProductOption( "status", "optional") } );
 
         // This validates the JSON structure and provides product info to callers
-        return ( ProductSpecification( "spheroid", "tracer", "tracer", json_utils::parse_json_string( text )));
+        return ( ProductSpecification( info, { radii, source } ) );
       }
 
-      static inline ProductSpecification ellipsoid_product_spec() {
-        char text[] = R"(
-        {
-          "name": "ellipsoid",
-          "product": "tracer",
-          "type": "tracer",
-          "description": "ellipsoid ray tracing system specifications",
-          "driver": {
-            "name": "ellipsoid",
-            "type": "system",
-            "aliases": ["tracer"]
-          },
-          "features": [
-            {
-              "name": "ellipsoid_radii",
-              "type": "double",
-              "description": "Radii (a,b,c) of the ellipsoid in kilometers",
-              "status": "required"
-            },
-            {
-              "name": "ellipsoid_source",
-              "type": "string",
-              "description": "Identifier or source of the ellipsoid - e.g., naif IAU, planet",
-              "status": "optional",
-              "default": "ellipsoid"
-            }
-          ]       
-        } )";
+      inline const ProductConfiguration &config() const {
+        return ( m_config );
+      }
 
-        // This validates the JSON structure and provides product info to callers
-        return ( ProductSpecification( "ellipsoid", "tracer", "tracer", json_utils::parse_json_string( text )));
+      inline bool matches( const ProductConfiguration &conf ) const {
+        return ( this->config().matches( conf ) );
       }
 
       /** Report all remaining features not available */
       PSMRTS_PROCESS_CATCHALL( "EllipsoidTracer" )
 
     private:
-      EllipsoidTracerModel m_model;
-      ProductConfiguration m_configured;
+      double      m_radii[3];
+      ProductConfiguration m_config;
 
+      inline ProductConfiguration init_config( const std::string &name, 
+                                               const std::initializer_list<double> radii,
+                                               const std::string &source = ""  ) {
 
-      inline ProductConfiguration init_sphere(const double radius, const std::string &source ) {
-        auto config =  ProductConfiguration( source, { ProductOption( "tracer", "sphere" ),
-                                                       ProductOption( "sphere_radius", radius ),
-                                                       ProductOption( "sphere_source", source ) } );
-        return (config );
-      }
+        ProductConfiguration config( "ellipsoid" );
+        config.add( ProductOption( "name", name) );
+        config.add( ProductOption( "radii", radii ) );
+        if ( !source.empty() ) config.add( ProductOption( "source", source ) );
 
-      inline ProductConfiguration init_spheroid( const double a, const double c, 
-                                 const std::string &source  ) {
-        auto config =  ProductConfiguration( source, { ProductOption( "tracer", "spheroid" ),
-                                                       ProductOption( "spheroid_radii", { a, c } ),
-                                                       ProductOption( "spheriod_source", source ) } );
         return ( config );
-      }
-      
-      inline ProductConfiguration init_ellipsoid(const double a, const double b, const double c,
-                                 const std::string &source  ) {
-        auto config = ProductConfiguration( source, { ProductOption( "tracer", "ellipsoid" ),
-                                                      ProductOption( "ellipsoid_radii", { a, b, c } ),
-                                                      ProductOption( "ellipsoid_source", source ) } );
-        return ( config );
-      }
-
-      inline ProductConfiguration init_config( const ProductConfiguration &config,
-                                               const std::string &name = "" ) {
-
-        std::string source = ( name.size() >  0 ) ? name : config.name();
-        
-        // Check for sphere first
-        ProductConfiguration config_c;
-        if ( EllipsoidTracer::sphere_product_spec().extract( config, config_c ) ) {
-          // Add parameter extraction and complete sphere configuration
-          return ( config_c );
-        }
-
-        // Check for a spheroid condig
-        if ( EllipsoidTracer::spheroid_product_spec().extract( config, config_c ) ) {
-          // Add parameter extraction and complete spheroid configuration
-          return ( config_c );
-        }        
-
-        // Check for an ellipsoid 
-        if ( EllipsoidTracer::ellipsoid_product_spec().extract( config, config_c ) ) {
-          // Add parameter extraction and complete ellipsoid configuration
-          return ( config_c );
-        }
-
-        // Return a null config with 0 options
-        return ( ProductConfiguration( name ) );
       }
 
   };
 
 } // namespace psmrts
 
+#endif

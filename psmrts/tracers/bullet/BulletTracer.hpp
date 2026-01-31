@@ -2,29 +2,35 @@
 #define BulletTracer_hpp
 
 #include <string>
+#include <memory>
 
-#include "private/PsmrtsBulletWorldModel.hpp"
-#include "private/BulletTracerModel.hpp"
+#include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
+#include <psmrts/core/ProductFeature.hpp>
+#include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/algorithms/TracingBasics.hpp>
 
 namespace psmrts  {
+
   /**
    * @brief Bullet ShapeModel
    * 
    * 
    */
-  class BulletTracer {
+  class BulletTracer : public PsmrtsProduct {
     public:
-     BulletTracer( ) {  }
-     BulletTracer( const bullet::PsmrtsBulletWorldModel &bt_model) :
-                        m_model( bt_model ) { }
-      virtual ~BulletTracer() { }
+      using ProductInfo   = ProductSpecification::ProductInfo;
+      using FeatureOption = ProductFeature::FeatureOption;
+      using FeatureList   = ProductFeature::FeatureOptionList;
 
-      /** Return the name of the shape file */
-      inline const std::string &name() const {
-        return ( m_model.shapefile() );
-      }
+      BulletTracer( );
+      BulletTracer( const PsmrtsShape &shape );
+      virtual ~BulletTracer();
+
+      double maximum_radius() const;
+
+      double minimum_radius() const;
 
       /**
        * @brief Bullet Ray Trace Processor
@@ -41,7 +47,7 @@ namespace psmrts  {
        * @return false  If no ray trace intercept was found
        */
       inline bool process ( PRQRayTrace &trace ) const {
-        return ( algorithms::process_basic_trace( m_model, trace ) );
+        return ( algorithms::process_basic_trace( *this, trace ) );
       }
 
       /**
@@ -61,7 +67,7 @@ namespace psmrts  {
        * @return false    If no trace intercepts were found
        */
       inline bool process ( PRQRayTraceArray &tracelist ) const {
-        return ( algorithms::process_basic_trace_array( m_model, tracelist ) );
+        return ( algorithms::process_basic_trace_array( *this, tracelist ) );
       }
 
       /**
@@ -80,7 +86,7 @@ namespace psmrts  {
        * @return false  If process fails to find facet/intercept
        */
       inline bool process( PRQFacet &facet ) const {
-        return ( algorithms::process_basic_facet( m_model, facet ) );
+        return ( algorithms::process_basic_facet( *this, facet ) );
       }
 
       /**
@@ -99,7 +105,7 @@ namespace psmrts  {
        * @return false  If either does not intercept the shape
        */
       inline bool process( PRQPhotometricTrace &trace_p ) const {
-        return ( algorithms::process_basic_photometric_trace( m_model, trace_p ) );
+        return ( algorithms::process_basic_photometric_trace( *this, trace_p ) );
       }
 
       /**
@@ -119,7 +125,7 @@ namespace psmrts  {
        * @return false    If no appropriate trace intercepts were found
        */
       inline bool process ( PRQPhotometricTraceArray &tracelist ) const {
-        return ( algorithms::process_basic_photometric_trace_array( m_model, tracelist ) );
+        return ( algorithms::process_basic_photometric_trace_array( *this, tracelist ) );
       }
 
       /**
@@ -168,60 +174,60 @@ namespace psmrts  {
         return ( this->ray_trace( ray.reset( observer, lookdir ) ) );
       }
       
-      inline bool ray_trace( PsmrtsRayTrace &ray ) const {
-        // Let the model do it!
-        return ( m_model.ray_trace( ray ) );
-      }
+      // These are the tracing and facet implementations in the source class
+      bool ray_trace( PsmrtsRayTrace &ray ) const;
+      bool get_facet(  const PsmrtsRayTrace &ray, 
+                       PsmrtsRayTrace::FacetDatum &facet) const;
             
       static inline ProductSpecification product_specifications() {
-        char text[] = R"(
-        {
-          "name": "bullet",
-          "product": "tracer",
-          "type": "tracer",
-          "description": "The Bullet Physics ray tracing system specification",
-          "driver": {
-            "name": "bullet",
-            "type": "system"
-          },
-          "features": [
-            {
-              "name": "bullet_optimize_bvh",
-              "type": "bool",
-              "description": "Use optimized bounding volume hierachy (BVH) when created",
-              "status": "optional",
-              "default": "false",
-              "valid": ["true", "1", "yes", "false", "0", "no"]
-            },
-            {
-              "name": "bullet_compressed",
-              "type": "bool",
-              "description": "Compress Bullet data during construction",
-              "status": "optional",
-              "default": "false",
-              "valid": ["true", "1", "yes", "false", "0", "no"]
-            },            
-            {
-              "name": "bullet_thread_safety",
-              "type": "bool",
-              "description": "Utilize thread locking before Bullet ray traces are run",
-              "status": "optional",
-              "default": "false",
-              "valid": ["true", "1", "yes", "false", "0", "no"]
-            }
-          ]       
-        } )";
+        ProductInfo  info( "bullet", { 
+                                 FeatureOption( "name", "bullet"),
+                                 FeatureOption( "product", "tracer"),
+                                 FeatureOption( "description", "The Bullet Physics ray tracing system specification") } );
+        ProductFeature bvh( "bullet_optimize_bvh", {
+                                 FeatureOption( "name", "bullet_optimize_bvh"),
+                                 FeatureOption( "type", "bool"),
+                                 FeatureOption( "description", "Use optimized bounding volume hierachy (BVH) when created"),
+                                 FeatureOption( "status", "optional"),
+                                 FeatureOption( "default", "false"),
+                                 FeatureOption( "valid", {"true", "1", "yes", "false", "0", "no"} ) } );
+        ProductFeature cmp( "bullet_compressed", {
+                                 FeatureOption( "name", "bullet_compressed"),
+                                 FeatureOption( "type", "bool"),
+                                 FeatureOption( "description", "Compress Bullet data during construction"),
+                                 FeatureOption( "status", "optional"),
+                                 FeatureOption( "default", "false"),
+                                 FeatureOption( "valid", {"true", "1", "yes", "false", "0", "no"} ) } );
 
         // This validates the JSON structure and provides product info to callers
-        return ( ProductSpecification( "bullet", "tracer", "tracer", json_utils::parse_json_string( text )));
+        return ( ProductSpecification( info, { bvh, cmp } ) );
       }
+
+      /** Return reference to PsmrtsShape used in this instance */
+      const PsmrtsShape &shape() const;
+
+      /** Return the current product configuration */
+      inline const ProductConfiguration &config() const {
+        return ( m_configured );
+      }
+
+      inline bool matches( const ProductConfiguration &conf ) const {
+        if ( this->shape().matches( conf ) && this->config().matches( conf ) ) {
+          return ( true );
+        }
+
+        return ( false );
+      }
+
 
       /** Report all remaining features not available - e.g., PRQFacet not relevant to Ellipsoid format */
       PSMRTS_PROCESS_CATCHALL( "BulletTracer" )
 
 
-    protected:
-      bullet::BulletTracerModel  m_model;
+    private:
+      class BulletTracerImpl;
+      std::shared_ptr<BulletTracerImpl> m_model;
+      ProductConfiguration              m_configured;
   };
 
 } // namespace psmrts

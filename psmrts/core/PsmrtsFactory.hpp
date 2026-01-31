@@ -12,6 +12,7 @@
 #include <psmrts/core/PRQProduct.hpp>
 #include <psmrts/core/ProductInventory.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/core/PsmrtsInventory.hpp>
 #include <psmrts/core/PRQProduct.hpp>
 
 namespace psmrts {
@@ -127,11 +128,14 @@ namespace psmrts {
    * 
    * @author Kris J Becker, Univerisity of Arizona
    * @history 2025-09-07 Kris J. Becker  Original Version
+   * @history 2026-01-01 Kris J. Becker  Add thread locking for merge, add and
+   *                      remove operations
    */
   class PsmrtsFactory {
     public:
       inline static const std::string psmrts_inventory{ "psmrts" };
       using UIDType         = PsmrtsUID::UIDType;
+      using EnvInventory    = PsmrtsInventory::EnvInventory;
 
       PsmrtsFactory( )  {  }
       virtual ~PsmrtsFactory() { }
@@ -139,26 +143,25 @@ namespace psmrts {
 
       /** Return the number of inventories present in the factory */
       inline size_t size() const {
+        std::scoped_lock mylocker( m_mutex );
         return ( this->inventory().size() );
       }
 
       /** Looking for an inventory by name case insensive */
       inline bool contains( const std::string &name ) const {
+        std::scoped_lock mylocker( m_mutex );
         return (this->inventory().contains( name ) );
       }
 
       /** Returns list of all cached inventories by name/uid */
       inline std::vector<std::string>  get_inventory_list( ) const {
+        std::scoped_lock mylocker( m_mutex );
         return ( m_inventory.cache().keys() );
-      }      
-
-      /** Looking for an inventory by name */
-      inline PsmrtsInventory &find( const std::string &name ) {
-        return (this->inventory().find( name ) );
       }
 
       /** Looking for an inventory by name */
       inline const PsmrtsInventory &find( const std::string &name ) const {
+        std::scoped_lock mylocker( m_mutex );
         return (this->inventory().find( name ) );
       }
 
@@ -176,7 +179,9 @@ namespace psmrts {
        */
       inline UIDType add_product( const PsmrtsShape &shape,
                                   const std::string &inventory_name = psmrts_inventory  ) {
-        if ( this->contains( inventory_name ) ) {
+                                    
+        std::scoped_lock mylocker( m_mutex );
+        if ( this->inventory().contains( inventory_name ) ) {
           return ( this->inventory().find( inventory_name ).shapes().add_product( shape ) );
         }
         else {
@@ -186,6 +191,17 @@ namespace psmrts {
         }           
         return ( shape.uid() );
       }
+
+      /** Remove a shape product from a named inventory */
+      inline void remove_shape( const UIDType &uid, 
+                                const std::string &inventory_name = psmrts_inventory  ) {
+        std::scoped_lock mylocker( m_mutex );
+        if ( this->inventory().contains( inventory_name )  ) {
+          this->inventory().find( inventory_name ).shapes().remove( uid );
+        }
+        return;
+      } 
+
 
       /**
        * @brief Add a PsmrtsTracer to the named inventory
@@ -200,7 +216,8 @@ namespace psmrts {
        */
       inline UIDType add_product( const PsmrtsTracer &tracer,
                                   const std::string &inventory_name = psmrts_inventory  ) {
-        if ( this->contains( inventory_name ) ) {
+        std::scoped_lock mylocker( m_mutex );
+        if ( this->inventory().contains( inventory_name )  ) {
           return ( this->inventory().find( inventory_name ).tracers().add_product( tracer ) );
         }
         else {
@@ -211,6 +228,15 @@ namespace psmrts {
         return ( tracer.uid() );
       }
 
+      /** Remove a tracer from a named inventory */
+      inline void remove_tracer( const UIDType &uid, 
+                                const std::string &inventory_name = psmrts_inventory  ) {
+        std::scoped_lock mylocker( m_mutex );
+        if ( this->inventory().contains( inventory_name )  ) {
+          this->inventory().find( inventory_name ).tracers().remove( uid );
+        }
+        return;
+      }       
 
       /**
        * @brief Add a PsmrtsPriorityTracer to the named inventory
@@ -225,7 +251,8 @@ namespace psmrts {
        */
       inline UIDType add_product( const PsmrtsPriorityTracer &tracer_p,
                                   const std::string &inventory_name = psmrts_inventory  ) {
-        if ( this->contains( inventory_name ) ) {
+        std::scoped_lock mylocker( m_mutex );
+        if ( this->inventory().contains( inventory_name )  ) {
           return ( this->inventory().find( inventory_name ).prioritytracers().add_product( tracer_p ) );
         }
         else {
@@ -236,18 +263,35 @@ namespace psmrts {
         return ( tracer_p.uid() );
       }
 
+      /** Remove a priority tracer from a named inventory */
+      inline void remove_priority_tracer( const UIDType &uid, 
+                                          const std::string &inventory_name = psmrts_inventory  ) {
+        std::scoped_lock mylocker( m_mutex );
+        if ( this->inventory().contains( inventory_name )  ) {
+          this->inventory().find( inventory_name ).prioritytracers().remove( uid );
+        }
+        return;
+      }                                            
 
       /** Add a value to the cache - overwrites existing data */
       inline size_t add( const PsmrtsInventory &inventory, 
                        const std::string &cache_name = psmrts_inventory) {
         return ( this->merge( inventory, cache_name ) );
       }
+
+      /** Get the current state of the environment variable system */
+      static inline EnvInventory getenv( const std::string &name = "env" ) {
+        return ( PsmrtsInventory::getenv( name) );
+      }
+
       
       /** Remove the requested cache value by key */
       inline size_t merge( const PsmrtsInventory &inventory, 
                            const std::string &cache_name ) {
 
+        std::scoped_lock mylocker( m_mutex );
         size_t n_merged = 0;
+
         if ( this->inventory().contains( cache_name ) ) {
           PsmrtsInventory &cache = this->inventory().find( cache_name );
           n_merged += cache.merge( inventory );
@@ -267,27 +311,30 @@ namespace psmrts {
 
       /** Remove a system inventory from the factory! */
       inline void remove( const std::string &invname ) {
+        std::scoped_lock mylocker( m_mutex );
         m_inventory.remove( invname );
       }
     
-      /** Liquidate/empty all PSRMTS factory inventory - affects all instances of PsrmtsFactory! */
+      /** Liquidate/empty all PSRMTS factory inventory - affects all instances of PsmrtsFactory! */
       inline static void liquidate( ) {
+        std::scoped_lock mylocker( m_mutex );
         PsmrtsFactory::m_inventory.clear();
         
         // Be sure to set up the defaul inventory
-        PsmrtsFactory::m_inventory = { "psmrts", "inventory" };
+        PsmrtsFactory::m_inventory = { "psmrts", "inventory", &FactoryInventory::case_insensitive_key  };
         return;
       }
 
     private:
     // Definitions for the product registry. This holds all the products that have specifications
-      using ProductSpecs =  ProductInventory<std::string, ProductSpecification, lowercase_key_id<std::string>>;
-      using ProductRegistry =  ProductInventory<std::string, ProductSpecs, lowercase_key_id<std::string>>;
-      static inline ProductRegistry  m_registry  = { };
+      using ProductSpecs    =  ProductInventory<std::string, ProductSpecification>;
+      using ProductRegistry =  ProductInventory<std::string, ProductSpecs>;
+      static inline ProductRegistry  m_registry  = { "psmrts", "registry", &ProductRegistry::case_insensitive_key };
 
       // Definitions and cache of active product inventories.
-      using FactoryInventory = ProductInventory<std::string, PsmrtsInventory, lowercase_key_id<std::string>>;
-      static inline FactoryInventory m_inventory = { "psmrts", "inventory" }; // set up default product cache
+      using FactoryInventory = ProductInventory<std::string, PsmrtsInventory>;
+      static inline FactoryInventory m_inventory = { "psmrts", "inventory", &FactoryInventory::case_insensitive_key  }; // set up default product cache
+      static inline std::mutex       m_mutex{};
 
       /** Return the factory inventory */
       inline const FactoryInventory &inventory() const {

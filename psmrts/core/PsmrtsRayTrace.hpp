@@ -5,6 +5,7 @@
 #include <Eigen/Geometry>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsProduct.hpp>
 
 namespace psmrts {
 
@@ -113,9 +114,19 @@ namespace psmrts {
             init( );
             m_observer = observer;
             m_lookdir  = lookdir;
-          }          
+          }        
+          
+          inline PsmrtsUID::UIDType get_tracer_id() const {
+            return ( m_uid_t );
+          }
+
+          inline void set_tracer_id( const PsmrtsUID::UIDType &uid_t ) {
+            m_uid_t  = uid_t;
+          }
 
         private:
+          PsmrtsProduct::UIDType m_uid_t;
+
           /** Initialize the datum to default condition */
           inline void init( ) {
 
@@ -128,6 +139,9 @@ namespace psmrts {
 
             m_plateid  = -1;
             m_segment  = -1;
+
+            // Reset the tracer id
+            m_uid_t = PsmrtsUID::null_uid();
 
             return;
           }
@@ -176,22 +190,22 @@ namespace psmrts {
         return ( datum().m_xyz );
       }
 
-      /** Returns the radius of the surface intercept point */
+      /** Returns the radius (km) of the surface intercept point */
       inline double radius() const {
         return ( xyz().norm() );
       }
 
-      /** Slant distance is distance from observer to surface intercept point */
+      /** Slant distance is distance (km) from observer to surface intercept point */
       inline double slant_distance() const {
         return ( raypt().norm() );
       }
 
-      /** Compute the distance between to surface ray trace intercepts */
+      /** Compute the distance (km) between to surface ray trace intercepts */
       inline double distance( const PsmrtsRayTrace &other ) const {
         return ( ( xyz() - other.xyz() ).norm() );
       }
 
-      /** Compute the angle of separation between two vectors */
+      /** Compute the angle (radians) of separation between two vectors */
       static inline double separation_angle( const Eigen::Vector3d &v1, 
                                              const Eigen::Vector3d &v2 ) {
 
@@ -217,7 +231,7 @@ namespace psmrts {
         return ( M_PI_2 );
       }
 
-      /** Determines if two surface intercept points are sufficiently near one another */
+      /** Determines if two surface intercept points are sufficiently near (km) one another */
       inline bool isNear( const PsmrtsRayTrace &other,
                           const double tolerance_km = 1.0e-3 ) const {
         if ( !hasHit() )       { return ( false );  }
@@ -235,13 +249,13 @@ namespace psmrts {
         return ( separation_angle( this->normal(), -other.lookdir() ) );
       }
 
-      /** Computes the emission angle at the surface point intercept */
+      /** Computes the emission angle (radians) at the surface point intercept */
       inline double emission( const double invalid = psmrts::null() ) const {
         if ( !hasHit() )       { return ( invalid );  }
         return ( separation_angle( this->normal(), -this->lookdir() ) );
       }
 
-      /** Compute the phase angle from a surface point (lookdirs) to two observer positions */
+      /** Compute the phase angle (radians) from a surface point (lookdirs) to two observer positions */
       inline double phase( const PsmrtsRayTrace &other,
                            const double invalid = null() ) const {
         if ( !hasHit() )       { return ( invalid );  }
@@ -302,6 +316,16 @@ namespace psmrts {
         }
 
         return ( true );
+      }
+
+      /** Returns the tracer id used for each tracer operation */
+      inline PsmrtsUID::UIDType get_tracer_id() const {
+        return ( this->datum().get_tracer_id() );
+      }
+
+      /** Sets the tracer for this trace */
+      inline void set_tracer_id( const PsmrtsUID::UIDType &uid_t) {
+        this->datum().set_tracer_id( uid_t );
       }
 
     private:

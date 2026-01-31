@@ -9,31 +9,28 @@ TEST_CASE( "DSK SHAPE - Default Test", "[dsk][shape][specification]") {
 
     CHECK( spec.name()              == "dsk"   );
     CHECK( spec.product()           == "shape" ); 
-    CHECK( spec.type()              == "mesh"  );
-    CHECK( spec.driver().name()     == "dsk" ); 
     CHECK( spec.size()              == 4 );
-    CHECK( spec.parameters().size() == 4 );
-    CHECK( spec.required().size()   == 0 );
-    CHECK( spec.optional().size()   == 4 );
+    CHECK( spec.features().size()   == 4 );
+    CHECK( spec.required().size()   == 1 );
+    CHECK( spec.optional().size()   == 3 );
 
-    CHECK( spec.has_parameter( "obj_mtl_search_path" ) == false );
-    CHECK( spec.has_parameter( "dsk_string" )          == true );
-    CHECK( spec.has_parameter( "dsk_data_type" )       == true );
-    CHECK( spec.has_parameter( "dsk_body_id" )         == true );
-    CHECK( spec.has_parameter( "dsk_segment_index" )   == true );
+    CHECK( spec.contains( "dsk_mtl_search_path" ) == false );
+    CHECK( spec.contains( "dsk_data_type" )       == true );
+    CHECK( spec.contains( "dsk_body_id" )         == true );
+    CHECK( spec.contains( "dsk_segment_index" )   == true );
 
 }
 
 
 TEST_CASE( "PSMRTS Product DSK Specification Test", "[product][type][mesh][dsk]") {
     double tolerance = 1.0e-6;
+    CHECK( sizeof( psmrts::DskShape ) <= 1370 );  
 
     std::string dskfile = psmrts_shapes_path( "dsk/data/bennu_20facets.bds" );
     psmrts::DskShape dsk_m( dskfile );
-  
     CHECK( dsk_m.name() == dskfile );
     CHECK( dsk_m.type() == "dsk" );
-    CHECK( dsk_m.uid()  > psmrts::PsmrtsUID::UID_Reserved );
+    CHECK( psmrts::PsmrtsUID::is_valid_uid( dsk_m.uid() ) );
     
     psmrts::PsmrtsMeshData mesh_d = dsk_m.get_mesh( );
     CHECK( mesh_d.nfacets()        == 36 );

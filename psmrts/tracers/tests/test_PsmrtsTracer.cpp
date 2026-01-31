@@ -6,7 +6,6 @@
 
 #include <psmrts/tracers/PsmrtsTracer.hpp>
 #include <psmrts/tracers/ellipsoid/EllipsoidTracer.hpp>
-#include <psmrts/tracers/bullet/BulletTracer.hpp>
 #include <psmrts/tracers/naifdsk/NaifDskTracer.hpp>
 
 #include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
@@ -51,7 +50,7 @@ TEST_CASE("PsmrtsTracer Default / Validity Test", "[tracer][default]") {
 
 TEST_CASE("PsmrtsTracer Values / Raytrace Test", "[tracer][raytrace][default]") {
     const double tolerance_r = 1.0E-13;
-    CHECK( sizeof( psmrts::PsmrtsTracer::Tracer ) <= 768 );
+    CHECK( sizeof( psmrts::PsmrtsTracer::Tracer ) <= 810 );
 
     psmrts::PsmrtsTracer tracer_t( psmrts::PsmrtsTracer::ellipsoid( { 0.283065,0.271215,0.249720 }, "Bennu" ) );
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
@@ -82,6 +81,7 @@ TEST_CASE("PsmrtsTracer Values / Raytrace Test", "[tracer][raytrace][default]") 
     CHECK( status                 == true );
     CHECK( ray_t.isValid()        == true );
     CHECK( ray_t.trace().hasHit() == true );
+    CHECK( ray_t.trace().get_tracer_id() == tracer_t.uid() ); 
 
     CHECK_THAT( ray_t.trace().incidence( ray_t.trace() ), Catch::Matchers::WithinAbs(0.10622974872501688, tolerance_r));
     CHECK_THAT( ray_t.trace().emission(), Catch::Matchers::WithinAbs(0.10622974872501688, tolerance_r ));
@@ -100,7 +100,7 @@ TEST_CASE("PsmrtsTracer Values / Raytrace Test", "[tracer][raytrace][default]") 
   TEST_CASE("PsmrtsTracer Comparative Values / Multi-Tracer Test", "[tracer][bullet][naifdsk]") {
     const double tolerance_r = 1.0E-13;
 
-    CHECK( sizeof( psmrts::PsmrtsTracer::Tracer ) <= 768 );
+    CHECK( sizeof( psmrts::PsmrtsTracer::Tracer ) <= 1696 );
 
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
     psmrts::PsmrtsTracer bullet_t( psmrts::PsmrtsTracer::bullet( dskfile ) );
@@ -134,6 +134,7 @@ TEST_CASE("PsmrtsTracer Values / Raytrace Test", "[tracer][raytrace][default]") 
     CHECK( status_b                 == true );
     CHECK( ray_b.isValid()        == true );
     CHECK( ray_b.trace().hasHit() == true );
+    CHECK( ray_b.trace().get_tracer_id() == bullet_t.uid() ); 
 
     CHECK_THAT( ray_b.trace().incidence( ray_b.trace() ), Catch::Matchers::WithinAbs( 0.52690706564731504, tolerance_r ));
     CHECK_THAT( ray_b.trace().emission(),                 Catch::Matchers::WithinAbs( 0.52690706564731504, tolerance_r ));
@@ -144,6 +145,7 @@ TEST_CASE("PsmrtsTracer Values / Raytrace Test", "[tracer][raytrace][default]") 
     CHECK( status_d               ==  status_b );
     CHECK( ray_d.isValid()        == ray_b.isValid());
     CHECK( ray_d.trace().hasHit() == ray_b.trace().hasHit() );
+    CHECK( ray_d.trace().get_tracer_id() == naifdsk_t.uid() ); 
 
     CHECK( ray_d.trace().incidence( ray_d.trace() )  == ray_b.trace().incidence( ray_b.trace() ) );
     CHECK( ray_d.trace().emission()                  == ray_b.trace().emission() );
@@ -171,4 +173,12 @@ TEST_CASE("PsmrtsTracer Values / Raytrace Test", "[tracer][raytrace][default]") 
     CHECK(facet_d.facet().m_vector2 == facet_b.facet().m_vector2 );
     CHECK(facet_d.facet().m_vector3 == facet_b.facet().m_vector3 );
     CHECK(facet_d.facet().m_normal == facet_b.facet().m_normal );
+  }
+
+  TEST_CASE("PsmrtsTracer Configuration Test", "[tracer][config]") {
+    std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
+    psmrts::PsmrtsTracer bullet_t( psmrts::PsmrtsTracer::bullet( dskfile ) );
+
+    psmrts::ProductConfiguration config = bullet_t.config();
+    CHECK( bullet_t.matches( config ) == true );
   }

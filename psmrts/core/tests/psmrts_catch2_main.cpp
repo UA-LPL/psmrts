@@ -6,7 +6,6 @@ static const std::string test_version = PSMRTS_VERSION;
 TEST_CASE( "psmrts test suite", "[introduction]") {
 
   auto version = test_version;
-  // spdlog::info("psmrts Catch Test Suite for PSMRTS version {}", version );
   INFO("psmrts Catch Test Suite version " << test_version);
   REQUIRE( version == test_version );
 

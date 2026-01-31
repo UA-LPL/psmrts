@@ -1,5 +1,10 @@
 # Add sources current directory to include path
-target_sources( psmrts PRIVATE DskShape.hpp )
+target_sources( psmrts PUBLIC
+                         FILE_SET psmrts_headers 
+                           TYPE HEADERS 
+                           FILES DskShape.hpp
+              )
+add_subdirectory( private )
 
 # Only add if requested
 if(BUILD_TESTING)

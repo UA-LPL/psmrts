@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PsmrtsRequest_hpp
+#define PsmrtsRequest_hpp
 
 #include <vector>
 #include <deque>
@@ -7,6 +8,7 @@
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
+#include <psmrts/core/ProductConfiguration.hpp>
 
 namespace psmrts { 
 
@@ -21,14 +23,37 @@ namespace psmrts {
    */
   class MissingProcessRequestHandler {
     public:
-      MissingProcessRequestHandler() : m_name("Product" ) { }
-      MissingProcessRequestHandler(const std::string &name ) : m_name ( name ) { }
+      MissingProcessRequestHandler() : m_name( "Product" ),
+                                       m_type( "missing" ),
+                                       m_config( "none" ) { }
+      MissingProcessRequestHandler( const std::string &name,
+                                    const std::string &type_t = "missing" ) : 
+                                   m_name ( name ),
+                                   m_type( type_t ),
+                                   m_config( name ) { }
       virtual ~MissingProcessRequestHandler() = default;
       
       inline const std::string &name() const {
         return ( m_name );
       }
 
+      inline const std::string &type() const {
+        return ( m_type );
+      }
+
+      /** Returns a null (invalid) product ID */
+      inline const PsmrtsUID::UIDType &uid() const {
+        return ( PsmrtsUID::null_uid() );
+      }
+
+      inline const ProductConfiguration &config() const {
+        return ( m_config );
+      }
+
+      inline bool matches( const ProductConfiguration &conf ) const {
+        return ( false );
+      }
+      
       template <class PRQ>
         bool process( PRQ &request ) const {
           request.reset();
@@ -41,6 +66,8 @@ namespace psmrts {
 
     private:
       std::string m_name;
+      std::string m_type;
+      ProductConfiguration m_config;
   };
 
   /**
@@ -324,8 +351,28 @@ namespace psmrts {
       using PsmrtsRequest::error_count;
       using PsmrtsRequest::errors;
 
+
+      /** Rest the ray with no data */
+      inline PRQRayTrace &set_trace( ) {
+        this->reset();
+         m_sc_to_surface.reset( );
+         return ( *this );
+      }
+
+      /** Reset the tracer with new observer and lookdir */
+      inline PRQRayTrace &set_trace( const Eigen::Vector3d &observer, 
+                                 const Eigen::Vector3d &lookdir ) {
+        this->reset();
+         m_sc_to_surface.reset( observer, lookdir );
+         return ( *this );
+      }
+
+      inline bool hasHit() const {
+        return ( this->trace().hasHit() );
+      }
+
       inline bool isValid() const {
-        return ( m_sc_to_surface.hasHit() );
+        return ( this->hasHit() );
       }
 
       inline double incidence( const PsmrtsRayTrace &other ) const {
@@ -351,7 +398,6 @@ namespace psmrts {
     public:
       /** This scope may be changed if necessary */
      PsmrtsRayTrace m_sc_to_surface;
-     // PsmrtsShapeTracer *m_tracer;
 
   };
 
@@ -390,7 +436,7 @@ class PRQRayTraceArray : public PsmrtsRequest {
 
       inline void clear() {
         m_traces.clear();    // calls std::vector::clear()
-        reset();             // this resets tracker/timer
+        this->reset();             // this resets tracker/timer
       }
 
       inline const PRQRayTraceList &traces() const {
@@ -438,6 +484,22 @@ class PRQRayTraceArray : public PsmrtsRequest {
       using PsmrtsRequest::was_invoked;
       using PsmrtsRequest::error_count;
       using PsmrtsRequest::errors;
+
+      /** Rest the ray with no data */
+      inline PRQPhotometricTrace &set_trace( ) {
+         m_sc_to_surface.reset( );
+         m_sun_to_surface.reset();
+         return ( *this );
+      }
+
+      /** Reset the tracer with new observer and lookdir */
+      inline PRQPhotometricTrace &set_trace( const Eigen::Vector3d &observer, 
+                                             const Eigen::Vector3d &lookdir,
+                                             const Eigen::Vector3d &sunpos  ) {
+         m_sc_to_surface.set_trace( observer, lookdir );
+         m_sun_to_surface.set_trace (sunpos, null_vector() );
+         return ( *this );
+      }
 
       inline bool isValid() const {
         return ( m_sc_to_surface.isValid() && m_sun_to_surface.isValid() );
@@ -502,8 +564,6 @@ class PRQRayTraceArray : public PsmrtsRequest {
       /** This scope may be changed if necessary */
      PRQRayTrace m_sc_to_surface;
      PRQRayTrace m_sun_to_surface;
-     // PsmrtsShapeTracer *m_tracer;
-
   };
 
 class PRQPhotometricTraceArray : public PsmrtsRequest {
@@ -618,3 +678,5 @@ class PRQPhotometricTraceArray : public PsmrtsRequest {
 
 
 } // namespace psmrts
+
+#endif
