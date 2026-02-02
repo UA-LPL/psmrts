@@ -182,4 +182,15 @@ MSBuild psmrts.sln /p:Configuration=Release
 ctest -C Release
 ```
 
-Note that code coverage is not included in Windows support at this time. For any errors or complications of above, please reach out to the development team.
+Note that code coverage is not included in Windows support at this time. For any
+errors or complications of above, please reach out to the development team.
+
+## License
+The <a href="https://github.com/UA-LPL/psmrts">Planetary Shape Model and Ray Tracing
+System (PSMRTS) </a> by <a href="https://lpl.arizona.edu">University
+of Arizona Lunar and Planetary Laboratory</a> is marked <a
+href="https://creativecommons.org/publicdomain/zero/1.0/">CC0 1.0</a><img
+src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt=""
+style="max-width: 1em;max-height:1em;margin-left: .2em;"><img
+src="https://mirrors.creativecommons.org/presskit/icons/zero.svg" alt=""
+style="max-width: 1em;max-height:1em;margin-left: .2em;">
