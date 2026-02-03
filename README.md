@@ -93,7 +93,20 @@ When building with `vcpkg`, you can build outside a `conda` environment with tes
 4. cmake --install build --prefix install # Install in desired location
 ```
 
-Building `PSMRTS` tests with `vcpkg` requires additional packages and programs that are not directly available in `vcpkg` so they must come from somewhere else. You could use Homebrew or conda, however, Homebrew will install them in a system-wide location which may impact how `PSMRTS` builds using different build environments. Using conda to provide the additional packages needed to build documentation and code coverage installs them in an isolated environment to minimize impact on other build situations. `PSMRTS` provides a YAML file `./tools/build_addons.yml` that is intended to provide the necessary tools to create a `conda` environment containing the applications required to produce documentation and code coverage. To use `conda` for these requirements, you must first install Miniconda as described in the `conda` section, Once Miniconda is available, use the following instructions for a full `vcpkg` development experience:
+Building `PSMRTS` tests with `vcpkg` requires additional packages and programs
+that are not directly available in `vcpkg` so they must come from somewhere
+else. You could use Homebrew or conda, however, Homebrew will install them in a
+system-wide location which may impact how `PSMRTS` builds using different build
+environments. Using conda to provide the additional packages needed to build
+documentation and code coverage installs them in an isolated environment to
+minimize impact on other build situations. `PSMRTS` provides a YAML file
+`./tools/build_addons.yml` that is intended to provide the necessary tools to
+create a `conda` environment containing the applications required to produce
+documentation and code coverage. To use `conda` for these requirements, you must
+first install Miniconda as described in the `conda` section, Once Miniconda is
+available, use the following instructions for a full `vcpkg` development
+experience:
+
 ```
 1.  git clone https://github.com/UA-LPL/psmrts.git
 2.  cd psmrts
@@ -114,26 +127,6 @@ In some cases you may need to explicitly specify a `vcpkg` triplet. You may spec
 
 The C++ testing framework Catch2 is in `PSMRTS` for the C++ API. `PSMRTS` tests are organized by features in  `./tests` subdirectories. The `PSMRTS` C API is tested with the `cmocka` C testing framework. Each `./tests` directory configures its own testing environment including code coverage. Developers may use other testing frameworks by adding the package dependency in the `vcpkg.json` or `conda` YAML file and configure appropriately. Each `PSMRTS` feature should build its own test application and add it to the `ctest` system. See the cmake configuration the  [psmrts/core/tests](./psmrts/core/tests/CMakeLists.txt) directory for an example.
 
-
-**BEWARE** the [most vexing parse](https://www.fluentcpp.com/2018/01/30/most-vexing-parse/)! Spent a long time trying to figure out a compilation error when testing `PSMRTS` shapes and tracers. The following code looks quite legal, but generates compiler errors:
-```
-    std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
-    psmrts::BulletTracer b_tracer( psmrts::PsmrtsShape( objfile ) );
-```
-This code causes the following types of errors:
-```
-./psmrts/psmrts/tracers/bullet/tests/test_BulletTracer.cpp:130:34: warning: parentheses were disambiguated as a function declaration [-Wvexing-parse]
-    psmrts::BulletTracer b_tracer( psmrts::PsmrtsShape( objfile ) );
-                                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-./psmrts/psmrts/tracers/bullet/tests/test_BulletTracer.cpp:130:36: note: add a pair of parentheses to declare a variable
-    psmrts::BulletTracer b_tracer( psmrts::PsmrtsShape( objfile ) );
-                                   ^
-```
-This is because the compiler interprets line 130 as a **function declaration!** To fix this, declare these types of instantiations with squigly brackets as thusly:
-```
-    psmrts::BulletTracer b_tracer( psmrts::PsmrtsShape{ objfile } );
-```
-
 ### Creating PSMRTS Documentation
 
 `PSMRTS` documentation system is based upon the [Doxygen](https://www.doxygen.nl) generator. The `docs` directory contains the Doxygen file that contains the configuration to create the `PSMRTS` documentation. The CMAKE target `doxy_docs` creates the HTML documentation in the `docs/html` directory. The `conda` configuration provides the necessary tools to create the documentation but other means can provide the required apps, namely `doxygen`, `graphviz`, `gcovr` and `lcov`. 
@@ -141,7 +134,6 @@ This is because the compiler interprets line 130 as a **function declaration!** 
 The following commands can be used to create the necessary `conda` environment and build the documentation (and code coverage):
 
 ```
-
 1.  git clone https://github.com/UA-LPL/psmrts.git
 2.  cd psmrts
 3.  conda env create -n psmrts_docs_cov -f psmrts_conda_deps_all.yml
@@ -186,4 +178,4 @@ Note that code coverage is not included in Windows support at this time. For any
 errors or complications of above, please reach out to the development team.
 
 ## License
-<a href="https://github.com/UA-LPL/psmrts">Planetary Shape Model and Ray Tracing System</a> by <a href="https://lpl.arizona.edu">University of Arizona</a> is marked <a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0 1.0</a><img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: .5em;max-height:.5em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/zero.svg" alt="" style="max-width: .5em;max-height:.5em;margin-left: .2em;">
+<a href="https://github.com/UA-LPL/psmrts">Planetary Shape Model and Ray Tracing System</a> by <a href="https://lpl.arizona.edu">University of Arizona</a> is marked <a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0 1.0</a>
