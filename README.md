@@ -5,7 +5,7 @@
 ### `./psmrts/README.md`
 
 ## PSMRTS Overview
-The `PSMRTS` library is a result of experience gained during the NASA OSIRIS-REX (OREX) mission to map asteriod 101955 Bennu with the objective to descend to the surface and collect a sample of the surface regolith. We used the United States Geological Survey's (USGS) _Integrated Software for Imagers and Spectrometers_ (`ISIS3`) system for most all its primary mapping activities. The public released version of `ISIS3` had some basic irregular, small body mapping support, but lacked critical features needed to map asteroids at high resolution and precision. The Univerity of Arizona (UA) OREX imaging team used the public `ISIS3` system to develop new capabilites that addressed those needs. Specifically, UA-OREX added support for additional shape model formats and ray tracing abilities to use one to many high precision shape models - more than 3 million vectors each - for orthorectification mapping and other geometric calculations and processes. `PSMRTS` is a library abstraction of these capabilities that will be provided to the scientific community as well as integrated back into a formal public `ISIS` release for general use and application.
+The `PSMRTS` library is a result of experience gained during the NASA OSIRIS-REx (OREx) mission to map asteriod 101955 Bennu with the objective to descend to the surface and collect a sample of the surface regolith. We used the United States Geological Survey's (USGS) _Integrated Software for Imagers and Spectrometers_ (`ISIS3`) system for most all its primary mapping activities. The public released version of `ISIS3` had some basic irregular, small body mapping support, but lacked critical features needed to map asteroids at high resolution and precision. The Univerity of Arizona (UA) OREx imaging team used the public `ISIS3` system to develop new capabilites that addressed those needs. Specifically, UA-OREx added support for additional shape model formats and ray tracing abilities to use one to many high precision shape models - more than 3 million vectors each - for orthorectification mapping and other geometric calculations and processes. `PSMRTS` is a library abstraction of these capabilities that will be provided to the scientific community as well as integrated back into a formal public `ISIS` release for general use and application.
 
 The `PSMRTS` system relies on some popular third party libraries that read a variety of shape model file formats (e.g., OBJ, PLY and NAIF DSK) and provide high performing ray tracing capabilities on facet-based shapes, such as the [Bullet Physics SDK](https://github.com/bulletphysics) and [NAIF](https://naif.jpl.nasa.gov/naif/index.html) [Digitial Shape Kernel](https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/Tutorials/pdf/individual_docs/37_dsk.pdf) (DSK) systems. `PSMRTS` is designed to support integration of other subsystems that read/process shape models and perform ray tracing on these shapes. Other dependencies include Eigen and nlohmann's JSON libraries. Some obscure libraries, primarily OBJ (tinyobjreader) and PLY (miniply) readers, are included in PSMRTS directly to primarily address that lack of availability or specific configurations of these packages in other C++ package managers.
 
@@ -14,7 +14,7 @@ The `PSMRTS` system was initially developed using the [vcpkg](https://vcpkg.io/e
 
 **The primary difference between using `vcpkg` or `conda` as package managers is that, by default, `vcpkg` provides static libraries built from source on your platform for its package dependencies, whereas `conda` provides shared libraries in pre-built binary form in all its package dependencies. Based upon your particular needs, one of the package managers may better satisfy your requirements than the other.** `PSMRTS` provides direct support for both package managers, however, there are some annoying differences and inconsistencies in how `PSMRTS` dependency packages are provided by these package managers. Other package managers such as [Homebrew](https://brew.sh), [Conan](https://conan.io), etc.., may also provide these packages, but we chose to support `vcpkg` and `conda` to meet certain project needs.
 
-Much of the develop of `PSMRTS` has been done on the Mac Arm and Intel platforms. We also support Linux systems, which has primarily been tested on the Ubuntu version 24 OS. We have made best efforts given resources to support the Windows platform, and we welcome contributions to improve performance on this platform.
+Much of the development of `PSMRTS` has been done on the Mac Arm and Intel platforms. We also support Linux systems, which has primarily been tested on the Ubuntu version 24 OS. We have made best efforts given resources to support the Windows platform, and we welcome contributions to improve performance on this platform.
 
 `PSMRTS` can be obtained from the UA-LPL `PSMRTS` repository.
 ```
@@ -93,7 +93,20 @@ When building with `vcpkg`, you can build outside a `conda` environment with tes
 4. cmake --install build --prefix install # Install in desired location
 ```
 
-Building `PSMRTS` tests with `vcpkg` requires additional packages and programs that are not directly available in `vcpkg` so they must come from somewhere else. You could use Homebrew or conda, however, Homebrew will install them in a system-wide location which may impact how `PSMRTS` builds using different build environments. Using conda to provide the additional packages needed to build documentation and code coverage installs them in an isolated environment to minimize impact on other build situations. `PSMRTS` provides a YAML file `./tools/build_addons.yml` that is intended to provide the necessary tools to create a `conda` environment containing the applications required to produce documentation and code coverage. To use `conda` for these requirements, you must first install Miniconda as described in the `conda` section, Once Miniconda is available, use the following instructions for a full `vcpkg` development experience:
+Building `PSMRTS` tests with `vcpkg` requires additional packages and programs
+that are not directly available in `vcpkg` so they must come from somewhere
+else. You could use Homebrew or conda, however, Homebrew will install them in a
+system-wide location which may impact how `PSMRTS` builds using different build
+environments. Using conda to provide the additional packages needed to build
+documentation and code coverage installs them in an isolated environment to
+minimize impact on other build situations. `PSMRTS` provides a YAML file
+`./tools/build_addons.yml` that is intended to provide the necessary tools to
+create a `conda` environment containing the applications required to produce
+documentation and code coverage. To use `conda` for these requirements, you must
+first install Miniconda as described in the `conda` section, Once Miniconda is
+available, use the following instructions for a full `vcpkg` development
+experience:
+
 ```
 1.  git clone https://github.com/UA-LPL/psmrts.git
 2.  cd psmrts
@@ -114,26 +127,6 @@ In some cases you may need to explicitly specify a `vcpkg` triplet. You may spec
 
 The C++ testing framework Catch2 is in `PSMRTS` for the C++ API. `PSMRTS` tests are organized by features in  `./tests` subdirectories. The `PSMRTS` C API is tested with the `cmocka` C testing framework. Each `./tests` directory configures its own testing environment including code coverage. Developers may use other testing frameworks by adding the package dependency in the `vcpkg.json` or `conda` YAML file and configure appropriately. Each `PSMRTS` feature should build its own test application and add it to the `ctest` system. See the cmake configuration the  [psmrts/core/tests](./psmrts/core/tests/CMakeLists.txt) directory for an example.
 
-
-**BEWARE** the [most vexing parse](https://www.fluentcpp.com/2018/01/30/most-vexing-parse/)! Spent a long time trying to figure out a compilation error when testing `PSMRTS` shapes and tracers. The following code looks quite legal, but generates compiler errors:
-```
-    std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
-    psmrts::BulletTracer b_tracer( psmrts::PsmrtsShape( objfile ) );
-```
-This code causes the following types of errors:
-```
-./psmrts/psmrts/tracers/bullet/tests/test_BulletTracer.cpp:130:34: warning: parentheses were disambiguated as a function declaration [-Wvexing-parse]
-    psmrts::BulletTracer b_tracer( psmrts::PsmrtsShape( objfile ) );
-                                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-./psmrts/psmrts/tracers/bullet/tests/test_BulletTracer.cpp:130:36: note: add a pair of parentheses to declare a variable
-    psmrts::BulletTracer b_tracer( psmrts::PsmrtsShape( objfile ) );
-                                   ^
-```
-This is because the compiler interprets line 130 as a **function declaration!** To fix this, declare these types of instantiations with squigly brackets as thusly:
-```
-    psmrts::BulletTracer b_tracer( psmrts::PsmrtsShape{ objfile } );
-```
-
 ### Creating PSMRTS Documentation
 
 `PSMRTS` documentation system is based upon the [Doxygen](https://www.doxygen.nl) generator. The `docs` directory contains the Doxygen file that contains the configuration to create the `PSMRTS` documentation. The CMAKE target `doxy_docs` creates the HTML documentation in the `docs/html` directory. The `conda` configuration provides the necessary tools to create the documentation but other means can provide the required apps, namely `doxygen`, `graphviz`, `gcovr` and `lcov`. 
@@ -141,7 +134,6 @@ This is because the compiler interprets line 130 as a **function declaration!** 
 The following commands can be used to create the necessary `conda` environment and build the documentation (and code coverage):
 
 ```
-
 1.  git clone https://github.com/UA-LPL/psmrts.git
 2.  cd psmrts
 3.  conda env create -n psmrts_docs_cov -f psmrts_conda_deps_all.yml
@@ -182,4 +174,8 @@ MSBuild psmrts.sln /p:Configuration=Release
 ctest -C Release
 ```
 
-Note that code coverage is not included in Windows support at this time. For any errors or complications of above, please reach out to the development team.
+Note that code coverage is not included in Windows support at this time. For any
+errors or complications of above, please reach out to the development team.
+
+## License
+<a href="https://github.com/UA-LPL/psmrts">Planetary Shape Model and Ray Tracing System</a> by <a href="https://lpl.arizona.edu">University of Arizona</a> is marked <a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0 1.0</a>

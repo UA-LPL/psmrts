@@ -35,6 +35,107 @@ release.
 ## TODO
 - See [TODO](TODO.md)
 
+## [0.4.1] 2026-02-03
+- Add PSMRTS licensing to repo
+- Add CC0-1.0 LICENSE file
+- Add AUTHORS file
+- Modified CONTRIBUTORS.md file
+- Update README.md with license information and some edits
+- Add copyright/license content to all PSMRTS source files
+- Updated version to [0.4.1]
+- Updated CHANGELOG.md with previous *and* current version changes
+- Update TODO.
+
+## [0.4.0] 2026-01-22
+
+### Fixed/updated ...
+- documentation, versioning, typos, formatting
+- code coverage, build scripts, CMAKE
+- separated public/private code
+- export/import of PSMRTS targets & build environments
+- privatized PLY reader sources, Ellipsoid Tracer, updated tests & cmakes
+- Bullet library, target, tests
+- JSON code
+- null_uid() method
+- PsmrtsUID usage
+- bug in ProductOption to return number of elements instead of string size
+- PsmrtsCache tests
+- vcpkg.json (removed obsolete library & link requirements)
+- ISIS cspice
+- set library target names of CSPICE for direct use
+- shared library linkage & formatting
+- MacOS shared library runtime paths
+- export targets to support install devs
+- Powershell script update to CMake changes
+- return null UID
+- tests for UID ray tracer identifier
+- case sensitivity maps for strings
+- find_file call with proper parameters
+- cspice target include directories
+- mesh extraction in PsmrtShape to return const reference
+- Reduce & track sizes of shapes/tracers
+- link errors in Linux systems by converting Bullet tracer to object files
+- consistent use of const auto references
+- OptionStrings
+- specs/configs on NAIF DSK tracer/ellipsoid
+- refactor options visitor extractor/comparitors
+- C API update: autogenerate export header via CMAKE
+- shapes/tracers & their product configurations
+- renamed visit method get_to() to visitor()
+- significant system refactor/update
+- bugs in Options classes
+- loop counters
+
+### Removed ...
+- non-const iterators and test
+- spdlog dependency
+- vcpkg catch.hpp include
+- PsmrtsProduct
+- unused key mappers
+- references to old visitor functors
+- OptionDoubles, OptionStrings
+- type visitors from ProductOption.hpp (favoring new Options classes)
+- PsmrtsProduct from PsmrtsTracer
+
+### Added ...
+- catch2_all.hpp
+- vcpkg, conda package manager options
+- PSMRTS_POINTERS define
+- support for conda & vcpk builds, shared libs
+- conda YAML conda environment files
+- support for vcpkg triplets
+- SPICE include files
+- M_PI/M_PI_2 definitions for Windows
+- Linux RPATH config
+- Added MSVC-sensitive data conversions/warnings to double/int visitors in ProductOption.hpp
+- PSMRTS helloworld example
+- named/invalid tracer object
+- tracer lookup & documentation
+- non-const iterator based search method
+- method that returns ref to config
+- MeshShape with ability to add a generic mesh shape provided by the user; plus config and test.
+- null_vector() for consistency
+- generic vector container
+- support for case insensitive keys in ProductInventory
+- conversion utilities for string products
+- OptionDoubles, OptionBools, OptionInts classes & conversions
+- two PsmrtsContainer tests
+- BoolsVisitor, IntegersVisitor, SizetsVisitors & tests
+- tinyonbjloader & miniply sources
+- ability to create shared or static libraries
+- priority ordering technique to priority tracer
+- ProductOption const methods
+- set_trace() convenience methods supporting reuse of existing PRQ objects
+- threading support: mutex thread locking for PSRMTS factory, Improved factory threading/interactions, Improved cache threading in constructors
+- complete installation of PSMRTS & PSMRTS C applications
+- make cache key unique from UIDType to reduce confusion
+- Defined case-key inventory & update tests
+- Algorithms basic tests
+- changes/prep to DskShape & BulletTracer for ProductConfig implementation
+- new compare() method
+- additional constructor in ConversionTraits.hpp
+- tracer ID to PsmrtsRayTrace & PsmrtsShape
+
 ## [0.3.7] 2025-11-04
 - Additions/updates to product configurations and tracking of products.
 - Update tracers to use private implementation, add construction options, tracking/meta data reporting and tests.

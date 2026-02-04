@@ -1,0 +1,16 @@
+The Planetary Shape Model and Ray Tracing System (PSMRTS) was orginally
+developed by the the OSIRIS-APEX team. This work was inspired by mission support
+activities that transpired during OSIRIS-REx proximity operations in support of
+global and regional high-precision cartograhic operations prior to, during and
+after sample acquisiton from the surface of asteroid 101955 Bennu. Some of the
+concepts herein were orginally developed in a version of the Integrated Software
+for Imagers and Spectrometers (ISIS) derived from a public release of ISIS and
+maintained by the OSIRIS-REx mission team at the University of Arizona.
+
+PSMRTS was funded by the OSIRIS-APEX project with intent to be reincorporated
+back into ISIS for public release in preparation for proximity operations of
+asteroid 99942 Apophis.
+
+- Kris J. Becker (University of Arizona)
+- Kyle A. Becker (University of Arizona)
+- Kenneth L. Edmundson (University of Arizona)
