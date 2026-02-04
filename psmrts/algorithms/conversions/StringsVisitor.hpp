@@ -192,6 +192,10 @@ namespace psmrts::algorithms::conversions {
               value = to_string( j_data );
             }
           }
+          else {
+            value = default_value();
+          }
+          m_datum.push_back( value );       
         };
 
         /** This lambda processes a JSON array at the index */
@@ -205,12 +209,15 @@ namespace psmrts::algorithms::conversions {
               value = to_string( j_data.at(index) );
             }
           }
+          else {
+            value = default_value();
+          }
+          m_datum.push_back( value );                 
         }; 
 
         // Preliminary processing of the JSON structure to determine its nature
         size_t level = 0;
         try { 
-
           // Now check if we actually have primitives or arrays
           if ( j_data.is_primitive() ) {
             parameters().extractor( 1, process_scalar );        
@@ -222,10 +229,8 @@ namespace psmrts::algorithms::conversions {
         catch ( json::exception & j ) {
           // All errors just result in default value
           value = default_value();
+          m_datum.push_back( value );        
         }
-
-        // It is what it is...
-        m_datum.push_back( value );        
       }
 
       inline const Type &default_value() const {

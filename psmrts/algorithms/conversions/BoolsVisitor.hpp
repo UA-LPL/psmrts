@@ -179,6 +179,10 @@ namespace psmrts::algorithms::conversions {
                 value = string_to_bool( temp_s, m_default );
               }
             }
+            else {
+              value = default_value();
+            }
+            m_datum.push_back( value );                 
           };
           /** This lambda processes a JSON array at the index */
           auto process_array = [&]( const bool addit, const size_t index ) {
@@ -196,6 +200,10 @@ namespace psmrts::algorithms::conversions {
                 value = string_to_bool( temp_s, m_default );
               }
             }
+            else {
+              value = default_value();
+            }
+            m_datum.push_back( value );                 
           }; 
 
           // Preliminary processing of the JSON structure to determine its nature
@@ -212,10 +220,8 @@ namespace psmrts::algorithms::conversions {
           catch ( json::exception & j ) {
             // All errors just result in default value
             value = default_value();
+            m_datum.push_back( value );
           }
-
-          // It is what it is...
-          m_datum.push_back( value );
         }
 
         inline const Type &default_value() const {
