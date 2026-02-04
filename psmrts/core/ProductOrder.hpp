@@ -35,7 +35,7 @@ namespace psmrts {
       ProductOrder( ) : PsmrtsRequest( "ProductOrder" ),
                         m_config( "ProductOrder" ),
                         m_residual( "ProductOrder" ) { }
-      ProductOrder( const std::string &name  ) : 
+      ProductOrder( const std::string &name ) : 
                     PsmrtsRequest( name ),
                     m_config( name ),
                     m_residual( name ) { }

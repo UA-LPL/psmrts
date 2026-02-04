@@ -103,15 +103,9 @@ namespace psmrts {
         return ( std::visit(visitor, m_product ) ); 
       }        
 
-      inline bool matches( const ProductConfiguration &conf ) const {
-        const auto visitor = overload{            
-                  [&conf]( auto &&tracer ) -> bool {
-                       return ( tracer.matches( conf ) ); 
-                  }
-        };
-        return ( std::visit(visitor, m_product ) );        
+       inline bool matches( const ProductConfiguration &conf ) const {
+        return ( this->config().matches( conf ) );
       }
-      
       
       inline double minimum_radius() const {
         return this->get_mesh().minimum_radius();
