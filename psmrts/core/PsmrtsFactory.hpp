@@ -25,6 +25,7 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/ProductInventory.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
 #include <psmrts/core/PsmrtsInventory.hpp>
+#include <psmrts/core/PsmrtsTranslations.hpp>
 #include <psmrts/core/PRQProduct.hpp>
 
 namespace psmrts {
@@ -147,7 +148,6 @@ namespace psmrts {
     public:
       inline static const std::string psmrts_inventory{ "psmrts" };
       using UIDType         = PsmrtsUID::UIDType;
-      using EnvInventory    = PsmrtsInventory::EnvInventory;
 
       PsmrtsFactory( )  {  }
       virtual ~PsmrtsFactory() { }
@@ -291,9 +291,9 @@ namespace psmrts {
         return ( this->merge( inventory, cache_name ) );
       }
 
-      /** Get the current state of the environment variable system */
-      static inline EnvInventory getenv( const std::string &name = "env" ) {
-        return ( PsmrtsInventory::getenv( name) );
+      /** Get the current state of the parameter/environment variable system */
+      static inline PsmrtsTranslations getenv( ) {
+        return ( PsmrtsTranslations::create() );
       }
 
       

@@ -24,8 +24,11 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/ProductOption.hpp>
+#include <psmrts/core/ProductConfiguration.hpp>
+#include <psmrts/core/ProductSpecification.hpp>
 
 #include <psmrts/core/ProductProcessDispatch.hpp>
+#include <psmrts/core/ProductVoidVariant.hpp>
 #include <psmrts/shapes/dsk/DskShape.hpp>
 #include <psmrts/shapes/obj/ObjShape.hpp>
 #include <psmrts/shapes/ply/PlyShape.hpp>
@@ -34,7 +37,7 @@ find files of those names at the top level of this repository. **/
 
 namespace psmrts {
 
-  class PsmrtsShape : public ProductProcessDispatch< MissingProcessRequestHandler, 
+  class PsmrtsShape : public ProductProcessDispatch< ProductVoidVariant, 
                                                      DskShape, 
                                                      ObjShape, 
                                                      PlyShape,
@@ -65,7 +68,7 @@ namespace psmrts {
       virtual ~PsmrtsShape() { }
 
       inline bool isValid() const {
-        return ( !std::holds_alternative<MissingProcessRequestHandler>( m_product ) );
+        return ( !std::holds_alternative<ProductVoidVariant>( m_product ) );
       }
 
       inline const PsmrtsMeshData &get_mesh() const {
@@ -79,6 +82,16 @@ namespace psmrts {
         };
         return std::visit(visitor, m_product);
       }
+
+      inline ProductSpecification specs() const {
+        const auto visitor = overload{            
+                  [](auto &&shape ) -> ProductSpecification {
+                       return ( shape.product_specifications() ); 
+                  }
+        };
+       
+        return ( std::visit(visitor, m_product ) ); 
+      } 
 
       inline const ProductConfiguration &config() const {
         const auto visitor = overload{            

@@ -13,6 +13,7 @@ find files of those names at the top level of this repository. **/
 /** @file psmrts_c.cpp */
 
 #include <string>
+#include <deque>
 #include <Eigen/Geometry>
 
 #include <psmrts/core/psmrts_version.h>
@@ -30,6 +31,8 @@ find files of those names at the top level of this repository. **/
 /*============ PSMRTS C API type definitions ============*/
 /* Must be defined before including psmrts_c.h */
 #define PSMRTS_POINTERS 1
+using PSMRTS_String                = std::string;
+using PSMRTS_StringArray           = std::deque<PSMRTS_String>;
 using PSMRTS_RayTrace              = psmrts::PRQRayTrace;
 using PSMRTS_Shape                 = psmrts::PsmrtsShape;
 using PSMRTS_Tracer                = psmrts::PsmrtsTracer;

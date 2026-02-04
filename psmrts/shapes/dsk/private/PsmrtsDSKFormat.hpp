@@ -16,7 +16,6 @@ find files of those names at the top level of this repository. **/
 #include <string>
 
 #include <Eigen/Geometry>
-#include <nlohmann/json.hpp>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsBufferData.hpp>
@@ -37,7 +36,8 @@ namespace psmrts {
      */
 
     class PsmrtsDSKFormat {
-        public:
+      public:
+        using DskSegmentConfigList = std::vector<ProductConfiguration>;
 
         /** Default Constructor */
         PsmrtsDSKFormat() {}
@@ -112,23 +112,13 @@ namespace psmrts {
         }
         
         /** Returns Psmrts Mesh of DSK Index / Vector data */
-        inline PsmrtsMeshData get_mesh( const bool make_it_a_double = false ) const {
-            if ( true == make_it_a_double ) {
-                if ( !m_mesh.isVectorDouble() ) {
-                    return ( PsmrtsMeshData( this->get_indexes(), this->get_double_vectors() ) );
-                }
-            }
-            return (m_mesh);
+        inline PsmrtsMeshData get_mesh( ) const {
+          return (m_mesh);
         }
 
         /** Get a double precision vector array */
         inline PsmrtsVector3d get_double_vectors() const {
-            PsmrtsVector3d v_vectors = m_mesh.vectors().double_vectors();
-            if (m_mesh.vectors().isFloat()) {
-                v_vectors = vector_to_type<PsmrtsVector3d::value_type>(m_mesh.vectors().float_vectors() );
-            }
-
-            return ( v_vectors );
+          return ( m_mesh.vectors().double_vectors() );
         }
 
         /** Get a float precision vector array */
@@ -147,72 +137,51 @@ namespace psmrts {
         }
 
         inline void parse_config( naif::DskKernelModel &model ) {
-            nlohmann::ordered_json j_result = nlohmann::ordered_json::object();
-            j_result["header"]["file"] = m_dsk_source;
             int seg_num = model.n_dsk_segments();
-            j_result["header"]["nSegments"] = seg_num;
             m_segments = seg_num;
             if ( seg_num > 0 ) {
                 m_type = model.segment(0).dtype();
             }
             
-
-            nlohmann::ordered_json j_segments = nlohmann::ordered_json::array();
-            // JSON: [Segment(s)]. (Get list of Segments - DskSegmentList &segments)
-            for (int i=0; i < seg_num; i++ ) {
-                const naif::DskSegment seg = model.segment(i);
-
-                nlohmann::ordered_json j_segment;
-                j_segment["number"]   = seg.segment_number();
-                j_segment["id"]       = seg.id();
-                j_segment["vertices"] = seg.n_vertices();
-                j_segment["plates"]   = seg.n_plates();
-                j_segment["bodyId"]   = seg.bodyid();
-                j_segment["frameId"]  = seg.frameid();
-                j_segment["dtype"]    = seg.dtype();
-                j_segment["dclass"]   = seg.dclass();
-
-                j_segments.push_back(j_segment);
+            m_config.clear();
+            for (int i = 0; i < seg_num; i++ ) {
+                m_config.push_back( get_segment_metadata( model.segment(i) ) );
             } 
-            j_result["segments"] = j_segments;
-            m_config = j_result;
             return;
         }
 
         inline ProductConfiguration get_segment_metadata( const naif::DskSegment &segment ) {
-          // in the get_metadata:
-          // file 
-          // dataype - double
-          // Create vector variables for each segment, loop.
+          // Create config for each segment, loop.
           ProductConfiguration meta( "dsk" );
-          meta.add( ProductOption( "file", this->dsk_source() ) );
+          meta.add( ProductOption( "dsk_file", this->dsk_source() ) );
           meta.add( ProductOption( "data_type", "double" ) );
-          meta.add( ProductOption( "dsk_segment_number", segment.segment_number() ) );
-          meta.add( ProductOption( "dsk_surface_id", segment.id() ) );
-          meta.add( ProductOption( "n_vertices", segment.n_vertices() ) );
-          meta.add( ProductOption( "n_facets", segment.n_plates() ) );
-          meta.add( ProductOption( "dsk_reference_id", segment.bodyid() ) );
-          meta.add( ProductOption( "dsk_body_id", segment.bodyid() ) );
-          meta.add( ProductOption( "dsk_surface_id", segment.surfaceid() ) );
-          meta.add( ProductOption( "dsk_frame_id", segment.frameid() ) );
-          meta.add( ProductOption( "dsk_type", segment.dtype() ) );
-          meta.add( ProductOption( "dsk_class", segment.dclass() ) );
-          meta.add( ProductOption( "minimum_radius", segment.minimum_radius() ) );
-          meta.add( ProductOption( "maximum_radius", segment.maximum_radius() ) );
+          meta.add_metadata( ProductOption( "dsk_segments", this->nSegments() ) );
+          meta.add_metadata( ProductOption( "dsk_segment_number", segment.segment_number() ) );
+          meta.add_metadata( ProductOption( "dsk_surface_id", segment.id() ) );
+          meta.add_metadata( ProductOption( "n_vertices", segment.n_vertices() ) );
+          meta.add_metadata( ProductOption( "n_facets", segment.n_plates() ) );
+          meta.add_metadata( ProductOption( "dsk_reference_id", segment.bodyid() ) );
+          meta.add_metadata( ProductOption( "dsk_body_id", segment.bodyid() ) );
+          meta.add_metadata( ProductOption( "dsk_surface_id", segment.surfaceid() ) );
+          meta.add_metadata( ProductOption( "dsk_frame_id", segment.frameid() ) );
+          meta.add_metadata( ProductOption( "dsk_type", segment.dtype() ) );
+          meta.add_metadata( ProductOption( "dsk_class", segment.dclass() ) );
+          meta.add_metadata( ProductOption( "minimum_radius", segment.minimum_radius() ) );
+          meta.add_metadata( ProductOption( "maximum_radius", segment.maximum_radius() ) );
 
           return ( meta );
         }
 
-        inline const ordered_json &config() const {
-            return m_config;
+        inline const DskSegmentConfigList &config() const {
+          return ( m_config );
         }
 
         private:
-            std::string           m_dsk_source;
-            int                   m_segments;
-            std::string           m_type;
-            PsmrtsMeshData        m_mesh;
-            ordered_json          m_config;
+          std::string           m_dsk_source;
+          int                   m_segments;
+          std::string           m_type;
+          PsmrtsMeshData        m_mesh;
+          DskSegmentConfigList  m_config;
     };
 } // namespace psmrts
 

@@ -24,6 +24,7 @@ add_executable( psmrts_test_suite psmrts_catch2_main.cpp
                                   test_PsmrtsRequest.cpp
                                   test_PsmrtsStridingBuffer.cpp
                                   test_PsmrtsTracerModel.cpp
+                                  test_PsmrtsTranslations.cpp
                                   test_PsmrtsUtilities.cpp
                                   test_PsmrtsVector3.cpp )
 

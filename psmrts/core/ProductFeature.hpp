@@ -26,6 +26,7 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsContainer.hpp>
 #include <psmrts/core/ProductOption.hpp>
+#include <psmrts/core/AllOptionConversions.hpp>
 
 namespace psmrts { 
 
@@ -155,6 +156,12 @@ namespace psmrts {
       inline bool contains( const std::string &key ) const {
         return ( m_options.contains( key ) );
       }
+      
+      /** Returns feature option */
+      inline FeatureOption find( const std::string &key ) const {
+        return ( m_options.find( key ) );
+      }
+
 
       template <class T>
         inline T value( const std::string &key, const T &v_default = T{} ) const {
@@ -207,22 +214,34 @@ namespace psmrts {
 
       inline std::vector<std::string> aliases() const {
         std::vector<std::string> p_alias{};
-        return ( this->value( "aliases", p_alias ) );
+        if ( this->contains( "aliases" ) ) {
+          p_alias = OptionStringsExtractor( m_options.find( "aliases" ) ).get_all();
+        }
+        return ( p_alias );
       }
 
       inline std::vector<std::string> exclusions( ) const {
         std::vector<std::string> conflicts_with{};
-        return ( this->value( "exclusions", conflicts_with ) );
+        if ( this->contains( "exclusions" ) ) {
+          conflicts_with = OptionStringsExtractor( m_options.find( "exclusions" ) ).get_all();
+        }        
+        return ( conflicts_with );
       }        
       
       inline std::vector<std::string> inclusions( ) const {
         std::vector<std::string> required_for{};
-        return ( this->value( "inclusions", required_for ) );
+        if ( this->contains( "inclusions" ) ) {
+          required_for = OptionStringsExtractor( m_options.find( "inclusions" ) ).get_all();
+        }         
+        return (  required_for );
       }     
 
       inline std::vector<std::string> file_suffixes() const {
         std::vector<std::string> p_suffixes{};
-        return ( this->value( "file_suffixes", p_suffixes ) );
+        if ( this->contains( "file_suffixes" ) ) {
+          p_suffixes = OptionStringsExtractor( m_options.find( "file_suffixes" ) ).get_all();
+        }        
+        return ( p_suffixes );
       }   
 
       /** Return the JSON structure */
@@ -315,6 +334,15 @@ namespace psmrts {
 
       inline const FeatureList &features() const {
         return ( m_options.data() );
+      }
+
+      /** Confirm the filename has the appropriate suffix for this feature */
+      inline bool validate_file_suffix( const std::string &filename ) const {
+        std::string suffix_f = psmrts_file_extension( filename );
+        for ( const std::string &sfx : this->file_suffixes() ) {
+          if ( sfx == suffix_f ) return ( true );
+        }
+        return ( false );
       }
 
 

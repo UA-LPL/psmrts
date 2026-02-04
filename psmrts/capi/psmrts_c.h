@@ -41,6 +41,8 @@ extern "C" {
 
 /*============ Type definitions ============*/
 enum PSMRTSTypes {
+  PSMRTS_STRING,
+  PSMRTS_STRINGARRAY,
   PSMRTS_RAYTRACE,
   PSMRTS_SHAPE,
   PSMRTS_TRACER,
@@ -99,6 +101,8 @@ typedef struct psmrts_facet {
 /*============ PSMRTS C API type definitions ============*/
 #if !defined( PSMRTS_POINTERS )
 #define PSMRTS_POINTERS 1
+typedef struct psmrts_string                   PSMRTS_String;
+typedef struct psmrts_string_array             PSMRTS_StringArray;
 typedef struct psmrts_raytrace                 PSMRTS_RayTrace;
 typedef struct psmrts_shape                    PSMRTS_Shape;
 typedef struct psmrts_tracer                   PSMRTS_Tracer;

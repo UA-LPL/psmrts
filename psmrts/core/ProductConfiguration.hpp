@@ -20,6 +20,7 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsContainer.hpp>
 #include <psmrts/core/ProductOption.hpp>
+#include <psmrts/core/AllOptionConversions.hpp>
 
 namespace psmrts { 
 
@@ -71,6 +72,10 @@ namespace psmrts {
 
       inline const std::string &name() const {
         return ( m_identifier );
+      }
+
+      inline size_t isvalid() const {
+        return ( m_options.size()  > 0 );
       }
 
       inline size_t size() const {
@@ -135,7 +140,9 @@ namespace psmrts {
 
       inline ordered_json to_json( ) const {
         ordered_json j_opts = this->to_json( this->options() );
-        j_opts["metadata"].update( to_json( this->metadata() ) );
+        if ( this->metadata().size() > 0 ) {
+          j_opts["metadata"].update( to_json( this->metadata() ) );
+        }
         return ( j_opts );
       }
 
@@ -192,19 +199,19 @@ namespace psmrts {
                            const bool throw_errors = false ) const {
         std::string errors_t;
         std::string newline("");
+
         for ( const auto &opt_t : this->options() ) {
-          try {
-            if ( !( opt_t == config.find( opt_t.name() ) ) ) {
-              std::string mess = newline + "Option " + opt_t.name() + " does not match!";
+          if ( !config.contains( opt_t.name() ) ) {
+            std::string mess = newline + "Option " + opt_t.name() + " does not match!";
+            errors_t += mess;
+            newline = "\n";
+          }
+          else {
+            if ( !OptionStringsComparator::compare( opt_t, config.find( opt_t.name() ) ) ) {
+              std::string mess = newline + "Option values in " + opt_t.name() + " do not match!";
               errors_t += mess;
               newline = "\n";
             }
-          }
-          catch ( const std::runtime_error &e ) {
-            // Doesn't exist
-            std::string mess = newline + "*** RuntimeError: " + opt_t.name() + " - " + e.what();            
-            errors_t += mess;
-            newline = "\n";
           }
         }
 
@@ -220,7 +227,7 @@ namespace psmrts {
       }
 
       inline bool matches( const ProductConfiguration &conf ) const {
-        return ( this->compare( conf ) );
+        return ( this->compare( conf ) && conf.compare( *this) );
       }
 
     private:

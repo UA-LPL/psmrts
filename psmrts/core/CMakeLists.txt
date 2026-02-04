@@ -3,6 +3,7 @@ target_sources( psmrts PUBLIC
                          FILE_SET psmrts_headers 
                            TYPE HEADERS 
                            FILES  AllOptionConversions.hpp
+                                  ProductVoidVariant.hpp
                                   ProductConfiguration.hpp
                                   ProductFeature.hpp
                                   ProductInventory.hpp
@@ -22,6 +23,7 @@ target_sources( psmrts PUBLIC
                                   PsmrtsRayTrace.hpp
                                   PsmrtsRequest.hpp
                                   PsmrtsStridingBuffer.hpp
+                                  PsmrtsTranslations.hpp
                                   PsmrtsUtilities.hpp
                                   PsmrtsVector3.hpp
                                   psmrts_version.h

@@ -23,11 +23,15 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsCache.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
-#include <psmrts/core/ProductProcessDispatch.hpp>
+#include <psmrts/core/PsmrtsTranslations.hpp>
 #include <psmrts/shapes/PsmrtsShape.hpp>
+
+#include <psmrts/core/ProductProcessDispatch.hpp>
+#include <psmrts/core/ProductVoidVariant.hpp>
 #include <psmrts/tracers/bullet/BulletTracer.hpp>
 #include <psmrts/tracers/ellipsoid/EllipsoidTracer.hpp>
 #include <psmrts/tracers/naifdsk/NaifDskTracer.hpp>
+#include <psmrts/core/ProductOrder.hpp>
 
 namespace psmrts {
 
@@ -66,7 +70,7 @@ namespace psmrts {
    * 
    * See PsmrtsRequest.hpp and ProductProcessDispatch.hpp for details.
    */
-  class PsmrtsTracer : public ProductProcessDispatch< MissingProcessRequestHandler,
+  class PsmrtsTracer : public ProductProcessDispatch< ProductVoidVariant,
                                                       EllipsoidTracer, 
                                                       BulletTracer, 
                                                       NaifDskTracer> {
@@ -74,9 +78,9 @@ namespace psmrts {
       using Tracer = ProductProcessDispatch::ProductType;
       using UIDType = PsmrtsUID::UIDType;
 
-      PsmrtsTracer( ) : ProductProcessDispatch ( MissingProcessRequestHandler( "invalid" ) ) {  }
+      PsmrtsTracer( ) : ProductProcessDispatch ( ProductVoidVariant( "void" ) ) {  }
       PsmrtsTracer( const std::string &name ) : 
-                    ProductProcessDispatch ( MissingProcessRequestHandler( name ) ) {  }
+                    ProductProcessDispatch ( ProductVoidVariant( name ) ) {  }
       PsmrtsTracer( const Tracer &tracer,
                     const std::string &name = "tracer" ) : 
                     ProductProcessDispatch( tracer ) {  }
@@ -113,8 +117,18 @@ namespace psmrts {
       }
 
       inline bool isValid() const {
-        return ( !std::holds_alternative<MissingProcessRequestHandler>( m_product ) );
+        return ( !std::holds_alternative<ProductVoidVariant>( m_product ) );
       }
+
+      inline ProductSpecification specs() const {
+        const auto visitor = overload{            
+                  [](auto &&tracer ) -> ProductSpecification {
+                       return ( tracer.product_specifications() ); 
+                  }
+        };
+       
+        return ( std::visit(visitor, m_product ) ); 
+      } 
 
       inline const ProductConfiguration &config() const {
         const auto visitor = overload{            
@@ -127,13 +141,13 @@ namespace psmrts {
       }        
 
       inline bool matches( const ProductConfiguration &conf ) const {
-        const auto visitor = overload{            
-                  [&conf]( auto &&tracer ) -> bool {
-                       return ( tracer.matches( conf ) ); 
-                  }
-        };
-      
-        return ( std::visit(visitor, m_product ) );        
+        return ( this->config().matches( conf ) );
+      }
+
+      inline ProductOrder verify(const ProductConfiguration &config,
+                                 const PsmrtsTranslations &trans ) const {
+
+        return ( ProductOrder( config ) );
       }
 
   };

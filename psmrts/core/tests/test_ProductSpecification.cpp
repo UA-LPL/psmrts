@@ -6,8 +6,12 @@
 #include <string>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsTranslations.hpp>
 #include <psmrts/core/ProductFeature.hpp>
+#include <psmrts/core/ProductConfiguration.hpp>
+#include <psmrts/core/ProductOrder.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/shapes/PsmrtsShape.hpp>
 
 
 TEST_CASE ( "ProductSpecification Constructor / Base Function Test", "[product][specification][constructor][base]") {
@@ -31,6 +35,51 @@ TEST_CASE ( "ProductSpecification Constructor / Base Function Test", "[product][
     CHECK( product1.required().size() == 0 );
     CHECK( product1.optional().size() == 0 );
 }
+
+TEST_CASE( "ProductSpecification Configuration Test", "[product][specification][configuration]") {
+
+  psmrts::PsmrtsTranslations trans_t = psmrts::PsmrtsTranslations::create();
+  trans_t.add_parameter("objdir", "obj/data");
+
+  std::string objfile = psmrts_shapes_path( trans_t.translate_path( "$objdir/bennu_20facets.obj" ) );
+  psmrts::PsmrtsShape shape_t( objfile );
+  psmrts::ProductSpecification specs_t = shape_t.specs();
+  psmrts::ProductConfiguration config_t = shape_t.config();
+  CHECK( config_t.size() == 2 );
+  psmrts::ProductOrder order_t = specs_t.process_order( config_t, trans_t );
+  CHECK( order_t.isvalid()          == true );
+  CHECK( order_t.error_count()      == 0 );
+  CHECK( order_t.errors_to_string() == "" );
+  CHECK( order_t.config().size()    == 2 );
+  CHECK( order_t.residual().size()  == 0 );
+
+  trans_t.add_environment("PLYDIR", "ply/data");
+  std::string plyfile = psmrts_shapes_path( "$PLYDIR/Bennu_Radar.ply" );
+  psmrts::PsmrtsShape shape_p( trans_t.translate_path( plyfile ) );
+  psmrts::ProductSpecification specs_p  = shape_p.specs();
+  psmrts::ProductConfiguration config_p = shape_p.config();
+  CHECK( config_p.size() == 2 );
+  psmrts::ProductOrder order_p = specs_p.process_order( config_p, trans_t );
+  CHECK( order_p.isvalid()          == true );
+  CHECK( order_p.error_count()      == 0 );
+  CHECK( order_p.errors_to_string() == "" );
+  CHECK( order_p.config().size()    == 2 );
+  CHECK( order_p.residual().size()  == 0 );
+
+  std::string dskfile = psmrts_shapes_path( "dsk/data/bennu_20facets.bds" );
+  psmrts::PsmrtsShape shape_d( dskfile );
+  psmrts::ProductSpecification specs_d  = shape_d.specs();
+  psmrts::ProductConfiguration config_d = shape_d.config();
+  CHECK( config_d.size() == 2 );
+  psmrts::ProductOrder order_d = specs_d.process_order( config_d, trans_t );
+  CHECK( order_d.isvalid()          == true );
+  CHECK( order_d.error_count()      == 0 );
+  CHECK( order_d.errors_to_string() == "" );
+  CHECK( order_d.config().size()    == 2 );
+  CHECK( order_d.residual().size()  == 0 );
+}
+
+
 
 #if 0  
 

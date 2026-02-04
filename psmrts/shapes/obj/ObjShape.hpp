@@ -114,7 +114,7 @@ namespace psmrts  {
                                  ProductOption( "type", "string"),
                                  ProductOption( "description", "Type of mesh vector data requested/read"),
                                  ProductOption( "status", "optional"),
-                                 ProductOption( "aliases", "mesh_data_type" ), 
+                                 ProductOption( "aliases", { "data_type", "mesh_data_type" } ), 
                                  ProductOption( "valid", { "double", "float"} ),
                                  ProductOption( "default", "double" ) } );
         ProductFeature mtld( "obj_mtl_search_path", {

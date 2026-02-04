@@ -321,9 +321,9 @@ namespace psmrts {
           size_t i = 0;
           for ( auto it_v = j_data.begin() ; it_v != j_data.end() ; ++it_v, i++ ) {
             if ( !it_v->is_primitive() ) {
-            std::string j_string = j_data.dump(-1);
-            std::string mess = "***ERROR - ProductOption(json): JSON array value at index [" +
-                                std::to_string(i) + "] is not a required primitive type!\n" +
+              std::string j_string = j_data.dump(-1);
+              std::string mess = "***ERROR - ProductOption(json): JSON array value at index [" +
+                                 std::to_string(i) + "] is not a required primitive type!\n" +
                                 " Invalid JSON Object: " + j_string;            
               throw std::runtime_error( mess );
             }

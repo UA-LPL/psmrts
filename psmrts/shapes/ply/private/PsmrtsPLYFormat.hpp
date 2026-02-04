@@ -216,12 +216,12 @@ namespace psmrts {
         inline ProductConfiguration get_metadata( ) {
           ProductConfiguration meta( "ply" );
           meta.add( ProductOption( "ply_file", this->ply_source() ) );
-          meta.add( ProductOption( "ply_file_type", m_file_type ) );
-          meta.add( ProductOption( "data_type", m_data_type ) );
-          meta.add( ProductOption( "n_vertices", (int) this->nVertexes() ) );
-          meta.add( ProductOption( "n_facets", (int) this->nIndexes() ) );
-          meta.add( ProductOption( "minimum_radius", m_mesh.minimum_radius() ) );
-          meta.add( ProductOption( "maximum_radius", m_mesh.maximum_radius() ) );
+          meta.add( ProductOption( "ply_data_type", m_data_type ) );
+          meta.add_metadata( ProductOption( "ply_file_type", m_file_type ) );
+          meta.add_metadata( ProductOption( "n_vertices", (int) this->nVertexes() ) );
+          meta.add_metadata( ProductOption( "n_facets", (int) this->nIndexes() ) );
+          meta.add_metadata( ProductOption( "minimum_radius", m_mesh.minimum_radius() ) );
+          meta.add_metadata( ProductOption( "maximum_radius", m_mesh.maximum_radius() ) );
           return ( meta );
         }        
 

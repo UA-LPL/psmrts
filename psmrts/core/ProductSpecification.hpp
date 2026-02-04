@@ -18,11 +18,14 @@ find files of those names at the top level of this repository. **/
 #include <exception>
 #include <optional>
 
+#include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsJson.hpp>
+#include <psmrts/core/PsmrtsTranslations.hpp>
 #include <psmrts/core/ProductFeature.hpp>
 #include <psmrts/core/ProductConfiguration.hpp>
-#include <psmrts/core/PsmrtsRequest.hpp>
+#include <psmrts/core/ProductOrder.hpp>
 #include <psmrts/core/PsmrtsContainer.hpp>
+#include <psmrts/core/AllOptionConversions.hpp>
 // #include <psmrts/core/PRQProduct.hpp>
 
 
@@ -54,7 +57,7 @@ namespace psmrts {
                                 m_info( "info" ), m_features( "features" ),
                                 m_creator( std::nullopt ) { }
       ProductSpecification( const std::string &name,
-                            const std::string &product ) :
+                            const std::string &product = "product" ) :
                             m_name( name ), m_product( product ),
                             m_info( "info" ), m_features( "features" ),
                             m_creator( std::nullopt ) {
@@ -156,9 +159,123 @@ namespace psmrts {
        */
       inline std::string get_alias_feature_name( const std::string &name ) const {
         for ( const auto &f : this->features() ) {
-          if ( !f.isa_alias( name ) ) return ( f.name() );
+          if ( f.isa_alias( name ) ) return ( f.name() );
         }
         return ( "" );        
+      }
+
+      inline ProductOrder process_order( const ProductConfiguration &config,
+                                         const PsmrtsTranslations &translations )
+                                         const {
+        
+        // Check for invalid configuration
+        if ( config.size() == 0 ) return ( ProductOrder() );
+
+        ProductOrder order( config.name());
+        std::vector<std::string> required_list;
+
+        for ( const auto &option : config.options() ) {
+
+          std::string f_name = this->get_alias_feature_name( option.name() );
+          if ( this->contains( option.name() ) || this->contains( f_name ) ) {
+            if ( f_name == "" ) f_name = option.name();
+
+            const ProductFeature &feature = this->find( f_name );
+            if ( feature.is_required() ) required_list.push_back( f_name );
+
+            if ( feature.type() == "file" ) {
+
+              if ( feature.validate_file_suffix( option.to_string() ) ) {
+                order.add_option( option );
+                std::string expanded_f = translations.translate_path( option.to_string() );
+                if ( option.to_string() != expanded_f ) {
+                  order.add_metadata( ProductOption( "filename_expanded", expanded_f) );
+                }
+              }
+              else {
+                // Its not compatible with this one
+                std::string mess = "*** ProductSpecification::process_order() - "
+                                   "Invalid filename/extension in option(" 
+                                   + option.name() + ") = " + option.to_string();
+                order.add_error( std::runtime_error( mess ) );
+              }
+            }
+            else if ( feature.type() == "double" ) {
+              order.add_option( option );
+              std::vector<double> d_values;
+              psmrts::optvis::DoublesVisitor visitor_d = OptionDoublesExtractor( option ).create_visitor( d_values, option );
+              option.visit( visitor_d );
+              for ( size_t ndx = 0 ; ndx < d_values.size() ; ndx++ ) {
+                if ( !visitor_d.isvalid( d_values[ndx] ) ) {
+                  std::string mess = "*** ProductSpecification::process_order() - "
+                                    "Double value " + option.to_string( ndx )  + 
+                                    " in option(" + option.name() + ") is invalid!";
+                  order.add_error( std::runtime_error( mess ) );
+                }
+              }                  
+
+            }
+            else if ( feature.type() == "bool" ) {
+              order.add_option( option );
+              std::vector<std::string> b_values;
+              psmrts::optvis::StringsVisitor visitor_b = OptionStringsExtractor( option ).create_visitor( b_values, option );
+              option.visit( visitor_b );
+              for ( size_t ndx = 0 ; ndx < b_values.size() ; ndx++ ) {
+                if ( !visitor_b.isvalid( b_values[ndx] ) ) {
+                  std::string mess = "*** ProductSpecification::process_order() - "
+                                    "Double value " + option.to_string( ndx )  + 
+                                    " in option(" + option.name() + ") is invalid!";
+                  order.add_error( std::runtime_error( mess ) );
+                }
+              }  
+            }
+            else if ( feature.type() == "int" ) {
+              order.add_option( option );
+              std::vector<int> i_values;
+              psmrts::optvis::IntegersVisitor visitor_i = OptionIntegersExtractor( option ).create_visitor( i_values, option );
+              option.visit( visitor_i );
+              for ( size_t ndx = 0 ; ndx < i_values.size() ; ndx++ ) {
+                if ( !visitor_i.isvalid( i_values[ndx] ) ) {
+                  std::string mess = "*** ProductSpecification::process_order() - "
+                                    "Int value " + option.to_string( ndx )  + 
+                                    " in option(" + option.name() + ") is invalid!";
+                  order.add_error( std::runtime_error( mess ) );
+                }
+              } 
+            }
+            else { // treat the rest as strings
+              order.add_option( option );
+              std::vector<std::string> s_values;
+              psmrts::optvis::StringsVisitor visitor_s = OptionStringsExtractor( option ).create_visitor( s_values, option );
+              option.visit( visitor_s );
+              for ( size_t ndx = 0 ; ndx < s_values.size() ; ndx++ ) {
+                if ( !visitor_s.isvalid( s_values[ndx] ) ) {
+                  std::string mess = "*** ProductSpecification::process_order() - "
+                                    "String value " + option.to_string( ndx )  + 
+                                    " in option(" + option.name() + ") is invalid!";
+                  order.add_error( std::runtime_error( mess ) );
+                }
+              }  
+            }
+
+          }
+          else {
+            // This may or may not be an error so callers must check conditions
+            order.add_residual( option );
+          }
+        }
+
+        // Now check to see if all required keywords are present
+        for ( const auto &key_r : this->required() ) {
+          if ( !this->contains( key_r, required_list ) ) {
+            std::string mess = "*** ProductSpecification::process_order() - "
+                              "Required feature key " + key_r  + 
+                              " is not present in " + this->name() + " specification";
+            order.add_error( std::runtime_error( mess ) );
+          }
+        }
+
+        return ( order );
       }
 
       /** Return the JSON specification */
@@ -190,6 +307,14 @@ namespace psmrts {
       ProductInfo     m_info;
       ProductFeatures m_features;
       std::optional<Creator> m_creator;
+
+      inline bool contains( const std::string &s,
+                            const std::vector<std::string> &v ) const {
+        for ( const auto &test_s : v ) {
+          if ( test_s == s ) return ( true );
+        }
+        return ( false );
+      }
   };
 
 } // namespace psmrts

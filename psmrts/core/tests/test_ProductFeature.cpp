@@ -132,7 +132,14 @@ TEST_CASE( "ProductParameter Validate Test", "[product][feature][validate]") {
       ++it_j1;
     }
    
-    CHECK( param1.size()                   == 6 );
+    CHECK( param1.size()                         == 6 );
+    CHECK( param1.find( "name" ).size()          == 1 );
+    CHECK( param1.find( "type" ).size()          == 1 );
+    CHECK( param1.find( "description" ).size()   == 1 );
+    CHECK( param1.find( "status" ).size()        == 1 );
+    CHECK( param1.find( "aliases" ).size()       == 3 );
+    CHECK( param1.find( "file_suffixes" ).size() == 2 );
+
     CHECK( param1.contains( "name" )       == true );
     CHECK( param1.contains( "obj" )        == false );
     CHECK( param1.name()                   == "obj_file" );
