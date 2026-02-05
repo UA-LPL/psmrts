@@ -164,6 +164,24 @@ namespace psmrts {
         return ( "" );        
       }
 
+      /**
+       * @brief Process/compare a product configuration with a feature specification
+       * 
+       * This method is used to process a user specification comparing the
+       * option to a feature of the specification. Product features contain a
+       * set of keyword/value metadata specifying conditions that must be met by
+       * the config option.
+       * 
+       * @param config       Product configuration related to a product
+       *                      specification that will be compared/verified
+       *                      against a feature of the same name/type.
+       * @param translations Environment/parameter keyword/value pairs that will
+       *                      replace occurances of path elements that begin
+       *                      with a "$".
+       * @return ProductOrder Product order "form" that contains the results of
+       *                       the evalaution of option to an existing feature
+       *                       specification.
+       */
       inline ProductOrder process_order( const ProductConfiguration &config,
                                          const PsmrtsTranslations &translations )
                                          const {
@@ -249,6 +267,18 @@ namespace psmrts {
       ProductFeatures m_features;
       std::optional<Creator> m_creator;
 
+      /**
+       * @brief Check for a string in a vector of strings
+       * 
+       * This method will search for the string "s" in the vector "v".
+       * The strings must match exactly as the string comparison is case
+       * sensitive.
+       * 
+       * @param s  String to search for in "v"
+       * @param v  Vector containing a list of strings
+       * @return true If "v" contains the string "s"
+       * @return false If "s" is not in "v"
+       */
       inline bool contains( const std::string &s,
                             const std::vector<std::string> &v ) const {
         for ( const auto &test_s : v ) {
@@ -257,6 +287,27 @@ namespace psmrts {
         return ( false );
       }
 
+        /**
+         * @brief Process a file FeatureOption config option
+         * 
+         * This method compares a product configuration option with a product
+         * specification related to a file. It will extract and compare the file
+         * extension, translate any environment/paramterization variables and
+         * add to the product order the results. 
+         * 
+         * Errors encountered are recorded in the product order object and
+         * indicates a failure of config option compatability with the feature
+         * spec.
+         * 
+         * @param option   Configuration option that ultimately originates from
+         *                  the user.
+         * @param feature  Feature specification that it compares to the user
+         *                  config.
+         * @param translations Environment/parameters used to translation
+         *                      occurances of path elements that begin with a "$".
+         * @param order    Product order that accumulates validation of the
+         *                  options with the feature specs.
+         */
       inline void process_file( const ProductOption &option, 
                                 const ProductFeature &feature,
                                 const PsmrtsTranslations &translations,
@@ -280,7 +331,21 @@ namespace psmrts {
         return;                                   
       }
       
-      
+
+      /**
+       * @brief Process a double feature specification with a config option
+       * 
+       * This method processes compares a product config option with a feature
+       * specification. Option values are extracted and compared with feature
+       * specs for validity. Errors that occur are recorded in the order.
+       * 
+       * @param option  Configuration option that ultimately originates from
+       *                  the user.
+       * @param feature  Feature specification that it compares to the user
+       *                  config.
+       * @param order    Product order that accumulates validation of the
+       *                   options with the feature specs.
+       */
       inline void process_doubles( const ProductOption &option, 
                                   const ProductFeature &feature,
                                   ProductOrder &order ) const {
@@ -323,6 +388,20 @@ namespace psmrts {
         return;
       }
 
+      /**
+      * @brief Process a boolean feature specification with a config option
+       * 
+       * This method processes compares a product config option with a feature
+       * specification. Option values are extracted and compared with feature
+       * specs for validity. Errors that occur are recorded in the order.
+       * 
+       * @param option  Configuration option that ultimately originates from
+       *                  the user.
+       * @param feature  Feature specification that it compares to the user
+       *                  config.
+       * @param order    Product order that accumulates validation of the
+       *                   options with the feature specs.
+       */
       inline void process_booleans( const ProductOption &option, 
                                     const ProductFeature &feature,
                                     ProductOrder &order ) const {   
@@ -343,6 +422,20 @@ namespace psmrts {
         return;
       }
 
+      /**
+       * @brief Process an integer feature specification with a config option
+       * 
+       * This method processes compares a product config option with a feature
+       * specification. Option values are extracted and compared with feature
+       * specs for validity. Errors that occur are recorded in the order.
+       * 
+       * @param option  Configuration option that ultimately originates from
+       *                  the user.
+       * @param feature  Feature specification that it compares to the user
+       *                  config.
+       * @param order    Product order that accumulates validation of the
+       *                   options with the feature specs.
+       */
       inline void process_integers( const ProductOption &option, 
                                     const ProductFeature &feature,
                                     ProductOrder &order ) const {     
@@ -360,6 +453,23 @@ namespace psmrts {
         }
       }
 
+      /**
+       * @brief Process a feature specification with a config option using strings
+       * 
+       * This method processes compares a product config option with a feature
+       * specification using string value comparisons. This method should work
+       * best with most all options if the feature specs are robust and correct.
+       * 
+       * Option values are extracted as strings and compared with feature
+       * specs for validity. Errors that occur are recorded in the order.
+       * 
+       * @param option  Configuration option that ultimately originates from
+       *                  the user.
+       * @param feature  Feature specification that it compares to the user
+       *                  config.
+       * @param order    Product order that accumulates validation of the
+       *                   options with the feature specs.
+       */
       inline void process_strings( const ProductOption &option, 
                                    const ProductFeature &feature,
                                    ProductOrder &order ) const { 

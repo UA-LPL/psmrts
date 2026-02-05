@@ -11,9 +11,9 @@ TEST_CASE ("MESH SHAPE - Default Test", "[mesh][shape][default]") {
 
     CHECK( spec.name()              == "mesh" );
     CHECK( spec.product()           == "shape" );
-    CHECK( spec.features().size() == 2 );
+    CHECK( spec.features().size()   == 3 );
     CHECK( spec.required().size()   == 1 );
-    CHECK( spec.optional().size()   == 1 );
+    CHECK( spec.optional().size()   == 2 );
 
     CHECK( spec.contains( "obj_mtl_search_path" ) == false );
     CHECK( spec.contains( "mesh_name" )           == true );
@@ -27,7 +27,7 @@ TEST_CASE ("MESH SHAPE - Default Test", "[mesh][shape][default]") {
     psmrts_json mesh_json = mesh_config.to_json();
 
     CHECK( mesh_config.name()          == "mesh" ); // possible constructor error in PConfig file?
-    CHECK( mesh_config.size()          == 3 );
+    CHECK( mesh_config.size()          == 4 );
     CHECK( mesh_json["data_type"]      == "undefined" );
     CHECK( mesh_json["metadata"]["n_vertices"]     == 0 );
     CHECK( mesh_json["metadata"]["n_facets"]       == 0 );

@@ -211,35 +211,44 @@ namespace psmrts  {
                                  ProductOption( "name", "naifdsk"),
                                  ProductOption( "product", "tracer"),
                                  ProductOption( "description", "NAIF DSK ray tracing system specifications") } );
+        ProductFeature product( "tracer", {
+                                 ProductOption( "name", "tracer" ),
+                                 ProductOption( "type", "string" ),
+                                 ProductOption( "description", "Describe the product type" ),
+                                 ProductOption( "status", "optional" ),
+                                 ProductOption( "default", "naifdsk" ),
+                                 ProductOption( "valid", "naifdsk" ) } );
         ProductFeature dfile( "dsk_file", {
-                                 ProductOption( "name", "dsk_file"),
-                                 ProductOption( "type", "file"),
-                                 ProductOption( "description", "Name of DSK kernel"),
-                                 ProductOption( "status", "required"),
-                                 ProductOption( "aliases", "file" ),
+                                 ProductOption( "name", "dsk_file" ),
+                                 ProductOption( "type", "file" ),
+                                 ProductOption( "description", "Name of DSK kernel" ),
+                                 ProductOption( "status", "required" ),
+                                 ProductOption( "aliases", { "file", "filename" } ),
                                  ProductOption( "file_suffixes", { "bds", "BDS" } ) } );
         ProductFeature bodyid( "dsk_body_id", {
-                                 ProductOption( "name", "dsk_body_id"),
-                                 ProductOption( "type", "int"),
-                                 ProductOption( "description", "NAIF ID of the target body whose surface is described"),
-                                 ProductOption( "status", "optional"),
+                                 ProductOption( "name", "dsk_body_id" ),
+                                 ProductOption( "type", "int" ),
+                                 ProductOption( "description", "NAIF ID of the target body whose surface is described" ),
+                                 ProductOption( "status", "optional" ),
                                  ProductOption( "aliases", { "target_id", "naif_id" } ) } );
         ProductFeature segid( "dsk_segment_index", {
-                                 ProductOption( "name", "dsk_segment_index"),
-                                 ProductOption( "type", "int"),
-                                 ProductOption( "description", "NAIF ID of the target body whose surface is described"),
-                                 ProductOption( "status", "optional"),
-                                 ProductOption( "default", 0),
-                                 ProductOption( "aliases", { "segment", "dsk_segment"} ) } );
+                                 ProductOption( "name", "dsk_segment_index" ),
+                                 ProductOption( "type", "int" ),
+                                 ProductOption( "description", "NAIF ID of the target body whose surface is described" ),
+                                 ProductOption( "status", "optional" ),
+                                 ProductOption( "default", 0 ),
+                                 ProductOption( "aliases", { "segment", "dsk_segment" } ) } );
+#if 0
+        // Not implemented.  
         ProductFeature kernels( "kernels", {
-                                 ProductOption( "name", "kernels"),
-                                 ProductOption( "type", "string"),
-                                 ProductOption( "description", "Additional kernels required to load for target"),
-                                 ProductOption( "status", "optional"),
+                                 ProductOption( "name", "kernels" ),
+                                 ProductOption( "type", "string" ),
+                                 ProductOption( "description", "Additional kernels required to load for target" ),
+                                 ProductOption( "status", "optional" ),
                                  ProductOption( "aliases", "required_kernels" ) } );
-
+#endif
         // This validates the JSON structure and provides product info to callers
-        return ( ProductSpecification( info, { dfile, bodyid, segid, kernels } ) );
+        return ( ProductSpecification( info, { product, dfile, bodyid, segid } ) );
       }
       
       

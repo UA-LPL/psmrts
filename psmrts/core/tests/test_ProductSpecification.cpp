@@ -45,12 +45,12 @@ TEST_CASE( "ProductSpecification Configuration Test", "[product][specification][
   psmrts::PsmrtsShape shape_t( objfile );
   psmrts::ProductSpecification specs_t = shape_t.specs();
   psmrts::ProductConfiguration config_t = shape_t.config();
-  CHECK( config_t.size() == 2 );
+  CHECK( config_t.size() == 3 );
   psmrts::ProductOrder order_t = specs_t.process_order( config_t, trans_t );
   CHECK( order_t.isvalid()          == true );
   CHECK( order_t.error_count()      == 0 );
   CHECK( order_t.errors_to_string() == "" );
-  CHECK( order_t.config().size()    == 2 );
+  CHECK( order_t.config().size()    == 3 );
   CHECK( order_t.residual().size()  == 0 );
 
   trans_t.add_environment("PLYDIR", "ply/data");
@@ -70,12 +70,12 @@ TEST_CASE( "ProductSpecification Configuration Test", "[product][specification][
   psmrts::PsmrtsShape shape_d( dskfile );
   psmrts::ProductSpecification specs_d  = shape_d.specs();
   psmrts::ProductConfiguration config_d = shape_d.config();
-  CHECK( config_d.size() == 2 );
+  CHECK( config_d.size() == 3 );
   psmrts::ProductOrder order_d = specs_d.process_order( config_d, trans_t );
   CHECK( order_d.isvalid()          == true );
   CHECK( order_d.error_count()      == 0 );
   CHECK( order_d.errors_to_string() == "" );
-  CHECK( order_d.config().size()    == 2 );
+  CHECK( order_d.config().size()    == 3 );
   CHECK( order_d.residual().size()  == 0 );
 }
 

@@ -9,10 +9,10 @@ TEST_CASE( "DSK SHAPE - Default Test", "[dsk][shape][specification]") {
 
     CHECK( spec.name()              == "dsk"   );
     CHECK( spec.product()           == "shape" ); 
-    CHECK( spec.size()              == 4 );
-    CHECK( spec.features().size()   == 4 );
+    CHECK( spec.size()              == 5 );
+    CHECK( spec.features().size()   == 5 );
     CHECK( spec.required().size()   == 1 );
-    CHECK( spec.optional().size()   == 3 );
+    CHECK( spec.optional().size()   == 4 );
 
     CHECK( spec.contains( "dsk_mtl_search_path" ) == false );
     CHECK( spec.contains( "dsk_data_type" )       == true );

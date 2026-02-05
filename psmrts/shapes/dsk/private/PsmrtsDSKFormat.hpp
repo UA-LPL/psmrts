@@ -153,6 +153,7 @@ namespace psmrts {
         inline ProductConfiguration get_segment_metadata( const naif::DskSegment &segment ) {
           // Create config for each segment, loop.
           ProductConfiguration meta( "dsk" );
+          meta.add( ProductOption( "shape", "dsk" ) );
           meta.add( ProductOption( "dsk_file", this->dsk_source() ) );
           meta.add( ProductOption( "data_type", "double" ) );
           meta.add_metadata( ProductOption( "dsk_segments", this->nSegments() ) );

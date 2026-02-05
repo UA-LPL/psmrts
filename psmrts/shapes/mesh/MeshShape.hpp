@@ -58,9 +58,16 @@ namespace psmrts {
                         ProductOption( "name",        "mesh"),
                         ProductOption( "product",     "shape"),
                         ProductOption( "description", "Provides support for a genric user defined shape" ) } );
+          ProductFeature product( "shape", {
+                                  ProductOption( "name", "shape" ),
+                                  ProductOption( "type", "string" ),
+                                  ProductOption( "description", "Describe the product type" ),
+                                  ProductOption( "status", "optional" ),
+                                  ProductOption( "default", "mesh" ),
+                                  ProductOption( "valid", "mesh" ) } );                          
           ProductFeature source( "mesh_name", {
                                   ProductOption( "name", "mesh_name"),
-                                  ProductOption( "type", "file"),
+                                  ProductOption( "type", "string"),
                                   ProductOption( "description", "Name of mesh data" ),
                                   ProductOption( "status", "required"),
                                   ProductOption( "aliases", { "mesh", "source" } ) } );
@@ -73,7 +80,7 @@ namespace psmrts {
                                   ProductOption( "valid", { "double", "float" } ) });
 
           // This validates the JSON structure and provides product info to callers
-          return ( ProductSpecification( info, { source, dtype } ) );             
+          return ( ProductSpecification( info, { product, source, dtype } ) );             
          }
 
          inline const PsmrtsMeshData &get_mesh() const {
@@ -96,12 +103,14 @@ namespace psmrts {
 
           inline ProductConfiguration init_mesh( const std::string &name ) {
             ProductConfiguration config( name, PsmrtsMeshData().config() );
+            config.add( ProductOption( "shape", "mesh" ) );
             config.add( ProductOption( "file", "mesh" ) );
             return ( config );
           }
 
           inline ProductConfiguration init_mesh( const PsmrtsMeshData &mesh, const std::string &name ) {
             ProductConfiguration config( name, mesh.config() );
+            config.add( ProductOption( "shape", "mesh" ) );
             config.add( ProductOption( "file", "mesh" ) );
             return ( config );
           }

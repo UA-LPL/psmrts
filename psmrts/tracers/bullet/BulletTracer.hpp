@@ -193,26 +193,33 @@ namespace psmrts  {
             
       static inline ProductSpecification product_specifications() {
         ProductInfo  info( "bullet", { 
-                                 FeatureOption( "name", "bullet"),
-                                 FeatureOption( "product", "tracer"),
+                                 FeatureOption( "name", "bullet" ),
+                                 FeatureOption( "product", "tracer" ),
                                  FeatureOption( "description", "The Bullet Physics ray tracing system specification") } );
+        ProductFeature product( "tracer", {
+                                 ProductOption( "name", "tracer" ),
+                                 ProductOption( "type", "string" ),
+                                 ProductOption( "description", "Describe the product type" ),
+                                 ProductOption( "status", "optional" ),
+                                 ProductOption( "default", "bullet" ),
+                                 ProductOption( "valid", "bullet" ) } );                                 
         ProductFeature bvh( "bullet_optimize_bvh", {
-                                 FeatureOption( "name", "bullet_optimize_bvh"),
-                                 FeatureOption( "type", "bool"),
-                                 FeatureOption( "description", "Use optimized bounding volume hierachy (BVH) when created"),
-                                 FeatureOption( "status", "optional"),
-                                 FeatureOption( "default", "false"),
+                                 FeatureOption( "name", "bullet_optimize_bvh" ),
+                                 FeatureOption( "type", "bool" ),
+                                 FeatureOption( "description", "Use optimized bounding volume hierachy (BVH) when created" ),
+                                 FeatureOption( "status", "optional" ),
+                                 FeatureOption( "default", "false" ),
                                  FeatureOption( "valid", {"true", "1", "yes", "false", "0", "no"} ) } );
         ProductFeature cmp( "bullet_compressed", {
-                                 FeatureOption( "name", "bullet_compressed"),
-                                 FeatureOption( "type", "bool"),
-                                 FeatureOption( "description", "Compress Bullet data during construction"),
-                                 FeatureOption( "status", "optional"),
-                                 FeatureOption( "default", "false"),
+                                 FeatureOption( "name", "bullet_compressed" ),
+                                 FeatureOption( "type", "bool" ),
+                                 FeatureOption( "description", "Compress Bullet data during construction" ),
+                                 FeatureOption( "status", "optional" ),
+                                 FeatureOption( "default", "false" ),
                                  FeatureOption( "valid", {"true", "1", "yes", "false", "0", "no"} ) } );
 
         // This validates the JSON structure and provides product info to callers
-        return ( ProductSpecification( info, { bvh, cmp } ) );
+        return ( ProductSpecification( info, { product, bvh, cmp } ) );
       }
 
       /** Return reference to PsmrtsShape used in this instance */

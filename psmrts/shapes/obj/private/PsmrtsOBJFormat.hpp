@@ -440,6 +440,7 @@ namespace psmrts {
         
       inline ProductConfiguration get_config( tinyobj::ObjReader *reader ) const {
         ProductConfiguration config( "obj" );
+        config.add( ProductOption( "shape", "obj" ) );
         config.add( ProductOption( "obj_file", this->obj_source() ) );
         config.add( ProductOption( "data_type", PsmrtsOBJFormat::get_data_type() ) );
 

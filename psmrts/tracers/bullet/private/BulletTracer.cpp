@@ -74,9 +74,10 @@ namespace psmrts {
                               PsmrtsProduct( shape.config().name(), "tracer"),
                               m_configured("bullet") {
     m_model = std::make_shared<BulletTracerImpl> ( shape );
+    m_configured.add( ProductOption( "tracer", "bullet" ) );
     m_configured.add( ProductOption( "bullet_optimize_bvh", "false" ) );
     m_configured.add( ProductOption( "bullet_compressed", "false" ) );
-    m_configured.add( ProductOption( "bullet_thread_safety", "false" ) );
+    m_configured.add_metadata( ProductOption( "bullet_thread_safety", "true" ) );
   }                       
   
   BulletTracer::~BulletTracer() = default;

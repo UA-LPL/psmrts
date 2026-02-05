@@ -463,7 +463,7 @@ TEST_CASE( "Ellipsoid Shape Tracer Product Specification Test", "[ellipsoid][sha
 
     CHECK( spec.contains( "obj_mtl_search_path" ) == false );
     CHECK( spec.contains( "radii" )               == true  );
-    CHECK( spec.contains( "source" )              == true  );
+    CHECK( spec.contains( "tracer" )              == true  );
 }
 
 TEST_CASE ( "Ellipsoid Tracer Value-Range Test - Spheroid/Ellipsoid", "[raytrace][observer][spheroid][triaxial][ellipsoid]") {

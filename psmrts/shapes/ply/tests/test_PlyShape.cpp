@@ -8,10 +8,10 @@ TEST_CASE( "PLY SHAPE - Default Test", "[ply][shape][specification]") {
 
     CHECK( spec.name()              == "ply"   );
     CHECK( spec.product()           == "shape" ); 
-    CHECK( spec.size()              == 2 );
-    CHECK( spec.features().size() == 2 );
+    CHECK( spec.size()              == 3 );
+    CHECK( spec.features().size()   == 3 );
     CHECK( spec.required().size()   == 1 );
-    CHECK( spec.optional().size()   == 1 );
+    CHECK( spec.optional().size()   == 2 );
     
     CHECK( spec.contains( "obj_mtl_search_path" ) == false );
     CHECK( spec.contains( "ply_file" )            == true );

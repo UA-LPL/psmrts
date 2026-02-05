@@ -95,6 +95,13 @@ namespace psmrts  {
                                  ProductOption( "name", "obj"),
                                  ProductOption( "product", "shape"),
                                  ProductOption( "description", "Reads Wavefront OBJ mesh files and creates a PMRTS mesh object") } );
+        ProductFeature product( "shape", {
+                                ProductOption( "name", "shape" ),
+                                ProductOption( "type", "string" ),
+                                ProductOption( "description", "Describe the product type" ),
+                                ProductOption( "status", "optional" ),
+                                ProductOption( "default", "obj" ),
+                                ProductOption( "valid", "obj" ) } );                                  
         ProductFeature ofile( "obj_file", {
                                  ProductOption( "name", "obj_file"),
                                  ProductOption( "type", "file"),
@@ -126,7 +133,7 @@ namespace psmrts  {
 
 
         // This validates the JSON structure and provides product info to callers
-        return ( ProductSpecification( info, { ofile, ostr, dtype, mtld } ) );        
+        return ( ProductSpecification( info, { product, ofile, ostr, dtype, mtld } ) );        
       }      
 
       inline const PsmrtsMeshData &get_mesh() const {

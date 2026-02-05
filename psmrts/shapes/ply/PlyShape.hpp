@@ -55,12 +55,19 @@ namespace psmrts {
                         ProductOption( "name", "ply"),
                         ProductOption( "product", "shape"),
                         ProductOption( "description", "Reads ASCII and Binary PLY mesh files and creates a PSMRTS mesh object") } );
+          ProductFeature product( "shape", {
+                                  ProductOption( "name", "shape" ),
+                                  ProductOption( "type", "string" ),
+                                  ProductOption( "description", "Describe the product type" ),
+                                  ProductOption( "status", "optional" ),
+                                  ProductOption( "default", "ply" ),
+                                  ProductOption( "valid", "ply" ) } );                          
           ProductFeature pfile( "ply_file", {
                                   ProductOption( "name", "ply_file"),
                                   ProductOption( "type", "file"),
                                   ProductOption( "description", "Name of PLY file to read"),
                                   ProductOption( "status", "required"),
-                                  ProductOption( "aliases", { "file", "ply_mesh", "mesh_file" } ),
+                                  ProductOption( "aliases", { "file", "filename", "ply_mesh", "mesh_file" } ),
                                   ProductOption( "file_suffixes", { "ply", "PLY" } ) } );
           ProductFeature dtype( "ply_data_type", {
                                   ProductOption( "name", "ply_data_type"),
@@ -72,7 +79,7 @@ namespace psmrts {
                                   ProductOption( "default", "double" ) });
 
           // This validates the JSON structure and provides product info to callers
-          return ( ProductSpecification( info, { pfile, dtype } ) );                                             
+          return ( ProductSpecification( info, { product, pfile, dtype } ) );                                             
         }
 
          inline const PsmrtsMeshData &get_mesh() const {

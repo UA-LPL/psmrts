@@ -52,6 +52,13 @@ namespace psmrts {
                                  ProductOption( "name", "dsk"),
                                  ProductOption( "product", "shape"),
                                  ProductOption( "description", "Reads SPICE DSK (bds) surface shape models and creates a PMRTS mesh object") } );
+        ProductFeature product( "shape", {
+                                 ProductOption( "name", "shape" ),
+                                 ProductOption( "type", "string" ),
+                                 ProductOption( "description", "Describe the product type" ),
+                                 ProductOption( "status", "optional" ),
+                                 ProductOption( "default", "dsk" ),
+                                 ProductOption( "valid", "dsk" ) } );                                   
         ProductFeature dfile( "dsk_file", {
                                  ProductOption( "name", "dsk_file"),
                                  ProductOption( "type", "file"),
@@ -59,7 +66,6 @@ namespace psmrts {
                                  ProductOption( "status", "required"),
                                  ProductOption( "aliases", {"file", "dsk_mesh", "mesh_file"} ),
                                  ProductOption( "file_suffixes", { "bds", "BDS" } ) } );
-
         ProductFeature dtype( "dsk_data_type", {
                                  ProductOption( "name", "dsk_data_type"),
                                  ProductOption( "type", "string"),
@@ -83,7 +89,7 @@ namespace psmrts {
                                  ProductOption( "default", static_cast<int>( 0 ) );
 
         // This validates the JSON structure and provides product info to callers
-        return ( ProductSpecification( info, { dfile, dtype, bodyid, segid } ) );        
+        return ( ProductSpecification( info, { product, dfile, dtype, bodyid, segid } ) );        
       }
 
       inline const PsmrtsMeshData &get_mesh() const {
