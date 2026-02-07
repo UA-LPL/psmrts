@@ -188,6 +188,138 @@ const char *psmrts_info() {
   return ( PSMRTS_VERSION );
 }
 
+/*============ PSMRTS_String functions ================*/
+
+/**
+ * @brief psmrts_create_string() - Create a PSMRTS_String from a given const char* sbuf.
+ *
+ * Create a PSMRTS_String from a given const char* sbuf.
+ *
+ * @param sbuf const char* string buffer
+ * @return PSMRTS_String
+ */
+PSMRTS_String *psmrts_create_string( const char* sbuf ) {
+
+  PSMRTS_String *pstr = new PSMRTS_String( sbuf );
+
+  return pstr;
+}
+
+/**
+ * @brief psmrts_string_set() - Given PSMRTS_String *s and const char* sbuf, set the contents of
+ *                              s to sbuf.
+ *
+ * Given PSMRTS_String *s and const char* sbuf, set the contents of s to sbuf.
+ *
+ * @param s PSMRTS_String.
+ * @param sbuf const char* string buffer
+ * @return void
+ */
+void psmrts_string_set( PSMRTS_String *s, const char* sbuf ) {
+ s->assign(sbuf);
+}
+
+/**
+ * @brief psmrts_string_length() - Return the length of a given PSMRTS_String.
+ *
+ * Return the length of a given PSMRTS_String.
+ *
+ * @param s PSMRTS_String.
+ * @return int length of string.
+ */
+int psmrts_string_length( const PSMRTS_String *s ) {
+ return s->length();
+}
+
+/**
+ * @brief psmrts_string_content() - Given a PSMRTS_String pointer, this method returns
+ *                                  a pointer to its content in the form of a pointer to
+ *                                  a null-terminated C-style character array.
+ *
+ * Returns input string content in the form of a pointer to null-terminated C-style character array.
+ *
+ * @param s PSMRTS_String.
+ * @return const char* pointer to null-terminated C-style character array with content of input string.
+ */
+const char* psmrts_string_content( const PSMRTS_String *s ) {
+ return s->c_str();
+}
+
+/*============ PSMRTS_StringArray functions ================*/
+
+/**
+ * @brief psmrts_create_string_array - Constructs PSMRTS_StringArray.
+ *
+ * This function constructs a PSMRTS_StringArray.
+ *
+ * @return Pointer to PSMRTS_StringArray.
+ */
+PSMRTS_StringArray *psmrts_create_string_array() {
+  return ( new PSMRTS_StringArray() );
+}
+
+/**
+ * @brief psmrts_string_array_size - Returns PSMRTS_StringArray size.
+ *
+ * Given a PSMRTS_StringArray object, this function returns its' size.
+ *
+ * @param tracearray Pointer to PSMRTS_StringArray object.
+ * @return size_t Number of strings in array.
+ */
+size_t psmrts_string_array_size( const PSMRTS_StringArray *stringarray ) {
+  return ( stringarray->size() );
+}
+
+/**
+ * @brief psmrts_string_array_add_string - Adds string to string array.
+ *
+ * This function adds a PSMRTS_String to a given PSMRTS_StringArray object.
+ *
+ * @param stringarray Pointer to PSMRTS_StringArray.
+ * @param sbuf const char*.
+ * @return size_t Index of newly added string.
+ */
+size_t psmrts_string_array_add_string( PSMRTS_StringArray *stringarray,
+                                       const char* sbuf ) {
+  
+  stringarray->push_back( *psmrts_create_string( sbuf ) );
+  
+  // return index of newly added string
+  return ( stringarray->size() - 1 );
+}
+
+/**
+ * @brief psmrts_string_array_clear - Clears string array.
+ *
+ * This function removes all strings from the given PSMRTS_StringArray.
+ *
+ * WARNING: References to strings in the string array are invalidated after this call!
+ *
+ * @param stringarray Pointer to PSMRTS_StringArray.
+ * @return void
+ */
+void psmrts_string_array_clear( PSMRTS_StringArray *stringarray ) {
+  stringarray->clear();
+}
+
+/**
+ * @brief psmrts_string_array_get_string - Get string at given index from string
+ *                                         array.
+ *
+ * This function retrieves a PSMRTS_String at the given index.
+ *
+ * NOTE: index is zero-based, i.e. ranging from 0 to 'n-1' where 'n' is the
+ *       number of elements in the string array.
+ *
+ * @param stringarray Pointer to PSMRTS_StringArray.
+ * @param index Integer array index for requested PSMRTS_String.
+ * @return const PSMRTS_String Pointer to PSMRTS_String object at index.
+ */
+const PSMRTS_String *psmrts_string_array_get_string( const PSMRTS_StringArray *stringarray,
+                                                     size_t index ) {
+  return ( &stringarray->at( index ) );
+}
+
 /**
  * @brief psmrts_vector3d - Creates a PSMRTS 3d vector object from input
  *                          coordinates.
@@ -1361,6 +1493,34 @@ extern double psmrts_mesh_volume( const PSMRTS_Shape *shape ) {
  */
 PSMRTS_BOOL psmrts_tracer_valid( const PSMRTS_Tracer *tracer ) {
   return ( evaluate( 0 != tracer ) );
+}
+
+/**
+ * @brief psmrts_free_string - Frees memory allocated to input PSMRTS_RayTrace
+ *                             pointer.
+ *
+ * This function frees memory allocated to the input PSMRTS_String pointer.
+ *
+ * @param s Pointer to PSMRTS_String.
+ * @return void
+ */
+void psmrts_free_string( PSMRTS_String *s ) {
+  delete s;
+}
+
+/**
+ * @brief psmrts_free_string_array - Frees memory allocated to input
+ *                                   PSMRTS_StringArray pointer.
+ *
+ * This function frees memory allocated to the input
+ * PSMRTS_StringArray pointer.
+ * Note that we don't free the strings in the array.
+ *
+ * @param ptracearray Pointer to PSMRTS_PhotometricTraceArray.
+ * @return void
+ */
+void psmrts_free_string_array( PSMRTS_StringArray *pstringarray ) {
+  delete pstringarray;
 }
 
 /**

@@ -1,6 +1,7 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 #include <psmrts/capi/psmrts_c.h>
 
+#include <cstring>
 #include <string>
 
 /**
@@ -91,8 +92,89 @@ class bulletTraceFixture {
  *
  */
 TEST_CASE ( "PSMRTS C API - Version and Info", "[capi][c++][version][info]" ) {
-  CHECK(std::string(psmrts_version()) == "0.4.1");
-  CHECK(std::string(psmrts_info()) == "PSMRTS-0.4.1");
+  CHECK( std::string(psmrts_version()) == "0.4.1" );
+  CHECK( std::string(psmrts_info()) == "PSMRTS-0.4.1" );
+}
+
+/**
+ * @brief PSMRTS C API Default string functionality test.
+ *
+ * This test verifies the following PSMRTS_String methods:
+ * 
+ *   1) psmrts_create_string
+ *   2) psmrts_string_content
+ *   3) psmrts_string_length
+ *   4) psmrts_free_string
+ *
+ */
+TEST_CASE ( "PSMRTS C API - Strings", "[capi][strings][default]" ) {
+//  using PSTRING = std::unique_ptr<PSMRTS_String, psmrts_free_string>;
+//  PSTRING ps = PSTRING( psmrts_create_string( "you talking to me?" ) );
+//  CHECK( psmrts_string_length( ps ) == 19 );
+
+  // create pointer to string
+  PSMRTS_String *strTest1 = psmrts_create_string( "you talking to me?" );
+ 
+  // confirm string content via c++ approach
+  CHECK( std::string( psmrts_string_content( strTest1 ) ) == "you talking to me?" );
+  
+  // confirm string content vis c approach
+  CHECK( strcmp( psmrts_string_content( strTest1 ), "you talking to me?") == 0 );
+
+  // confirm string length
+  CHECK( psmrts_string_length( strTest1 ) == strlen("you talking to me?") );
+
+  // free string memory
+  psmrts_free_string( strTest1 );
+}
+
+/**
+ * @brief PSMRTS C API Default string array functionality test.
+ *
+ * This test verifies the following PSMRTS_StringArray methods:
+ * 
+ *   1) psmrts_create_string_array
+ *   2) psmrts_string_array_size
+ *   3) psmrts_string_array_add_string
+ *   4) psmrts_string_array_clear
+ *   5) psmrts_string_array_get_string
+ *   6) psmrts_free_string_array
+ *
+ */
+TEST_CASE ( "PSMRTS C API - String Array", "[capi][string][array][default]" ) {
+  // create pointer to string array
+  PSMRTS_StringArray *stringarray = psmrts_create_string_array();
+
+  // verify initial string array size is zero
+  CHECK( psmrts_string_array_size( stringarray ) == 0 );
+
+  // add strings to array, validating position of each
+  size_t string_pos;
+  string_pos = psmrts_string_array_add_string( stringarray, "Humphrey Bogart" );
+  CHECK( string_pos == 0 );
+
+  string_pos = psmrts_string_array_add_string( stringarray, "Ingrid Bergman" );
+  CHECK( string_pos == 1 );
+
+  string_pos = psmrts_string_array_add_string( stringarray, "Paul Henreid" );
+  CHECK( string_pos == 2 );
+
+  string_pos = psmrts_string_array_add_string( stringarray, "Claude Rains" );
+  CHECK( string_pos == 3 );
+
+  // verify string array size is now four
+  CHECK( psmrts_string_array_size( stringarray ) == 4 );
+
+  // retrieve string at position 2 and confirm content
+  const PSMRTS_String* checkstring = psmrts_string_array_get_string( stringarray, 2 );
+  CHECK( strcmp( psmrts_string_content( checkstring ), "Paul Henreid") == 0 );
+  
+  // clear string array and verify size is again 0
+  psmrts_string_array_clear( stringarray );
+  CHECK( psmrts_string_array_size( stringarray ) == 0 );
+
+  // free string array
+  psmrts_free_string_array( stringarray );
 }
 
 /**
