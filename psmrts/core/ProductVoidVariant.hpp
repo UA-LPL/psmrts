@@ -40,6 +40,10 @@ namespace psmrts {
                           MissingProcessRequestHandler( name ),
                           m_config( name ),
                           m_specs( name, "variant" ) { }
+      ProductVoidVariant( const ProductConfiguration &config ) :
+                          MissingProcessRequestHandler( config.name() ),
+                          m_config( config ),
+                          m_specs( config.name(), "variant" ) { }
       virtual ~ProductVoidVariant() = default;
       
       inline ProductSpecification product_specifications() const {
@@ -53,6 +57,12 @@ namespace psmrts {
       inline bool matches( const ProductConfiguration &conf ) const {
         return ( false );
       }
+
+      inline void create( const ProductConfiguration &config,
+                          const PsmrtsTranslations &trans ) {
+        throw std::runtime_error( "PsmrtsVoidVariant is not a valid product!");
+      }
+
       
     private:
       std::string m_name;

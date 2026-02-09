@@ -44,6 +44,7 @@ namespace psmrts {
                                                      MeshShape> {
     public:
       using Shape = ProductProcessDispatch::ProductType;
+      using Variants = Shape;
       using UIDType = PsmrtsUID::UIDType;
 
       PsmrtsShape( ) {  }

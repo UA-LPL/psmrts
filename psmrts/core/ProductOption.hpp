@@ -82,6 +82,8 @@ namespace psmrts {
                             };
 
       ProductOption() : m_name( "false" ), m_data( false ), m_enum( PsmrtsBoolean ) { }
+      ProductOption( const std::string &name, const ProductOption &option ) : 
+                     m_name( name ), m_data( option.m_data ), m_enum( option.m_enum ) { }
       explicit ProductOption( const std::string &name, const bool b_data ) : 
                               m_name( psmrts_tolower(name)), 
                               m_data( b_data ), 

@@ -75,7 +75,8 @@ namespace psmrts {
                                                       BulletTracer, 
                                                       NaifDskTracer> {
     public:
-      using Tracer = ProductProcessDispatch::ProductType;
+      using Tracer   = ProductProcessDispatch::ProductType;
+      using Variants = Tracer;
       using UIDType = PsmrtsUID::UIDType;
 
       PsmrtsTracer( ) : ProductProcessDispatch ( ProductVoidVariant( "void" ) ) {  }

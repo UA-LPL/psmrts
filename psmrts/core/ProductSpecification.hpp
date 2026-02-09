@@ -196,26 +196,30 @@ namespace psmrts {
 
           std::string f_name = this->get_alias_feature_name( option.name() );
           if ( this->contains( option.name() ) || this->contains( f_name ) ) {
+
             if ( f_name == "" ) f_name = option.name();
+
+            // Get the real name of the option
+            ProductOption option_t( f_name, option );
 
             const ProductFeature &feature = this->find( f_name );
             if ( feature.is_required() ) required_list.push_back( f_name );
 
             // Process based upon the feature type
-            if ( feature.type() == "file" ) {
-              process_file( option, feature, translations, order );
+            if ( ( feature.type() == "file" ) || ( feature.type() == "directory" )) {
+              process_file( option_t, feature, translations, order );
             }
             else if ( feature.type() == "double" ) {
-              process_doubles( option, feature, order );
+              process_doubles( option_t, feature, order );
             }
             else if ( feature.type() == "bool" ) {
-              process_booleans( option, feature, order );
+              process_booleans( option_t, feature, order );
             }
             else if ( feature.type() == "int" ) {
-              process_integers( option, feature, order );
+              process_integers( option_t, feature, order );
             }
             else { // treat the rest as strings
-              process_strings( option, feature, order );
+              process_strings( option_t, feature, order );
             }
           }
           else {
@@ -313,12 +317,19 @@ namespace psmrts {
                                 const PsmrtsTranslations &translations,
                                 ProductOrder &order ) const {
 
-        if ( feature.validate_file_suffix( option.to_string() ) ) {
+        if ( feature.type() == "directory") {
           order.add_option( option );
-          order.add_metadata( ProductOption( "filename_orginal", option.to_string() ) );
+          std::string expanded_d = translations.translate_path( option.to_string() );
+          if ( expanded_d != option.to_string() ) {
+              order.add_metadata( ProductOption( option.name() +"_expanded", expanded_d ) );
+          }
+        }
+        else if ( feature.validate_file_suffix( option.to_string() ) ) {
+          // Its a file.
+          order.add_option( option );
           std::string expanded_f = translations.translate_path( option.to_string() );
           if ( option.to_string() != expanded_f ) {
-            order.add_metadata( ProductOption( "filename_expanded", expanded_f) );
+            order.add_metadata( ProductOption( option.name()+"_expanded", expanded_f) );
           }
         }
         else {
