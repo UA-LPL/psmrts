@@ -77,7 +77,8 @@ namespace psmrts {
     // Check for valid shape type
     ProductOrder order = this->product_specifications().process_order( config, trans );
     if (order.error_count() > 0 ) {
-      std::string mess = "DskShape::create(" + config.name() + ") has errors: " +
+      std::string mess = "DskShape::create(" + config.name() + 
+                         ") has config/spec processing errors: \n" +
                           order.errors_to_string();
       throw std::runtime_error( mess );          
     }
@@ -119,6 +120,12 @@ namespace psmrts {
     int dskbodyid = 0;
     naif::DskSegment segment_d;
 
+    // Add DSK file based info to metadata
+    dsk_config.add_metadata( ProductOption( "dsk_segments", model_d.n_dsk_segments() ) );
+    dsk_config.add_metadata( ProductOption( "total_verticies", model_d.n_total_vertices() ) );
+    dsk_config.add_metadata( ProductOption( "total_facets", model_d.n_total_plates() ) );
+
+    // Check for a specific segment request
     if ( v_conf.contains( "dsk_segment_number" ) ) {
       ProductOption dsk_seg_num = v_conf.find( "dsk_segment_number" );
       std::vector<int> v_segnums = OptionIntegersExtractor( dsk_seg_num ).get_all();
@@ -138,9 +145,9 @@ namespace psmrts {
       }
       segment_d = model_d.segment( segnum );
       dsk_config.add( ProductOption( "dsk_segment_number", segnum ) );
-
     }
 
+    // Check for a body id request
     if ( v_conf.contains( "dsk_body_id" ) ) {
       ProductOption dsk_body_opt = v_conf.find( "dsk_body_id" );
       std::vector<int> v_bodids = OptionIntegersExtractor( dsk_body_opt ).get_all();
@@ -163,8 +170,9 @@ namespace psmrts {
       dsk_config.add( ProductOption( "dsk_body_id", segnum ) );
     }
 
-    m_mesh   =  PsmrtsMeshData( model_d.load_facet_indexes( &segment_d), 
-                                model_d.load_facet_vectors( &segment_d) );
+    // Load the requested segment and generate the config
+    m_mesh   =  PsmrtsMeshData( model_d.load_facet_indexes( &segment_d ), 
+                                model_d.load_facet_vectors( &segment_d ) );
     m_config = create_segment_config( segment_d, dskfile_source );
     m_config.merge( dsk_config );
 
