@@ -212,12 +212,15 @@ namespace psmrts {
             else if ( feature.type() == "double" ) {
               process_doubles( option_t, feature, order );
             }
-            else if ( feature.type() == "bool" ) {
-              process_booleans( option_t, feature, order );
-            }
             else if ( feature.type() == "int" ) {
               process_integers( option_t, feature, order );
             }
+            else if ( feature.type() == "size_t" ) {
+              process_size_t( option_t, feature, order );
+            }            
+            else if ( feature.type() == "bool" ) {
+              process_booleans( option_t, feature, order );
+            }           
             else { // treat the rest as strings
               process_strings( option_t, feature, order );
             }
@@ -406,6 +409,132 @@ namespace psmrts {
       }
 
       /**
+       * @brief Process an integer feature specification with a config option
+       * 
+       * This method processes compares a product config option with a feature
+       * specification. Option values are extracted and compared with feature
+       * specs for validity. Errors that occur are recorded in the order.
+       * 
+       * @param option  Configuration option that ultimately originates from
+       *                  the user.
+       * @param feature  Feature specification that it compares to the user
+       *                  config.
+       * @param order    Product order that accumulates validation of the
+       *                   options with the feature specs.
+       */
+      inline void process_integers( const ProductOption &option, 
+                                    const ProductFeature &feature,
+                                    ProductOrder &order ) const {     
+        std::vector<int> i_values;
+        psmrts::optvis::IntegersVisitor visitor_i = OptionIntegersExtractor( option ).create_visitor( i_values, option );
+        option.visit( visitor_i );
+        bool is_all_valid = true;
+      
+        for ( size_t ndx = 0 ; ndx < i_values.size() ; ndx++ ) {
+          if ( !visitor_i.isvalid( i_values[ndx] ) ) {
+            std::string mess = "*** ProductSpecification::process_order() - "
+                              "Integer value " + option.to_string( ndx )  + 
+                              " in option(" + option.name() + ") is invalid!";
+            order.add_error( std::runtime_error( mess ) );
+            is_all_valid = false;
+          }
+        }
+
+        // Check for valid values if present in feature
+        if ( feature.contains( "valid" ) ) {
+          std::vector<int> valids_i = OptionIntegersExtractor( option, visitor_i.traits() ).get_all();
+          for ( size_t opt_nth = 0  ; opt_nth < i_values.size() ; opt_nth++  ) {
+            bool is_valid = false;
+            for ( size_t vld_nth = 0 ; vld_nth < valids_i.size() ; vld_nth++ ) {
+              if ( visitor_i.isequal( i_values[opt_nth], valids_i[vld_nth]) ) {
+                is_valid = true;
+                break;
+              }
+            }
+            // Check for a valid value
+            if ( is_valid == false ) {
+              is_all_valid = false;
+              std::string mess = "*** ProductSpecification::process_order() - "
+                                "Integer value " + option.to_string( opt_nth )  + 
+                                " at index = " + std::to_string( opt_nth ) +
+                                " in option(" + option.name() + ") is not valid!";
+              order.add_error( std::runtime_error( mess ) );                    
+            }
+          }
+        }
+
+        if ( is_all_valid == true ) {
+          order.add_option( option );
+        }
+        else {
+          order.add_residual( option );
+        }        
+      }
+
+      /**
+       * @brief Process an size_t feature specification with a config option
+       * 
+       * This method processes compares a product config option with a feature
+       * specification. Option values are extracted and compared with feature
+       * specs for validity. Errors that occur are recorded in the order.
+       * 
+       * @param option  Configuration option that ultimately originates from
+       *                  the user.
+       * @param feature  Feature specification that it compares to the user
+       *                  config.
+       * @param order    Product order that accumulates validation of the
+       *                   options with the feature specs.
+       */
+      inline void process_size_t( const ProductOption &option, 
+                                    const ProductFeature &feature,
+                                    ProductOrder &order ) const {     
+        std::vector<size_t> st_values;
+        psmrts::optvis::SizetsVisitor visitor_st = OptionSizetsExtractor( option ).create_visitor( st_values, option );
+        option.visit( visitor_st );
+        bool is_all_valid = true;
+      
+        for ( size_t ndx = 0 ; ndx < st_values.size() ; ndx++ ) {
+          if ( !visitor_st.isvalid( st_values[ndx] ) ) {
+            std::string mess = "*** ProductSpecification::process_order() - "
+                              "Size_t value " + option.to_string( ndx )  + 
+                              " in option(" + option.name() + ") is invalid!";
+            order.add_error( std::runtime_error( mess ) );
+            is_all_valid = false;
+          }
+        }
+
+        // Check for valid values if present in feature
+        if ( feature.contains( "valid" ) ) {
+          std::vector<size_t> valids_st = OptionSizetsExtractor( option, visitor_st.traits() ).get_all();
+          for ( size_t opt_nth = 0  ; opt_nth < st_values.size() ; opt_nth++  ) {
+            bool is_valid = false;
+            for ( size_t vld_nth = 0 ; vld_nth < valids_st.size() ; vld_nth++ ) {
+              if ( visitor_st.isequal( st_values[opt_nth], valids_st[vld_nth]) ) {
+                is_valid = true;
+                break;
+              }
+            }
+            // Check for a valid value
+            if ( is_valid == false ) {
+              is_all_valid = false;
+              std::string mess = "*** ProductSpecification::process_order() - "
+                                "Size_t value " + option.to_string( opt_nth )  + 
+                                " at index = " + std::to_string( opt_nth ) +
+                                " in option(" + option.name() + ") is not valid!";
+              order.add_error( std::runtime_error( mess ) );                    
+            }
+          }
+        }
+
+        if ( is_all_valid == true ) {
+          order.add_option( option );
+        }
+        else {
+          order.add_residual( option );
+        }        
+      }
+
+      /**
       * @brief Process a boolean feature specification with a config option
        * 
        * This method processes compares a product config option with a feature
@@ -445,46 +574,6 @@ namespace psmrts {
           order.add_residual( option );
         }
         return;
-      }
-
-      /**
-       * @brief Process an integer feature specification with a config option
-       * 
-       * This method processes compares a product config option with a feature
-       * specification. Option values are extracted and compared with feature
-       * specs for validity. Errors that occur are recorded in the order.
-       * 
-       * @param option  Configuration option that ultimately originates from
-       *                  the user.
-       * @param feature  Feature specification that it compares to the user
-       *                  config.
-       * @param order    Product order that accumulates validation of the
-       *                   options with the feature specs.
-       */
-      inline void process_integers( const ProductOption &option, 
-                                    const ProductFeature &feature,
-                                    ProductOrder &order ) const {     
-        std::vector<int> i_values;
-        psmrts::optvis::IntegersVisitor visitor_i = OptionIntegersExtractor( option ).create_visitor( i_values, option );
-        option.visit( visitor_i );
-        bool is_valid = true;
-      
-        for ( size_t ndx = 0 ; ndx < i_values.size() ; ndx++ ) {
-          if ( !visitor_i.isvalid( i_values[ndx] ) ) {
-            std::string mess = "*** ProductSpecification::process_order() - "
-                              "Integer value " + option.to_string( ndx )  + 
-                              " in option(" + option.name() + ") is invalid!";
-            order.add_error( std::runtime_error( mess ) );
-            is_valid = false;
-          }
-        }
-
-        if ( is_valid == true ) {
-          order.add_option( option );
-        }
-        else {
-          order.add_residual( option );
-        }        
       }
 
       /**
