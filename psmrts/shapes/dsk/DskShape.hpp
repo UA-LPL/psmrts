@@ -17,9 +17,10 @@ find files of those names at the top level of this repository. **/
 
 #include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
+#include <psmrts/core/PsmrtsMeshData.hpp>
+#include <psmrts/core/PsmrtsTranslations.hpp>
 #include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
-#include <psmrts/shapes/dsk/private/PsmrtsDSKFormat.hpp>
 
 namespace psmrts {
   class DskShape : public PsmrtsProduct {
@@ -28,18 +29,11 @@ namespace psmrts {
       using ProductFeatures = ProductSpecification::ProductFeatures;
 
       DskShape( ) : PsmrtsProduct("none", "dsk"), 
-                    m_model(), m_mesh(), 
-                    m_configured( { ProductConfiguration("dsk") } )  { }
-      DskShape( const psmrts::PsmrtsDSKFormat &dsk_t ) :
-                PsmrtsProduct(dsk_t.dsk_source(), "dsk"), 
-                m_model( dsk_t ), m_mesh( dsk_t.get_mesh() ), 
-                m_configured( dsk_t.config() )  { }
-      DskShape( const std::string &dsk_file ) :
-                PsmrtsProduct( dsk_file, "dsk"), 
-                m_model( dsk_file ), 
-                m_mesh( m_model.get_mesh() ),
-                m_configured( m_model.config() )  { }
-      virtual ~DskShape() { } 
+                    m_mesh(), m_config( { ProductConfiguration("dsk") } )  { }
+      DskShape( const std::string &dsk_file, const int segnum = 0 );
+      DskShape( const ProductConfiguration &config,
+                const PsmrtsTranslations &trans = PsmrtsTranslations::create() );
+      virtual ~DskShape() = default;
      
 
       inline bool process( PRQFeatures &features ) const {
@@ -72,7 +66,8 @@ namespace psmrts {
                                  ProductOption( "description", "Type of mesh vector data requested/read"),
                                  ProductOption( "status", "optional"),
                                  ProductOption( "aliases", { "data_type", "mesh_data_type" } ), 
-                                 ProductOption( "valid", { "double", "float"} ),
+//                                 ProductOption( "valid", { "double", "float"} ),
+                                 ProductOption( "valid", "double" ),
                                  ProductOption( "default", "double" ) } );
         ProductFeature bodyid( "dsk_body_id", {
                                  ProductOption( "name", "dsk_body_id"),
@@ -96,19 +91,21 @@ namespace psmrts {
         return m_mesh; 
       }
 
-      inline const ProductConfiguration &config( const size_t index = 0 ) const {
-        return ( m_configured[index] );
+      inline const ProductConfiguration &config( ) const {
+        return ( m_config );
       }
 
       inline bool matches( const ProductConfiguration &conf ) const {
         return ( this->config().matches( conf ) );
       }
 
+      void create( const ProductConfiguration &config,
+                   const PsmrtsTranslations &trans );
+
     protected:
-      using DskSegmentConfigList = PsmrtsDSKFormat::DskSegmentConfigList;
-      PsmrtsDSKFormat      m_model; // Need to address this, .cpp?
       PsmrtsMeshData       m_mesh;
-      DskSegmentConfigList m_configured;
+      ProductConfiguration m_config;
+
   };
 }
 
