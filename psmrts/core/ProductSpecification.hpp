@@ -264,12 +264,6 @@ namespace psmrts {
         m_creator = creator;
       }
 
-    private:
-      std::string     m_name;
-      std::string     m_product;
-      ProductInfo     m_info;
-      ProductFeatures m_features;
-      std::optional<Creator> m_creator;
 
       /**
        * @brief Check for a string in a vector of strings
@@ -557,7 +551,15 @@ namespace psmrts {
         else {
           order.add_residual( option );
         }          
-      }      
+      }
+      
+    private:
+      std::string     m_name;
+      std::string     m_product;
+      ProductInfo     m_info;
+      ProductFeatures m_features;
+      std::optional<Creator> m_creator;
+      
   };
 
 } // namespace psmrts
