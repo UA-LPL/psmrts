@@ -442,15 +442,14 @@ namespace psmrts {
         ProductConfiguration config( "obj" );
         config.add( ProductOption( "shape", "obj" ) );
         config.add( ProductOption( "obj_file", this->obj_source() ) );
-        config.add( ProductOption( "data_type", PsmrtsOBJFormat::get_data_type() ) );
+        config.add( ProductOption( "obj_data_type", PsmrtsOBJFormat::get_data_type() ) );
 
         if ( !this->obj_mtl_search_path().empty() ) {
           config.add( ProductOption( "obj_mtl_search_path", this->obj_mtl_search_path() ) );
         }
         config.add_metadata( ProductOption( "n_shapes", this->nShapes() ) );
         config.add_metadata( ProductOption( "n_vertices", this->nVertexes() ) );
-        config.add_metadata( ProductOption( "n_facets", this->nIndexes() ) );    
-
+        config.add_metadata( ProductOption( "n_facets", this->nIndexes() ) ); 
         return ( config );
       }
 

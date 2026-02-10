@@ -120,7 +120,19 @@ namespace psmrts {
           m_metadata.replace( m );
         }
         return;
-      }      
+      }
+      
+      inline void merge( const ProductConfiguration &other ) {
+        for ( const ProductOption &option_t : other.options() )  {
+          m_options.replace( option_t );
+        }
+
+        for ( const ProductOption &meta_t : other.metadata() ) {
+          m_metadata.replace( meta_t );
+        }
+
+        return;
+      }
 
       inline const ProductOption &find_option( const std::string &name ) const {       
         return ( m_options.find( name ) );

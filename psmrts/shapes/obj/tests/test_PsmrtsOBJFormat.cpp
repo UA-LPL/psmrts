@@ -41,7 +41,7 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Basic Load/Init Tests", "[format][obj][benn
     CHECK( meta_data.size()             == 3 );
     CHECK( meta_data.metadata().size()  == 3 );
     CHECK( psmrts::psmrts_filename( meta_data.find("obj_file").to_string() )  == "bennu_20facets.obj" );
-    CHECK( meta_data.find("data_type").to_string()           == "double" );
+    CHECK( meta_data.find("obj_data_type").to_string()       == "double" );
     CHECK( meta_data.contains("obj_mtl_search_path")         == false );
     CHECK( meta_data.find_metadata("n_shapes").to_string()   == "1" );
     CHECK( meta_data.find_metadata("n_vertices").to_string() == "20" );

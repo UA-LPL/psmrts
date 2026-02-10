@@ -16,11 +16,13 @@ find files of those names at the top level of this repository. **/
 #include <string>
 
 #include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
-#include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/PsmrtsProduct.hpp>
-#include <psmrts/core/ProductFeature.hpp>
+#include <psmrts/core/PsmrtsMeshData.hpp>
+#include <psmrts/core/PsmrtsTranslations.hpp>
+#include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
+
 
 namespace psmrts  {
   /**
@@ -49,6 +51,10 @@ namespace psmrts  {
         m_config.add_metadata( ProductOption( "minimum_radius", m_mesh.minimum_radius() ) );
         m_config.add_metadata( ProductOption( "maximum_radius", m_mesh.maximum_radius() ) );
       }
+      ObjShape( const ProductConfiguration &config,
+                const PsmrtsTranslations &trans = PsmrtsTranslations::create() ) {
+        this->create( config, trans );
+      }      
       virtual ~ObjShape() { }
 
 
@@ -74,7 +80,7 @@ namespace psmrts  {
 
 
       /**
-       * @brief Bullet Features Processor
+       * @brief OBJ Features Processor
        * 
        * This method accepts a PRQFeatures, and stores into it all the 
        * relevant Bullet information using JSON.
@@ -115,7 +121,6 @@ namespace psmrts  {
                                  ProductOption( "description", "Format-compatible string containing contents of an OBJ file" ),
                                  ProductOption( "status", "optional"),
                                  ProductOption( "aliases", "obj_mesh_string" ) } );
-
         ProductFeature dtype( "obj_data_type", {
                                  ProductOption( "name", "obj_data_type"),
                                  ProductOption( "type", "string"),
@@ -156,6 +161,74 @@ namespace psmrts  {
       psmrts::PsmrtsOBJFormat m_model; // Move to .cpp, WIP
       psmrts::PsmrtsMeshData  m_mesh;
       ProductConfiguration    m_config;
+
+      inline void create( const ProductConfiguration &config,
+                          const PsmrtsTranslations &trans ) {
+
+        // Check for valid shape type
+        ProductOrder order = this->product_specifications().process_order( config, trans );
+        if (order.error_count() > 0 ) {
+          std::string mess = "ObjShape::create(" + config.name() + ") has errors: " +
+                              order.errors_to_string();
+          throw std::runtime_error( mess );          
+        }
+
+        m_config = order.config();
+        if ( m_config.contains( "shape" ) ) {
+          if ( m_config.find( "shape" ).to_string() != "obj" ) {
+            std::string mess = "ObjShape::create() - shape type must be \"obj\""
+                               " but found " + m_config.find("shape").to_string();
+            throw std::runtime_error( mess );
+          }
+        }
+
+        // Check for conflicts
+        if ( m_config.contains( "obj_file" ) && m_config.contains( "obj_string" ) ) {
+          std::string mess = "ObjShape::create() - only one of obj_file or obj_string is allowed!";
+          throw std::runtime_error( mess );
+        }
+
+        // Collect and create construction variables
+        std::string text_q;
+        std::string objfile;
+        std::string materials_path; 
+        if ( m_config.contains( "obj_mtl_search_path" ) ) {
+          materials_path  = m_config.find( "obj_mtl_search_path" ).to_string();
+          if ( m_config.metadata().contains( "obj_mtl_search_path_expanded" ) ) {
+            materials_path = m_config.metadata().find( "obj_mtl_search_path_expanded" ).to_string();
+          }
+        }   
+        
+        
+        // Check for obj_file
+        if ( m_config.contains( "obj_file" ) ) {
+          objfile  = m_config.find( "obj_file" ).to_string();
+          if ( m_config.metadata().contains( "obj_file_expanded" ) ) {
+            objfile =  m_config.metadata().find( "obj_file_expanded" ).to_string();
+          }
+          m_model = PsmrtsOBJFormat( objfile, materials_path );
+        }
+        else if ( m_config.contains( "obj_string" ) ) {
+          text_q = m_config.find( "obj_string" ).to_string();
+          m_model = PsmrtsOBJFormat( PsmrtsOBJFormat::load_obj_string( text_q, materials_path,
+                                                      PsmrtsOBJFormat::obj_config( materials_path ) ),
+                                                      "obj_string" );
+        }
+
+        if ( m_config.contains( "obj_data_type") && 
+             ( m_config.find( "obj_data_type" ).to_string() == "float" ) ) {
+          m_mesh = PsmrtsMeshData( m_model.get_indexes(), m_model.get_float_vectors() );
+        }
+        else {
+          m_mesh = PsmrtsMeshData( m_model.get_indexes(), m_model.get_double_vectors() );
+        }
+
+        m_config = m_model.get_config();
+        m_config.add_metadata( ProductOption( "minimum_radius", m_mesh.minimum_radius() ) );
+        m_config.add_metadata( ProductOption( "maximum_radius", m_mesh.maximum_radius() ) );           
+
+        return;
+      }
   };
 
 } // namespace psmrts

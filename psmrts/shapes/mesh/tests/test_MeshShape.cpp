@@ -17,7 +17,7 @@ TEST_CASE ("MESH SHAPE - Default Test", "[mesh][shape][default]") {
 
     CHECK( spec.contains( "obj_mtl_search_path" ) == false );
     CHECK( spec.contains( "mesh_name" )           == true );
-    CHECK( spec.contains( "data_type" )           == true );
+    CHECK( spec.contains( "mesh_data_type" )      == true );
 
     psmrts::MeshShape shape;
     CHECK( shape.get_mesh().isValid()  == false );

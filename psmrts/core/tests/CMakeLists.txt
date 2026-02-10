@@ -9,6 +9,7 @@ add_executable( psmrts_test_suite psmrts_catch2_main.cpp
                                   test_ProductFeature.cpp
                                   test_ProductInventory.cpp
                                   test_ProductOption.cpp
+                                  test_ProductMaker.cpp
                                   test_ProductProcessDispatch.cpp
                                   test_ProductSpecification.cpp
                                   test_PRQProduct.cpp

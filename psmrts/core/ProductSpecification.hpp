@@ -196,7 +196,7 @@ namespace psmrts {
 
           std::string f_name = this->get_alias_feature_name( option.name() );
           if ( this->contains( option.name() ) || this->contains( f_name ) ) {
-
+            // std::cout << "SpecOption: " << option.name() << ", Alias: " << f_name << std::endl;
             if ( f_name == "" ) f_name = option.name();
 
             // Get the real name of the option
@@ -318,6 +318,7 @@ namespace psmrts {
                                 ProductOrder &order ) const {
 
         if ( feature.type() == "directory") {
+          // std::cout << "DirectoryOption File: " << option.to_string() << std::endl;
           order.add_option( option );
           std::string expanded_d = translations.translate_path( option.to_string() );
           if ( expanded_d != option.to_string() ) {
@@ -326,6 +327,8 @@ namespace psmrts {
         }
         else if ( feature.validate_file_suffix( option.to_string() ) ) {
           // Its a file.
+          // std::cout << "FileOption File: " << option.to_string() << std::endl;
+
           order.add_option( option );
           std::string expanded_f = translations.translate_path( option.to_string() );
           if ( option.to_string() != expanded_f ) {
@@ -338,6 +341,7 @@ namespace psmrts {
                               "Invalid filename/extension in option(" 
                               + option.name() + ") = " + option.to_string();
           order.add_error( std::runtime_error( mess ) );
+          order.add_residual( option );
         } 
         return;                                   
       }
@@ -360,10 +364,11 @@ namespace psmrts {
       inline void process_doubles( const ProductOption &option, 
                                   const ProductFeature &feature,
                                   ProductOrder &order ) const {
-        order.add_option( option );
         std::vector<double> d_values;
         psmrts::optvis::DoublesVisitor visitor_d = OptionDoublesExtractor( option ).create_visitor( d_values, option );
         option.visit( visitor_d );
+        bool is_all_valid = true;
+
         for ( size_t ndx = 0 ; ndx < d_values.size() ; ndx++ ) {
           if ( !visitor_d.isvalid( d_values[ndx] ) ) {
             std::string mess = "*** ProductSpecification::process_order() - "
@@ -374,7 +379,6 @@ namespace psmrts {
         }
         
         // Check for valid values if present in feature
-        bool is_all_valid = true;
         if ( feature.contains( "valid" ) ) {
           std::vector<double> valids_d = OptionDoublesExtractor( option, visitor_d.traits() ).get_all();
           for ( size_t opt_nth = 0  ; opt_nth < d_values.size() ; opt_nth++  ) {
@@ -396,6 +400,14 @@ namespace psmrts {
             }
           }
         }
+
+        if ( is_all_valid == true ) {
+          order.add_option( option );
+        }
+        else {
+          order.add_residual( option );
+        }
+      
         return;
       }
 
@@ -417,19 +429,27 @@ namespace psmrts {
                                     const ProductFeature &feature,
                                     ProductOrder &order ) const {   
         // Process these as strings for better error detection
-        order.add_option( option );
         std::vector<std::string> b_values;
         psmrts::optvis::StringsVisitor visitor_b = OptionStringsExtractor( option ).create_visitor( b_values, option );
         option.visit( visitor_b );
+        bool is_valid = true;
+
         for ( size_t ndx = 0 ; ndx < b_values.size() ; ndx++ ) {
           if ( !visitor_b.isvalid( b_values[ndx] ) ) {
             std::string mess = "*** ProductSpecification::process_order() - "
                               "Boolean value " + option.to_string( ndx )  + 
                               " in option(" + option.name() + ") is invalid!";
             order.add_error( std::runtime_error( mess ) );
+            is_valid = false;
           }
         } 
         
+        if ( is_valid == true ) {
+          order.add_option( option );
+        }
+        else {
+          order.add_residual( option );
+        }
         return;
       }
 
@@ -450,18 +470,27 @@ namespace psmrts {
       inline void process_integers( const ProductOption &option, 
                                     const ProductFeature &feature,
                                     ProductOrder &order ) const {     
-        order.add_option( option );
         std::vector<int> i_values;
         psmrts::optvis::IntegersVisitor visitor_i = OptionIntegersExtractor( option ).create_visitor( i_values, option );
         option.visit( visitor_i );
+        bool is_valid = true;
+      
         for ( size_t ndx = 0 ; ndx < i_values.size() ; ndx++ ) {
           if ( !visitor_i.isvalid( i_values[ndx] ) ) {
             std::string mess = "*** ProductSpecification::process_order() - "
                               "Integer value " + option.to_string( ndx )  + 
                               " in option(" + option.name() + ") is invalid!";
             order.add_error( std::runtime_error( mess ) );
+            is_valid = false;
           }
         }
+
+        if ( is_valid == true ) {
+          order.add_option( option );
+        }
+        else {
+          order.add_residual( option );
+        }        
       }
 
       /**
@@ -484,21 +513,22 @@ namespace psmrts {
       inline void process_strings( const ProductOption &option, 
                                    const ProductFeature &feature,
                                    ProductOrder &order ) const { 
-        order.add_option( option );
         std::vector<std::string> s_values;
         psmrts::optvis::StringsVisitor visitor_s = OptionStringsExtractor( option ).create_visitor( s_values, option );
         option.visit( visitor_s );
+        bool is_all_valid = true;
+
         for ( size_t ndx = 0 ; ndx < s_values.size() ; ndx++ ) {
           if ( !visitor_s.isvalid( s_values[ndx] ) ) {
             std::string mess = "*** ProductSpecification::process_order() - "
                               "String value " + option.to_string( ndx )  + 
                               " in option(" + option.name() + ") is invalid!";
             order.add_error( std::runtime_error( mess ) );
+            is_all_valid = false;
           }
         }
         
         // Check for valid values if present in feature
-        bool is_all_valid = true;
         if ( feature.contains( "valid" ) ) {
           std::vector<std::string> valids_s = OptionStringsExtractor( option, visitor_s.traits() ).get_all();
           for ( size_t opt_nth = 0  ; opt_nth < s_values.size() ; opt_nth++  ) {
@@ -520,6 +550,13 @@ namespace psmrts {
             }
           }
         }        
+
+        if ( is_all_valid == true ) {
+          order.add_option( option );
+        }
+        else {
+          order.add_residual( option );
+        }          
       }      
   };
 

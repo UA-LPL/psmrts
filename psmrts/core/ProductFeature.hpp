@@ -356,7 +356,6 @@ namespace psmrts {
         for ( const FeatureOption &opt : options ) {
           if ( opt.name() == "name" ) {
             name_t = opt.to_string();
-            // std::cout << "FeatureOptionList::create::name_T: " << name_t << std::endl;
             break;
           }
         }
