@@ -20,6 +20,7 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/ProductOption.hpp>
 #include <psmrts/core/ProductFeature.hpp>
+#include <psmrts/core/PsmrtsTranslations.hpp>
 #include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
 #include <psmrts/algorithms/TracingBasics.hpp>
@@ -38,18 +39,22 @@ namespace psmrts  {
 
       NaifDskTracer( ) : PsmrtsProduct( "naifdsktracer", "tracer" ), 
                          m_model() {
-        m_configured = init_naifdsk( "naifdsk" );
+        m_config = init_naifdsk( "naifdsk" );
       }
       NaifDskTracer( const naif::DskKernelModel &dsktracer ) : 
                      PsmrtsProduct( dsktracer.shapefile(), "tracer" ),
                      m_model( dsktracer ) { 
-        m_configured = init_naifdsk( dsktracer, dsktracer.shapefile() );
+        m_config = init_naifdsk( dsktracer, dsktracer.shapefile() );
       }
       NaifDskTracer( const std::string &dsk ) : 
                      PsmrtsProduct( dsk, "tracer" ),
-                     m_model( dsk ) { 
-                      //m_configured = init_naifdsk( m_model, m_model.shapefile() );
-                      }
+                     m_model( dsk ) {
+        m_config = init_naifdsk( m_model, dsk );
+      }
+      NaifDskTracer( const ProductConfiguration &config,
+                    const PsmrtsTranslations &trans = PsmrtsTranslations::create() ){
+
+      }        
       virtual ~NaifDskTracer() { }
 
       /**
@@ -253,7 +258,7 @@ namespace psmrts  {
       
       
       inline const ProductConfiguration &config() const {
-        return ( m_configured );
+        return ( m_config );
       }
       
       inline bool matches( const ProductConfiguration &conf ) const {
@@ -262,7 +267,7 @@ namespace psmrts  {
 
     private:
       naif::DskKernelModel m_model;
-      ProductConfiguration m_configured;
+      ProductConfiguration m_config;
 
       inline ProductConfiguration init_naifdsk( const std::string &source ) {
         auto config = ProductConfiguration( source, { ProductOption( "tracer", "naifdsk" ),

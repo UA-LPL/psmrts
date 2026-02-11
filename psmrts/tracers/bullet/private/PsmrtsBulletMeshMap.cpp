@@ -31,6 +31,12 @@ namespace psmrts::bullet {
                                             const int mesh_id,
                                             const int partno ) {
     
+    if ( !mesh.isValid() || ( mesh.nvectors() == 0 ) ) {
+      std::string mess = "PsmrtsBulletMeshMap mesh " + name + 
+                         " contains no data or is invalid";
+      throw std::runtime_error( mess );          
+    }
+
     this->init_mesh_map( name, mesh_id, partno );
 
     if ( true == mesh.isVectorDouble() ) {

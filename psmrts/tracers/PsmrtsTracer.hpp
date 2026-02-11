@@ -76,37 +76,37 @@ namespace psmrts {
                                                       NaifDskTracer> {
     public:
       using Tracer   = ProductProcessDispatch::ProductType;
-      using Variants = Tracer;
+      using Variants = Tracer;  // Standardization for ProductMaker
       using UIDType = PsmrtsUID::UIDType;
 
       PsmrtsTracer( ) : ProductProcessDispatch ( ProductVoidVariant( "void" ) ) {  }
       PsmrtsTracer( const std::string &name ) : 
                     ProductProcessDispatch ( ProductVoidVariant( name ) ) {  }
-      PsmrtsTracer( const Tracer &tracer,
-                    const std::string &name = "tracer" ) : 
-                    ProductProcessDispatch( tracer ) {  }
+      PsmrtsTracer( const Tracer &tracer ) : ProductProcessDispatch( tracer ) {  }
       virtual ~PsmrtsTracer() { }
 
-      inline static PsmrtsTracer sphere( const double radius_km, const std::string &name="sphere" ) {
-        Eigen::Vector3d radii( { radius_km, radius_km, radius_km } );
-        return ( PsmrtsTracer( EllipsoidTracer( radii, name ), name ) );
+      inline static PsmrtsTracer sphere( const double radius_km, 
+                                         const std::string &name="sphere" ) {
+        return ( PsmrtsTracer( EllipsoidTracer( radius_km, name ) ) );
       }
 
-      inline static PsmrtsTracer spheroid( const double a_km, const double c_km, 
-                                                const std::string &name="spheroid" ) {
-        Eigen::Vector3d radii( { a_km, a_km, c_km} ); // testing
-        return ( PsmrtsTracer( EllipsoidTracer( radii, name ), name ) );
+      inline static PsmrtsTracer spheroid( const double a_km, 
+                                           const double c_km, 
+                                           const std::string &name="spheroid" ) {
+        return ( PsmrtsTracer( EllipsoidTracer( a_km, c_km, name ) ) );
       }
 
-      inline static PsmrtsTracer ellipsoid( const double a_km,  const double b_km, const double c_km, 
-                                                const std::string &name="ellipsoid" ) {
+      inline static PsmrtsTracer ellipsoid( const double a_km,
+                                            const double b_km,
+                                            const double c_km, 
+                                            const std::string &name="ellipsoid" ) {
         Eigen::Vector3d radii( { a_km, b_km, c_km } );
-        return ( PsmrtsTracer( EllipsoidTracer( radii, name ), name ) ); 
+        return ( PsmrtsTracer( EllipsoidTracer( radii, name ) ) ); 
       }
 
       inline static PsmrtsTracer ellipsoid( const Eigen::Vector3d radii, 
-                                                const std::string &name="ellipsoid" ) {
-        return ( PsmrtsTracer( EllipsoidTracer( radii, name ), name ) ); 
+                                            const std::string &name="ellipsoid" ) {
+        return ( PsmrtsTracer( EllipsoidTracer( radii, name ) ) ); 
       }
 
       inline static PsmrtsTracer bullet( const std::string &meshfile ) {
@@ -114,7 +114,7 @@ namespace psmrts {
       }
 
       inline static PsmrtsTracer naifdsk( const std::string &dskfile ) {
-        return ( PsmrtsTracer( NaifDskTracer( dskfile ), dskfile ) ); 
+        return ( PsmrtsTracer( NaifDskTracer( dskfile ) ) ); 
       }
 
       inline bool isValid() const {

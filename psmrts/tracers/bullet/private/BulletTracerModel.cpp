@@ -27,8 +27,11 @@ namespace psmrts::bullet {
       BulletTracerModel::BulletTracerModel( const PsmrtsBulletWorldModel &bt_model ) :
                                             m_bullet_model( bt_model ) {  }
       BulletTracerModel::BulletTracerModel(const PsmrtsMeshData &mesh, 
-                                           const std::string &name ) :
-                                           m_bullet_model(PsmrtsBulletMeshMap( mesh, name, 0), name ) { 
+                                           const std::string &name,
+                                           const bool useCompression,
+                                           const bool buildBvh ) :
+                                           m_bullet_model(PsmrtsBulletMeshMap( mesh, name, 0), name,
+                                                                              useCompression, buildBvh ) { 
       }
 
       /** Returns name of tracer model, ie. bullet */
@@ -83,8 +86,8 @@ namespace psmrts::bullet {
        * @return false   If no ray trace intercept was found
        */
       bool BulletTracerModel::ray_trace( const Eigen::Vector3d &observer,
-                              const Eigen::Vector3d &lookdir,
-                              PsmrtsRayTrace &ray ) const {
+                                         const Eigen::Vector3d &lookdir,
+                                         PsmrtsRayTrace &ray ) const {
         // this->local_tracker()++;
         return ( this->ray_trace( ray.reset( observer, lookdir ) ) );
       }
@@ -103,7 +106,8 @@ namespace psmrts::bullet {
        * @return false 
        */
       bool BulletTracerModel::get_facet( const PsmrtsRayTrace &ray,
-                             PsmrtsRayTrace::FacetDatum &facet ) const {
+                                         PsmrtsRayTrace::FacetDatum &facet ) 
+                                         const {
 
        // Sanity check validity of raytrace
         facet.m_has_facet = false;

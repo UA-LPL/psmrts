@@ -572,9 +572,9 @@ TEST_CASE( "Bullet Tracer Product Specification Test", "[bullet][tracer][product
 
     CHECK( spec.name()              == "bullet"      );
     CHECK( spec.product()           == "tracer" ); 
-    CHECK( spec.size()              == 3 );
-    CHECK( spec.features().size()   == 3 );
-    CHECK( spec.required().size()   == 0 );
+    CHECK( spec.size()              == 4 );
+    CHECK( spec.features().size()   == 4 );
+    CHECK( spec.required().size()   == 1 );
     CHECK( spec.optional().size()   == 3 );
 
     CHECK( spec.contains( "obj_mtl_search_path" )  == false );

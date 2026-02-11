@@ -54,40 +54,33 @@ namespace psmrts  {
       using ProductInfo     = ProductSpecification::ProductInfo;
       using ProductFeatures = ProductSpecification::ProductFeatures;
 
-      EllipsoidTracer( ) : PsmrtsProduct( "ellipsoid", "tracer" ), 
-                           m_model_type( "sphere" ),
+      EllipsoidTracer( ) : PsmrtsProduct( "default", "ellipsoid" ), 
                            m_radii{ 1.0, 1.0, 1.0 },
-                           m_config( init_config( "sphere", { 1.0 }, "sphere" ) ) { }
+                           m_config( init_config( "default", { 1.0 }, "sphere" ) ) { }
       EllipsoidTracer( const double radius,
-                       const std::string &model = "sphere") :
-                       PsmrtsProduct( "ellipsoid", "tracer" ),
-                       m_model_type( model ),
+                       const std::string &name = "sphere") :
+                       PsmrtsProduct( name, "sphere" ),
                        m_radii{ radius, radius, radius },
-                       m_config( init_config( model, { radius}, "sphere" ) ) { }
+                       m_config( init_config( name, { radius}, "sphere" ) ) { }
       EllipsoidTracer( const double a, const double c,
-                       const std::string &model = "spheroid") :
-                       PsmrtsProduct( "ellipsoid", "tracer" ), 
-                       m_model_type( model ),
+                       const std::string &name = "spheroid") :
+                       PsmrtsProduct( name, "spheroid" ), 
                        m_radii{ a, a, c },
-                       m_config( init_config( model, { a, c}, "spheroid" )  ) { }     
+                       m_config( init_config( name, { a, c}, "spheroid" )  ) { }     
       EllipsoidTracer( const double a, const double b, const double c,
-                       const std::string &model = "ellipsoid") :
-                       PsmrtsProduct( "ellipsoid", "tracer" ),
-                       m_model_type( model ),
+                       const std::string &name = "ellipsoid") :
+                       PsmrtsProduct( name, "ellipsoid" ),
                        m_radii{ a, b, c },
-                       m_config( init_config( model, { a, b, c}, "ellipsoid" ) )  { }     
+                       m_config( init_config( name, { a, b, c}, "ellipsoid" ) )  { }     
       EllipsoidTracer( const Eigen::Vector3d &radii,
-                       const std::string &model = "ellipsoid" ) : 
-                       PsmrtsProduct("ellipsoid", "tracer" ),
-                       m_model_type( model ),
+                       const std::string &name = "ellipsoid" ) : 
+                       PsmrtsProduct( name, "ellipsoid" ),
                        m_radii{ radii[0], radii[1],radii[2] },
-                       m_config( init_config( model, { radii[0], radii[1], radii[2] }, "ellipsoid" ) ) { }
-      // EllipsoidTracer( const ProductConfiguration &config_p ) :
-      //                  PsmrtsProduct( "none", "tracer" ), 
-      //                  m_radii{0, 0, 0} { 
-      //  init_config( config_p );
-      // }                         
-        
+                       m_config( init_config( name, { radii[0], radii[1], radii[2] }, "ellipsoid" ) ) { }
+      EllipsoidTracer( const ProductConfiguration &config,
+                       const PsmrtsTranslations &trans = PsmrtsTranslations::create() ){
+        this->create( config, trans );
+      }                         
       virtual ~EllipsoidTracer() = default;
  
 
@@ -295,9 +288,15 @@ namespace psmrts  {
                                  ProductOption( "description", "Radius values of the object: 1, 2 or 3 double values"),
                                  ProductOption( "status", "required"),
                                  ProductOption( "aliases", "radius" ) } );
+        ProductFeature model( "name", {
+                                 ProductOption( "name", "name"),
+                                 ProductOption( "type", "string"),
+                                 ProductOption( "description", "Name of the ellipsoid model"),
+                                 ProductOption( "status", "optional"),
+                                 ProductOption( "aliases", "model" ) } );                                 
 
         // This validates the JSON structure and provides product info to callers
-        return ( ProductSpecification( info, { product, radii } ) );
+        return ( ProductSpecification( info, { product, radii, model } ) );
       }
 
       inline const ProductConfiguration &config() const {
@@ -308,11 +307,13 @@ namespace psmrts  {
         return ( this->config().matches( conf ) );
       }
 
+      void create( const ProductConfiguration &config,
+                   const PsmrtsTranslations &tran );
+
       /** Report all remaining features not available */
       PSMRTS_PROCESS_CATCHALL( "EllipsoidTracer" )
 
     private:
-      std::string          m_model_type;
       double               m_radii[3];
       ProductConfiguration m_config;
 
@@ -320,11 +321,10 @@ namespace psmrts  {
                                                const std::initializer_list<double> radii,
                                                const std::string &model = "ellipsoid"  ) {
 
-        m_model_type = model;                                                
         ProductConfiguration config( "ellipsoid" );
         config.add( ProductOption( "tracer", model ) );
-        config.add( ProductOption( "radii", radii ) );
-        config.add_metadata( ProductOption( "name", name) );
+        config.add( ProductOption( "radii",  radii ) );
+        config.add( ProductOption( "name",   name ) );
 
         return ( config );
       }

@@ -56,5 +56,74 @@ namespace psmrts  {
     return;
   }
 
+  void EllipsoidTracer::create( const ProductConfiguration &config,
+                                const PsmrtsTranslations &trans  ) {
+
+      // Check for valid shape type
+      ProductOrder order = this->product_specifications().process_order( config, trans );
+      if ( order.error_count() > 0 ) {
+        std::string mess = "EllipsoidTracer::create(" + config.name() + 
+                          ") has config/spec processing errors: \n" +
+                            order.errors_to_string();
+        throw std::runtime_error( mess );          
+      }
+
+      if ( !order.isvalid() ) {
+        std::string mess = "EllipsoidTracer::create(" + config.name() + 
+                          ") is invalid with " + 
+                          std::to_string( order.config().size() ) +
+                          " config options and " +
+                          std::to_string( order.residual().size() ) +
+                          " residual options";
+        throw std::runtime_error( mess );          
+      }
+
+      ProductConfiguration v_conf = order.config();
+      std::string model = "ellipsoid";
+
+      if ( v_conf.contains( "tracer" ) ) {
+        model = v_conf.find( "tracer" ).to_string();
+        std::vector<std::string> valid_s = { "ellipsoid", "spheroid", "sphere" };
+        if ( std::find( valid_s.begin(), valid_s.end(), model) == valid_s.end() ) {
+          std::string mess = "EllipsoidTracer::create() - tracer must be "
+                             "\"ellipsoid\", \"spheroid\" or \"sphere\" "
+                              " but found " + model;
+          throw std::runtime_error( mess );
+        }
+      }
+
+      std::vector<double> radii = OptionDoublesExtractor( v_conf.find( "radii" ) ).get_all();
+      if ( ( radii.size() < 1 ) || (radii.size() > 3 ) ) {
+        std::string mess = "EllipsoidTracer::create() - radii must have 1, 2 or 3 values"
+                           " but got " + std::to_string( radii.size() );
+        throw std::runtime_error( mess );
+      }
+
+      std::string name = model;
+      if ( v_conf.contains( "name" ) ) {
+        name = v_conf.find( "name" ).to_string();
+      }
+
+      if ( radii.size() == 1 ) {
+        m_radii[0]  = radii[0];
+        m_radii[1]  = radii[0];
+        m_radii[2]  = radii[0];
+        m_config = init_config( name, { radii[0] }, model );
+      }
+      else if ( radii.size() == 2 ) {
+        m_radii[0]  = radii[0];
+        m_radii[1]  = radii[0];
+        m_radii[2]  = radii[1];
+        m_config = init_config( name, { radii[0], radii[1] }, model);
+      }
+      else {
+        m_radii[0]  = radii[0];
+        m_radii[1]  = radii[1];
+        m_radii[2]  = radii[2];
+        m_config = init_config( name, { radii[0], radii[1], radii[2] }, model);
+      }        
+
+    }
+
 } // namespace psmrts
 

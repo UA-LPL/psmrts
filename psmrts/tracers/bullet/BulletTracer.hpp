@@ -21,6 +21,9 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/ProductFeature.hpp>
 #include <psmrts/shapes/PsmrtsShape.hpp>
+#include <psmrts/core/PsmrtsTranslations.hpp>
+#include <psmrts/core/ProductConfiguration.hpp>
+#include <psmrts/core/ProductSpecification.hpp>
 #include <psmrts/algorithms/TracingBasics.hpp>
 
 namespace psmrts  {
@@ -38,6 +41,8 @@ namespace psmrts  {
 
       BulletTracer( );
       BulletTracer( const PsmrtsShape &shape );
+      BulletTracer( const ProductConfiguration &config,
+                    const PsmrtsTranslations &trans = PsmrtsTranslations::create() );      
       virtual ~BulletTracer();
 
       double maximum_radius() const;
@@ -202,24 +207,35 @@ namespace psmrts  {
                                  ProductOption( "description", "Describe the product type" ),
                                  ProductOption( "status", "optional" ),
                                  ProductOption( "default", "bullet" ),
-                                 ProductOption( "valid", "bullet" ) } );                                 
+                                 ProductOption( "valid", "bullet" ) } );
+        // Not the most ideal way to require a supported shape file format.
+        ProductFeature shapefile( "shapefile", {
+                                 ProductOption( "name", "shapefile" ),
+                                 ProductOption( "type", "file" ),
+                                 ProductOption( "status", "required" ),
+                                 ProductOption( "description", "Bullet requires a file/mesh shape" ),
+                                 ProductOption( "aliases", { "file", "filename", 
+                                                             "obj_file", "obj_mesh", "obj_string",
+                                                             "ply_file", "ply_mesh", 
+                                                             "dsk_file", "dsk_mesh", 
+                                                             "mesh_file", "source" } ) } );
         ProductFeature bvh( "bullet_optimize_bvh", {
                                  FeatureOption( "name", "bullet_optimize_bvh" ),
                                  FeatureOption( "type", "bool" ),
                                  FeatureOption( "description", "Use optimized bounding volume hierachy (BVH) when created" ),
                                  FeatureOption( "status", "optional" ),
-                                 FeatureOption( "default", "false" ),
-                                 FeatureOption( "valid", {"true", "1", "yes", "false", "0", "no"} ) } );
+                                 FeatureOption( "default", "true" ),
+                                 FeatureOption( "valid", { "true", "1", "yes", "false", "0", "no" } ) } );
         ProductFeature cmp( "bullet_compressed", {
                                  FeatureOption( "name", "bullet_compressed" ),
                                  FeatureOption( "type", "bool" ),
                                  FeatureOption( "description", "Compress Bullet data during construction" ),
                                  FeatureOption( "status", "optional" ),
-                                 FeatureOption( "default", "false" ),
-                                 FeatureOption( "valid", {"true", "1", "yes", "false", "0", "no"} ) } );
+                                 FeatureOption( "default", "true" ),
+                                 FeatureOption( "valid", { "true", "1", "yes", "false", "0", "no" } ) } );
 
         // This validates the JSON structure and provides product info to callers
-        return ( ProductSpecification( info, { product, bvh, cmp } ) );
+        return ( ProductSpecification( info, { product, shapefile, bvh, cmp } ) );
       }
 
       /** Return reference to PsmrtsShape used in this instance */
@@ -227,7 +243,7 @@ namespace psmrts  {
 
       /** Return the current product configuration */
       inline const ProductConfiguration &config() const {
-        return ( m_configured );
+        return ( m_config );
       }
 
       inline bool matches( const ProductConfiguration &conf ) const {
@@ -238,15 +254,18 @@ namespace psmrts  {
         return ( false );
       }
 
-
-      /** Report all remaining features not available - e.g., PRQFacet not relevant to Ellipsoid format */
+      void create( const ProductConfiguration &config,
+                   const PsmrtsTranslations &trans );
+                      
+                      
+      /** Catcha nd report errors on all remaining processes not available */
       PSMRTS_PROCESS_CATCHALL( "BulletTracer" )
 
 
     private:
       class BulletTracerImpl;
       std::shared_ptr<BulletTracerImpl> m_model;
-      ProductConfiguration              m_configured;
+      ProductConfiguration              m_config;
   };
 
 } // namespace psmrts

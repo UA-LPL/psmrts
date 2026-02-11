@@ -457,9 +457,9 @@ TEST_CASE( "Ellipsoid Shape Tracer Product Specification Test", "[ellipsoid][sha
     psmrts::ProductSpecification spec = psmrts::EllipsoidTracer::product_specifications();
     CHECK( spec.name()              == "ellipsoid"   );
     CHECK( spec.product()           == "tracer"      ); 
-    CHECK( spec.features().size()   == 2             );
+    CHECK( spec.features().size()   == 3             );
     CHECK( spec.required().size()   == 1             );
-    CHECK( spec.optional().size()   == 1             );
+    CHECK( spec.optional().size()   == 2             );
 
     CHECK( spec.contains( "obj_mtl_search_path" ) == false );
     CHECK( spec.contains( "radii" )               == true  );
