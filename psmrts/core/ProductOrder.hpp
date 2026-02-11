@@ -52,7 +52,9 @@ namespace psmrts {
       virtual ~ProductOrder() { }
 
       inline bool isvalid() const {
-        return ( ( m_config.size() != 0 ) && ( m_residual.size() == 0 ) );
+        return ( ( m_config.size() != 0 ) && 
+                 ( m_residual.size() == 0 ) && 
+                 ( this->error_count() == 0) );
       }
 
       inline const ProductConfiguration &config() const {

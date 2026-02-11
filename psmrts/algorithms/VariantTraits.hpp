@@ -21,7 +21,7 @@ namespace psmrts::algorithm::variants {
    * 
    * See PsmrtsTracer and PsmrtsShape for usage.
    * 
-   * Sources are credited as shown.
+   * Sources are credited as shown as applicable.
    */
 
     // Source - https://stackoverflow.com/a/57642181

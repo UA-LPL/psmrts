@@ -164,6 +164,22 @@ namespace psmrts {
         return ( "" );        
       }
 
+      inline std::string find_feature_option_name( const ProductFeature &feature,
+                                                   const ProductConfiguration &config ) 
+                                                   const {
+
+        // Check for feature name before checking aliases
+        if ( config.contains ( feature.name() ) ) return ( feature.name() );
+
+        // Search for feature aliases in config
+        for ( const auto &alias : feature.aliases() ) {
+          if ( config.contains( alias ) ) return ( alias );
+        }
+
+        // Not feature option not in config
+        return ( "" );        
+      }
+
       /**
        * @brief Process/compare a product configuration with a feature specification
        * 
@@ -227,6 +243,7 @@ namespace psmrts {
           }
           else {
             // This may or may not be an error so callers must check conditions
+            // std::cout << "SpecResidual: " << option.name() << std::endl;
             order.add_residual( option );
           }
         }
@@ -282,33 +299,31 @@ namespace psmrts {
        */
       inline bool contains( const std::string &s,
                             const std::vector<std::string> &v ) const {
-        for ( const auto &test_s : v ) {
-          if ( test_s == s ) return ( true );
-        }
+        if ( std::find( v.begin(), v.end(), s) != v.end() ) return ( true );
         return ( false );
       }
 
-        /**
-         * @brief Process a file FeatureOption config option
-         * 
-         * This method compares a product configuration option with a product
-         * specification related to a file. It will extract and compare the file
-         * extension, translate any environment/paramterization variables and
-         * add to the product order the results. 
-         * 
-         * Errors encountered are recorded in the product order object and
-         * indicates a failure of config option compatability with the feature
-         * spec.
-         * 
-         * @param option   Configuration option that ultimately originates from
-         *                  the user.
-         * @param feature  Feature specification that it compares to the user
-         *                  config.
-         * @param translations Environment/parameters used to translation
-         *                      occurances of path elements that begin with a "$".
-         * @param order    Product order that accumulates validation of the
-         *                  options with the feature specs.
-         */
+      /**
+       * @brief Process a file FeatureOption config option
+       * 
+       * This method compares a product configuration option with a product
+       * specification related to a file. It will extract and compare the file
+       * extension, translate any environment/paramterization variables and
+       * add to the product order the results. 
+       * 
+       * Errors encountered are recorded in the product order object and
+       * indicates a failure of config option compatability with the feature
+       * spec.
+       * 
+       * @param option   Configuration option that ultimately originates from
+       *                  the user.
+       * @param feature  Feature specification that it compares to the user
+       *                  config.
+       * @param translations Environment/parameters used to translation
+       *                      occurances of path elements that begin with a "$".
+       * @param order    Product order that accumulates validation of the
+       *                  options with the feature specs.
+       */
       inline void process_file( const ProductOption &option, 
                                 const ProductFeature &feature,
                                 const PsmrtsTranslations &translations,

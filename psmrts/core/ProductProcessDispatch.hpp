@@ -42,6 +42,14 @@ namespace psmrts {
           return ( std::visit( get_product_name, m_product ) );
         }
 
+        /** Returns the type of the product */
+        inline const std::string &type() const {
+          auto get_product_type = []( auto &product ) -> const std::string& {
+            return ( product.type() );
+          };
+          return ( std::visit( get_product_type, m_product ) );
+        }
+
         /** Return the product id for the variant */
         inline const PsmrtsUID::UIDType &uid() const {
           auto get_product_uid = []( auto &product ) -> const PsmrtsUID::UIDType& {

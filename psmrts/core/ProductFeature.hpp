@@ -338,8 +338,11 @@ namespace psmrts {
 
       /** Confirm the filename has the appropriate suffix for this feature */
       inline bool validate_file_suffix( const std::string &filename ) const {
+        std::vector<std::string> sfx_v = this->file_suffixes();
+        if ( sfx_v.size() == 0 ) return ( true );
+
         std::string suffix_f = psmrts_file_extension( filename );
-        for ( const std::string &sfx : this->file_suffixes() ) {
+        for ( const std::string &sfx : sfx_v ) {
           if ( sfx == suffix_f ) return ( true );
         }
         return ( false );

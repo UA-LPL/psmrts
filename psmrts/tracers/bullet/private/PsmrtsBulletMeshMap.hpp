@@ -96,12 +96,12 @@ namespace psmrts::bullet {
 
       /** [Static?] Create a specialized BVH static triangle mesh for ray tracing */
       static btBvhTriangleMeshShape *create_collision_shape( btTriangleIndexVertexArray *mesh,
-                                                                    const bool useCompression = true,
-                                                                    const bool buildBvh = true );
+                                                             const bool useCompression = true,
+                                                             const bool buildBvh = true );
 
       /** Creates a triangle mesh based on internal mesh data */
       btBvhTriangleMeshShape *create_collision_shape( const bool useCompression = true,
-                                                              const bool buildBvh = true ) const;
+                                                      const bool buildBvh = true ) const;
 
       using PsmrtsMeshData::elapsed_life_time_s;
       using PsmrtsMeshData::track_count;

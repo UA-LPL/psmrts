@@ -20,6 +20,7 @@ find files of those names at the top level of this repository. **/
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
+#include <psmrts/core/PsmrtsTranslations.hpp>
 #include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
 
@@ -34,18 +35,35 @@ namespace psmrts {
   class ProductVoidVariant : public MissingProcessRequestHandler {
     public:
       ProductVoidVariant() : MissingProcessRequestHandler( "void" ),
+                             m_type( "variant" ),
                              m_config( "void" ),
                              m_specs( "void", "variant" ) { }
       ProductVoidVariant( const std::string &name ):
-                          MissingProcessRequestHandler( name ),
+                          MissingProcessRequestHandler( "void" ),
+                          m_type( "variant" ),
                           m_config( name ),
                           m_specs( name, "variant" ) { }
-      ProductVoidVariant( const ProductConfiguration &config ) :
-                          MissingProcessRequestHandler( config.name() ),
+      ProductVoidVariant( const ProductConfiguration &config,
+                          const PsmrtsTranslations &trans = PsmrtsTranslations() ) :
+                          MissingProcessRequestHandler( "void" ),
+                          m_type( "variant" ),
                           m_config( config ),
-                          m_specs( config.name(), "variant" ) { }
+                          m_specs( config.name(), "variant" ) {
+        this->create( config, trans );
+      }
       virtual ~ProductVoidVariant() = default;
       
+      using MissingProcessRequestHandler::name;    
+
+      inline const std::string &type() const {
+        return ( m_type );
+      }
+
+      /** Returns a null (invalid) product ID */
+      inline const PsmrtsUID::UIDType &uid() const {
+        return ( PsmrtsUID::null_uid() );
+      }
+
       inline ProductSpecification product_specifications() const {
         return ( m_specs );
       }
@@ -65,8 +83,7 @@ namespace psmrts {
 
       
     private:
-      std::string m_name;
-      std::string m_type;
+      std::string          m_type;
       ProductConfiguration m_config;
       ProductSpecification m_specs;
   };

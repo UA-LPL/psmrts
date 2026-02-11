@@ -122,7 +122,7 @@ namespace psmrts {
         return;
       }
       
-      inline void merge( const ProductConfiguration &other ) {
+      inline ProductConfiguration &merge( const ProductConfiguration &other ) {
         for ( const ProductOption &option_t : other.options() )  {
           m_options.replace( option_t );
         }
@@ -131,7 +131,7 @@ namespace psmrts {
           m_metadata.replace( meta_t );
         }
 
-        return;
+        return ( *this );
       }
 
       inline const ProductOption &find_option( const std::string &name ) const {       
