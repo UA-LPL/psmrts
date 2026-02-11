@@ -41,6 +41,7 @@ extern "C" {
 
 /*============ Type definitions ============*/
 enum PSMRTSTypes {
+  PSMRTS_PRODUCTCONFIGURATION,
   PSMRTS_STRING,
   PSMRTS_STRINGARRAY,
   PSMRTS_RAYTRACE,
@@ -101,6 +102,7 @@ typedef struct psmrts_facet {
 /*============ PSMRTS C API type definitions ============*/
 #if !defined( PSMRTS_POINTERS )
 #define PSMRTS_POINTERS 1
+typedef struct psmrts_product_configuration    PSMRTS_ProductConfiguration;
 typedef struct psmrts_string                   PSMRTS_String;
 typedef struct psmrts_string_array             PSMRTS_StringArray;
 typedef struct psmrts_raytrace                 PSMRTS_RayTrace;
@@ -209,7 +211,7 @@ PSMRTS_C_EXPORT double psmrts_photometric_phase( const PSMRTS_PhotometricRayTrac
 PSMRTS_C_EXPORT const PSMRTS_RayTrace *psmrts_photometric_observer_trace( const PSMRTS_PhotometricRayTrace *photoTrace );
 PSMRTS_C_EXPORT const PSMRTS_RayTrace *psmrts_photometric_sun_trace( const PSMRTS_PhotometricRayTrace *photoTrace);
 
-/*====== PSMRTS Photometric TraceArray functions ========*/ // to be tested
+/*====== PSMRTS Photometric TraceArray functions ========*/
 PSMRTS_C_EXPORT PSMRTS_PhotometricTraceArray *psmrts_create_photometric_trace_array();
 PSMRTS_C_EXPORT size_t psmrts_photometric_trace_array_size( const PSMRTS_PhotometricTraceArray *tracearray );
 PSMRTS_C_EXPORT size_t psmrts_photometric_trace_array_add_trace( PSMRTS_PhotometricTraceArray *tracearray,
@@ -259,9 +261,36 @@ PSMRTS_C_EXPORT PSMRTS_Shape *psmrts_create_ply_shape( const char *plyfile );
 PSMRTS_C_EXPORT double psmrts_mesh_surface_area( const PSMRTS_Shape *shape );
 PSMRTS_C_EXPORT double psmrts_mesh_volume( const PSMRTS_Shape *shape );
 
+/*============ PSMRTS_ProductConfiguration functions ================*/
+PSMRTS_C_EXPORT PSMRTS_ProductConfiguration *psmrts_create_product_config( const char *id );
+
+PSMRTS_C_EXPORT PSMRTS_BOOL
+    psmrts_product_config_contains( PSMRTS_ProductConfiguration *config, const char* text );
+
+PSMRTS_C_EXPORT void
+    psmrts_product_config_to_string( PSMRTS_ProductConfiguration *config, PSMRTS_String *pstr );
+
+PSMRTS_C_EXPORT void psmrts_add_config_options_string( PSMRTS_ProductConfiguration *config,
+                                                       const char *name,
+                                                       const char *text );
+PSMRTS_C_EXPORT void psmrts_add_config_options_bool( PSMRTS_ProductConfiguration *config,
+                                                     const char *name,
+                                                     const PSMRTS_BOOL b );
+PSMRTS_C_EXPORT void psmrts_add_config_options_int( PSMRTS_ProductConfiguration *config,
+                                                    const char *name,
+                                                    const int i );
+PSMRTS_C_EXPORT void psmrts_add_config_options_sizet( PSMRTS_ProductConfiguration *config,
+                                                      const char *name,
+                                                      const size_t szt );
+PSMRTS_C_EXPORT void psmrts_add_config_options_double( PSMRTS_ProductConfiguration *config,
+                                                       const char *name,
+                                                       const double d );
+PSMRTS_C_EXPORT void psmrts_add_config_options_double_vector( PSMRTS_ProductConfiguration *config,
+                                                              const char *name,
+                                                              const double *d_vector,
+                                                              const int count );
+
 /*============ PSMRTS memory free functions =============*/
-PSMRTS_C_EXPORT void psmrts_free_string( PSMRTS_String *pstring );
-PSMRTS_C_EXPORT void psmrts_free_string_array( PSMRTS_StringArray *stringarray );
 PSMRTS_C_EXPORT void psmrts_free_ray( PSMRTS_RayTrace *trace );
 PSMRTS_C_EXPORT void psmrts_free_shape( PSMRTS_Shape *shape );
 PSMRTS_C_EXPORT void psmrts_free_tracer( PSMRTS_Tracer *tracer );
@@ -269,6 +298,9 @@ PSMRTS_C_EXPORT void psmrts_free_priority_tracer( PSMRTS_PriorityTracer *ptracer
 PSMRTS_C_EXPORT void psmrts_free_photometric_ray( PSMRTS_PhotometricRayTrace *ptracer );
 PSMRTS_C_EXPORT void psmrts_free_trace_array( PSMRTS_TraceArray *tracearray );
 PSMRTS_C_EXPORT void psmrts_free_photometric_trace_array( PSMRTS_PhotometricTraceArray *ptracearray );
+PSMRTS_C_EXPORT void psmrts_free_product_config( PSMRTS_ProductConfiguration* config );
+PSMRTS_C_EXPORT void psmrts_free_string( PSMRTS_String *pstring );
+PSMRTS_C_EXPORT void psmrts_free_string_array( PSMRTS_StringArray *stringarray );
 
 #ifdef __cplusplus
 }

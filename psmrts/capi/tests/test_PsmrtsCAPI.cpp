@@ -97,6 +97,65 @@ TEST_CASE ( "PSMRTS C API - Version and Info", "[capi][c++][version][info]" ) {
 }
 
 /**
+ * @brief PSMRTS C API PSMRTS_ProductConfiguration functionality test.
+ *
+ * This test validates the following PSMRTS_ProductConfiguration methods:
+ *   
+ *   1) psmrts_create_product_config
+ *   2) psmrts_add_config_options_bool
+ *   3) psmrts_add_config_options_int
+ *   4) psmrts_add_config_options_sizet
+ *   5) psmrts_add_config_options_double
+ *   6) psmrts_product_config_contains
+ *   7) psmrts_product_config_to_string
+ *   8) psmrts_free_product_config
+ * 
+ */
+TEST_CASE ( "PSMRTS C API - Product Configuration", "[capi][config][options]" ) {
+
+  // create PSMRTS_ProductConfiguration
+  PSMRTS_ProductConfiguration *config = psmrts_create_product_config( "config" );
+
+  // add ProductOptions to config
+  psmrts_add_config_options_string( config, "string", "Casablanca" );
+  psmrts_add_config_options_bool( config, "bool", 1 );
+  psmrts_add_config_options_int( config, "int", -27 );
+  psmrts_add_config_options_sizet( config, "size_t", 27 );
+  psmrts_add_config_options_double( config, "double", 3.141593 );
+
+  double darray[] = {1.1, 2.2, 3.3};
+  psmrts_add_config_options_double_vector( config, "double vector", darray, 3 );
+
+  // verify all ProductOptions are in config
+  CHECK( psmrts_product_config_contains( config, "string" ) == true );
+  CHECK( psmrts_product_config_contains( config, "bool" )   == true );
+  CHECK( psmrts_product_config_contains( config, "int" )    == true );
+  CHECK( psmrts_product_config_contains( config, "size_t" ) == true );
+  CHECK( psmrts_product_config_contains( config, "double" ) == true );
+  CHECK( psmrts_product_config_contains( config, "double vector" ) == true );
+
+  // verify meta data for all ProductOptions added to config
+  PSMRTS_String *pstr1 = psmrts_create_string( "" );
+  psmrts_product_config_to_string( config, pstr1 );
+  CHECK( std::string( psmrts_string_content( pstr1 ) ) ==
+      "{\"string\":\"Casablanca\",\"bool\":1,\"int\":-27,\"size_t\":27,\"double\":3.141593,\"double vector\":[1.1,2.2,3.3]}" );
+
+  // replace an existing ProductOption
+  psmrts_add_config_options_int( config, "int", -270 );
+
+  // re-verify meta data for all ProductOptions added to config
+  PSMRTS_String *pstr2 = psmrts_create_string( "" );
+  psmrts_product_config_to_string( config, pstr2 );
+  CHECK( std::string( psmrts_string_content( pstr2 ) ) ==
+      "{\"string\":\"Casablanca\",\"bool\":1,\"int\":-270,\"size_t\":27,\"double\":3.141593,\"double vector\":[1.1,2.2,3.3]}" );
+
+  // free strings and product configuration memory
+  psmrts_free_string( pstr1 );
+  psmrts_free_string( pstr2 );
+  psmrts_free_product_config( config );
+}
+
+/**
  * @brief PSMRTS C API Default string functionality test.
  *
  * This test verifies the following PSMRTS_String methods:

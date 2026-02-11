@@ -12,12 +12,14 @@ find files of those names at the top level of this repository. **/
 
 /** @file psmrts_c.cpp */
 
+#include <iterator>
 #include <string>
 #include <deque>
 #include <Eigen/Geometry>
 
 #include <psmrts/core/psmrts_version.h>
 
+#include <psmrts/core/ProductConfiguration.hpp> 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsBufferData.hpp>
 #include <psmrts/core/PsmrtsBuffer.hpp>
@@ -31,6 +33,7 @@ find files of those names at the top level of this repository. **/
 /*============ PSMRTS C API type definitions ============*/
 /* Must be defined before including psmrts_c.h */
 #define PSMRTS_POINTERS 1
+using PSMRTS_ProductConfiguration  = psmrts::ProductConfiguration;
 using PSMRTS_String                = std::string;
 using PSMRTS_StringArray           = std::deque<PSMRTS_String>;
 using PSMRTS_RayTrace              = psmrts::PRQRayTrace;
@@ -1482,6 +1485,166 @@ extern double psmrts_mesh_volume( const PSMRTS_Shape *shape ) {
   return (shape->get_mesh().mesh_volume());
 }
 
+/**
+ * @brief psmrts_create_product_config - Creates PSMRTS_ProductConfiguration.
+ *
+ * This function creates a PSMRTS_ProductConfiguration from the given id.
+ *
+ * @param id const char*
+ * @return PSMRTS_ProductConfiguration*.
+ */
+PSMRTS_ProductConfiguration *psmrts_create_product_config( const char *id ) {  
+  return ( new PSMRTS_ProductConfiguration( psmrts::ProductConfiguration( id) ) );
+}
+
+/**
+ * @brief psmrts_product_config_to_string - Output PSMRTS_ProductConfiguration
+ *                                          meta data to string.
+ *
+ * Output PSMRTS_ProductConfiguration meta data to string.
+ * 
+ * Note: PSMRTS_String* must be allocated prior to call, and deleted when
+ *       no longer needed.
+ *
+ * @param config PSMRTS_ProductConfiguration*
+ * @param pstr PSMRTS_String*
+ * @return void.
+ */
+PSMRTS_C_EXPORT void psmrts_product_config_to_string( PSMRTS_ProductConfiguration *config,
+                                                      PSMRTS_String *pstr ) {
+  pstr->assign( config->to_json().dump() );  
+}
+
+/**
+ * @brief psmrts_product_config_contains - Check for an existing ProductOption in 
+ * the given PSMRTS_ProductConfiguration (not including metadata).
+ *
+ * Check for an existing ProductOption in the given PSMRTS_ProductConfiguration
+ * (not including metadata).
+ *
+ * @param config PSMRTS_ProductConfiguration*
+ * @param text const char*
+ * @return PSMRTS_BOOL.
+ */
+PSMRTS_BOOL psmrts_product_config_contains( PSMRTS_ProductConfiguration *config,
+                                            const char* text ) {
+  return config->contains( text );
+}
+
+/**
+ * @brief psmrts_add_config_options_string - Create ProductOptions from "name"
+ *   and "text" and adds it to the given PSMRTS_ProductConfiguration.
+ *
+ * Create ProductOptions from "name" and "text" and adds it to the given
+ * PSMRTS_ProductConfiguration.
+ *
+ * @param config PSMRTS_ProductConfiguration*
+ * @param name const char*.
+ * @param text const char*.
+ * @return void.
+ */
+void psmrts_add_config_options_string( PSMRTS_ProductConfiguration *config,
+                                       const char *name, const char *text ) {
+                                          
+  config->add( psmrts::ProductOption( name, text ) );
+}
+
+/**
+ * @brief psmrts_add_config_options_bool - Create ProductOptions from "name"
+ *   and "b" and adds it to the given PSMRTS_ProductConfiguration.
+ *
+ * Create ProductOptions from "name" and "b" and adds it to the given
+ * PSMRTS_ProductConfiguration.
+ *
+ * @param config PSMRTS_ProductConfiguration*
+ * @param name const char*.
+ * @param b const PSMRTS_BOOL.
+ * @return void.
+ */
+void psmrts_add_config_options_bool( PSMRTS_ProductConfiguration *config,
+                                     const char *name, const PSMRTS_BOOL b ) {
+                                          
+  config->add( psmrts::ProductOption( name, b ) );
+}
+
+/**
+ * @brief psmrts_add_config_options_int - Create ProductOptions from "name"
+ *   and "i" and adds it to the given PSMRTS_ProductConfiguration.
+ *
+ * Create ProductOptions from "name" and "i" and adds it to the given
+ * PSMRTS_ProductConfiguration.
+ *
+ * @param config PSMRTS_ProductConfiguration*
+ * @param name const char*.
+ * @param i const int.
+ * @return void.
+ */
+void psmrts_add_config_options_int( PSMRTS_ProductConfiguration *config,
+                                    const char *name, const int i ) {
+                                          
+  config->add( psmrts::ProductOption( name, i ) );
+}
+
+/**
+ * @brief psmrts_add_config_options_sizet - Create ProductOptions from "name"
+ *   and "szt" and adds it to the given PSMRTS_ProductConfiguration.
+ *
+ * Create ProductOptions from "name" and "szt" and adds it to the given
+ * PSMRTS_ProductConfiguration.
+ *
+ * @param config PSMRTS_ProductConfiguration*
+ * @param name const char*.
+ * @param szt const size_t.
+ * @return void.
+ */
+void psmrts_add_config_options_sizet( PSMRTS_ProductConfiguration *config,
+                                            const char *name, const size_t szt ) {
+                                          
+  config->add( psmrts::ProductOption( name, szt ) );
+}
+
+/**
+ * @brief psmrts_add_config_options_bool - Create ProductOptions from "name"
+ *   and "d" and adds it to the given PSMRTS_ProductConfiguration.
+ *
+ * Create ProductOptions from "name" and "d" and adds it to the given
+ * PSMRTS_ProductConfiguration.
+ *
+ * @param config PSMRTS_ProductConfiguration*
+ * @param name const char*.
+ * @param d const double.
+ * @return void.
+ */
+void psmrts_add_config_options_double( PSMRTS_ProductConfiguration *config,
+                                       const char *name, const double d ) {
+                                          
+  config->add( psmrts::ProductOption( name, d ) );
+}
+
+/**
+ * @brief psmrts_add_config_options_double_vector - Create ProductOptions from "name"
+ *   and a vector of "count" doubles "d" and adds it to the given
+ *   PSMRTS_ProductConfiguration.
+ *
+ * Create ProductOptions from "name" and a vector of "count" doubles "d" and adds it
+ * to the given PSMRTS_ProductConfiguration.
+ *
+ * @param config PSMRTS_ProductConfiguration*
+ * @param name const char*.
+ * @param d_vector const double.
+ * @param count const int. 
+ * @return void.
+ */
+void psmrts_add_config_options_double_vector( PSMRTS_ProductConfiguration *config,
+                                              const char *name,
+                                              const double *d_vector,
+                                              const int count ) {
+
+  std::vector<double> cpp_vector(count);
+  std::copy_n(d_vector, count, cpp_vector.begin());
+                                                                                          
+  config->add( psmrts::ProductOption( name, cpp_vector ) );
+}
 
 /**
  * @brief psmrts_tracer_valid - Validates PSMRTS_Tracer.
@@ -1494,6 +1657,20 @@ extern double psmrts_mesh_volume( const PSMRTS_Shape *shape ) {
 PSMRTS_BOOL psmrts_tracer_valid( const PSMRTS_Tracer *tracer ) {
   return ( evaluate( 0 != tracer ) );
 }
+
+/**
+ * @brief psmrts_free_product_config - Frees memory allocated to input
+ *                                     PSMRTS_ProductConfiguration pointer.
+ *
+ * This function frees memory allocated to the input PSMRTS_ProductConfiguration pointer.
+ *
+ * @param s Pointer to PSMRTS_ProductConfiguration.
+ * @return void
+ */
+PSMRTS_C_EXPORT void psmrts_free_product_config( PSMRTS_ProductConfiguration* config ) {
+  delete config;
+}
+
 
 /**
  * @brief psmrts_free_string - Frees memory allocated to input PSMRTS_RayTrace
