@@ -5,8 +5,7 @@ find_package( Catch2 CONFIG REQUIRED )
 
 # Build all-in-one renderer test application
 add_executable( ellipsoid_test_suite  ellipsoid_catch2_main.cpp
-                                      test_EllipsoidTracer.cpp
-                                      test_EllipsoidTracerModel.cpp )
+                                      test_EllipsoidTracer.cpp )
 
 
 # Add required libraries as needed for psmrts_test_suite
