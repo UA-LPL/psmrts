@@ -12,7 +12,6 @@ find files of those names at the top level of this repository. **/
 
 /** @file psmrts_c.cpp */
 
-#include <iterator>
 #include <string>
 #include <deque>
 #include <Eigen/Geometry>
