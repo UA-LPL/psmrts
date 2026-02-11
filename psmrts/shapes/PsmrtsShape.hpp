@@ -43,8 +43,8 @@ namespace psmrts {
                                                      PlyShape,
                                                      MeshShape> {
     public:
-      using Shape = ProductProcessDispatch::ProductType;
-      using Variants = Shape;
+      using Shape    = ProductProcessDispatch::ProductType;
+      using Variants = Shape;  // Standardization for ProductMaker
       using UIDType = PsmrtsUID::UIDType;
 
       PsmrtsShape( ) {  }

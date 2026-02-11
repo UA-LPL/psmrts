@@ -113,7 +113,7 @@ namespace psmrts  {
                                  ProductOption( "type", "file"),
                                  ProductOption( "description", "Name of OBJ file/string to read"),
                                  ProductOption( "status", "required"),
-                                 ProductOption( "aliases", {"file", "obj_mesh", "mesh_file"} ),
+                                 ProductOption( "aliases", {"file", "filename", "obj_mesh", "mesh_file", "shapefile"} ),
                                  ProductOption( "file_suffixes", { "obj", "OBJ" } ) } );
         ProductFeature ostr( "obj_string", {
                                  ProductOption( "name", "obj_string"),

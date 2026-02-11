@@ -70,7 +70,7 @@ namespace psmrts {
                                 ProductOption( "type", "file"),
                                 ProductOption( "description", "Name of PLY file to read"),
                                 ProductOption( "status", "required"),
-                                ProductOption( "aliases", { "file", "filename", "ply_mesh", "mesh_file" } ),
+                                ProductOption( "aliases", { "file", "filename", "ply_mesh", "mesh_file", "shapefile" } ),
                                 ProductOption( "file_suffixes", { "ply", "PLY" } ) } );
         ProductFeature dtype( "ply_data_type", {
                                 ProductOption( "name", "ply_data_type"),

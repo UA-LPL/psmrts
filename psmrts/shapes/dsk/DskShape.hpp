@@ -58,7 +58,7 @@ namespace psmrts {
                                  ProductOption( "type", "file"),
                                  ProductOption( "description", "Name of DSK file to read"),
                                  ProductOption( "status", "required"),
-                                 ProductOption( "aliases", {"file", "dsk_mesh", "mesh_file"} ),
+                                 ProductOption( "aliases", {"file", "filename", "dsk_mesh", "mesh_file", "shapefile" } ),
                                  ProductOption( "file_suffixes", { "bds", "BDS" } ) } );
         ProductFeature dtype( "dsk_data_type", {
                                  ProductOption( "name", "dsk_data_type"),

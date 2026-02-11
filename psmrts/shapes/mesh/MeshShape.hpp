@@ -73,7 +73,7 @@ namespace psmrts {
                                   ProductOption( "type", "string"),
                                   ProductOption( "description", "Name of mesh data" ),
                                   ProductOption( "status", "required"),
-                                  ProductOption( "aliases", { "mesh", "source" } ) } );
+                                  ProductOption( "aliases", { "mesh", "source", "shapefile" } ) } );
           ProductFeature dtype( "mesh_data_type", {
                                   ProductOption( "name", "mesh_data_type"),
                                   ProductOption( "type", "string"),
