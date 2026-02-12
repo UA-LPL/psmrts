@@ -142,8 +142,8 @@ namespace psmrts {
       throw std::runtime_error( mess );          
     }
 
-    std::cout << "Bullet::config: " << order_b.config().to_json().dump(-1) << std::endl;
-    std::cout << "Bullet::residual: " << order_b.residual().to_json().dump(-1) << std::endl;
+    // std::cout << "Bullet::config: " << order_b.config().to_json().dump(-1) << std::endl;
+    // std::cout << "Bullet::residual: " << order_b.residual().to_json().dump(-1) << std::endl;
     // Parse out and validate the shape config
     ProductMaker<PsmrtsShape> shape_m( "shape" );
     ProductConfiguration shape_c( "shape", order_b.residual() );
@@ -157,8 +157,8 @@ namespace psmrts {
                           order_s.errors_to_string();
       throw std::runtime_error( mess );          
     }
-    std::cout << "Shape::config: " << order_s.config().to_json().dump(-1) << std::endl;
-    std::cout << "Shape::residual: " << order_s.residual().to_json().dump(-1) << std::endl;    
+    // std::cout << "Shape::config: " << order_s.config().to_json().dump(-1) << std::endl;
+    // std::cout << "Shape::residual: " << order_s.residual().to_json().dump(-1) << std::endl;    
 
     // Confirm all is well 
     if (order_s.error_count() > 0 ) {

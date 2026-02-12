@@ -70,6 +70,55 @@ TEST_CASE( "ProductMaker Bullet Tracer Test", "[product][maker][tracer][bullet]"
   // CHECK( bullet_m.config().to_json().dump() == "" );
 }
 
+#if 0
+TEST_CASE( "ProductMaker Bullet Tracer Research", "[product][maker][tracer][bullet][research]" ) {
+
+  psmrts::PsmrtsTranslations trans_t = psmrts::PsmrtsTranslations::create();
+  psmrts::ProductConfiguration bullet_t("bulletmaker");
+  bullet_t.add( psmrts::ProductOption( "shape", "obj" ) );
+  bullet_t.add( psmrts::ProductOption( "obj_file", psmrts_shapes_path( "obj/data/bennu_20facets.obj")  ) );
+  bullet_t.add( psmrts::ProductOption( "tracer", "bullet" ) );
+
+  CHECK( bullet_t.contains( "shape" ) == true );
+  CHECK( bullet_t.contains( "obj_file" ) == true );
+  CHECK( bullet_t.contains( "tracer" ) == true );
+
+  psmrts::ProductMaker<psmrts::PsmrtsTracer> maker_t( "bullet" );
+  CHECK( maker_t.process_config( bullet_t, trans_t ) == true );
+  CHECK( maker_t.isvalid() == true );
+  CHECK( maker_t.product().isValid() == true );
+  CHECK( maker_t.order().config().to_json().dump(2) == "" );
+  CHECK( maker_t.order().residual().to_json().dump(2) == "" );
+
+  psmrts::ProductMaker<psmrts::PsmrtsShape> maker_s( "obj" );
+  CHECK( maker_s.process_config( bullet_t, trans_t ) == true );
+  CHECK( maker_s.isvalid() == true );
+  CHECK( maker_s.product().isValid() == true );
+  CHECK( maker_s.order().config().to_json().dump() == "" );
+  CHECK( maker_s.order().residual().to_json().dump() == "" );
+}
+#endif
+
+TEST_CASE( "ProductMaker NaifDsk Tracer Test", "[product][maker][tracer][naifdsk]" ) {
+
+  psmrts::PsmrtsTranslations trans_t = psmrts::PsmrtsTranslations::create();
+  psmrts::ProductConfiguration naifdsk_t("naifdskmaker");
+  naifdsk_t.add( psmrts::ProductOption( "tracer", "naifdsk" ) );
+  naifdsk_t.add( psmrts::ProductOption( "dsk_file", psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds")  ) );
+
+  CHECK( naifdsk_t.contains( "dsk_file" ) == true );
+
+  // CHECK( naifdsk_t.to_json().dump(2) == "" );
+  psmrts::ProductMaker<psmrts::PsmrtsTracer> maker_t( "naifdsk" );
+
+  CHECK( maker_t.process_config( naifdsk_t, trans_t ) == true );
+  CHECK( maker_t.isvalid() == true );
+  psmrts::PsmrtsTracer naifdsk_m = maker_t.product();
+  CHECK( naifdsk_m.isValid() == true );
+  // CHECK( naifdsk_m.config().to_json().dump() == "" );
+}
+
+
 TEST_CASE( "ProductMaker Ellipsoid Tracer Test", "[product][maker][tracer][ellipsoid]" ) {
 
   using RadVec = std::vector<double>;
