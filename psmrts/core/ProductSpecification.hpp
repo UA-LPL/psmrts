@@ -339,16 +339,18 @@ namespace psmrts {
         }
         else if ( feature.validate_file_suffix( option.to_string() ) ) {
           // Its a file.
-          // std::cout << "FileOption File: " << option.to_string() << std::endl;
+          //  << "FileOption File: " << option.to_string() << std::endl;
 
           order.add_option( option );
           std::string expanded_f = translations.translate_path( option.to_string() );
           if ( option.to_string() != expanded_f ) {
+            // std::cout << "FileOption FileExpanded: " << expanded_f << std::endl;
             order.add_metadata( ProductOption( option.name()+"_expanded", expanded_f) );
           }
         }
         else {
           // Its not compatible with this one
+          // std::cout << "FileOption File Invalid: " << option.name() << std::endl;
           std::string mess = "*** ProductSpecification::process_order() - "
                               "Invalid filename/extension in option(" 
                               + option.name() + ") = " + option.to_string();
@@ -392,7 +394,7 @@ namespace psmrts {
         
         // Check for valid values if present in feature
         if ( feature.contains( "valid" ) ) {
-          std::vector<double> valids_d = OptionDoublesExtractor( option, visitor_d.traits() ).get_all();
+          std::vector<double> valids_d = OptionDoublesExtractor(feature.find("valid"), visitor_d.traits() ).get_all();
           for ( size_t opt_nth = 0  ; opt_nth < d_values.size() ; opt_nth++  ) {
             bool is_valid = false;
             for ( size_t vld_nth = 0 ; vld_nth < valids_d.size() ; vld_nth++ ) {
@@ -457,7 +459,7 @@ namespace psmrts {
 
         // Check for valid values if present in feature
         if ( feature.contains( "valid" ) ) {
-          std::vector<int> valids_i = OptionIntegersExtractor( option, visitor_i.traits() ).get_all();
+          std::vector<int> valids_i = OptionIntegersExtractor( feature.find("valid"), visitor_i.traits() ).get_all();
           for ( size_t opt_nth = 0  ; opt_nth < i_values.size() ; opt_nth++  ) {
             bool is_valid = false;
             for ( size_t vld_nth = 0 ; vld_nth < valids_i.size() ; vld_nth++ ) {
@@ -520,7 +522,7 @@ namespace psmrts {
 
         // Check for valid values if present in feature
         if ( feature.contains( "valid" ) ) {
-          std::vector<size_t> valids_st = OptionSizetsExtractor( option, visitor_st.traits() ).get_all();
+          std::vector<size_t> valids_st = OptionSizetsExtractor( feature.find("valid"), visitor_st.traits() ).get_all();
           for ( size_t opt_nth = 0  ; opt_nth < st_values.size() ; opt_nth++  ) {
             bool is_valid = false;
             for ( size_t vld_nth = 0 ; vld_nth < valids_st.size() ; vld_nth++ ) {
@@ -628,7 +630,7 @@ namespace psmrts {
         
         // Check for valid values if present in feature
         if ( feature.contains( "valid" ) ) {
-          std::vector<std::string> valids_s = OptionStringsExtractor( option, visitor_s.traits() ).get_all();
+          std::vector<std::string> valids_s = OptionStringsExtractor( feature.find("valid"), visitor_s.traits() ).get_all();
           for ( size_t opt_nth = 0  ; opt_nth < s_values.size() ; opt_nth++  ) {
             bool is_valid = false;
             for ( size_t vld_nth = 0 ; vld_nth < valids_s.size() ; vld_nth++ ) {
