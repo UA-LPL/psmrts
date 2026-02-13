@@ -44,7 +44,7 @@ namespace psmrts {
       public:
         ProductMaker( ) : PsmrtsRequest( "ProductMaker" ),
                           m_order( "Product" ),
-                          m_product( nullptr ) { }
+                          m_product( ) { }
         ProductMaker( const std::string &name ) : 
                       PsmrtsRequest( name ),
                       m_order( name ),
@@ -108,15 +108,16 @@ namespace psmrts {
             if ( m_product.has_value() ) return;  // Check if product has been created
             using V = std::variant_alternative_t<I, Variants>;
             ProductSpecification s = V().product_specifications();  // Should be able to get w/o instantiation!
-            // std::cout << "\nMakerSpecName: " << s.name() << std::endl;
 
             if ( s.size() > 0 ) { // Check for featureless variant
               m_order  = s.process_order( conf, translations );
-              // std::cout << "ProductMaker OrderConfig:   " << m_order.config().to_json().dump(2) << std::endl;
-              // std::cout << "ProductMaker OrderResidual: " << m_order.residual().to_json().dump(2) << std::endl;
+              // std::cout << "ProductMaker OrderConfig:     " << m_order.config().to_json().dump(2) << std::endl;
+              // std::cout << "ProductMaker OrderResidual:   " << m_order.residual().to_json().dump(2) << std::endl;
+              // std::cout << "ProductMaker ResidualDepends: " << m_order.residual_dependencies().to_json().dump(2) << std::endl;
               if ( m_order.isvalid() ) { 
                 // std::cout << "Making Product Type: " << s.name() << std::endl;
-                m_product.emplace( Product( V( m_order.config() )) );
+                m_product.emplace( Product( V( conf )) );
+                m_order.set_uid( m_product.value().uid() );
                 return;
               }
             }
@@ -124,6 +125,7 @@ namespace psmrts {
           
           return ( m_product.has_value() );
         }
+
 
       private:
         ProductOrder           m_order;

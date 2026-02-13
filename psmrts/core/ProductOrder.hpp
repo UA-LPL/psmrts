@@ -110,15 +110,19 @@ namespace psmrts {
         return ( m_residual );
       }
 
+      inline ProductConfiguration residual_dependencies() const {
+        ProductConfiguration combo( m_residual.name(), m_residual.options() );
+        for( const auto &option : m_residual.metadata() ) {
+          combo.add( option );
+        }
+
+        return ( combo );
+      }      
+
       inline void add_residual( const ProductOption &option ) {
         m_residual.add( option );
       }      
       
-      inline void add_residual_metadata( const ProductOption &option  ) {
-        m_residual.add_metadata( option );;
-      }
-
-
 
       inline const PsmrtsTranslations &translations() const {
         return ( m_trans );
@@ -155,7 +159,7 @@ namespace psmrts {
           this->add_dependency( name_d );
         }
 
-        this->add_residual( option );
+        m_residual.add_metadata( option );
       }
 
       inline void add_dependencies( const std::vector<std::string> &depends_v ) {

@@ -146,8 +146,7 @@ namespace psmrts {
     // std::cout << "Bullet::residual: " << order_b.residual().to_json().dump(-1) << std::endl;
     // Parse out and validate the shape config
     ProductMaker<PsmrtsShape> shape_m( "shape" );
-    ProductConfiguration shape_c( "shape", order_b.residual() );
-    shape_c.add_option( order_b.config().find( "shapefile") );
+    ProductConfiguration shape_c( "shape", order_b.residual_dependencies() );
 
     bool shape_made = shape_m.process_config( shape_c, trans );
     ProductOrder order_s = shape_m.order();

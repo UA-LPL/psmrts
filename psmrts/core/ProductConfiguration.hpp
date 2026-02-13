@@ -51,7 +51,7 @@ namespace psmrts {
                             const ProductConfiguration &config ) :
                             m_identifier( cid ), 
                             m_options( config.options() ), 
-                            m_metadata( config.metadata() ) { }                            
+                            m_metadata( config.metadata() ) { }
       ProductConfiguration( const std::string &cid,
                             const ProductOptionList &info ) :
                             m_identifier( cid ), 
@@ -132,6 +132,12 @@ namespace psmrts {
         }
 
         return ( *this );
+      }
+
+      inline ProductConfiguration combine( const ProductConfiguration &other ) const {
+        ProductConfiguration combo = *this;
+        combo.merge( other );
+        return ( combo );
       }
       
       inline const ProductOption &find_option( const std::string &name ) const {       

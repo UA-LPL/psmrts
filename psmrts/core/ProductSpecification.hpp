@@ -133,10 +133,18 @@ namespace psmrts {
         return ( keys );
       }
 
+      inline std::vector<std::string> dependency() const {
+        std::vector<std::string> keys;
+        for ( const auto &f : this->features() ) {
+          if ( f.is_dependency() ) keys.push_back( f.name() );
+        }
+        return ( keys );
+      }
+
       inline std::vector<std::string> optional() const {
         std::vector<std::string> keys;
         for ( const auto &f : this->features() ) {
-          if ( !f.is_required() ) keys.push_back( f.name() );
+          if ( f.is_optional() ) keys.push_back( f.name() );
         }
         return ( keys );
       }
@@ -218,7 +226,6 @@ namespace psmrts {
 
           std::string f_name = this->get_alias_feature_name( option.name() );
           if ( this->contains( option.name() ) || this->contains( f_name ) ) {
-            //  << "SpecOption: " << option.name() << ", Alias: " << f_name << std::endl;
             if ( f_name == "" ) f_name = option.name();
 
             const ProductFeature &feature = this->find( f_name );
@@ -391,8 +398,8 @@ namespace psmrts {
        *                   options with the feature specs.
        */
       inline void process_doubles( const ProductOption &option, 
-                                  const ProductFeature &feature,
-                                  ProductOrder &order ) const {
+                                   const ProductFeature &feature,
+                                   ProductOrder &order ) const {
         std::vector<double> d_values;
         psmrts::optvis::DoublesVisitor visitor_d = OptionDoublesExtractor( option ).create_visitor( d_values, option );
         option.visit( visitor_d );
