@@ -118,7 +118,7 @@ namespace psmrts {
     naif::DskKernelModel  model_d( dskfile );
     int segnum = 0;
     int dskbodyid = 0;
-    naif::DskSegment segment_d;
+    naif::DskSegment segment_d = model_d.segment( 0 );
 
     // Add DSK file based info to metadata
     dsk_config.add_metadata( ProductOption( "dsk_segments", model_d.n_dsk_segments() ) );

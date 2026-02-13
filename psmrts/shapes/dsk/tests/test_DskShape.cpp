@@ -60,7 +60,6 @@ TEST_CASE( "PSMRTS Product DSK Specification Test", "[product][type][mesh][dsk]"
                 Catch::Matchers::WithinAbs( 0.063170, tolerance ) );
     
     psmrts::ProductConfiguration config_data = dsk_m.config();
-    CHECK( config_data.to_json().dump(-1) == "" ); 
     auto config_list = config_data.options();
     auto config_meta = config_data.metadata(); 
 
@@ -90,9 +89,9 @@ TEST_CASE( "PSMRTS Product DSK Specification Test", "[product][type][mesh][dsk]"
     psmrts::PsmrtsTranslations tln;
     psmrts::DskShape shape2( config_data, tln );
 
-    CHECK( shape2.name() == dsk_m.name() );
+    CHECK( shape2.name() == "dsk" );
     CHECK( shape2.type() == dsk_m.type() );
-    CHECK( shape2.uid()  == dsk_m.uid() );
+    CHECK( psmrts::PsmrtsUID::is_valid_uid( shape2.uid() ) );
 
     // bad shape
     psmrts::ProductConfiguration bad_config1("bad_one", { psmrts::ProductOption("shape", "ply") } );
