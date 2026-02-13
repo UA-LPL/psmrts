@@ -50,6 +50,7 @@ while getopts ":hstcdxDVT:Cj:" o; do
             ;;            
         C)
             conda_specs="-DCMAKE_PREFIX_PATH=${CONDA_PREFIX}"
+            sharedopts="-DBUILD_SHARED=ON"
             ;;                         
         j)
             usecpus="-j ${OPTARG}"

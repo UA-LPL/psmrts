@@ -27,7 +27,7 @@ The `PSMRTS` system upon cloning from the repo is contained in the `./psmrts` di
 
 1. `cd psmrts`
 2. `./make_psmrts.sh`
-   - Add `-s` to build shared libraries
+   - Add `-s` to build shared libraries (required for conda builds)
    - Add `-t` to enable testing
    - Add `-c` to enable code coverage
    - Add `-x` to build extras
@@ -112,7 +112,7 @@ experience:
 2.  cd psmrts
 3.  conda env create -n psmrts_vcpkg -f tools/build_addons.yml
 4.  conda activate psmrts_vcpkg
-5.  ./make_psmrts.sh -x -t -d -c -D -V -j4
+5.  ./make_psmrts.sh -x -t -s -d -c -D -V -j4
 6.  cmake --build build --target doxy_docs     # Build doxygen documentation
 7.  open docs/html/index.html                  # On Mac, open the PSMRTS documentation
 8.  cmake --build build --target coverage      # Build code coverage
@@ -138,7 +138,7 @@ The following commands can be used to create the necessary `conda` environment a
 2.  cd psmrts
 3.  conda env create -n psmrts_docs_cov -f psmrts_conda_deps_all.yml
 4.  conda activate psmrts_docs_cov
-5.  ./make_psmrts.sh -t -x -d -c -D -C -j4
+5.  ./make_psmrts.sh -t -x -s -d -c -D -C -j4
 6.  cmake --build build --target doxy_docs     # Build doxygen documentation
 7.  open docs/html/index.html                  # On Mac, open the PSMRTS documentation
 ```
