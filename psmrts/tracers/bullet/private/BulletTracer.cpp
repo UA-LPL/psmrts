@@ -185,9 +185,9 @@ namespace psmrts {
     }
 
     // Get defaults from specs
-    bool useCompression = psmrts::is_bool( spec_b.find( "bullet_compressed" ).find("default").to_string() );
-    if ( m_config.contains( "bullet_compressed" ) ) {
-      useCompression  = psmrts::is_bool( OptionStringsExtractor( m_config.find( "bullet_compressed" ) ).get() );
+    bool useCompression = psmrts::is_bool( spec_b.find( "bullet_compression" ).find("default").to_string() );
+    if ( m_config.contains( "bullet_compression" ) ) {
+      useCompression  = psmrts::is_bool( OptionStringsExtractor( m_config.find( "bullet_compression" ) ).get() );
     }   
     
     bool useBuildBvh = psmrts::is_bool( spec_b.find( "bullet_optimize_bvh" ).find("default").to_string() );

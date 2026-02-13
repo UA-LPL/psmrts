@@ -188,6 +188,12 @@ namespace psmrts {
        * set of keyword/value metadata specifying conditions that must be met by
        * the config option.
        * 
+       * Note that special cases may exist when processing comparing
+       * configuraitons with specifications. Specs can can contain dependency
+       * keywords that are reqiured to exist, but are passed on unprocessed as a
+       * residual option. This is most prevelant in some tracers, such as
+       * "bullet" that requires a mesh shape. This case 
+       * 
        * @param config       Product configuration related to a product
        *                      specification that will be compared/verified
        *                      against a feature of the same name/type.
@@ -205,40 +211,50 @@ namespace psmrts {
         // Check for invalid configuration
         if ( config.size() == 0 ) return ( ProductOrder() );
 
-        ProductOrder order( config.name() );
+        ProductOrder order( config.name(), translations );
         std::vector<std::string> required_list;
 
         for ( const auto &option : config.options() ) {
 
           std::string f_name = this->get_alias_feature_name( option.name() );
           if ( this->contains( option.name() ) || this->contains( f_name ) ) {
-            // std::cout << "SpecOption: " << option.name() << ", Alias: " << f_name << std::endl;
+            //  << "SpecOption: " << option.name() << ", Alias: " << f_name << std::endl;
             if ( f_name == "" ) f_name = option.name();
-
-            // Get the real name of the option
-            ProductOption option_t( f_name, option );
 
             const ProductFeature &feature = this->find( f_name );
             if ( feature.is_required() ) required_list.push_back( f_name );
 
-            // Process based upon the feature type
-            if ( ( feature.type() == "file" ) || ( feature.type() == "directory" )) {
-              process_file( option_t, feature, translations, order );
+            if ( feature.is_dependency() ) {
+              // Dependency keys are pushed as is into residual options for
+              // additional processing. This occurs, for example, for some
+              // tracers that require a shape. Not all do. But they are require
+              // to exist.
+              order.add_dependency( option, f_name );
             }
-            else if ( feature.type() == "double" ) {
-              process_doubles( option_t, feature, order );
-            }
-            else if ( feature.type() == "int" ) {
-              process_integers( option_t, feature, order );
-            }
-            else if ( feature.type() == "size_t" ) {
-              process_size_t( option_t, feature, order );
-            }            
-            else if ( feature.type() == "bool" ) {
-              process_booleans( option_t, feature, order );
-            }           
-            else { // treat the rest as strings
-              process_strings( option_t, feature, order );
+            else { 
+
+              // Get the real name of the option
+              ProductOption option_t( f_name, option );
+
+              // Process based upon the feature type
+              if ( ( feature.type() == "file" ) || ( feature.type() == "directory" )) {
+                process_file( option_t, feature, order );
+              }
+              else if ( feature.type() == "double" ) {
+                process_doubles( option_t, feature, order );
+              }
+              else if ( feature.type() == "int" ) {
+                process_integers( option_t, feature, order );
+              }
+              else if ( feature.type() == "size_t" ) {
+                process_size_t( option_t, feature, order );
+              }            
+              else if ( feature.type() == "bool" ) {
+                process_booleans( option_t, feature, order );
+              }           
+              else { // treat the rest as strings
+                process_strings( option_t, feature, order );
+              }
             }
           }
           else {
@@ -326,13 +342,12 @@ namespace psmrts {
        */
       inline void process_file( const ProductOption &option, 
                                 const ProductFeature &feature,
-                                const PsmrtsTranslations &translations,
                                 ProductOrder &order ) const {
 
         if ( feature.type() == "directory") {
           // std::cout << "DirectoryOption File: " << option.to_string() << std::endl;
           order.add_option( option );
-          std::string expanded_d = translations.translate_path( option.to_string() );
+          std::string expanded_d = order.translate_path( option.to_string() );
           if ( expanded_d != option.to_string() ) {
               order.add_metadata( ProductOption( option.name() +"_expanded", expanded_d ) );
           }
@@ -342,7 +357,7 @@ namespace psmrts {
           //  << "FileOption File: " << option.to_string() << std::endl;
 
           order.add_option( option );
-          std::string expanded_f = translations.translate_path( option.to_string() );
+          std::string expanded_f = order.translate_path( option.to_string() );
           if ( option.to_string() != expanded_f ) {
             // std::cout << "FileOption FileExpanded: " << expanded_f << std::endl;
             order.add_metadata( ProductOption( option.name()+"_expanded", expanded_f) );

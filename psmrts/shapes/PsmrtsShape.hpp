@@ -72,6 +72,17 @@ namespace psmrts {
         return ( !std::holds_alternative<ProductVoidVariant>( m_product ) );
       }
 
+      inline UIDType uid() const {
+        const auto visitor = overload{            
+                  [](auto &&shape ) -> UIDType {
+                       return ( shape.uid() ); 
+                  }
+        };
+       
+        return ( std::visit(visitor, m_product ) ); 
+      }
+
+    
       inline const PsmrtsMeshData &get_mesh() const {
         static const PsmrtsMeshData empty_mesh{};
         const auto visitor = overload{

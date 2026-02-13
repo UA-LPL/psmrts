@@ -209,10 +209,10 @@ namespace psmrts  {
                                  ProductOption( "default", "bullet" ),
                                  ProductOption( "valid", "bullet" ) } );
         // Not the most ideal way to require a supported shape file format.
-        ProductFeature shapefile( "shapefile", {
-                                 ProductOption( "name", "shapefile" ),
-                                 ProductOption( "type", "file" ),
-                                 ProductOption( "status", "required" ),
+        ProductFeature shapefile( "shape", {
+                                 ProductOption( "name", "shape" ),
+                                 ProductOption( "type", "string" ),
+                                 ProductOption( "status", "dependency" ),
                                  ProductOption( "description", "Bullet requires a file/mesh shape" ),
                                  ProductOption( "aliases", { "file", "filename", 
                                                              "obj_file", "obj_mesh", "obj_string",
@@ -226,8 +226,8 @@ namespace psmrts  {
                                  FeatureOption( "status", "optional" ),
                                  FeatureOption( "default", "true" ),
                                  FeatureOption( "valid", { "true", "1", "yes", "false", "0", "no" } ) } );
-        ProductFeature cmp( "bullet_compressed", {
-                                 FeatureOption( "name", "bullet_compressed" ),
+        ProductFeature cmp( "bullet_compression", {
+                                 FeatureOption( "name", "bullet_compression" ),
                                  FeatureOption( "type", "bool" ),
                                  FeatureOption( "description", "Compress Bullet data during construction" ),
                                  FeatureOption( "status", "optional" ),

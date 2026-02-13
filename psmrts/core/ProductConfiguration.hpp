@@ -133,7 +133,7 @@ namespace psmrts {
 
         return ( *this );
       }
-
+      
       inline const ProductOption &find_option( const std::string &name ) const {       
         return ( m_options.find( name ) );
       }

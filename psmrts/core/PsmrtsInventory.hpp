@@ -51,7 +51,7 @@ namespace psmrts {
         using TracerInventory         = ProductInventory<UIDType, PsmrtsTracer>;
         using PriorityTracerInventory = ProductInventory<UIDType, PsmrtsPriorityTracer>;
         using ParameterInventory      = PsmrtsTranslations::ParameterInventory;        
-        using EnvironemntInventory    = PsmrtsTranslations::EnvironmentInventory;        
+        using EnvironmentInventory    = PsmrtsTranslations::EnvironmentInventory;        
 
 
         PsmrtsInventory( ) : PsmrtsProduct( "product", "inventory" ) {
@@ -102,7 +102,7 @@ namespace psmrts {
           return ( m_translations.parameters() );
         }
 
-        inline const EnvironemntInventory &environment( ) const {
+        inline const EnvironmentInventory &environment( ) const {
           return ( m_translations.environment() );
         }     
         

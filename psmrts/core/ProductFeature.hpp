@@ -249,10 +249,22 @@ namespace psmrts {
         return ( this->to_json() );
       }
 
+      /** Checks required status for this feature */
       inline bool is_required() const {
         return ( this->status() == "required" );
       }
 
+      /** Checks if this feature is a dependency */
+      inline bool is_dependency() const {
+        return ( this->status() == "dependency" );
+      }
+
+      /** Checks if this feature is optional */
+      inline bool is_optional() const {
+        return ( this->status() == "optional" );
+      }
+
+      /** Checks if this feature is an alias */
       inline bool isa_alias( const std::string &a_key ) const {
         for (const auto &alias_k : this->aliases()) {
             if (alias_k == a_key) {

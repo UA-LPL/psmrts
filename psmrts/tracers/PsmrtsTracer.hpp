@@ -121,6 +121,16 @@ namespace psmrts {
         return ( !std::holds_alternative<ProductVoidVariant>( m_product ) );
       }
 
+      inline UIDType uid() const {
+        const auto visitor = overload{            
+                  [](auto &&tracer ) -> UIDType {
+                       return ( tracer.uid() ); 
+                  }
+        };
+       
+        return ( std::visit(visitor, m_product ) ); 
+      } 
+
       inline ProductSpecification specs() const {
         const auto visitor = overload{            
                   [](auto &&tracer ) -> ProductSpecification {
