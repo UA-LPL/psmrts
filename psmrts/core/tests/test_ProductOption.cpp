@@ -4,16 +4,17 @@
 #include <memory>
 #include <exception>
 #include <iostream>
+#include <vector>
 
 #include <psmrts/core/PsmrtsJson.hpp>
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/ProductOption.hpp>
 #include <psmrts/algorithms/conversions/AllConversionsVisitors.hpp>
 
-#include <string>
-#include <vector>
+//#include <string>
+//#include <vector>
 
-// Extractor tyoes
+// Extractor types
 using StringsExtractor = psmrts::ProductOption::StringsExtractor;
 using DoublesExtractor = psmrts::ProductOption::DoublesExtractor;
 

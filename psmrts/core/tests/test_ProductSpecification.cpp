@@ -34,6 +34,35 @@ TEST_CASE ( "ProductSpecification Constructor / Base Function Test", "[product][
 
     CHECK( product1.required().size() == 0 );
     CHECK( product1.optional().size() == 0 );
+    const char *c1 = "name=double;type=double;status=required";
+    const char *c2 = "name=boolean;type=bool;status=required";
+    const char *c3 = "name=integer;type=int;status=required";
+    //const char *c4 = "name=double2;type=double;status=optional";
+    psmrts::ProductFeature dbl_feat(psmrts::ProductFeature::from_pvl( c1 ) );
+    psmrts::ProductFeature bool_feat(psmrts::ProductFeature::from_pvl( c2 ) );
+    psmrts::ProductFeature int_feat(psmrts::ProductFeature::from_pvl( c3 ) );
+    //psmrts::ProductFeature dbl2_feat(psmrts::ProductFeature::from_pvl( c4 ) );
+    CHECK_NOTHROW( product1.add_feature( dbl_feat ) );
+    CHECK_NOTHROW( product1.add_feature( bool_feat ) );
+    CHECK_NOTHROW( product1.add_feature( int_feat ) );
+    //CHECK_NOTHROW( product1.add_feature( dbl2_feat ) );
+
+    psmrts::ProductConfiguration config1;
+    config1.add_option(psmrts::ProductOption("double", 3.14));
+    config1.add_option(psmrts::ProductOption("boolean", true));
+    config1.add_option(psmrts::ProductOption("integer", 42));
+    config1.add_option(psmrts::ProductOption("double2", 6.28));
+
+    psmrts::PsmrtsTranslations tls;
+
+    psmrts::ProductOrder process1 = product1.process_order( config1, tls );
+
+    CHECK( process1.config().contains("double")  == true );
+    CHECK( process1.config().contains("boolean") == true );
+    CHECK( process1.config().contains("integer") == true );
+    CHECK( process1.config().contains("double2") == false);
+    CHECK( process1.residual().contains("double2") == true );
+    
 }
 
 TEST_CASE( "ProductSpecification Configuration Test", "[product][specification][configuration]") {

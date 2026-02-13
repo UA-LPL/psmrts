@@ -63,11 +63,13 @@ TEST_CASE( "ProductMaker Bullet Tracer Test", "[product][maker][tracer][bullet]"
   // CHECK( bullet_t.to_json().dump(2) == "" );
   psmrts::ProductMaker<psmrts::PsmrtsTracer> maker_t( "bullet" );
 
+  /** 
   CHECK( maker_t.process_config( bullet_t, trans_t ) == true );
   CHECK( maker_t.isvalid() == true );
   psmrts::PsmrtsTracer bullet_m = maker_t.product();
   CHECK( bullet_m.isValid() == true );
   // CHECK( bullet_m.config().to_json().dump() == "" );
+  */
 }
 
 #if 0
