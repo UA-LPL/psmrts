@@ -270,22 +270,22 @@ PSMRTS_C_EXPORT PSMRTS_BOOL
 PSMRTS_C_EXPORT void
     psmrts_product_config_to_string( PSMRTS_ProductConfiguration *config, PSMRTS_String *pstr );
 
-PSMRTS_C_EXPORT void psmrts_add_config_options_string( PSMRTS_ProductConfiguration *config,
+PSMRTS_C_EXPORT void psmrts_add_product_string( PSMRTS_ProductConfiguration *config,
                                                        const char *name,
                                                        const char *text );
-PSMRTS_C_EXPORT void psmrts_add_config_options_bool( PSMRTS_ProductConfiguration *config,
+PSMRTS_C_EXPORT void psmrts_add_product_bool( PSMRTS_ProductConfiguration *config,
                                                      const char *name,
                                                      const PSMRTS_BOOL b );
-PSMRTS_C_EXPORT void psmrts_add_config_options_int( PSMRTS_ProductConfiguration *config,
+PSMRTS_C_EXPORT void psmrts_add_product_int( PSMRTS_ProductConfiguration *config,
                                                     const char *name,
                                                     const int i );
-PSMRTS_C_EXPORT void psmrts_add_config_options_sizet( PSMRTS_ProductConfiguration *config,
+PSMRTS_C_EXPORT void psmrts_add_product_sizet( PSMRTS_ProductConfiguration *config,
                                                       const char *name,
                                                       const size_t szt );
-PSMRTS_C_EXPORT void psmrts_add_config_options_double( PSMRTS_ProductConfiguration *config,
+PSMRTS_C_EXPORT void psmrts_add_product_double( PSMRTS_ProductConfiguration *config,
                                                        const char *name,
                                                        const double d );
-PSMRTS_C_EXPORT void psmrts_add_config_options_double_vector( PSMRTS_ProductConfiguration *config,
+PSMRTS_C_EXPORT void psmrts_add_product_double_vector( PSMRTS_ProductConfiguration *config,
                                                               const char *name,
                                                               const double *d_vector,
                                                               const int count );

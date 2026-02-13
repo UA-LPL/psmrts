@@ -117,14 +117,14 @@ TEST_CASE ( "PSMRTS C API - Product Configuration", "[capi][config][options]" ) 
   PSMRTS_ProductConfiguration *config = psmrts_create_product_config( "config" );
 
   // add ProductOptions to config
-  psmrts_add_config_options_string( config, "string", "Casablanca" );
-  psmrts_add_config_options_bool( config, "bool", 1 );
-  psmrts_add_config_options_int( config, "int", -27 );
-  psmrts_add_config_options_sizet( config, "size_t", 27 );
-  psmrts_add_config_options_double( config, "double", 3.141593 );
+  psmrts_add_product_string( config, "string", "Casablanca" );
+  psmrts_add_product_bool( config, "bool", 1 );
+  psmrts_add_product_int( config, "int", -27 );
+  psmrts_add_product_sizet( config, "size_t", 27 );
+  psmrts_add_product_double( config, "double", 3.141593 );
 
   double darray[] = {1.1, 2.2, 3.3};
-  psmrts_add_config_options_double_vector( config, "double vector", darray, 3 );
+  psmrts_add_product_double_vector( config, "double vector", darray, 3 );
 
   // verify all ProductOptions are in config
   CHECK( psmrts_product_config_contains( config, "string" ) == true );
@@ -141,7 +141,7 @@ TEST_CASE ( "PSMRTS C API - Product Configuration", "[capi][config][options]" ) 
       "{\"string\":\"Casablanca\",\"bool\":1,\"int\":-27,\"size_t\":27,\"double\":3.141593,\"double vector\":[1.1,2.2,3.3]}" );
 
   // replace an existing ProductOption
-  psmrts_add_config_options_int( config, "int", -270 );
+  psmrts_add_product_int( config, "int", -270 );
 
   // re-verify meta data for all ProductOptions added to config
   PSMRTS_String *pstr2 = psmrts_create_string( "" );

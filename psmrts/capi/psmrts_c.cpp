@@ -1542,7 +1542,7 @@ PSMRTS_BOOL psmrts_product_config_contains( PSMRTS_ProductConfiguration *config,
  * @param text const char*.
  * @return void.
  */
-void psmrts_add_config_options_string( PSMRTS_ProductConfiguration *config,
+void psmrts_add_product_string( PSMRTS_ProductConfiguration *config,
                                        const char *name, const char *text ) {
                                           
   config->add( psmrts::ProductOption( name, text ) );
@@ -1560,7 +1560,7 @@ void psmrts_add_config_options_string( PSMRTS_ProductConfiguration *config,
  * @param b const PSMRTS_BOOL.
  * @return void.
  */
-void psmrts_add_config_options_bool( PSMRTS_ProductConfiguration *config,
+void psmrts_add_product_bool( PSMRTS_ProductConfiguration *config,
                                      const char *name, const PSMRTS_BOOL b ) {
                                           
   config->add( psmrts::ProductOption( name, b ) );
@@ -1578,7 +1578,7 @@ void psmrts_add_config_options_bool( PSMRTS_ProductConfiguration *config,
  * @param i const int.
  * @return void.
  */
-void psmrts_add_config_options_int( PSMRTS_ProductConfiguration *config,
+void psmrts_add_product_int( PSMRTS_ProductConfiguration *config,
                                     const char *name, const int i ) {
                                           
   config->add( psmrts::ProductOption( name, i ) );
@@ -1596,7 +1596,7 @@ void psmrts_add_config_options_int( PSMRTS_ProductConfiguration *config,
  * @param szt const size_t.
  * @return void.
  */
-void psmrts_add_config_options_sizet( PSMRTS_ProductConfiguration *config,
+void psmrts_add_product_sizet( PSMRTS_ProductConfiguration *config,
                                             const char *name, const size_t szt ) {
                                           
   config->add( psmrts::ProductOption( name, szt ) );
@@ -1614,7 +1614,7 @@ void psmrts_add_config_options_sizet( PSMRTS_ProductConfiguration *config,
  * @param d const double.
  * @return void.
  */
-void psmrts_add_config_options_double( PSMRTS_ProductConfiguration *config,
+void psmrts_add_product_double( PSMRTS_ProductConfiguration *config,
                                        const char *name, const double d ) {
                                           
   config->add( psmrts::ProductOption( name, d ) );
@@ -1634,13 +1634,13 @@ void psmrts_add_config_options_double( PSMRTS_ProductConfiguration *config,
  * @param count const int. 
  * @return void.
  */
-void psmrts_add_config_options_double_vector( PSMRTS_ProductConfiguration *config,
+void psmrts_add_product_double_vector( PSMRTS_ProductConfiguration *config,
                                               const char *name,
                                               const double *d_vector,
                                               const int count ) {
 
   std::vector<double> cpp_vector(count);
-  std::copy_n(d_vector, count, cpp_vector.begin());
+  std::copy_n( d_vector, count, cpp_vector.begin() );
                                                                                           
   config->add( psmrts::ProductOption( name, cpp_vector ) );
 }
