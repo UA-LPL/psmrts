@@ -1,7 +1,11 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
+#include <psmrts/shapes/obj/ObjShape.hpp>
 #include <psmrts/shapes/dsk/DskShape.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/core/ProductConfiguration.hpp>
+#include <psmrts/core/PsmrtsTranslations.hpp>
+
 
 TEST_CASE( "DSK SHAPE - Default Test", "[dsk][shape][specification]") {
     psmrts::ProductSpecification spec = psmrts::DskShape::product_specifications();
@@ -37,8 +41,64 @@ TEST_CASE( "PSMRTS Product DSK Specification Test", "[product][type][mesh][dsk]"
     CHECK( mesh_d.vector_type()    == psmrts::PsmrtsMeshData::PsmrtsDouble );
     CHECK( mesh_d.isVectorDouble() == true );
 
+    // Values Comparison Test
+    std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
+    psmrts::ObjShape obj_m( objfile );
+    psmrts::PsmrtsMeshData mesh_o = obj_m.get_mesh();
+
+    for ( size_t i = 0; i < mesh_d.nvectors(); i ++ ) {
+        CHECK( mesh_d.get_vector(i) == mesh_o.get_vector(i) );
+    }
+
+    for ( size_t j = 0; j < mesh_d.nfacets(); j++ ) {
+        CHECK( mesh_d.get_index(j) == mesh_o.get_index(j) );
+    }
+
     CHECK_THAT( mesh_d.mesh_surface_area(),
                 Catch::Matchers::WithinAbs( 0.842492, tolerance ) );
     CHECK_THAT( mesh_d.mesh_volume(),
                 Catch::Matchers::WithinAbs( 0.063170, tolerance ) );
+    
+    psmrts::ProductConfiguration config_data = dsk_m.config();
+    CHECK( config_data.to_json().dump(-1) == "" ); 
+    auto config_list = config_data.options();
+    auto config_meta = config_data.metadata(); 
+
+    CHECK( config_data.isvalid() == true );
+    CHECK( config_data.name()    == "dsk" );
+    CHECK( config_data.size()    == 3 ); 
+    CHECK( psmrts::psmrts_filename(  config_list.find("dsk_file").to_string() )  == "bennu_20facets.bds" );
+    CHECK( config_list.contains("shape") );
+    CHECK( config_list.find("shape").to_string()     == "dsk" );
+    CHECK( config_list.find("data_type").to_string() == "double" );
+
+    CHECK( config_meta.find("dsk_segments").to_string()       == "1" );
+    CHECK( config_meta.find("dsk_segment_number").to_string() == "0" );
+    CHECK( config_meta.find("dsk_surface_id").to_string()     == "2101955" );
+    CHECK( config_meta.find("n_vertices").to_string()         == "20" ); 
+    CHECK( config_meta.find("n_facets").to_string()           == "36" ); 
+    CHECK( config_meta.find("dsk_reference_id").to_string()   == "2101955" );
+    CHECK( config_meta.find("dsk_body_id").to_string()        == "2101955" ); 
+    CHECK( config_meta.find("dsk_frame_id").to_string()       == "10106" );
+    CHECK( config_meta.find("dsk_type").to_string()           == "2" );
+    CHECK( config_meta.find("dsk_class").to_string()          == "1" ); 
+    CHECK_THAT( config_meta.find("minimum_radius").to_double(), 
+                Catch::Matchers::WithinAbs( 0.22493886860043516, tolerance) ); 
+    CHECK_THAT( config_meta.find("maximum_radius").to_double(), 
+                Catch::Matchers::WithinAbs( 0.2830650000000668, tolerance) ); 
+
+    psmrts::PsmrtsTranslations tln;
+    psmrts::DskShape shape2( config_data, tln );
+
+    CHECK( shape2.name() == dsk_m.name() );
+    CHECK( shape2.type() == dsk_m.type() );
+    CHECK( shape2.uid()  == dsk_m.uid() );
+
+    // bad shape
+    psmrts::ProductConfiguration bad_config1("bad_one", { psmrts::ProductOption("shape", "ply") } );
+    CHECK_THROWS( psmrts::DskShape( bad_config1, tln ) );
+
+    // bad file ("dsk_file")
+    psmrts::ProductConfiguration bad_config2("bad_two", { psmrts::ProductOption("dsk_file", "bad_file_name") } );
+    CHECK_THROWS( psmrts::DskShape( bad_config2, tln ) );
 }
