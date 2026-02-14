@@ -31,7 +31,6 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/tracers/bullet/BulletTracer.hpp>
 #include <psmrts/tracers/ellipsoid/EllipsoidTracer.hpp>
 #include <psmrts/tracers/naifdsk/NaifDskTracer.hpp>
-#include <psmrts/core/ProductOrder.hpp>
 
 namespace psmrts {
 
@@ -153,12 +152,6 @@ namespace psmrts {
 
       inline bool matches( const ProductConfiguration &conf ) const {
         return ( this->config().matches( conf ) );
-      }
-
-      inline ProductOrder verify(const ProductConfiguration &config,
-                                 const PsmrtsTranslations &trans ) const {
-
-        return ( ProductOrder( config ) );
       }
 
   };
