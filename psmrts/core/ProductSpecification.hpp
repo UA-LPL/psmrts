@@ -217,11 +217,10 @@ namespace psmrts {
                                          const {
         
         // Check for invalid configuration
-        if ( config.size() == 0 ) return ( ProductOrder() );
+        ProductOrder order( config, translations );
+        if ( config.size() == 0 ) return ( order );
 
-        ProductOrder order( config.name(), translations );
         std::vector<std::string> required_list;
-
         for ( const auto &option : config.options() ) {
 
           std::string f_name = this->get_alias_feature_name( option.name() );

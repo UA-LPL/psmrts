@@ -102,7 +102,7 @@ namespace psmrts {
                                     const PsmrtsTranslations &translations ) {
 
           m_product.reset();
-          m_order = ProductOrder( conf.name() );
+          m_order = ProductOrder( conf, translations );
           auto v_indexes = traits_v::indexing_tuple<std::variant_size_v<Variants>>;
           traits_v::tuple_foreach( v_indexes, [&](auto I) { // Compile time index of variant
             if ( m_product.has_value() ) return;  // Check if product has been created

@@ -36,6 +36,7 @@ namespace psmrts {
       using UIDType = PsmrtsUID::UIDType;
 
       ProductOrder( ) : PsmrtsRequest( "ProductOrder" ),
+                        m_submitted( "ProductOrder" ),
                         m_config( "ProductOrder" ),
                         m_residual( "ProductOrder" ),
                         m_trans( ),
@@ -44,24 +45,39 @@ namespace psmrts {
       ProductOrder( const std::string &name,
                     const PsmrtsTranslations &trans = PsmrtsTranslations() ) : 
                     PsmrtsRequest( name ),
+                    m_submitted( name ),
                     m_config( name ),
                     m_residual( name ),
                     m_trans( trans ),
                     m_dependencies(),
                     m_product_id( PsmrtsUID::null_uid() ) { }
-      ProductOrder( const ProductConfiguration &config,
+      ProductOrder( const ProductConfiguration &submitted,
                     const PsmrtsTranslations &trans = PsmrtsTranslations() ) : 
-                    PsmrtsRequest( config.name() ),
-                    m_config( config ),
-                    m_residual( config.name() ),
+                    PsmrtsRequest( submitted.name() ),
+                    m_submitted( submitted ),
+                    m_config( submitted.name() ),
+                    m_residual( submitted.name() ),
                     m_trans( trans ),
                     m_dependencies(),
                     m_product_id( PsmrtsUID::null_uid() ) {}
-      ProductOrder( const ProductConfiguration &config,
+      ProductOrder( const ProductConfiguration &submitted,
+                    const ProductConfiguration &config,
+                    const PsmrtsTranslations &trans = PsmrtsTranslations(), 
+                    const std::vector<std::string> &depends = {} ) : 
+                    PsmrtsRequest( submitted.name() ),
+                    m_submitted( submitted ),
+                    m_config( config ),
+                    m_residual( config.name() ),
+                    m_trans( trans ),
+                    m_dependencies( depends ),
+                    m_product_id( PsmrtsUID::null_uid() ) { }                    
+      ProductOrder( const ProductConfiguration &submitted,
+                    const ProductConfiguration &config,
                     const ProductConfiguration &residual,
                     const PsmrtsTranslations &trans = PsmrtsTranslations(), 
                     const std::vector<std::string> &depends = {} ) : 
-                    PsmrtsRequest( config.name() ),
+                    PsmrtsRequest( submitted.name() ),
+                    m_submitted( submitted ),
                     m_config( config ),
                     m_residual( residual ),
                     m_trans( trans ),
@@ -76,6 +92,10 @@ namespace psmrts {
                  ( this->error_count() == 0) );
       }
 
+
+      inline const ProductConfiguration &submitted() const {
+        return ( m_submitted );
+      }
 
       inline size_t size() const {
         return ( m_config.size() );
@@ -187,7 +207,31 @@ namespace psmrts {
         return ( this->has_uid() ) ;
       }
 
+      inline ordered_json to_json() const {
+        ordered_json order_j = { };
+        auto get_json = []( const std::string &name, const ordered_json &j ) -> ordered_json {
+          ordered_json obj_j; 
+          if ( j.is_null() ) {
+            obj_j[name] = nullptr;
+          }
+          else {
+            for ( auto &[ key, value] : j.items() ) {
+              obj_j[name][key] = value;
+            }
+          }
+          return ( obj_j  );
+        };
+
+        order_j.update( get_json( "submitted", m_submitted.to_json() ) );
+        order_j.update( get_json( "option",    m_config.to_json() )  );
+        order_j.update( get_json( "residual",  m_residual.to_json() ) );
+        order_j["dependencies"] = m_dependencies;
+        order_j["productid"]    = m_product_id;
+        return ( order_j );
+      }
+
     private:
+      ProductConfiguration     m_submitted;
       ProductConfiguration     m_config;
       ProductConfiguration     m_residual;
       PsmrtsTranslations       m_trans;
