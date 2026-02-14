@@ -212,7 +212,7 @@ namespace psmrts {
         auto get_json = []( const std::string &name, const ordered_json &j ) -> ordered_json {
           ordered_json obj_j; 
           if ( j.is_null() ) {
-            obj_j[name] = nullptr;
+            obj_j[name] = json::object({});
           }
           else {
             for ( auto &[ key, value] : j.items() ) {
