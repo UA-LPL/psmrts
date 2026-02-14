@@ -6,9 +6,10 @@
 TEST_CASE( "ProductOrder Default Test", "[order][default]") {
     psmrts::ProductOrder po;
 
-    CHECK( po.isvalid()         == false );
-    CHECK( po.config().name()   == "ProductOrder" );
-    CHECK( po.residual().name() == "ProductOrder" ); 
+    CHECK( po.isvalid()          == false );
+    CHECK( po.submitted().name() == "ProductOrder" );
+    CHECK( po.config().name()    == "ProductOrder" );
+    CHECK( po.residual().name()  == "ProductOrder" ); 
 
     psmrts::ProductOption b("bool", true);
     psmrts::ProductOption i("integer", 42);

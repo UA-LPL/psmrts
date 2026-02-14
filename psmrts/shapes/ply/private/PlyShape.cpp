@@ -14,6 +14,7 @@ find files of those names at the top level of this repository. **/
 
 #include "../PlyShape.hpp"
 #include "PsmrtsPLYFormat.hpp"
+#include <psmrts/core/ProductOrder.hpp>
 
 namespace psmrts {
   PlyShape::PlyShape( const std::string &ply_file ) : PsmrtsProduct( ply_file, "ply"){

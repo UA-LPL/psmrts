@@ -20,6 +20,8 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsMeshData.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
 #include <psmrts/core/ProductConfiguration.hpp>
+#include <psmrts/core/ProductOrder.hpp>
+
 
 namespace psmrts {
     /**
