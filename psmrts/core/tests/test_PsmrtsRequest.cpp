@@ -15,7 +15,7 @@ TEST_CASE( "PsmrtsRequest Default Test", "[request][default]" ) {
     CHECK( request_t.process_status() == false );
     CHECK( request_t.was_invoked()    == false );
     CHECK( request_t.error_count()    == 0 );
-    CHECK( request_t.max_error_cache_size() == 20 );
+    CHECK( request_t.max_error_cache_size() == 30 );
 
     request_t.process_running();
     CHECK( request_t.run_count()      == 1 );
@@ -47,5 +47,5 @@ TEST_CASE( "PsmrtsRequest Default Test", "[request][default]" ) {
     for ( size_t n = 0 ; n < ( request_t.max_error_cache_size() + 1 )  ; n++ ) {
      request_t.add_error( std::runtime_error( "Error number   " + std::to_string( n ) ) );
     }
-    CHECK( request_t.error_count() == 20 );
+    CHECK( request_t.error_count() == 30 );
 }

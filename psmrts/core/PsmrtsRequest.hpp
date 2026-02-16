@@ -172,6 +172,17 @@ namespace psmrts {
         return;
       }
 
+      inline void add_error( const std::string &s ) const {
+      // Monitor the cache size of the error queue
+        if ( m_errors.size() >= MaxQueuedErrors ) {
+          (void) m_errors.pop_front();
+        }
+
+        m_errors.push_back( s );
+        return;
+      }
+
+
       inline size_t run_count() const {
         return ( m_times_run );
       }
@@ -247,7 +258,7 @@ namespace psmrts {
       }
 
     protected:
-      inline static const size_t MaxQueuedErrors = 20;  // Limit cached error size
+      inline static const size_t MaxQueuedErrors = 30;  // Limit cached error size
 
       PsmrtsThreadSafeCounter    m_tracker;
       double                     m_runtime_ms;
