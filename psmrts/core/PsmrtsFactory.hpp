@@ -172,7 +172,7 @@ namespace psmrts {
       }
 
       /** Looking for an inventory by name */
-      inline const PsmrtsInventory &find( const std::string &name ) const {
+      inline const PsmrtsInventory &find( const std::string &name  = "psmrts" ) const {
         std::scoped_lock mylocker( m_mutex );
         return (this->inventory().find( name ) );
       }
