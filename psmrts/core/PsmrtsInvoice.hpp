@@ -41,17 +41,19 @@ namespace psmrts {
    * @author Kris J. Becker, University of Arizona
    * @history 2026-01-31 Kris J. Becker  Original Version
    */
-  class PsmrtsInvoice : public PsmrtsProduct {
+  class PsmrtsInvoice : public PsmrtsProduct, PsmrtsRequest {
     public:
       using ProductOrderList = PsmrtsContainer<ProductOrder>;
 
       PsmrtsInvoice( ) : PsmrtsProduct( "PsmrtsInvoice" ),
+                         PsmrtsRequest( "InvoiceErrors" ),
                         m_orders(  ),
                         m_processor( ),
                         m_inventory() { }
       PsmrtsInvoice( const std::string &name,
                      const PsmrtsTranslations &trans = PsmrtsTranslations() ) : 
                      PsmrtsProduct( name ),
+                     PsmrtsRequest( "InvoiceErrors" ),                     
                      m_orders( ),
                      m_processor( trans ),
                      m_inventory() { }                        
@@ -73,7 +75,8 @@ namespace psmrts {
           std::string mess = "PsmrtsInvoice::add_product(" + config.name() +
                              ") errors occured during validation: " +
                              order_t.errors_to_string();
-          throw std::runtime_error( mess );
+          this->add_error( std::runtime_error( mess ) );
+          return ( false );
         }
         
         if ( !order_t.isvalid()  ) {
@@ -82,13 +85,13 @@ namespace psmrts {
           std::string mess = "PsmrtsInvoice::add_product(" + config.name() +
                              ") is not valid, has unrecognized key/value options: " +
                              resid_s;
-          throw std::runtime_error( mess );
+          this->add_error( std::runtime_error( mess ) );
+          return ( false );
         }
 
         // Add it to the invoice
         m_orders.add( order_t );
         return ( true );
-
       }
 
       inline const ProductOrderList &orders() const {
