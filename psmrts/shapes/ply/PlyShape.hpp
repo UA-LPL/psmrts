@@ -21,6 +21,7 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsTranslations.hpp>
 #include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/core/ProductCart.hpp>
 
 namespace psmrts {
     /**
@@ -36,8 +37,7 @@ namespace psmrts {
                   m_mesh(),
                   m_config( "ply" ) { }
       PlyShape( const std::string &ply_file );
-      PlyShape( const ProductConfiguration &config,
-                const PsmrtsTranslations &trans = PsmrtsTranslations::create() );
+      PlyShape( const ProductCart &processed_cart );
       virtual ~PlyShape() = default;
       
       /**
@@ -102,6 +102,8 @@ namespace psmrts {
       private:
         PsmrtsMeshData m_mesh;
         ProductConfiguration m_config;
+
+      void create( const ProductCart &cart );        
     };
 
 } // namespace psmrts

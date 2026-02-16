@@ -11,6 +11,8 @@
 #include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/core/ProductOrder.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/core/ProductCart.hpp>
+#include <psmrts/core/ProductProcessing.hpp>
 #include <psmrts/shapes/PsmrtsShape.hpp>
 
 
@@ -20,11 +22,13 @@ TEST_CASE ( "ProductSpecification Constructor / Base Function Test", "[product][
     CHECK( product1.name() == "" );
     
     // No constructor to create based on ProductFeature, seemingly must use json
-    psmrts::ProductFeature prodspecs( product1.to_json() );
+    CHECK_THROWS( psmrts::ProductFeature( product1.to_json() ) );
 
     ordered_json result;
     result["name"] = "feature";
-    CHECK( prodspecs.size()               == 0      );
+    psmrts::ProductFeature prodspecs( result );   
+
+    CHECK( prodspecs.size()               == 1      );
     CHECK( prodspecs.contains("Required") == false  );
     CHECK( prodspecs.specs()         == result );
 
@@ -55,14 +59,6 @@ TEST_CASE ( "ProductSpecification Constructor / Base Function Test", "[product][
 
     psmrts::PsmrtsTranslations tls;
 
-    psmrts::ProductOrder process1 = product1.process_order( config1, tls );
-
-    CHECK( process1.config().contains("double")  == true );
-    CHECK( process1.config().contains("boolean") == true );
-    CHECK( process1.config().contains("integer") == true );
-    CHECK( process1.config().contains("double2") == false);
-    CHECK( process1.residual().contains("double2") == true );
-    
 }
 
 TEST_CASE( "ProductSpecification Configuration Test", "[product][specification][configuration]") {
@@ -74,8 +70,10 @@ TEST_CASE( "ProductSpecification Configuration Test", "[product][specification][
   psmrts::PsmrtsShape shape_t( objfile );
   psmrts::ProductSpecification specs_t = shape_t.specs();
   psmrts::ProductConfiguration config_t = shape_t.config();
+  psmrts::ProductCart cart_t( specs_t, config_t );
   CHECK( config_t.size() == 3 );
-  psmrts::ProductOrder order_t = specs_t.process_order( config_t, trans_t );
+  psmrts::ProductProcessing process_t( trans_t );
+  psmrts::ProductOrder order_t = process_t.process_cart( cart_t );
   CHECK( order_t.isvalid()          == true );
   CHECK( order_t.error_count()      == 0 );
   CHECK( order_t.errors_to_string() == "" );
@@ -87,8 +85,11 @@ TEST_CASE( "ProductSpecification Configuration Test", "[product][specification][
   psmrts::PsmrtsShape shape_p( trans_t.translate_path( plyfile ) );
   psmrts::ProductSpecification specs_p  = shape_p.specs();
   psmrts::ProductConfiguration config_p = shape_p.config();
+  psmrts::ProductCart cart_p( specs_p, config_p );
+  // CHECK( specs_p.to_json().dump(2) == "" );
+
   CHECK( config_p.size() == 2 );
-  psmrts::ProductOrder order_p = specs_p.process_order( config_p, trans_t );
+  psmrts::ProductOrder order_p = process_t.process_cart( cart_p );
   CHECK( order_p.isvalid()          == true );
   CHECK( order_p.error_count()      == 0 );
   CHECK( order_p.errors_to_string() == "" );
@@ -99,13 +100,16 @@ TEST_CASE( "ProductSpecification Configuration Test", "[product][specification][
   psmrts::PsmrtsShape shape_d( dskfile );
   psmrts::ProductSpecification specs_d  = shape_d.specs();
   psmrts::ProductConfiguration config_d = shape_d.config();
+  psmrts::ProductCart cart_d( specs_d, config_d );
+
   CHECK( config_d.size() == 3 );
-  psmrts::ProductOrder order_d = specs_d.process_order( config_d, trans_t );
+  psmrts::ProductOrder order_d = process_t.process_cart( cart_d );
   CHECK( order_d.isvalid()          == true );
   CHECK( order_d.error_count()      == 0 );
   CHECK( order_d.errors_to_string() == "" );
-  CHECK( order_d.config().size()    == 3 );
+  CHECK( order_d.config().size()    == 4 );
   CHECK( order_d.residual().size()  == 0 );
+  // CHECK( order_d.to_json() == "" );
 }
 
 

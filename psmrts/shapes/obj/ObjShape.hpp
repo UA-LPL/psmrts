@@ -22,7 +22,7 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsTranslations.hpp>
 #include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
-#include <psmrts/core/ProductOrder.hpp>
+#include <psmrts/core/ProductCart.hpp>
 
 
 namespace psmrts  {
@@ -52,9 +52,10 @@ namespace psmrts  {
         m_config.add_metadata( ProductOption( "minimum_radius", m_mesh.minimum_radius() ) );
         m_config.add_metadata( ProductOption( "maximum_radius", m_mesh.maximum_radius() ) );
       }
-      ObjShape( const ProductConfiguration &config,
-                const PsmrtsTranslations &trans = PsmrtsTranslations::create() ) {
-        this->create( config, trans );
+      ObjShape( const ProductCart &processed_cart ) {
+        this->set_name( processed_cart.name() );
+        this->set_type( "obj" );        
+        this->create( processed_cart );
       }      
       virtual ~ObjShape() { }
 
@@ -163,18 +164,24 @@ namespace psmrts  {
       psmrts::PsmrtsMeshData  m_mesh;
       ProductConfiguration    m_config;
 
-      inline void create( const ProductConfiguration &config,
-                          const PsmrtsTranslations &trans ) {
+      inline void create( const ProductCart &cart ) {
 
         // Check for valid shape type
-        ProductOrder order = this->product_specifications().process_order( config, trans );
-        if (order.error_count() > 0 ) {
-          std::string mess = "ObjShape::create(" + config.name() + ") has errors: " +
-                              order.errors_to_string();
+        if (cart.error_count() > 0 ) {
+          std::string mess = "ObjShape::create(" + cart.name() + 
+                            ") has config/spec processing errors: \n" +
+                              cart.errors_to_string();
           throw std::runtime_error( mess );          
         }
 
-        m_config = order.config();
+        ProductConfiguration v_conf = cart.configuration();
+        if (cart.error_count() > 0 ) {
+          std::string mess = "ObjShape::create(" + cart.name() + ") has errors: " +
+                              cart.errors_to_string();
+          throw std::runtime_error( mess );          
+        }
+
+        m_config = cart.configuration();
         if ( m_config.contains( "shape" ) ) {
           if ( m_config.find( "shape" ).to_string() != "obj" ) {
             std::string mess = "ObjShape::create() - shape type must be \"obj\""

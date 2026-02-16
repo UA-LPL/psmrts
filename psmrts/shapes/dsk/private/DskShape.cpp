@@ -14,7 +14,6 @@ find files of those names at the top level of this repository. **/
 
 #include "../DskShape.hpp"
 #include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
-#include <psmrts/core/ProductOrder.hpp>
 #include <psmrts/core/AllOptionConversions.hpp>
 
 
@@ -64,26 +63,23 @@ namespace psmrts {
   }
 
 
-  DskShape::DskShape( const ProductConfiguration &config,
-                      const PsmrtsTranslations &trans ) {
-    this->set_name( config.name() );
+  DskShape::DskShape( const ProductCart &processed_cart ) {
+    this->set_name( processed_cart.name() );
     this->set_type( "dsk" );
-    this->create( config, trans );
+    this->create( processed_cart );
   }
 
-  void DskShape::create( const ProductConfiguration &config,
-                         const PsmrtsTranslations &trans  ) {
+  void DskShape::create( const ProductCart &cart ) {
 
     // Check for valid shape type
-    ProductOrder order = this->product_specifications().process_order( config, trans );
-    if (order.error_count() > 0 ) {
-      std::string mess = "DskShape::create(" + config.name() + 
+    if (cart.error_count() > 0 ) {
+      std::string mess = "DskShape::create(" + cart.name() + 
                          ") has config/spec processing errors: \n" +
-                          order.errors_to_string();
+                          cart.errors_to_string();
       throw std::runtime_error( mess );          
     }
 
-    ProductConfiguration v_conf = order.config();
+    ProductConfiguration v_conf = cart.configuration();
     ProductConfiguration dsk_config( "dsk" );
 
     if ( v_conf.contains( "shape" ) ) {

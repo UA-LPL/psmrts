@@ -24,6 +24,7 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsTranslations.hpp>
 #include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/core/ProductCart.hpp>
 #include <psmrts/algorithms/TracingBasics.hpp>
 
 namespace psmrts  {
@@ -41,8 +42,7 @@ namespace psmrts  {
 
       BulletTracer( );
       BulletTracer( const PsmrtsShape &shape );
-      BulletTracer( const ProductConfiguration &config,
-                    const PsmrtsTranslations &trans = PsmrtsTranslations::create() );      
+      BulletTracer( const ProductCart &processed_cart  );      
       virtual ~BulletTracer();
 
       double maximum_radius() const;
@@ -253,10 +253,6 @@ namespace psmrts  {
 
         return ( false );
       }
-
-      void create( const ProductConfiguration &config,
-                   const PsmrtsTranslations &trans );
-                      
                       
       /** Catcha nd report errors on all remaining processes not available */
       PSMRTS_PROCESS_CATCHALL( "BulletTracer" )
@@ -266,6 +262,9 @@ namespace psmrts  {
       class BulletTracerImpl;
       std::shared_ptr<BulletTracerImpl> m_model;
       ProductConfiguration              m_config;
+
+      void create( const ProductCart &cart  );
+
   };
 
 } // namespace psmrts

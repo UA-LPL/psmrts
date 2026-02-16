@@ -137,8 +137,7 @@ TEST_CASE ( "PSMRTS C API - Product Configuration", "[capi][config][options]" ) 
   // verify meta data for all ProductOptions added to config
   PSMRTS_String *pstr1 = psmrts_create_string( "" );
   psmrts_product_config_to_string( config, pstr1 );
-  CHECK( std::string( psmrts_string_content( pstr1 ) ) ==
-      "{\"string\":\"Casablanca\",\"bool\":1,\"int\":-27,\"size_t\":27,\"double\":3.141593,\"double vector\":[1.1,2.2,3.3]}" );
+  CHECK( std::string( psmrts_string_content( pstr1 ) ) == R"({"options":{"string":"Casablanca","bool":1,"int":-27,"size_t":27,"double":3.141593,"double vector":[1.1,2.2,3.3]},"metadata":{}})");
 
   // replace an existing ProductOption
   psmrts_add_product_int( config, "int", -270 );
@@ -146,8 +145,7 @@ TEST_CASE ( "PSMRTS C API - Product Configuration", "[capi][config][options]" ) 
   // re-verify meta data for all ProductOptions added to config
   PSMRTS_String *pstr2 = psmrts_create_string( "" );
   psmrts_product_config_to_string( config, pstr2 );
-  CHECK( std::string( psmrts_string_content( pstr2 ) ) ==
-      "{\"string\":\"Casablanca\",\"bool\":1,\"int\":-270,\"size_t\":27,\"double\":3.141593,\"double vector\":[1.1,2.2,3.3]}" );
+  CHECK( std::string( psmrts_string_content( pstr2 ) ) == R"({"options":{"string":"Casablanca","bool":1,"int":-270,"size_t":27,"double":3.141593,"double vector":[1.1,2.2,3.3]},"metadata":{}})");
 
   // free strings and product configuration memory
   psmrts_free_string( pstr1 );

@@ -22,6 +22,7 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/ProductFeature.hpp>
 #include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/core/ProductCart.hpp>
 #include <psmrts/algorithms/TracingBasics.hpp>
 
 namespace psmrts  {
@@ -77,9 +78,10 @@ namespace psmrts  {
                        PsmrtsProduct( name, "ellipsoid" ),
                        m_radii{ radii[0], radii[1],radii[2] },
                        m_config( init_config( name, { radii[0], radii[1], radii[2] }, "ellipsoid" ) ) { }
-      EllipsoidTracer( const ProductConfiguration &config,
-                       const PsmrtsTranslations &trans = PsmrtsTranslations::create() ){
-        this->create( config, trans );
+      EllipsoidTracer( const ProductCart &processed_cart ){
+        this->set_name( processed_cart.name() );
+        this->set_type( "ellipsoid" );            
+        this->create( processed_cart );
       }                         
       virtual ~EllipsoidTracer() = default;
  
@@ -307,8 +309,6 @@ namespace psmrts  {
         return ( this->config().matches( conf ) );
       }
 
-      void create( const ProductConfiguration &config,
-                   const PsmrtsTranslations &tran );
 
       /** Report all remaining features not available */
       PSMRTS_PROCESS_CATCHALL( "EllipsoidTracer" )
@@ -316,6 +316,9 @@ namespace psmrts  {
     private:
       double               m_radii[3];
       ProductConfiguration m_config;
+
+      void create( const ProductCart &cart );
+
 
       inline ProductConfiguration init_config( const std::string &name, 
                                                const std::initializer_list<double> radii,

@@ -168,7 +168,7 @@ namespace psmrts {
           (void) m_errors.pop_front();
         }
 
-        m_errors.push_back( e );
+        m_errors.push_back( e.what() );
         return;
       }
 
@@ -195,7 +195,7 @@ namespace psmrts {
         return ( m_errors.size() );
       }
 
-      inline const std::deque<std::exception> &errors() const {
+      inline const std::deque<std::string> &errors() const {
         return ( m_errors );
       }
 
@@ -203,8 +203,8 @@ namespace psmrts {
         std::string mess("");
         if ( this->error_count() > 0 ) {
           // mess = "*** " + this->name() + " has encountered errors!\n";
-          for ( const auto &e : this->errors() ) {
-            mess += std::string( e.what() ) + "\n"; 
+          for ( const auto &e_string : this->errors() ) {
+            mess += e_string + "\n"; 
           }
         }
         return ( mess );
@@ -255,7 +255,7 @@ namespace psmrts {
       bool                       m_success_status;
       bool                       m_is_present;
       size_t                     m_times_run;
-      mutable std::deque<std::exception> m_errors;
+      mutable std::deque<std::string> m_errors;
 
 
     private:

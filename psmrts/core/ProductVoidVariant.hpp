@@ -23,6 +23,8 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsTranslations.hpp>
 #include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/core/ProductCart.hpp>
+
 
 namespace psmrts { 
 
@@ -43,13 +45,12 @@ namespace psmrts {
                           m_type( "variant" ),
                           m_config( name ),
                           m_specs( name, "variant" ) { }
-      ProductVoidVariant( const ProductConfiguration &config,
-                          const PsmrtsTranslations &trans = PsmrtsTranslations() ) :
+      ProductVoidVariant( const ProductCart &processed_cart ) :
                           MissingProcessRequestHandler( "void" ),
                           m_type( "variant" ),
-                          m_config( config ),
-                          m_specs( config.name(), "variant" ) {
-        this->create( config, trans );
+                          m_config( processed_cart.name() ),
+                          m_specs( processed_cart.name(), "variant" ) {
+        this->create( processed_cart );
       }
       virtual ~ProductVoidVariant() = default;
       
@@ -64,8 +65,8 @@ namespace psmrts {
         return ( PsmrtsUID::null_uid() );
       }
 
-      inline ProductSpecification product_specifications() const {
-        return ( m_specs );
+      static inline ProductSpecification product_specifications() {
+        return ( ProductSpecification( "void" ) );
       }
 
       inline const ProductConfiguration &config() const {
@@ -76,16 +77,18 @@ namespace psmrts {
         return ( false );
       }
 
-      inline void create( const ProductConfiguration &config,
-                          const PsmrtsTranslations &trans ) {
-        throw std::runtime_error( "PsmrtsVoidVariant is not a valid product!");
-      }
 
       
     private:
       std::string          m_type;
       ProductConfiguration m_config;
       ProductSpecification m_specs;
+
+      inline void create( const ProductCart &processed_cart ) {
+        throw std::runtime_error( "PsmrtsVoidVariant is not a valid product!");
+      }
+
+
   };
 
 } // namespace psmrts

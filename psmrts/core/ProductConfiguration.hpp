@@ -21,9 +21,12 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsContainer.hpp>
 #include <psmrts/core/ProductOption.hpp>
 #include <psmrts/core/AllOptionConversions.hpp>
+#include <psmrts/core/PsmrtsJson.hpp>
+
 
 namespace psmrts { 
 
+  namespace json_p = psmrts::json_utils;
 
   /**
    * @brief Process/maintain user/dev product requests 
@@ -53,10 +56,11 @@ namespace psmrts {
                             m_options( config.options() ), 
                             m_metadata( config.metadata() ) { }
       ProductConfiguration( const std::string &cid,
-                            const ProductOptionList &info ) :
+                            const ProductOptionList &info,
+                            const ProductMetadata &meta = ProductMetadata( "metadata" ) ) :
                             m_identifier( cid ), 
                             m_options( info ), 
-                            m_metadata( "metadata" ) { }                            
+                            m_metadata( "metadata", meta.data() ) { }                            
       explicit ProductConfiguration( const std::string &cid, 
                                      const std::initializer_list<ProductOption> &options ) : 
                                      m_identifier( cid ),
@@ -157,16 +161,15 @@ namespace psmrts {
       }
 
       inline ordered_json to_json( ) const {
-        ordered_json j_opts = this->to_json( this->options() );
-        if ( this->metadata().size() > 0 ) {
-          j_opts["metadata"].update( to_json( this->metadata() ) );
-        }
+        ordered_json j_opts;
+        j_opts.update( json_p::insert_object( "options",  this->to_json( this->options() ) ) );
+        j_opts.update( json_p::insert_object( "metadata", this->to_json( this->metadata() ) ) );
         return ( j_opts );
       }
 
       inline ordered_json to_json( const ContainerType &c ) const {
 
-        ordered_json j_opts;
+        ordered_json j_opts = {};
         for ( const auto &opt_t : c ) {
           j_opts.update( opt_t.to_json() );
         }

@@ -427,6 +427,25 @@ namespace psmrts {
     return ( s1 + s2 );
   }
     
+
+  /**
+   * @brief Check for a string in a vector of strings
+   * 
+   * This method will search for the string "s" in the vector "v".
+   * The strings must match exactly as the string comparison is case
+   * sensitive.
+   * 
+   * @param s  String to search for in "v"
+   * @param v  Vector containing a list of strings
+   * @return true If "v" contains the string "s"
+   * @return false If "s" is not in "v"
+   */
+  inline bool psmrts_contains_string( const std::string &s,
+                                      const std::vector<std::string> &v ) {
+    if ( std::find( v.begin(), v.end(), s) != v.end() ) return ( true );
+    return ( false );
+  }
+    
   /**
    * @brief tokenization of an Ellipsoid string of a/b/c values
    * 

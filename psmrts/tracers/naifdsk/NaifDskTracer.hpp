@@ -23,7 +23,7 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsTranslations.hpp>
 #include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
-#include <psmrts/core/ProductOrder.hpp>
+#include <psmrts/core/ProductCart.hpp>
 
 #include <psmrts/algorithms/TracingBasics.hpp>
 #include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
@@ -53,9 +53,10 @@ namespace psmrts  {
                      m_model( dsk ) {
         m_config = init_naifdsk( m_model, dsk );
       }
-      NaifDskTracer( const ProductConfiguration &config,
-                    const PsmrtsTranslations &trans = PsmrtsTranslations::create() ) {
-        this->create( config, trans );
+      NaifDskTracer( const ProductCart &processed_cart ) {
+        this->set_name( processed_cart.name() );
+        this->set_type( "naifdsk" );           
+        this->create( processed_cart );
       }        
       virtual ~NaifDskTracer() { }
 
@@ -269,37 +270,41 @@ namespace psmrts  {
         return ( this->config().matches( conf ) );
       }
 
-      inline void create( const ProductConfiguration &config,
-                                  const PsmrtsTranslations &trans  ) {
+      inline void create( const ProductCart &cart ) {
 
         // Check for valid shape type
-        ProductOrder order = this->product_specifications().process_order( config, trans );
-        if ( order.error_count() > 0 ) {
-          std::string mess = "NaifDskTracer::create(" + config.name() + 
+        if ( cart.error_count() > 0 ) {
+          std::string mess = "EllipsoidTracer::create(" + cart.name() + 
                             ") has config/spec processing errors: \n" +
-                              order.errors_to_string();
+                              cart.errors_to_string();
           throw std::runtime_error( mess );          
         }
 
-        if ( !order.isvalid() ) {
-          std::string mess = "NaifDskTracer::create(" + config.name() + 
+        if ( !cart.isvalid() ) {
+          std::string mess = "EllipsoidTracer::create(" + cart.name() + 
                             ") is invalid with " + 
-                            std::to_string( order.config().size() ) +
+                            std::to_string( cart.configuration().size() ) +
                             " config options and " +
-                            std::to_string( order.residual().size() ) +
+                            std::to_string( cart.residual().size() ) +
                             " residual options";
           throw std::runtime_error( mess );          
         }
 
-        ProductConfiguration v_conf = order.config();
+        ProductConfiguration v_conf = cart.configuration();
         if ( v_conf.contains( "dsk_segment_index" ) && ( v_conf.contains( "dsk_body_id" ) ) ) {
-          std::string mess = "NaifDskTracer::create(" + config.name() + 
+          std::string mess = "NaifDskTracer::create(" + cart.name() + 
                             ") cannot have both dsk_segment_index and dsk_surface_id";
           throw std::runtime_error( mess );    
         }
 
         // Get the sk file and open it
-        std::string dskfile = trans.translate_path( v_conf.find("dsk_file").to_string() );
+        std::string dskfile;
+        if ( v_conf.metadata().contains( "dsk_file_expanded" ) ) {
+          dskfile = v_conf.metadata().find("dsk_file_expanded").to_string();
+        }
+        else {
+          dskfile = v_conf.find("dsk_file").to_string();
+        }
         m_model = naif::DskKernelModel( dskfile );
 
         // Check for segment indexes

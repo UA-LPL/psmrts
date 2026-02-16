@@ -153,6 +153,69 @@ namespace psmrts {
       jfile << dump_json_string( j_data, j_indent ) << std::endl;
       return;
     }
+
+    /**
+     * @brief Insert/copy a JSON object it a named object
+     * 
+     * This function is needed to handle the often delicate operation of adding
+     * an exising object to a named object. Often nlohmann JSON throws runtime
+     * asserts that abort your application. This method can be used to prevent
+     * this for most common needs.
+     * 
+     * This occurs when many PSMRTS classes return raw composite JSON that
+     * become part of a larger JSON structure. They are added with as a
+     * key/value pair where the argument "j" is the value. This can lead to
+     * runtine assert errors particularly when adding a null JSON object.
+     * 
+     * For example, a ProductCart contains a ProductSpecification,
+     * ProductConfiguration and a PsmrtsContainer of ProductOptions. Some of
+     * these elements can be empty which results in an empty JSON object which
+     * results in a runtime assert error when adding it as a named key, such as:
+     * 
+     * @code 
+     *   object_j["key"] = json::object();
+     * @endcode 
+     * 
+     * This method can be used as follows, as demonstrated from the ProductCart:
+     * 
+     * @code 
+     *   ordered_json order_j = { };
+     *   order_j.update( insert_object( "specification",  m_specs.to_json() )  );
+     *   order_j.update( insert_object( "configuration",  m_config.to_json() )  );
+     *   order_j.update( insert_object( "residualoptions",  to_json( m_residual ) ) );
+     * @endcode
+     * 
+     * 
+     * @param name  Name of the key to assign the JSON object to
+     * @param j     The JSON object to add
+     * @return ordered_json The constructed JSON key/value object pair
+     */
+    inline ordered_json insert_object( const std::string &name, 
+                                       const ordered_json &j,
+                                       const ordered_json &null_j = ordered_json::object() ) {
+      ordered_json obj_j;
+      if ( j.is_null() ) {
+          obj_j[name] = null_j;
+      }
+      else {
+        for ( auto &[ key, value] : j.items() ) {
+          if ( value.is_null() ) {
+            obj_j[name][key] = null_j;
+          }
+          else if ( value.is_array() ) {
+            obj_j[name][key] = value;
+          }
+          else if ( value.is_object() ) {
+            obj_j[name][key] = value;
+          }
+          else {
+            obj_j[name][key] = value;
+          }
+        }
+      }
+      return ( obj_j );        
+    }
+
   } // namespace json_utils
 
 } // namespace psmrts

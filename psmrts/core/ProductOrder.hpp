@@ -17,10 +17,13 @@ find files of those names at the top level of this repository. **/
 #include <functional>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
-#include <psmrts/core/PsmrtsCache.hpp>
+#include <psmrts/core/PsmrtsContainer.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/PsmrtsTranslations.hpp>
 #include <psmrts/core/ProductConfiguration.hpp>
+#include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/core/ProductCart.hpp>
+#include <psmrts/core/PsmrtsJson.hpp>
 
 namespace psmrts {
 
@@ -33,127 +36,114 @@ namespace psmrts {
    */
   class ProductOrder : public PsmrtsRequest {
     public:
-      using UIDType = PsmrtsUID::UIDType;
+      using ProductOptionList = ProductCart::ProductOptionList;
+      using ResidualOptions   = ProductCart::ResidualOptions;
 
       ProductOrder( ) : PsmrtsRequest( "ProductOrder" ),
                         m_submitted( "ProductOrder" ),
-                        m_config( "ProductOrder" ),
-                        m_residual( "ProductOrder" ),
-                        m_trans( ),
-                        m_dependencies(),
-                        m_product_id( PsmrtsUID::null_uid() ) { }
+                        m_cart( "ProductOrder" ),
+                        m_translations( ),
+                        m_dependencies() { }
       ProductOrder( const std::string &name,
                     const PsmrtsTranslations &trans = PsmrtsTranslations() ) : 
                     PsmrtsRequest( name ),
                     m_submitted( name ),
-                    m_config( name ),
-                    m_residual( name ),
-                    m_trans( trans ),
-                    m_dependencies(),
-                    m_product_id( PsmrtsUID::null_uid() ) { }
+                    m_cart( name ),
+                    m_translations( trans ),
+                    m_dependencies() { }
       ProductOrder( const ProductConfiguration &submitted,
                     const PsmrtsTranslations &trans = PsmrtsTranslations() ) : 
                     PsmrtsRequest( submitted.name() ),
                     m_submitted( submitted ),
-                    m_config( submitted.name() ),
-                    m_residual( submitted.name() ),
-                    m_trans( trans ),
-                    m_dependencies(),
-                    m_product_id( PsmrtsUID::null_uid() ) {}
+                    m_cart( submitted.name() ),
+                    m_translations( trans ),
+                    m_dependencies() {}
       ProductOrder( const ProductConfiguration &submitted,
                     const ProductConfiguration &config,
                     const PsmrtsTranslations &trans = PsmrtsTranslations(), 
                     const std::vector<std::string> &depends = {} ) : 
                     PsmrtsRequest( submitted.name() ),
                     m_submitted( submitted ),
-                    m_config( config ),
-                    m_residual( config.name() ),
-                    m_trans( trans ),
-                    m_dependencies( depends ),
-                    m_product_id( PsmrtsUID::null_uid() ) { }                    
-      ProductOrder( const ProductConfiguration &submitted,
-                    const ProductConfiguration &config,
-                    const ProductConfiguration &residual,
+                    m_cart( config.name(), config ),
+                    m_translations( trans ),
+                    m_dependencies( depends ) { }                    
+      ProductOrder( const ProductCart &product,
                     const PsmrtsTranslations &trans = PsmrtsTranslations(), 
                     const std::vector<std::string> &depends = {} ) : 
-                    PsmrtsRequest( submitted.name() ),
-                    m_submitted( submitted ),
-                    m_config( config ),
-                    m_residual( residual ),
-                    m_trans( trans ),
-                    m_dependencies( depends ),
-                    m_product_id( PsmrtsUID::null_uid() ) { }
-
+                    PsmrtsRequest( product.name() ),
+                    m_submitted( product.configuration() ),
+                    m_cart( product ),
+                    m_translations( trans ),
+                    m_dependencies( depends ) { }
       virtual ~ProductOrder() = default;
 
-      inline bool isvalid() const {
-        return ( ( m_config.size() != 0 ) && 
-                 ( m_residual.size() == 0 ) && 
-                 ( this->error_count() == 0) );
+      inline size_t size() const {
+        return ( m_cart.size() );
       }
 
+      inline bool isvalid() const {
+        return ( ( m_cart.has_valid_content() ) && 
+                 ( this->error_count() == 0) );
+      }
 
       inline const ProductConfiguration &submitted() const {
         return ( m_submitted );
       }
 
-      inline size_t size() const {
-        return ( m_config.size() );
+      inline const ProductCart &cart() const {
+        return ( m_cart );
       }
-
-      inline const ProductConfiguration &config() const {
-        return ( m_config );
-      }
-
-      inline void add_option( const ProductOption &option ) {
-        m_config.add( option );
-      }
-
-      inline void add_metadata( const ProductOption &option ) {
-        m_config.add_metadata( option );
-      }
-
-      inline void merge_config( const ProductConfiguration &config ) {
-        m_config.merge( config );
-      }
-
-      inline void set_config( const ProductConfiguration &config ) {
-        m_config = config;
-      }
-
-
-      inline size_t residual_size() const {
-        return ( m_residual.size() );
-      }
-
-      inline const ProductConfiguration &residual() const {
-        return ( m_residual );
-      }
-
-      inline ProductConfiguration residual_dependencies() const {
-        ProductConfiguration combo( m_residual.name(), m_residual.options() );
-        for( const auto &option : m_residual.metadata() ) {
-          combo.add( option );
-        }
-
-        return ( combo );
-      }      
-
-      inline void add_residual( const ProductOption &option ) {
-        m_residual.add( option );
-      }      
-      
 
       inline const PsmrtsTranslations &translations() const {
-        return ( m_trans );
+        return ( m_translations );
       }
 
       inline void set_translations( const PsmrtsTranslations &translations ) {
-        m_trans = translations;
+        m_translations = translations;
       }
 
+      inline const ProductConfiguration &config() const {
+        return ( m_cart.configuration() );
+      }
+
+      inline const ProductSpecification &specs() const {
+        return ( m_cart.specification() );
+      }
+
+      inline const ProductOptionList &options() const {
+        return ( this->config().options()  );
+      }
+
+      inline void add_option( const ProductOption &option ) {
+        m_cart.add_option( option );
+      }
+
+      inline void add_metadata( const ProductOption &option ) {
+        m_cart.add_metadata( option );
+      }
+
+      inline void set_config( const ProductConfiguration &config ) {
+        m_cart.set_configuration( config );
+      }
+
+      inline size_t residual_size() const {
+        return ( m_cart.residual().size() );
+      }
+
+      inline const ResidualOptions &residual() const {
+        return ( m_cart.residual() );
+      }
+
+      inline ProductConfiguration residual_config() const {
+        return ( ProductConfiguration( this->name(), this->residual() ) );
+      }      
+
+      inline void add_residual( const ProductOption &option ) {
+        m_cart.add_residual( option );
+      }      
+      
       inline std::string translate_path( const std::string &filepath ) const {
-        return ( m_trans.translate_path( filepath ) );
+        return ( m_translations.translate_path( filepath ) );
       }
 
       inline size_t dependency_size() const {
@@ -179,7 +169,7 @@ namespace psmrts {
           this->add_dependency( name_d );
         }
 
-        m_residual.add_metadata( option );
+        this->add_residual( option );
       }
 
       inline void add_dependencies( const std::vector<std::string> &depends_v ) {
@@ -190,53 +180,40 @@ namespace psmrts {
         return ( m_dependencies );
       }
 
-
-      inline bool has_uid() const {
-        return ( PsmrtsUID::is_valid_uid( m_product_id ) );
-      }
-
-      inline UIDType uid() const {
-        return ( m_product_id );
-      }
-
-      inline void set_uid( const UIDType &uid = PsmrtsUID::null_uid() ) {
-        m_product_id = uid;
-      }
-
-      inline bool is_filled() const {
-        return ( this->has_uid() ) ;
-      }
-
       inline ordered_json to_json() const {
-        ordered_json order_j = { };
-        auto get_json = []( const std::string &name, const ordered_json &j ) -> ordered_json {
-          ordered_json obj_j; 
-          if ( j.is_null() ) {
-            obj_j[name] = json::object({});
-          }
-          else {
-            for ( auto &[ key, value] : j.items() ) {
-              obj_j[name][key] = value;
-            }
-          }
-          return ( obj_j  );
-        };
-
-        order_j.update( get_json( "submitted", m_submitted.to_json() ) );
-        order_j.update( get_json( "option",    m_config.to_json() )  );
-        order_j.update( get_json( "residual",  m_residual.to_json() ) );
+        ordered_json order_j = ordered_json::object();
+        order_j.update( json_utils::insert_object( "submitted", m_submitted.to_json() ) );
+        order_j.update( json_utils::insert_object( "product",   m_cart.to_json() )  );
         order_j["dependencies"] = m_dependencies;
-        order_j["productid"]    = m_product_id;
         return ( order_j );
+      }
+
+      inline ProductOrder make_composite( const ProductOrder &other ) const {
+
+        // Make a copy of the current order
+        ProductOrder order_t = *this;
+
+        // Append this->options() to other options to this one and replace the
+        // cart configuration with this new list whilst preserving the metadata
+        // in this config data.
+        auto config_t = ProductConfiguration( this->config().name(), 
+                                              other.config().options(),
+                                              this->config().metadata() );
+        for ( const auto &option : this->config().options() ) {
+          config_t.add( option );
+        }
+
+        // Now replace only the cart with the processed combined config
+        order_t.m_cart = ProductCart( this->specs(), config_t, this->residual() );
+        return ( order_t );
       }
 
     private:
       ProductConfiguration     m_submitted;
-      ProductConfiguration     m_config;
-      ProductConfiguration     m_residual;
-      PsmrtsTranslations       m_trans;
+      ProductCart              m_cart;
+      PsmrtsTranslations       m_translations;
       std::vector<std::string> m_dependencies;
-      UIDType                  m_product_id;
+
   };
 
       

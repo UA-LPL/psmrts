@@ -4,12 +4,14 @@ target_sources( psmrts PUBLIC
                            TYPE HEADERS 
                            FILES  AllOptionConversions.hpp
                                   ProductVoidVariant.hpp
+                                  ProductCart.hpp
                                   ProductConfiguration.hpp
                                   ProductFeature.hpp
                                   ProductInventory.hpp
                                   ProductOption.hpp
                                   ProductOrder.hpp
                                   ProductProcessDispatch.hpp
+                                  ProductProcessing.hpp
                                   ProductSpecification.hpp
                                   PRQProduct.hpp
                                   PsmrtsBuffer.hpp
@@ -18,6 +20,7 @@ target_sources( psmrts PUBLIC
                                   PsmrtsContainer.hpp
                                   PsmrtsFactory.hpp
                                   PsmrtsInventory.hpp
+                                  PsmrtsInvoice.hpp
                                   PsmrtsJson.hpp
                                   PsmrtsMeshData.hpp
                                   PsmrtsProduct.hpp

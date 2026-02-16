@@ -244,6 +244,15 @@ namespace psmrts {
         return ( p_suffixes );
       }   
 
+      inline std::vector<std::string> valid_list() const {
+        std::vector<std::string> p_valid{};
+        if ( this->contains( "valid" ) ) {
+          p_valid = OptionStringsExtractor( m_options.find( "valid" ) ).get_all();
+        }        
+        return ( p_valid );
+      } 
+      
+      
       /** Return the JSON structure */
       inline ordered_json specs( ) const {
         return ( this->to_json() );

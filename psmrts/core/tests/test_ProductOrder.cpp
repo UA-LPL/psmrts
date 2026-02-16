@@ -2,6 +2,7 @@
 
 #include <psmrts/core/ProductOption.hpp>
 #include <psmrts/core/ProductOrder.hpp>
+#include <psmrts/core/ProductCart.hpp>
 
 TEST_CASE( "ProductOrder Default Test", "[order][default]") {
     psmrts::ProductOrder po;
@@ -9,7 +10,7 @@ TEST_CASE( "ProductOrder Default Test", "[order][default]") {
     CHECK( po.isvalid()          == false );
     CHECK( po.submitted().name() == "ProductOrder" );
     CHECK( po.config().name()    == "ProductOrder" );
-    CHECK( po.residual().name()  == "ProductOrder" ); 
+    CHECK( po.residual().name()  == "residualoptions" ); 
 
     psmrts::ProductOption b("bool", true);
     psmrts::ProductOption i("integer", 42);
@@ -26,8 +27,8 @@ TEST_CASE( "ProductOrder Default Test", "[order][default]") {
     CHECK( po.config().options().size()      == 3 );
     
     // Config is no longer empty - so..
-    // config != 0 && no residuals added yet, valid?
-    CHECK( po.isvalid() == true );
+    // config != 0 && but specs.size() == 0, no residuals added yet, valid?
+    CHECK( po.isvalid() == false );
 
     psmrts::ProductOption s( "string", "metadata string" );
 

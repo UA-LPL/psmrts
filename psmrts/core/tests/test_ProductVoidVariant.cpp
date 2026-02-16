@@ -1,8 +1,10 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
 #include <psmrts/core/ProductVoidVariant.hpp>
-#include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/core/ProductOption.hpp>
+#include <psmrts/core/ProductConfiguration.hpp>
+#include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/core/ProductCart.hpp>
 
 TEST_CASE( "ProductVoidVariant Default Test", "[product][void][variant][default]") {
     psmrts::ProductVoidVariant v_var;
@@ -16,11 +18,13 @@ TEST_CASE( "ProductVoidVariant Default Test", "[product][void][variant][default]
     CHECK( v_var.matches( config ) == false ); // always?
 
     psmrts::PsmrtsTranslations tln;
+    psmrts::ProductSpecification spec_v = psmrts::ProductVoidVariant::product_specifications();
 
-    CHECK_THROWS_WITH( v_var.create(config, tln), "PsmrtsVoidVariant is not a valid product!" ); 
+    CHECK_THROWS_WITH( psmrts::ProductVoidVariant( psmrts::ProductCart( spec_v, config ) ), 
+                       "PsmrtsVoidVariant is not a valid product!" ); 
 
     psmrts::ProductConfiguration config2( "void_option", { psmrts::ProductOption("test_key", "test_val") } );
 
     // This constructor calls create, which always fails
-    CHECK_THROWS( psmrts::ProductVoidVariant( config2 ) );
+    CHECK_THROWS( psmrts::ProductVoidVariant( psmrts::ProductCart( spec_v, config2 )) );
 }

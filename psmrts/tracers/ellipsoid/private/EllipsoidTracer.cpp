@@ -13,7 +13,7 @@ find files of those names at the top level of this repository. **/
 #include <string>
 
 #include "../EllipsoidTracer.hpp"
-#include <psmrts/core/ProductOrder.hpp>
+#include <psmrts/core/ProductCart.hpp>
 
 #include <cspice/SpiceUsr.h>
 
@@ -57,29 +57,27 @@ namespace psmrts  {
     return;
   }
 
-  void EllipsoidTracer::create( const ProductConfiguration &config,
-                                const PsmrtsTranslations &trans  ) {
+  void EllipsoidTracer::create( const ProductCart &cart ) {
 
       // Check for valid shape type
-      ProductOrder order = this->product_specifications().process_order( config, trans );
-      if ( order.error_count() > 0 ) {
-        std::string mess = "EllipsoidTracer::create(" + config.name() + 
+      if ( cart.error_count() > 0 ) {
+        std::string mess = "EllipsoidTracer::create(" + cart.name() + 
                           ") has config/spec processing errors: \n" +
-                            order.errors_to_string();
+                            cart.errors_to_string();
         throw std::runtime_error( mess );          
       }
 
-      if ( !order.isvalid() ) {
-        std::string mess = "EllipsoidTracer::create(" + config.name() + 
+      if ( !cart.isvalid() ) {
+        std::string mess = "EllipsoidTracer::create(" + cart.name() + 
                           ") is invalid with " + 
-                          std::to_string( order.config().size() ) +
+                          std::to_string( cart.configuration().size() ) +
                           " config options and " +
-                          std::to_string( order.residual().size() ) +
+                          std::to_string( cart.residual().size() ) +
                           " residual options";
         throw std::runtime_error( mess );          
       }
 
-      ProductConfiguration v_conf = order.config();
+      ProductConfiguration v_conf = cart.configuration();
       std::string model = "ellipsoid";
 
       if ( v_conf.contains( "tracer" ) ) {

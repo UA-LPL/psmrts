@@ -21,6 +21,7 @@ add_executable( psmrts_test_suite psmrts_catch2_main.cpp
                                   test_PsmrtsContainer.cpp
                                   test_PsmrtsFactory.cpp
                                   test_PsmrtsInventory.cpp
+                                  test_PsmrtsInvoice.cpp
                                   test_PsmrtsMeshData.cpp
                                   test_PsmrtsProduct.cpp
                                   test_PsmrtsRayTrace.cpp

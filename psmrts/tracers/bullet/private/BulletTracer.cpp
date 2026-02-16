@@ -17,7 +17,6 @@ find files of those names at the top level of this repository. **/
 #include "BulletTracerModel.hpp"
 #include "PsmrtsBulletMeshMap.hpp"
 #include "../BulletTracer.hpp"
-#include <psmrts/core/ProductOrder.hpp>
 #include <psmrts/core/ProductMaker.hpp>
 
 namespace psmrts {
@@ -98,9 +97,10 @@ namespace psmrts {
     m_config.add_metadata( ProductOption( "bullet_thread_safety", m_model->useThreadSafety() ) );
   }
   
-  BulletTracer::BulletTracer( const ProductConfiguration &config,
-                              const PsmrtsTranslations &trans ) {
-    this->create( config, trans );
+  BulletTracer::BulletTracer( const ProductCart &processed_cart ) {
+    this->set_name( processed_cart.name() );
+    this->set_type( "bullet" );    
+    this->create( processed_cart );
   }     
   
   BulletTracer::~BulletTracer() = default;
@@ -130,61 +130,70 @@ namespace psmrts {
     return ( m_model->shape() );
   }
 
-  void BulletTracer::create( const ProductConfiguration &config,
-                             const PsmrtsTranslations &trans ) {
+  void BulletTracer::create(const ProductCart &cart ) {
 
-    // Now parse the residual for the bullet config creating at least the shapefile
-    ProductSpecification spec_b = this->product_specifications();
-    ProductOrder order_b = spec_b.process_order( config, trans );
-    if ( order_b.error_count() > 0 ) {
-      std::string mess = "BulletTracer::create(" + config.name() + 
-                         ") errors constructing shape with config: \n" +
-                          order_b.errors_to_string();
+    PsmrtsTranslations trans_t = PsmrtsTranslations::create();
+
+    // Check for valid shape type
+    if (cart.error_count() > 0 ) {
+      std::string mess = "BulletTracer::create(" + cart.name() + 
+                        ") has config/spec processing errors: \n" +
+                          cart.errors_to_string();
       throw std::runtime_error( mess );          
     }
+
+    ProductConfiguration v_conf = cart.configuration();
+    if (cart.error_count() > 0 ) {
+      std::string mess = "ObjShape::create(" + cart.name() + ") has errors: " +
+                          cart.errors_to_string();
+      throw std::runtime_error( mess );          
+    }
+
+    m_config = cart.configuration();
 
     // std::cout << "Bullet::config: " << order_b.config().to_json().dump(-1) << std::endl;
     // std::cout << "Bullet::residual: " << order_b.residual().to_json().dump(-1) << std::endl;
     // Parse out and validate the shape config
     ProductMaker<PsmrtsShape> shape_m( "shape" );
-    ProductConfiguration shape_c( "shape", order_b.residual_dependencies() );
+    ProductConfiguration shape_c( "shape", cart.residual_config() );
 
-    bool shape_made = shape_m.process_config( shape_c, trans );
-    ProductOrder order_s = shape_m.order();
-    if ( order_s.error_count() > 0 ) {
-      std::string mess = "BulletTracer::create(" + config.name() + 
+    bool shape_made = shape_m.process_config( shape_c,  trans_t );
+    ProductCart cart_s = shape_m.cart();
+    if ( cart_s.error_count() > 0 ) {
+      std::string mess = "BulletTracer::create(" + cart_s.name() + 
                          ") errors constructing shape with config: \n" +
-                          order_s.errors_to_string();
+                          cart_s.errors_to_string();
       throw std::runtime_error( mess );          
     }
     // std::cout << "Shape::config: " << order_s.config().to_json().dump(-1) << std::endl;
     // std::cout << "Shape::residual: " << order_s.residual().to_json().dump(-1) << std::endl;    
 
     // Confirm all is well 
-    if (order_s.error_count() > 0 ) {
-      std::string mess = "BulletTracer::create(" + config.name() + ") has errors: " +
-                          order_s.errors_to_string();
+    if (cart_s.error_count() > 0 ) {
+      std::string mess = "BulletTracer::create(" + cart.name() + ") has errors: " +
+                          cart_s.errors_to_string();
       throw std::runtime_error( mess );          
     }
 
     // Ensure all options have been parsed/consumed
-    if( !order_s.isvalid() ) {
-      std::string mess = "BulletTracer::create(" + config.name() + ") residual config options present: " +
-                          order_s.residual().to_json().dump(-1);
+    if( !cart_s.isvalid() ) {
+      std::string mess = "BulletTracer::create(" + cart.name() + ") residual config options present: " +
+                          cart_s.to_json().dump(-1);
       throw std::runtime_error( mess );          
     }
 
-    m_config = order_b.config();
-    m_config.merge( order_s.config() );
+    m_config = cart.configuration();
     if ( m_config.contains( "tracer" ) ) {
       if ( m_config.find( "tracer" ).to_string() != "bullet" ) {
         std::string mess = "BulletTracer::create() - tracer type must be \"bullet\""
-                            " but found " + m_config.find("shape").to_string();
+                            " but found \"" + m_config.find("tracer").to_string() +
+                            "\"";
         throw std::runtime_error( mess );
       }
     }
 
     // Get defaults from specs
+    ProductSpecification spec_b = cart.specification();
     bool useCompression = psmrts::is_bool( spec_b.find( "bullet_compression" ).find("default").to_string() );
     if ( m_config.contains( "bullet_compression" ) ) {
       useCompression  = psmrts::is_bool( OptionStringsExtractor( m_config.find( "bullet_compression" ) ).get() );
@@ -197,7 +206,6 @@ namespace psmrts {
 
     // Create the bullet tracer
     m_model = std::make_shared<BulletTracerImpl> ( shape_m.product(), useCompression, useBuildBvh );
-    m_config.merge( order_s.config() );
     return;
   }  
 

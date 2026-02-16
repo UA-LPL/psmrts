@@ -19,17 +19,17 @@ find files of those names at the top level of this repository. **/
 #include <optional>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/PsmrtsJson.hpp>
-#include <psmrts/core/PsmrtsTranslations.hpp>
-#include <psmrts/core/ProductFeature.hpp>
-#include <psmrts/core/ProductConfiguration.hpp>
-#include <psmrts/core/ProductOrder.hpp>
 #include <psmrts/core/PsmrtsContainer.hpp>
-#include <psmrts/core/AllOptionConversions.hpp>
-// #include <psmrts/core/PRQProduct.hpp>
+#include <psmrts/core/PsmrtsTranslations.hpp>
+#include <psmrts/core/ProductConfiguration.hpp>
+#include <psmrts/core/ProductFeature.hpp>
 
 
 namespace psmrts { 
+
+  namespace json_p = psmrts::json_utils;
 
 
   /**
@@ -50,6 +50,7 @@ namespace psmrts {
     public:
       using ProductInfo      = PsmrtsContainer<ProductOption>;
       using ProductFeatures  = PsmrtsContainer<ProductFeature>;
+      using ResidualList     = PsmrtsContainer<ProductOption>;
       using Creator = std::function<void(const ProductConfiguration &config)>;
 
 
@@ -188,497 +189,97 @@ namespace psmrts {
         return ( "" );        
       }
 
-      /**
-       * @brief Process/compare a product configuration with a feature specification
-       * 
-       * This method is used to process a user specification comparing the
-       * option to a feature of the specification. Product features contain a
-       * set of keyword/value metadata specifying conditions that must be met by
-       * the config option.
-       * 
-       * Note that special cases may exist when processing comparing
-       * configuraitons with specifications. Specs can can contain dependency
-       * keywords that are reqiured to exist, but are passed on unprocessed as a
-       * residual option. This is most prevelant in some tracers, such as
-       * "bullet" that requires a mesh shape. This case 
-       * 
-       * @param config       Product configuration related to a product
-       *                      specification that will be compared/verified
-       *                      against a feature of the same name/type.
-       * @param translations Environment/parameter keyword/value pairs that will
-       *                      replace occurances of path elements that begin
-       *                      with a "$".
-       * @return ProductOrder Product order "form" that contains the results of
-       *                       the evalaution of option to an existing feature
-       *                       specification.
-       */
-      inline ProductOrder process_order( const ProductConfiguration &config,
-                                         const PsmrtsTranslations &translations )
-                                         const {
+
+      /** Return the JSON specification */
+      inline ordered_json to_json() const {
+
+        ordered_json j_info = {};
+        for ( const auto &j_data : info().data()  ) {
+          j_info.update( j_data.to_json() );
+        }
+
+        ordered_json j_features = {};
+        for ( const auto &j_feature : features().data()  ) {
+          j_features.update( j_feature.to_json() );
+        } 
         
-        // Check for invalid configuration
-        ProductOrder order( config, translations );
-        if ( config.size() == 0 ) return ( order );
+        ordered_json j;
+        j.update( json_p::insert_object( "info",  j_info ) );
+        j.update( json_p::insert_object( "features", j_features ) );
+        return ( j );
+      }
 
-        std::vector<std::string> required_list;
+      inline bool valid_option_with_feature( const ProductOption &option,
+                                             const ProductFeature &feature,
+                                             PsmrtsRequest &validator ) const {
+
+        bool is_good = true;
+        if ( feature.contains( "valid" ) ) {
+          bool is_valid = psmrts_contains_string( option.to_string(), feature.valid_list() );
+          if ( !is_valid ) {
+            std::string mess = "ProductSpecification::validate option (" +
+                               option.name() + ") value is not valid."
+                               " Value: " + option.to_string() + ", Expected: " +
+                               feature.find("valid").to_string();
+            validator.add_error( std::runtime_error( mess ) );
+            is_good = false;
+          }
+        }
+
+        return ( is_good );
+      }
+
+
+      inline ProductConfiguration extract( const ProductConfiguration &config,
+                                           ResidualList &residuals, 
+                                           PsmrtsRequest &validator ) const {
+
+        ProductConfiguration config_t( this->name() );
+        std::vector<std::string> required_list;   
+
         for ( const auto &option : config.options() ) {
+          std::string f_name = this->get_alias_feature_name( option.name() ); 
 
-          std::string f_name = this->get_alias_feature_name( option.name() );
           if ( this->contains( option.name() ) || this->contains( f_name ) ) {
-            if ( f_name == "" ) f_name = option.name();
+            if ( f_name.length() == 0 ) f_name = option.name();
 
             const ProductFeature &feature = this->find( f_name );
             if ( feature.is_required() ) required_list.push_back( f_name );
 
             if ( feature.is_dependency() ) {
-              // Dependency keys are pushed as is into residual options for
-              // additional processing. This occurs, for example, for some
-              // tracers that require a shape. Not all do. But they are require
-              // to exist.
-              order.add_dependency( option, f_name );
+              residuals.add( option );
             }
-            else { 
-
-              // Get the real name of the option
-              ProductOption option_t( f_name, option );
-
-              // Process based upon the feature type
-              if ( ( feature.type() == "file" ) || ( feature.type() == "directory" )) {
-                process_file( option_t, feature, order );
-              }
-              else if ( feature.type() == "double" ) {
-                process_doubles( option_t, feature, order );
-              }
-              else if ( feature.type() == "int" ) {
-                process_integers( option_t, feature, order );
-              }
-              else if ( feature.type() == "size_t" ) {
-                process_size_t( option_t, feature, order );
-              }            
-              else if ( feature.type() == "bool" ) {
-                process_booleans( option_t, feature, order );
-              }           
-              else { // treat the rest as strings
-                process_strings( option_t, feature, order );
+            else {
+              ProductOption option_t( f_name, option );  
+              config_t.add( option_t );
+              this->valid_option_with_feature( option_t, feature, validator );          
+              if ( config.metadata().contains( f_name+"_expanded" ) ) {
+                config_t.add_metadata( config.metadata().find( f_name+"_expanded" ) );
               }
             }
           }
           else {
-            // This may or may not be an error so callers must check conditions
-            // std::cout << "SpecResidual: " << option.name() << std::endl;
-            order.add_residual( option );
+            residuals.add( option );
           }
         }
 
         // Now check to see if all required keywords are present
         for ( const auto &key_r : this->required() ) {
-          if ( !this->contains( key_r, required_list ) ) {
-            std::string mess = "*** ProductSpecification::process_order() - "
-                              "Required feature key " + key_r  + 
+          if ( std::find(required_list.begin(), required_list.end(), key_r ) == required_list.end() ) {
+            std::string mess = "*** ProductSpecifications::extract(" + config.name() + ")"
+                              "- required feature key " + key_r  + 
                               " is not present in " + this->name() + " specification";
-            order.add_error( std::runtime_error( mess ) );
+            validator.add_error( std::runtime_error( mess ) );
           }
         }
 
-        return ( order );
-      }
-
-      /** Return the JSON specification */
-      inline ordered_json to_json() const {
-
-        ordered_json j_info = ordered_json::array();
-        for ( const auto &j_data : info().data()  ) {
-          j_info.push_back( j_data.to_json() );
-        }
-
-        ordered_json j_features = ordered_json::array();
-        for ( const auto &j_feature : features().data()  ) {
-          j_features.push_back( j_feature.to_json() );
-        } 
-        
-        ordered_json j = ordered_json::object();
-        if ( j_info.size() > 0 ) j["info"]      = j_info;
-        if ( j_info.size() > 0 ) j["features"]  = j_features;
-        return ( j );
+        return ( config_t );
       }
 
       inline void add_creator( const Creator &creator ) {
         m_creator = creator;
       }
 
-
-      /**
-       * @brief Check for a string in a vector of strings
-       * 
-       * This method will search for the string "s" in the vector "v".
-       * The strings must match exactly as the string comparison is case
-       * sensitive.
-       * 
-       * @param s  String to search for in "v"
-       * @param v  Vector containing a list of strings
-       * @return true If "v" contains the string "s"
-       * @return false If "s" is not in "v"
-       */
-      inline bool contains( const std::string &s,
-                            const std::vector<std::string> &v ) const {
-        if ( std::find( v.begin(), v.end(), s) != v.end() ) return ( true );
-        return ( false );
-      }
-
-      /**
-       * @brief Process a file FeatureOption config option
-       * 
-       * This method compares a product configuration option with a product
-       * specification related to a file. It will extract and compare the file
-       * extension, translate any environment/paramterization variables and
-       * add to the product order the results. 
-       * 
-       * Errors encountered are recorded in the product order object and
-       * indicates a failure of config option compatability with the feature
-       * spec.
-       * 
-       * @param option   Configuration option that ultimately originates from
-       *                  the user.
-       * @param feature  Feature specification that it compares to the user
-       *                  config.
-       * @param translations Environment/parameters used to translation
-       *                      occurances of path elements that begin with a "$".
-       * @param order    Product order that accumulates validation of the
-       *                  options with the feature specs.
-       */
-      inline void process_file( const ProductOption &option, 
-                                const ProductFeature &feature,
-                                ProductOrder &order ) const {
-
-        if ( feature.type() == "directory") {
-          // std::cout << "DirectoryOption File: " << option.to_string() << std::endl;
-          order.add_option( option );
-          std::string expanded_d = order.translate_path( option.to_string() );
-          if ( expanded_d != option.to_string() ) {
-              order.add_metadata( ProductOption( option.name() +"_expanded", expanded_d ) );
-          }
-        }
-        else if ( feature.validate_file_suffix( option.to_string() ) ) {
-          // Its a file.
-          //  << "FileOption File: " << option.to_string() << std::endl;
-
-          order.add_option( option );
-          std::string expanded_f = order.translate_path( option.to_string() );
-          if ( option.to_string() != expanded_f ) {
-            // std::cout << "FileOption FileExpanded: " << expanded_f << std::endl;
-            order.add_metadata( ProductOption( option.name()+"_expanded", expanded_f) );
-          }
-        }
-        else {
-          // Its not compatible with this one
-          // std::cout << "FileOption File Invalid: " << option.name() << std::endl;
-          std::string mess = "*** ProductSpecification::process_order() - "
-                              "Invalid filename/extension in option(" 
-                              + option.name() + ") = " + option.to_string();
-          order.add_error( std::runtime_error( mess ) );
-          order.add_residual( option );
-        } 
-        return;                                   
-      }
-      
-
-      /**
-       * @brief Process a double feature specification with a config option
-       * 
-       * This method processes compares a product config option with a feature
-       * specification. Option values are extracted and compared with feature
-       * specs for validity. Errors that occur are recorded in the order.
-       * 
-       * @param option  Configuration option that ultimately originates from
-       *                  the user.
-       * @param feature  Feature specification that it compares to the user
-       *                  config.
-       * @param order    Product order that accumulates validation of the
-       *                   options with the feature specs.
-       */
-      inline void process_doubles( const ProductOption &option, 
-                                   const ProductFeature &feature,
-                                   ProductOrder &order ) const {
-        std::vector<double> d_values;
-        psmrts::optvis::DoublesVisitor visitor_d = OptionDoublesExtractor( option ).create_visitor( d_values, option );
-        option.visit( visitor_d );
-        bool is_all_valid = true;
-
-        for ( size_t ndx = 0 ; ndx < d_values.size() ; ndx++ ) {
-          if ( !visitor_d.isvalid( d_values[ndx] ) ) {
-            std::string mess = "*** ProductSpecification::process_order() - "
-                              "Double value " + option.to_string( ndx )  + 
-                              " in option(" + option.name() + ") is invalid!";
-            order.add_error( std::runtime_error( mess ) );
-          }
-        }
-        
-        // Check for valid values if present in feature
-        if ( feature.contains( "valid" ) ) {
-          std::vector<double> valids_d = OptionDoublesExtractor(feature.find("valid"), visitor_d.traits() ).get_all();
-          for ( size_t opt_nth = 0  ; opt_nth < d_values.size() ; opt_nth++  ) {
-            bool is_valid = false;
-            for ( size_t vld_nth = 0 ; vld_nth < valids_d.size() ; vld_nth++ ) {
-              if ( visitor_d.isequal( d_values[opt_nth], valids_d[vld_nth]) ) {
-                is_valid = true;
-                break;
-              }
-            }
-            // Check for a valid value
-            if ( is_valid == false ) {
-              is_all_valid = false;
-              std::string mess = "*** ProductSpecification::process_order() - "
-                                "Double value " + option.to_string( opt_nth )  + 
-                                " at index = " + std::to_string( opt_nth ) +
-                                " in option(" + option.name() + ") is not valid!";
-              order.add_error( std::runtime_error( mess ) );                    
-            }
-          }
-        }
-
-        if ( is_all_valid == true ) {
-          order.add_option( option );
-        }
-        else {
-          order.add_residual( option );
-        }
-      
-        return;
-      }
-
-      /**
-       * @brief Process an integer feature specification with a config option
-       * 
-       * This method processes compares a product config option with a feature
-       * specification. Option values are extracted and compared with feature
-       * specs for validity. Errors that occur are recorded in the order.
-       * 
-       * @param option  Configuration option that ultimately originates from
-       *                  the user.
-       * @param feature  Feature specification that it compares to the user
-       *                  config.
-       * @param order    Product order that accumulates validation of the
-       *                   options with the feature specs.
-       */
-      inline void process_integers( const ProductOption &option, 
-                                    const ProductFeature &feature,
-                                    ProductOrder &order ) const {     
-        std::vector<int> i_values;
-        psmrts::optvis::IntegersVisitor visitor_i = OptionIntegersExtractor( option ).create_visitor( i_values, option );
-        option.visit( visitor_i );
-        bool is_all_valid = true;
-      
-        for ( size_t ndx = 0 ; ndx < i_values.size() ; ndx++ ) {
-          if ( !visitor_i.isvalid( i_values[ndx] ) ) {
-            std::string mess = "*** ProductSpecification::process_order() - "
-                              "Integer value " + option.to_string( ndx )  + 
-                              " in option(" + option.name() + ") is invalid!";
-            order.add_error( std::runtime_error( mess ) );
-            is_all_valid = false;
-          }
-        }
-
-        // Check for valid values if present in feature
-        if ( feature.contains( "valid" ) ) {
-          std::vector<int> valids_i = OptionIntegersExtractor( feature.find("valid"), visitor_i.traits() ).get_all();
-          for ( size_t opt_nth = 0  ; opt_nth < i_values.size() ; opt_nth++  ) {
-            bool is_valid = false;
-            for ( size_t vld_nth = 0 ; vld_nth < valids_i.size() ; vld_nth++ ) {
-              if ( visitor_i.isequal( i_values[opt_nth], valids_i[vld_nth]) ) {
-                is_valid = true;
-                break;
-              }
-            }
-            // Check for a valid value
-            if ( is_valid == false ) {
-              is_all_valid = false;
-              std::string mess = "*** ProductSpecification::process_order() - "
-                                "Integer value " + option.to_string( opt_nth )  + 
-                                " at index = " + std::to_string( opt_nth ) +
-                                " in option(" + option.name() + ") is not valid!";
-              order.add_error( std::runtime_error( mess ) );                    
-            }
-          }
-        }
-
-        if ( is_all_valid == true ) {
-          order.add_option( option );
-        }
-        else {
-          order.add_residual( option );
-        }        
-      }
-
-      /**
-       * @brief Process an size_t feature specification with a config option
-       * 
-       * This method processes compares a product config option with a feature
-       * specification. Option values are extracted and compared with feature
-       * specs for validity. Errors that occur are recorded in the order.
-       * 
-       * @param option  Configuration option that ultimately originates from
-       *                  the user.
-       * @param feature  Feature specification that it compares to the user
-       *                  config.
-       * @param order    Product order that accumulates validation of the
-       *                   options with the feature specs.
-       */
-      inline void process_size_t( const ProductOption &option, 
-                                    const ProductFeature &feature,
-                                    ProductOrder &order ) const {     
-        std::vector<size_t> st_values;
-        psmrts::optvis::SizetsVisitor visitor_st = OptionSizetsExtractor( option ).create_visitor( st_values, option );
-        option.visit( visitor_st );
-        bool is_all_valid = true;
-      
-        for ( size_t ndx = 0 ; ndx < st_values.size() ; ndx++ ) {
-          if ( !visitor_st.isvalid( st_values[ndx] ) ) {
-            std::string mess = "*** ProductSpecification::process_order() - "
-                              "Size_t value " + option.to_string( ndx )  + 
-                              " in option(" + option.name() + ") is invalid!";
-            order.add_error( std::runtime_error( mess ) );
-            is_all_valid = false;
-          }
-        }
-
-        // Check for valid values if present in feature
-        if ( feature.contains( "valid" ) ) {
-          std::vector<size_t> valids_st = OptionSizetsExtractor( feature.find("valid"), visitor_st.traits() ).get_all();
-          for ( size_t opt_nth = 0  ; opt_nth < st_values.size() ; opt_nth++  ) {
-            bool is_valid = false;
-            for ( size_t vld_nth = 0 ; vld_nth < valids_st.size() ; vld_nth++ ) {
-              if ( visitor_st.isequal( st_values[opt_nth], valids_st[vld_nth]) ) {
-                is_valid = true;
-                break;
-              }
-            }
-            // Check for a valid value
-            if ( is_valid == false ) {
-              is_all_valid = false;
-              std::string mess = "*** ProductSpecification::process_order() - "
-                                "Size_t value " + option.to_string( opt_nth )  + 
-                                " at index = " + std::to_string( opt_nth ) +
-                                " in option(" + option.name() + ") is not valid!";
-              order.add_error( std::runtime_error( mess ) );                    
-            }
-          }
-        }
-
-        if ( is_all_valid == true ) {
-          order.add_option( option );
-        }
-        else {
-          order.add_residual( option );
-        }        
-      }
-
-      /**
-      * @brief Process a boolean feature specification with a config option
-       * 
-       * This method processes compares a product config option with a feature
-       * specification. Option values are extracted and compared with feature
-       * specs for validity. Errors that occur are recorded in the order.
-       * 
-       * @param option  Configuration option that ultimately originates from
-       *                  the user.
-       * @param feature  Feature specification that it compares to the user
-       *                  config.
-       * @param order    Product order that accumulates validation of the
-       *                   options with the feature specs.
-       */
-      inline void process_booleans( const ProductOption &option, 
-                                    const ProductFeature &feature,
-                                    ProductOrder &order ) const {   
-        // Process these as strings for better error detection
-        std::vector<std::string> b_values;
-        psmrts::optvis::StringsVisitor visitor_b = OptionStringsExtractor( option ).create_visitor( b_values, option );
-        option.visit( visitor_b );
-        bool is_valid = true;
-
-        for ( size_t ndx = 0 ; ndx < b_values.size() ; ndx++ ) {
-          if ( !visitor_b.isvalid( b_values[ndx] ) ) {
-            std::string mess = "*** ProductSpecification::process_order() - "
-                              "Boolean value " + option.to_string( ndx )  + 
-                              " in option(" + option.name() + ") is invalid!";
-            order.add_error( std::runtime_error( mess ) );
-            is_valid = false;
-          }
-        } 
-        
-        if ( is_valid == true ) {
-          order.add_option( option );
-        }
-        else {
-          order.add_residual( option );
-        }
-        return;
-      }
-
-      /**
-       * @brief Process a feature specification with a config option using strings
-       * 
-       * This method processes compares a product config option with a feature
-       * specification using string value comparisons. This method should work
-       * best with most all options if the feature specs are robust and correct.
-       * 
-       * Option values are extracted as strings and compared with feature
-       * specs for validity. Errors that occur are recorded in the order.
-       * 
-       * @param option  Configuration option that ultimately originates from
-       *                  the user.
-       * @param feature  Feature specification that it compares to the user
-       *                  config.
-       * @param order    Product order that accumulates validation of the
-       *                   options with the feature specs.
-       */
-      inline void process_strings( const ProductOption &option, 
-                                   const ProductFeature &feature,
-                                   ProductOrder &order ) const { 
-        std::vector<std::string> s_values;
-        psmrts::optvis::StringsVisitor visitor_s = OptionStringsExtractor( option ).create_visitor( s_values, option );
-        option.visit( visitor_s );
-        bool is_all_valid = true;
-
-        for ( size_t ndx = 0 ; ndx < s_values.size() ; ndx++ ) {
-          if ( !visitor_s.isvalid( s_values[ndx] ) ) {
-            std::string mess = "*** ProductSpecification::process_order() - "
-                              "String value " + option.to_string( ndx )  + 
-                              " in option(" + option.name() + ") is invalid!";
-            order.add_error( std::runtime_error( mess ) );
-            is_all_valid = false;
-          }
-        }
-        
-        // Check for valid values if present in feature
-        if ( feature.contains( "valid" ) ) {
-          std::vector<std::string> valids_s = OptionStringsExtractor( feature.find("valid"), visitor_s.traits() ).get_all();
-          for ( size_t opt_nth = 0  ; opt_nth < s_values.size() ; opt_nth++  ) {
-            bool is_valid = false;
-            for ( size_t vld_nth = 0 ; vld_nth < valids_s.size() ; vld_nth++ ) {
-              if ( visitor_s.isequal( s_values[opt_nth], valids_s[vld_nth]) ) {
-                is_valid = true;
-                break;
-              }
-            }
-            // Check for a valid value
-            if ( is_valid == false ) {
-              is_all_valid = false;
-              std::string mess = "*** ProductSpecification::process_order() - "
-                                "String value " + option.to_string( opt_nth )  + 
-                                " at index = " + std::to_string( opt_nth ) +
-                                " in option(" + option.name() + ") is not valid!";
-              order.add_error( std::runtime_error( mess ) );                    
-            }
-          }
-        }        
-
-        if ( is_all_valid == true ) {
-          order.add_option( option );
-        }
-        else {
-          order.add_residual( option );
-        }          
-      }
       
     private:
       std::string     m_name;

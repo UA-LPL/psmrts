@@ -21,6 +21,8 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsTranslations.hpp>
 #include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/core/ProductCart.hpp>
+
 
 namespace psmrts {
   class DskShape : public PsmrtsProduct {
@@ -31,8 +33,7 @@ namespace psmrts {
       DskShape( ) : PsmrtsProduct("none", "dsk"), 
                     m_mesh(), m_config( { ProductConfiguration("dsk") } )  { }
       DskShape( const std::string &dsk_file, const int segnum = 0 );
-      DskShape( const ProductConfiguration &config,
-                const PsmrtsTranslations &trans = PsmrtsTranslations::create() );
+      DskShape( const ProductCart &processed_cart );
       virtual ~DskShape() = default;
      
 
@@ -99,12 +100,12 @@ namespace psmrts {
         return ( this->config().matches( conf ) );
       }
 
-      void create( const ProductConfiguration &config,
-                   const PsmrtsTranslations &trans );
 
     protected:
       PsmrtsMeshData       m_mesh;
       ProductConfiguration m_config;
+
+      void create( const ProductCart &cart );
 
   };
 }

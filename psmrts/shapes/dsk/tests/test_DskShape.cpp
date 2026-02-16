@@ -87,7 +87,9 @@ TEST_CASE( "PSMRTS Product DSK Specification Test", "[product][type][mesh][dsk]"
                 Catch::Matchers::WithinAbs( 0.2830650000000668, tolerance) ); 
 
     psmrts::PsmrtsTranslations tln;
-    psmrts::DskShape shape2( config_data, tln );
+    psmrts::ProductSpecification spec_d = psmrts::DskShape::product_specifications();
+    psmrts::ProductCart cart_d = psmrts::ProductCart( spec_d, config_data );
+    psmrts::DskShape shape2( cart_d);
 
     CHECK( shape2.name() == "dsk" );
     CHECK( shape2.type() == dsk_m.type() );
@@ -95,9 +97,9 @@ TEST_CASE( "PSMRTS Product DSK Specification Test", "[product][type][mesh][dsk]"
 
     // bad shape
     psmrts::ProductConfiguration bad_config1("bad_one", { psmrts::ProductOption("shape", "ply") } );
-    CHECK_THROWS( psmrts::DskShape( bad_config1, tln ) );
+    CHECK_THROWS( psmrts::DskShape( psmrts::ProductCart( spec_d, bad_config1 )) );
 
     // bad file ("dsk_file")
     psmrts::ProductConfiguration bad_config2("bad_two", { psmrts::ProductOption("dsk_file", "bad_file_name") } );
-    CHECK_THROWS( psmrts::DskShape( bad_config2, tln ) );
+    CHECK_THROWS( psmrts::DskShape( psmrts::ProductCart( spec_d, bad_config2 )) );
 }

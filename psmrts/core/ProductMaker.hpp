@@ -20,10 +20,8 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
-#include <psmrts/core/ProductOrder.hpp>
+#include <psmrts/core/ProductCart.hpp>
 #include <psmrts/algorithms/VariantTraits.hpp>
-#include <psmrts/shapes/PsmrtsShape.hpp>
-#include <psmrts/tracers/PsmrtsTracer.hpp>
 
 
 namespace psmrts {
@@ -39,15 +37,18 @@ namespace psmrts {
    */
   template <typename Product>
     class ProductMaker : public PsmrtsRequest {
-      using Variants = typename Product::Variants;
+      using Variants         = typename Product::Variants;
+      using ProductSpecsList = PsmrtsContainer<ProductSpecification>;
 
       public:
         ProductMaker( ) : PsmrtsRequest( "ProductMaker" ),
-                          m_order( "Product" ),
+                          m_cart( "Product" ),
+                          m_specs( "specs" ),
                           m_product( ) { }
         ProductMaker( const std::string &name ) : 
                       PsmrtsRequest( name ),
-                      m_order( name ),
+                      m_cart( name ),
+                      m_specs( "specs" ),
                       m_product() { }                        
         virtual ~ProductMaker() { }
     
@@ -55,13 +56,17 @@ namespace psmrts {
           return ( m_product.has_value() );
         }
 
+        inline const ProductSpecsList &specifications() const {
+          return ( m_specs );
+        }
+
         inline Product product() const {
           if ( this->isvalid() ) return ( m_product.value() );
           return ( Product() );  // This returns an non-value variant
         }
 
-        inline const ProductOrder order() const {
-          return ( m_order );
+        inline const ProductCart cart() const {
+          return ( m_cart );
         }
 
         /**
@@ -73,15 +78,15 @@ namespace psmrts {
          * @return std::vector<ProductSpecification> Vector of all valid product
          *            specifications
          */
-        inline std::vector<ProductSpecification> get_product_specs( ) const {
+        inline ProductSpecsList get_product_specs( ) const {
 
-          std::vector<ProductSpecification> v_specs;
+          ProductSpecsList v_specs;
           auto v_indexes = traits_v::indexing_tuple<std::variant_size_v<Variants>>;
           traits_v::tuple_foreach( v_indexes, [&](auto I) { // Compile time index of variant
             using V = std::variant_alternative_t<I, Variants>;
             ProductSpecification s = V().product_specifications();  // Should be able to get w/o instantiation!
             if ( s.size() > 0 ) { // Check for featureless variant
-              v_specs.push_back( s );
+              v_specs.add( s );
             }
           } );
 
@@ -101,8 +106,9 @@ namespace psmrts {
         inline bool process_config( const ProductConfiguration &conf,
                                     const PsmrtsTranslations &translations ) {
 
+          m_specs.clear();
           m_product.reset();
-          m_order = ProductOrder( conf, translations );
+          m_cart = ProductCart( conf.name() );
           auto v_indexes = traits_v::indexing_tuple<std::variant_size_v<Variants>>;
           traits_v::tuple_foreach( v_indexes, [&](auto I) { // Compile time index of variant
             if ( m_product.has_value() ) return;  // Check if product has been created
@@ -110,14 +116,11 @@ namespace psmrts {
             ProductSpecification s = V().product_specifications();  // Should be able to get w/o instantiation!
 
             if ( s.size() > 0 ) { // Check for featureless variant
-              m_order  = s.process_order( conf, translations );
-              // std::cout << "ProductMaker OrderConfig:     " << m_order.config().to_json().dump(2) << std::endl;
-              // std::cout << "ProductMaker OrderResidual:   " << m_order.residual().to_json().dump(2) << std::endl;
-              // std::cout << "ProductMaker ResidualDepends: " << m_order.residual_dependencies().to_json().dump(2) << std::endl;
-              if ( m_order.isvalid() ) { 
-                // std::cout << "Making Product Type: " << s.name() << std::endl;
-                m_product.emplace( Product( V( conf )) );
-                m_order.set_uid( m_product.value().uid() );
+              m_cart = ProductCart::extract_config( conf, s );
+
+              if ( m_cart.isvalid() ) { 
+                m_specs.add( s );
+                m_product.emplace( Product( V( m_cart )) );
                 return;
               }
             }
@@ -128,7 +131,8 @@ namespace psmrts {
 
 
       private:
-        ProductOrder           m_order;
+        ProductCart            m_cart;
+        ProductSpecsList       m_specs;
         std::optional<Product> m_product;
     };
 

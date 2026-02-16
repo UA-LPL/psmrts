@@ -20,7 +20,7 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsMeshData.hpp>
 #include <psmrts/core/ProductSpecification.hpp>
 #include <psmrts/core/ProductConfiguration.hpp>
-#include <psmrts/core/ProductOrder.hpp>
+#include <psmrts/core/ProductCart.hpp>
 
 
 namespace psmrts {
@@ -40,9 +40,10 @@ namespace psmrts {
                    PsmrtsProduct( name, "mesh" ),
                    m_mesh( mesh ),
                    m_config( mesh.config() ) { }
-        MeshShape( const ProductConfiguration &config,
-                   const PsmrtsTranslations &trans = PsmrtsTranslations::create() ) {
-          this->create( config, trans );
+        MeshShape( const ProductCart &processed_cart ) {
+          this->set_name( processed_cart.name() );
+          this->set_type( "mesh" );          
+          this->create( processed_cart );
         }                      
         virtual ~MeshShape() = default;
          
@@ -120,18 +121,24 @@ namespace psmrts {
           return ( config );
         }
 
-        inline void create( const ProductConfiguration &config,
-                            const PsmrtsTranslations &trans ) {
+        inline void create( const ProductCart &cart ) {
 
             // Check for valid shape type
-            ProductOrder order = this->product_specifications().process_order( config, trans );
-            if (order.error_count() > 0 ) {
-              std::string mess = "MeshShape::create(" + config.name() + ") has errors: " +
-                                  order.errors_to_string();
+            if (cart.error_count() > 0 ) {
+              std::string mess = "MeshShape::create(" + cart.name() + 
+                                ") has config/spec processing errors: \n" +
+                                  cart.errors_to_string();
               throw std::runtime_error( mess );          
             }
 
-            m_config = order.config();
+            ProductConfiguration v_conf = cart.configuration();
+            if (cart.error_count() > 0 ) {
+              std::string mess = "MeshShape::create(" + cart.name() + ") has errors: " +
+                                  cart.errors_to_string();
+              throw std::runtime_error( mess );          
+            }
+
+            m_config = cart.configuration();
             if ( m_config.contains( "shape" ) ) {
               if ( m_config.find( "shape" ).to_string() != "mesh" ) {
                 std::string mess = "MeshShape::create() - shape type must be \"mesh\""
