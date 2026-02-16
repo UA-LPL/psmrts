@@ -44,12 +44,12 @@ namespace psmrts {
         ProductMaker( ) : PsmrtsRequest( "ProductMaker" ),
                           m_cart( "Product" ),
                           m_specs( "specs" ),
-                          m_product( ) { }
+                          m_product( std::nullopt ) { }
         ProductMaker( const std::string &name ) : 
                       PsmrtsRequest( name ),
                       m_cart( name ),
                       m_specs( "specs" ),
-                      m_product() { }                        
+                      m_product( std::nullopt ) { }                        
         virtual ~ProductMaker() { }
     
         inline bool isvalid() const {

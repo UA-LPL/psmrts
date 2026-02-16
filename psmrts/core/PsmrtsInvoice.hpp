@@ -31,6 +31,7 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/ProductCart.hpp>
 #include <psmrts/core/ProductProcessing.hpp>
 #include <psmrts/core/PsmrtsInventory.hpp>
+#include <psmrts/core/PsmrtsFactory.hpp>
 
 
 namespace psmrts {
@@ -46,17 +47,17 @@ namespace psmrts {
       using ProductOrderList = PsmrtsContainer<ProductOrder>;
 
       PsmrtsInvoice( ) : PsmrtsProduct( "PsmrtsInvoice" ),
-                         PsmrtsRequest( "InvoiceErrors" ),
-                        m_orders(  ),
-                        m_processor( ),
-                        m_inventory() { }
+                         PsmrtsRequest( "invoice_errors" ),
+                         m_orders(  ),
+                         m_processor( ),
+                         m_inventory( std::nullopt ) { }
       PsmrtsInvoice( const std::string &name,
                      const PsmrtsTranslations &trans = PsmrtsTranslations() ) : 
                      PsmrtsProduct( name ),
                      PsmrtsRequest( "InvoiceErrors" ),                     
                      m_orders( ),
                      m_processor( trans ),
-                     m_inventory() { }                        
+                     m_inventory( std::nullopt ) { }                        
       virtual ~PsmrtsInvoice() { }
   
 
@@ -64,18 +65,25 @@ namespace psmrts {
         return ( m_orders.size() );
       }
 
+      inline const std::string &name() const {
+        return ( PsmrtsProduct::name() );
+      }
+
+      inline bool has_inventory() const {
+        return ( m_inventory.has_value() );
+      }
 
       inline const PsmrtsTranslations &translations() const {
         return ( m_processor.translator() );
       }
 
       inline bool add_product( const ProductConfiguration &config ) {
-        ProductOrder order_t = process_product( config );
+        ProductOrder order_t = m_processor.process_configuration( config );
         if ( order_t.error_count() > 0 ) {
           std::string mess = "PsmrtsInvoice::add_product(" + config.name() +
                              ") errors occured during validation: " +
                              order_t.errors_to_string();
-          this->add_error( std::runtime_error( mess ) );
+          this->add_error( mess );
           return ( false );
         }
         
@@ -85,7 +93,7 @@ namespace psmrts {
           std::string mess = "PsmrtsInvoice::add_product(" + config.name() +
                              ") is not valid, has unrecognized key/value options: " +
                              resid_s;
-          this->add_error( std::runtime_error( mess ) );
+          this->add_error( mess );
           return ( false );
         }
 
@@ -94,77 +102,83 @@ namespace psmrts {
         return ( true );
       }
 
-      inline const ProductOrderList &orders() const {
+      /** Get a list of all the orders in this invoice */
+      inline const ProductOrderList &orders( ) const {
         return ( m_orders );
       }
 
+      /**
+       * @brief Generate products from the orders contained in this invoice
+       * 
+       * If there is no inventory allocated (see has_inventory()) then one is
+       * created and the orders are processed. Part of the processing is to use
+       * the local inventory and factory inventory to find products to reuse.
+       * If tracers or shapes are not found, then new ones are created from 
+       * the configurations and added to the local cache added to the factory
+       * cache. 
+       * 
+       * The local PsmrtsRequest error tracking mechanism is used to report any
+       * issues that occur when creating products.
+       * 
+       * @return true  If all products are created successfully
+       * @return false If product creation fails
+       */
+      inline bool generate_products( ) {
+
+        return ( true );
+      }
 
       /**
-       * @brief Process a configuration returning a product order with status
+       * @brief Get the priority tracer object generated from the product configs
        * 
-       * This method function takes a compound configuration and returns
-       * results that are intended to create 
+       * This method will create a priority tracer from the results of the
+       * configs contained in this invoice. Its possible the products have not
+       * been generated yet so the generate_products() method should have been
+       * called prior to calling this routine - it is renentrant.
        * 
-       * @param config 
-       * @param translations 
-       * @return ProductOrder 
+       * If one is not found or products have not been generated yet (indicated
+       * by the method has_inventory()) 
+       * 
+       * @param name 
+       * @return PsmrtsPriorityTracer 
        */
-      inline ProductOrder process_product( const ProductConfiguration &config ) { 
-        ProductOrder order_t( config.name() );                              
-        if ( config.size() == 0 ) return ( order_t );
+      inline PsmrtsPriorityTracer get_priority_tracer( const std::string &name = "" ) {
 
-        // Process the till the first occurance of valid or no errors occurs
-        auto tracer_specs_v = ProductMaker<PsmrtsTracer>().get_product_specs();
-        for ( const auto &tracer_s : tracer_specs_v ) {
-          order_t = m_processor.process_cart( ProductCart( tracer_s, config) );
-          order_t.add_dependency( tracer_s.name() );
+        std::string name_t = ( name.length() > 0 ) ? name : this->name();
+        PsmrtsPriorityTracer tracer_p( name );
 
-          // If this parse is successful, we are done and its a standalone tracer.
-          if ( order_t.isvalid() ) {
-            return ( order_t );
-          }
-
-          // Check for errors. If none break for shape processing
-          if ( order_t.error_count() == 0 ) {
-            break;
-          }
-        }
-        
-        // If we have errors, then no tracer is detected/valid for this config
-        // and we only have a shape to consider. Pass the orginal config for
-        // shape processing. 
-        //
-        // If we have no errors but its not valid, assume a shape is required
-        // and copy the residual config and process shape.
-        ProductConfiguration config_t( config.name()  );
-        ProductOrder order_s( config.name() );
-        if ( ( order_t.error_count() > 0 ) || ( order_t.size() == 0 )) {
-          // Process as shape only, start over
-          config_t = config;
-        }
-        else {
-          // order_t content contains processed tracer, lets see if we have
-          // shape to consume the remaining residual/dependencies
-          config_t = order_t.residual_config();
+        // First search the local inventory if one exists
+        if ( m_inventory.has_value() ) {
+          tracer_p = this->find_priority_tracer( m_inventory.value(), name );
         }
 
-        auto shape_specs_v  = ProductMaker<PsmrtsShape>().get_product_specs();
-        for ( const auto &shape_s : shape_specs_v ) {
-          order_s = m_processor.process_cart( ProductCart( shape_s, config_t ) );
-          if ( order_s.isvalid() ) break;
+        // If its not valid, it wasn't found so try the factory inventory
+        if ( !tracer_p.isValid() ) {
+          const auto &inventory_pt = PsmrtsFactory().find( );
+          tracer_p = this->find_priority_tracer(inventory_pt, name );
         }
 
-        // Make it all make sense. Retain errors and status in the composite
-        // version.
-        order_t = order_s.make_composite( order_t );
-
-        return ( order_t );
+        return ( tracer_p );
       }
 
     private:
       ProductOrderList               m_orders;
       ProductProcessing              m_processor;
       std::optional<PsmrtsInventory> m_inventory;
+
+      inline PsmrtsPriorityTracer find_priority_tracer( const PsmrtsInventory &inventory,
+                                                        const std::string &name ) 
+                                                        const {
+        const auto &inventory_pt = inventory.prioritytracers();
+        for ( const auto &pt : inventory_pt.cache() ) {
+          if ( pt.second.name() == name ) {
+            return ( pt.second );
+          }       
+        }
+
+        // Returns an empty tracer indicating it wasn't found
+        return ( PsmrtsPriorityTracer( name ) );
+      }
   };
 
 } // namespace psmrts
