@@ -41,7 +41,7 @@ namespace psmrts {
    * @author Kris J. Becker, University of Arizona
    * @history 2026-01-31 Kris J. Becker  Original Version
    */
-  class PsmrtsInvoice : public PsmrtsProduct, PsmrtsRequest {
+  class PsmrtsInvoice : public PsmrtsProduct, public PsmrtsRequest {
     public:
       using ProductOrderList = PsmrtsContainer<ProductOrder>;
 
