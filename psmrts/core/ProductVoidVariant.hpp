@@ -66,7 +66,7 @@ namespace psmrts {
       }
 
       static inline ProductSpecification product_specifications() {
-        return ( ProductSpecification( "void" ) );
+        return ( ProductSpecification( "void", "variant" ) );
       }
 
       inline const ProductConfiguration &config() const {
