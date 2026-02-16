@@ -54,11 +54,11 @@ namespace psmrts {
       using Creator = std::function<void(const ProductConfiguration &config)>;
 
 
-      ProductSpecification( ) : m_name( "" ), m_product( "" ),
+      ProductSpecification( ) : m_name( "none" ), m_product( "none" ),
                                 m_info( "info" ), m_features( "features" ),
                                 m_creator( std::nullopt ) { }
       ProductSpecification( const std::string &name,
-                            const std::string &product = "product" ) :
+                            const std::string &product ) :
                             m_name( name ), m_product( product ),
                             m_info( "info" ), m_features( "features" ),
                             m_creator( std::nullopt ) {
@@ -82,11 +82,11 @@ namespace psmrts {
       virtual ~ProductSpecification() = default;
 
 
-      inline std::string name() const {
+      inline const std::string &name() const {
         return ( m_name );
       }
 
-      inline std::string product() const {
+      inline const std::string &product() const {
         return ( m_product );
       }
 

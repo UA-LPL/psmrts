@@ -56,13 +56,13 @@ namespace psmrts {
       using ResidualOptions   = PsmrtsContainer<ProductOption>;
 
       ProductCart( ) : PsmrtsRequest( "ProductCart" ),
-                       m_specs( "productcart" ),
-                       m_config("productcart" ),
+                       m_specs(  ),
+                       m_config( ),
                        m_residual( "residualoptions" )  { }
       ProductCart( const std::string &name ) : 
                    PsmrtsRequest( name ),
-                   m_specs( name ),
-                   m_config( name ),
+                   m_specs(  ),
+                   m_config( ),
                    m_residual( "residualoptions" )  { }
       ProductCart( const ProductSpecification &specs ) : 
                    PsmrtsRequest( specs.name() ),
@@ -86,7 +86,6 @@ namespace psmrts {
         ResidualOptions residuals;
         cart_t.m_config   = specs.extract( config, residuals, cart_t );
         cart_t.m_residual = residuals;
-        std::cout << "ProductCart::extract_config: " << cart_t.to_json().dump(2) << std::endl;
         return ( cart_t );
       }
 
@@ -100,6 +99,16 @@ namespace psmrts {
 
       inline bool size() const {
         return ( m_config.size() );
+      }
+
+      /** The product name such as "obj", "bullet" as defined in the specs */
+      inline const std::string &name () const {
+        return ( this->specification().name() );
+      }
+
+      /** The product type, "tracer" or "shape", as defined in the specs */
+      inline const std::string &product() const {
+        return ( this->specification().product() );
       }
 
       inline bool residual_size() const {
@@ -126,7 +135,7 @@ namespace psmrts {
         m_config.add_metadata( option );
       }
 
-      inline void set_specification( const ProductSpecification &specs = ProductSpecification( "none" ) ) {
+      inline void set_specification( const ProductSpecification &specs = ProductSpecification() ) {
         m_specs = specs;
       }
 

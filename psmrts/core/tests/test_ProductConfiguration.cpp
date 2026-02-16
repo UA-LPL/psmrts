@@ -9,7 +9,7 @@ TEST_CASE( "PSMRTS Product Configuration", "[product][configuration][default]") 
 
   // Construct default product configuration.
   psmrts::ProductConfiguration config;
-  CHECK( config.name()          == "undefined" );
+  CHECK( config.name()          == "none" );
   CHECK( config.size()          == 0 );
   // CHECK( config.remove("name")  == false);
 

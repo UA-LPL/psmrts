@@ -43,7 +43,7 @@ namespace psmrts {
       using ProductOptionList = ContainerType;
       using ProductMetadata   = ContainerType;
 
-      ProductConfiguration( ) : m_identifier("undefined"), 
+      ProductConfiguration( ) : m_identifier("none"), 
                                 m_options( "options"),
                                 m_metadata( "metadata" ) { }
       ProductConfiguration( const std::string &cid ) :

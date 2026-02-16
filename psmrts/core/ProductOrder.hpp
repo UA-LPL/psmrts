@@ -64,7 +64,7 @@ namespace psmrts {
                     const std::vector<std::string> &depends = {} ) : 
                     PsmrtsRequest( submitted.name() ),
                     m_submitted( submitted ),
-                    m_cart( config.name(), config ),
+                    m_cart( ProductSpecification(), config ),
                     m_translations( trans ),
                     m_dependencies( depends ) { }                    
       ProductOrder( const ProductCart &product,

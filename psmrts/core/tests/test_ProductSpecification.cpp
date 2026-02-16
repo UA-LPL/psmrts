@@ -19,7 +19,7 @@
 TEST_CASE ( "ProductSpecification Constructor / Base Function Test", "[product][specification][constructor][base]") {
     psmrts::ProductSpecification product1;
 
-    CHECK( product1.name() == "" );
+    CHECK( product1.name() == "none" );
     
     // No constructor to create based on ProductFeature, seemingly must use json
     CHECK_THROWS( psmrts::ProductFeature( product1.to_json() ) );
