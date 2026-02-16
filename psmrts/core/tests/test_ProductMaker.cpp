@@ -65,7 +65,7 @@ TEST_CASE( "ProductMaker Bullet Tracer Test", "[product][maker][tracer][bullet]"
   psmrts::ProductProcessing processor_p(trans_t);
 
   psmrts::ProductConfiguration bullet_t("bulletmaker");
-  // bullet_t.add( psmrts::ProductOption( "shape", "obj" ) );
+  bullet_t.add( psmrts::ProductOption( "shape", "obj" ) );
   bullet_t.add( psmrts::ProductOption( "obj_file", psmrts_shapes_path( "obj/data/bennu_20facets.obj")  ) );
   bullet_t.add( psmrts::ProductOption( "tracer", "bullet" ) );
 
