@@ -37,14 +37,28 @@ find files of those names at the top level of this repository. **/
 namespace psmrts {
 
   /** 
-   * @brief PSMRTS product order 
+   * @brief PSMRTS invoice handles all product managements processes
+   * 
+   * This class accepts product configurations and generates products. It
+   * maintains a local inventory containing all products while also utilizing
+   * the PSMRTS factory for resource reuse. 
+   * 
+   * The ultimate product generated from this invoice is a priority tracer.
+   * Although you can also produce other products that can be added to the
+   * factory or reused for other purposes.
+   * 
+   * Each configuration will result in at most one tracer and potentially a
+   * shape. Each configuration that results in a tracer will be part of the
+   * priority tracer. 
    * 
    * @author Kris J. Becker, University of Arizona
    * @history 2026-01-31 Kris J. Becker  Original Version
    */
   class PsmrtsInvoice : public PsmrtsProduct, public PsmrtsRequest {
     public:
-      using ProductOrderList = PsmrtsContainer<ProductOrder>;
+      using ProductSet       = ProductProcessing::ProductSet;
+      using ProductOrderList = PsmrtsContainer<ProductSet>;
+
 
       PsmrtsInvoice( ) : PsmrtsProduct( "PsmrtsInvoice" ),
                          PsmrtsRequest( "invoice_errors" ),
@@ -78,27 +92,17 @@ namespace psmrts {
       }
 
       inline bool add_product( const ProductConfiguration &config ) {
-        ProductOrder order_t = m_processor.process_configuration( config );
-        if ( order_t.error_count() > 0 ) {
+        ProductSet product_s = m_processor.process_configuration( config );
+        if ( !m_processor.is_valid_product( product_s ) ) {
           std::string mess = "PsmrtsInvoice::add_product(" + config.name() +
                              ") errors occured during validation: " +
-                             order_t.errors_to_string();
+                             m_processor.product_error_string( product_s );
           this->add_error( mess );
           return ( false );
         }
-        
-        if ( !order_t.isvalid()  ) {
-          auto residuals = order_t.residual_config();
-          std::string resid_s = residuals.to_json( residuals.options() ).dump(-1);
-          std::string mess = "PsmrtsInvoice::add_product(" + config.name() +
-                             ") is not valid, has unrecognized key/value options: " +
-                             resid_s;
-          this->add_error( mess );
-          return ( false );
-        }
-
+      
         // Add it to the invoice
-        m_orders.add( order_t );
+        m_orders.add( product_s );
         return ( true );
       }
 
