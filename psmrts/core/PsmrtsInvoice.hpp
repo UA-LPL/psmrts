@@ -64,14 +64,14 @@ namespace psmrts {
                          PsmrtsRequest( "invoice_errors" ),
                          m_orders(  ),
                          m_processor( ),
-                         m_inventory( std::nullopt ) { }
+                         m_inventory( "inventory" ) { }
       PsmrtsInvoice( const std::string &name,
                      const PsmrtsTranslations &trans = PsmrtsTranslations() ) : 
                      PsmrtsProduct( name ),
                      PsmrtsRequest( "InvoiceErrors" ),                     
                      m_orders( ),
                      m_processor( trans ),
-                     m_inventory( std::nullopt ) { }                        
+                     m_inventory( name ) { }                        
       virtual ~PsmrtsInvoice() { }
   
 
@@ -83,10 +83,6 @@ namespace psmrts {
         return ( PsmrtsProduct::name() );
       }
 
-      inline bool has_inventory() const {
-        return ( m_inventory.has_value() );
-      }
-
       inline const PsmrtsTranslations &translations() const {
         return ( m_processor.translator() );
       }
@@ -95,6 +91,9 @@ namespace psmrts {
         return ( m_processor );
       }
 
+      inline const PsmrtsInventory &inventory() const {
+        return ( m_inventory );
+      }
 
       inline bool add_product( const ProductConfiguration &config ) {
         ProductSet product_s = m_processor.process_configuration( config );
@@ -136,13 +135,9 @@ namespace psmrts {
         // Reset the errors and regenerate the inventory
         m_processor.clear_errors();
 
-        if ( !m_inventory.has_value() ) {
-          m_inventory.emplace( PsmrtsInventory( this->name() ) );
-        }
-
         // Process the fdata inplace
         for ( auto &products : m_orders.data() ) {
-          m_processor.process_product_set( products, m_inventory.value() );
+          m_processor.process_product_set( products, m_inventory );
         }
 
         return ( m_processor.error_count() == 0  );
@@ -156,8 +151,7 @@ namespace psmrts {
        * been generated yet so the generate_products() method should have been
        * called prior to calling this routine - it is renentrant.
        * 
-       * If one is not found or products have not been generated yet (indicated
-       * by the method has_inventory()) 
+       * If one is not found or products have not been generated yet.
        * 
        * @param name 
        * @return PsmrtsPriorityTracer 
@@ -171,25 +165,31 @@ namespace psmrts {
           return ( m_priority_t.value() );
         }
 
-        // If one is not stored, lets generate one by ensuring we have a local
-        // inventory, and then extracting all the tracers from it after
-        // generating the products from the orders
-        if ( !m_inventory.has_value() ) {
-          this->generate_products();
+        // Check to see if we have any products. If not we assume
+        // generate_products() has not been called so do it here.
+        if ( m_inventory.size() == 0 ) {
+          if ( !this->generate_products() ) {
+            std::string mess = "PsmrtsInvoice::get_priority_tracer(" + name_t +
+                              ") got errors generating products: " +
+                              m_processor.errors_to_string( );
+            this->add_error( mess );
+            return ( PsmrtsPriorityTracer( "none" ));            
+          }
         }
 
         m_priority_t.emplace( PsmrtsPriorityTracer( name_t ) );
-        for ( const auto &tracer : m_inventory.value().tracers().cache() ) {
+        for ( const auto &tracer : m_inventory.tracers().cache() ) {
           m_priority_t.value().add_tracer( tracer.second );
         }
 
+        m_inventory.prioritytracers().add_product( m_priority_t.value() );
         return ( m_priority_t.value() );
       }
 
     private:
       ProductOrderList                    m_orders;
       ProductProcessing                   m_processor;
-      std::optional<PsmrtsInventory>      m_inventory;
+      PsmrtsInventory                     m_inventory;
       std::optional<PsmrtsPriorityTracer> m_priority_t; 
 
       inline PsmrtsPriorityTracer find_priority_tracer( const PsmrtsInventory &inventory,
