@@ -1744,8 +1744,8 @@ PSMRTS_Invoice *psmrts_create_invoice( const char* name,
 }
 
 /**
- * @brief psmrts_add_config_invoice - Adds the given PSMRTS_Invoice to the given
- * PSMRTS_ProductConfiguration.
+ * @brief psmrts_add_config_invoice - Adds the given PSMRTS_ProductConfiguration to
+ *                                    the given PSMRTS_Invoice.
  *
  * Adds the given PSMRTS_Invoice to the given PSMRTS_ProductConfiguration.
  *
