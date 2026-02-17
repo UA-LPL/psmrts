@@ -127,12 +127,12 @@ TEST_CASE ( "PSMRTS C API - Product Configuration", "[capi][config][options]" ) 
   psmrts_add_product_double_vector( config, "double vector", darray, 3 );
 
   // verify all ProductOptions are in config
-  CHECK( psmrts_product_config_contains( config, "string" ) == true );
-  CHECK( psmrts_product_config_contains( config, "bool" )   == true );
-  CHECK( psmrts_product_config_contains( config, "int" )    == true );
-  CHECK( psmrts_product_config_contains( config, "size_t" ) == true );
-  CHECK( psmrts_product_config_contains( config, "double" ) == true );
-  CHECK( psmrts_product_config_contains( config, "double vector" ) == true );
+  CHECK( psmrts_product_config_contains( config, "string" ) == PSMRTS_TRUE );
+  CHECK( psmrts_product_config_contains( config, "bool" )   == PSMRTS_TRUE );
+  CHECK( psmrts_product_config_contains( config, "int" )    == PSMRTS_TRUE );
+  CHECK( psmrts_product_config_contains( config, "size_t" ) == PSMRTS_TRUE );
+  CHECK( psmrts_product_config_contains( config, "double" ) == PSMRTS_TRUE );
+  CHECK( psmrts_product_config_contains( config, "double vector" ) == PSMRTS_TRUE );
 
   // verify meta data for all ProductOptions added to config
   PSMRTS_String *pstr1 = psmrts_create_string( "" );

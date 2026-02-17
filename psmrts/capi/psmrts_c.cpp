@@ -20,6 +20,8 @@ find files of those names at the top level of this repository. **/
 
 #include <psmrts/core/ProductConfiguration.hpp> 
 #include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsContainer.hpp>
+#include <psmrts/core/PsmrtsTranslations.hpp>
 #include <psmrts/core/PsmrtsBufferData.hpp>
 #include <psmrts/core/PsmrtsBuffer.hpp>
 #include <psmrts/core/PsmrtsMeshData.hpp>
@@ -28,10 +30,13 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/tracers/PsmrtsTracer.hpp>
 #include <psmrts/tracers/PsmrtsPriorityTracer.hpp>
+#include <psmrts/core/PsmrtsInvoice.hpp>
 
 /*============ PSMRTS C API type definitions ============*/
 /* Must be defined before including psmrts_c.h */
 #define PSMRTS_POINTERS 1
+using PSMRTS_Invoice               = psmrts::PsmrtsInvoice;
+using PSMRTS_Translations          = psmrts::PsmrtsTranslations;
 using PSMRTS_ProductConfiguration  = psmrts::ProductConfiguration;
 using PSMRTS_String                = std::string;
 using PSMRTS_StringArray           = std::deque<PSMRTS_String>;
@@ -151,8 +156,8 @@ inline psmrts::PRQFacet capi_facet_to_psmrts( const PSMRTS_Facet &facet ) {
 }
 
 /**
- * @brief evaluate - Evaluate input bool type and return PSMRTS_TRUE or
- *                   PSMRTS_FALSE
+ * @brief to_psmrts_bool - Evaluate input bool type and return PSMRTS_TRUE or
+ *                         PSMRTS_FALSE.
  *
  * This function evaluates the given bool type and returns PSMRTS_TRUE or
  * PSMRTS_FALSE.
@@ -160,7 +165,7 @@ inline psmrts::PRQFacet capi_facet_to_psmrts( const PSMRTS_Facet &facet ) {
  * @param b bool originating from C++ to agnostic PSMRTS type
  * @return Values of input PSMRTS_BOOL namely, PSMRTS_TRUE or PSMRTS_FALSE.
  */
-inline PSMRTS_BOOL evaluate( const bool b ) {
+inline PSMRTS_BOOL to_psmrts_bool( const bool b ) {
   return ( b ? PSMRTS_TRUE : PSMRTS_FALSE );
 }
 
@@ -613,7 +618,7 @@ PSMRTS_Vector3d psmrts_ray_lookdir( const PSMRTS_RayTrace *ray ) {
  * @return PSMRTS_BOOL indicating if input ray intercepts the surface.
  */
 PSMRTS_BOOL psmrts_ray_has_hit( const PSMRTS_RayTrace *ray ) {
-  return ( evaluate( ray->trace().hasHit() ) );
+  return ( to_psmrts_bool( ray->trace().hasHit() ) );
 }
 
 /**
@@ -742,7 +747,7 @@ PSMRTS_BOOL psmrts_isNear( const PSMRTS_RayTrace *ray1,
                            const PSMRTS_RayTrace *ray2,
                            const double tolerance_km ) {
 
-  return ( evaluate( ray1->trace().isNear( ray2->trace(), tolerance_km ) ) );
+  return ( to_psmrts_bool( ray1->trace().isNear( ray2->trace(), tolerance_km ) ) );
 }
 
 /**
@@ -878,8 +883,6 @@ const PSMRTS_RayTrace *psmrts_trace_array_get_trace( const PSMRTS_TraceArray *tr
                                                      size_t index ) {
   return ( &tracearray->get_trace( index ) );
 }
-
-/* Photometric Tracer methods */
 
 /**
  * @brief psmrts_create_photometric_ray - Creates a PSMRTS photometric ray
@@ -1417,7 +1420,7 @@ PSMRTS_Shape *psmrts_create_dsk_shape( const char *dskfile ) {
  */
 PSMRTS_Shape *psmrts_create_ply_shape( const char *plyfile ) {
   return ( new PSMRTS_Shape( psmrts::PsmrtsShape( psmrts::PlyShape( plyfile ) ) ) );
-}
+}  
 
 /**
  * @brief psmrts_facet_surface_area - Computes facet surface area.
@@ -1469,7 +1472,7 @@ double psmrts_facet_volume( const PSMRTS_Facet *facet ) {
  * @return double Shape surface area.
  */
 extern double psmrts_mesh_surface_area( const PSMRTS_Shape *shape ) {
-  return (shape->get_mesh().mesh_surface_area());
+  return ( shape->get_mesh().mesh_surface_area() );
 }
 
 /**
@@ -1481,11 +1484,43 @@ extern double psmrts_mesh_surface_area( const PSMRTS_Shape *shape ) {
  * @return double Shape volume.
  */
 extern double psmrts_mesh_volume( const PSMRTS_Shape *shape ) {
-  return (shape->get_mesh().mesh_volume());
+  return ( shape->get_mesh().mesh_volume() );
 }
 
 /**
- * @brief psmrts_create_product_config - Creates PSMRTS_ProductConfiguration.
+ * @brief psmrts_create_translation - Creates PSMRTS_Translations object.
+ *
+ * This function creates a PSMRTS_Translations object.
+ *
+ * @return PsmrtsTranslations*.
+ */
+PSMRTS_Translations *psmrts_create_translation() {
+  
+  // create translation
+  PSMRTS_Translations *trans_t = new PSMRTS_Translations( psmrts::PsmrtsTranslations::create() );
+
+  return trans_t;
+}
+
+/**
+ * @brief psmrts_add_translation_parameter - Adds parameter from the given name and value
+ * strings to an input PSMRTS_Translations object.
+ *
+ * Adds parameter from the given name and value strings to an input
+ * PSMRTS_Translations object.
+ *
+ * @param translations PsmrtsTranslations*
+ * @param name const char*
+ * @param value const char*
+ * @return void.
+ */
+void psmrts_add_translation_parameter( PSMRTS_Translations *translations, const char* name,
+                                       const char* value ) {  
+  translations->add_parameter( name, value );
+}
+
+/**
+ * @brief psmrts_create_product_config - Creates PSMRTS_ProductConfiguration from the given id.
  *
  * This function creates a PSMRTS_ProductConfiguration from the given id.
  *
@@ -1493,7 +1528,53 @@ extern double psmrts_mesh_volume( const PSMRTS_Shape *shape ) {
  * @return PSMRTS_ProductConfiguration*.
  */
 PSMRTS_ProductConfiguration *psmrts_create_product_config( const char *id ) {  
-  return ( new PSMRTS_ProductConfiguration( psmrts::ProductConfiguration( id) ) );
+  return ( new PSMRTS_ProductConfiguration( psmrts::ProductConfiguration( id ) ) );
+}
+
+/**
+ * @brief psmrts_create_config - Creates PSMRTS_ProductConfiguration from the given
+ *                               producttype and productname.
+ *
+ * This function creates a PSMRTS_ProductConfiguration from the given producttype
+ * and productname.
+ *
+ * producttype is either "shape" or "tracer."
+ * productname is dsk, ply, or obj if producttype is shape.
+ * productname is bullet, ellipsoid, sphere, spheroid, or naifdsk if producttype is tracer.
+ * config can be an existing PSMRTS_ProductConfiguration or a nullptr.
+
+ * @param producttype const char*
+ * @param productname const char*
+ * @param config PSMRTS_ProductConfiguration*
+ * @return PSMRTS_ProductConfiguration*.
+ */
+PSMRTS_ProductConfiguration *psmrts_create_config( const char *producttype, const char* productname,
+                                                   PSMRTS_ProductConfiguration *config ) {
+  
+  // if config is nullptr, create one
+  if ( config == nullptr ) {
+    config = psmrts_create_product_config( producttype );
+  }
+
+  config->add( psmrts::ProductOption( producttype, productname ) );
+
+  return config;
+}
+
+/**
+ * @brief psmrts_product_config_contains - Check for an existing ProductOption in 
+ * the given PSMRTS_ProductConfiguration (not including metadata).
+ *
+ * Check for an existing ProductOption in the given PSMRTS_ProductConfiguration
+ * (not including metadata).
+ *
+ * @param config PSMRTS_ProductConfiguration*
+ * @param text const char*
+ * @return PSMRTS_BOOL.
+ */
+PSMRTS_BOOL psmrts_product_config_contains( PSMRTS_ProductConfiguration *config,
+                                            const char* text ) {
+  return config->contains( text );
 }
 
 /**
@@ -1515,22 +1596,6 @@ PSMRTS_C_EXPORT void psmrts_product_config_to_string( PSMRTS_ProductConfiguratio
 }
 
 /**
- * @brief psmrts_product_config_contains - Check for an existing ProductOption in 
- * the given PSMRTS_ProductConfiguration (not including metadata).
- *
- * Check for an existing ProductOption in the given PSMRTS_ProductConfiguration
- * (not including metadata).
- *
- * @param config PSMRTS_ProductConfiguration*
- * @param text const char*
- * @return PSMRTS_BOOL.
- */
-PSMRTS_BOOL psmrts_product_config_contains( PSMRTS_ProductConfiguration *config,
-                                            const char* text ) {
-  return config->contains( text );
-}
-
-/**
  * @brief psmrts_add_config_options_string - Create ProductOptions from "name"
  *   and "text" and adds it to the given PSMRTS_ProductConfiguration.
  *
@@ -1543,7 +1608,7 @@ PSMRTS_BOOL psmrts_product_config_contains( PSMRTS_ProductConfiguration *config,
  * @return void.
  */
 void psmrts_add_product_string( PSMRTS_ProductConfiguration *config,
-                                       const char *name, const char *text ) {
+                                const char *name, const char *text ) {
                                           
   config->add( psmrts::ProductOption( name, text ) );
 }
@@ -1561,7 +1626,7 @@ void psmrts_add_product_string( PSMRTS_ProductConfiguration *config,
  * @return void.
  */
 void psmrts_add_product_bool( PSMRTS_ProductConfiguration *config,
-                                     const char *name, const PSMRTS_BOOL b ) {
+                              const char *name, const PSMRTS_BOOL b ) {
                                           
   config->add( psmrts::ProductOption( name, b ) );
 }
@@ -1579,7 +1644,7 @@ void psmrts_add_product_bool( PSMRTS_ProductConfiguration *config,
  * @return void.
  */
 void psmrts_add_product_int( PSMRTS_ProductConfiguration *config,
-                                    const char *name, const int i ) {
+                             const char *name, const int i ) {
                                           
   config->add( psmrts::ProductOption( name, i ) );
 }
@@ -1597,7 +1662,7 @@ void psmrts_add_product_int( PSMRTS_ProductConfiguration *config,
  * @return void.
  */
 void psmrts_add_product_sizet( PSMRTS_ProductConfiguration *config,
-                                            const char *name, const size_t szt ) {
+                               const char *name, const size_t szt ) {
                                           
   config->add( psmrts::ProductOption( name, szt ) );
 }
@@ -1615,7 +1680,7 @@ void psmrts_add_product_sizet( PSMRTS_ProductConfiguration *config,
  * @return void.
  */
 void psmrts_add_product_double( PSMRTS_ProductConfiguration *config,
-                                       const char *name, const double d ) {
+                                const char *name, const double d ) {
                                           
   config->add( psmrts::ProductOption( name, d ) );
 }
@@ -1635,9 +1700,9 @@ void psmrts_add_product_double( PSMRTS_ProductConfiguration *config,
  * @return void.
  */
 void psmrts_add_product_double_vector( PSMRTS_ProductConfiguration *config,
-                                              const char *name,
-                                              const double *d_vector,
-                                              const int count ) {
+                                       const char *name,
+                                       const double *d_vector,
+                                       const int count ) {
 
   std::vector<double> cpp_vector(count);
   std::copy_n( d_vector, count, cpp_vector.begin() );
@@ -1654,49 +1719,107 @@ void psmrts_add_product_double_vector( PSMRTS_ProductConfiguration *config,
  * @return PSMRTS_BOOL Validity of input PSMRTS_Tracer.
  */
 PSMRTS_BOOL psmrts_tracer_valid( const PSMRTS_Tracer *tracer ) {
-  return ( evaluate( 0 != tracer ) );
+  return ( to_psmrts_bool( 0 != tracer ) );
+}
+
+/*============ PSMRTS_Invoice functions ================*/
+
+/**
+ * @brief psmrts_create_invoice - Creates PSMRTS_Invoice given const char* name
+ * and PSMRTS_Translations* translation.
+ *
+ * Creates PSMRTS_Invoice given const char* name and PSMRTS_Translations* translation.
+ *
+ * @param name const char*.
+ * @param translation PSMRTS_Translations*.
+ * @return PSMRTS_PSMRTS_Invoice*.
+ */
+PSMRTS_Invoice *psmrts_create_invoice( const char* name,
+                                       PSMRTS_Translations* translation ) {
+  if ( translation == nullptr ) {
+    return ( new PSMRTS_Invoice( name ) );
+  }
+    
+  return ( new PSMRTS_Invoice( name, *translation ) );
 }
 
 /**
- * @brief psmrts_free_product_config - Frees memory allocated to input
- *                                     PSMRTS_ProductConfiguration pointer.
+ * @brief psmrts_add_config_invoice - Adds the given PSMRTS_Invoice to the given
+ * PSMRTS_ProductConfiguration.
  *
- * This function frees memory allocated to the input PSMRTS_ProductConfiguration pointer.
+ * Adds the given PSMRTS_Invoice to the given PSMRTS_ProductConfiguration.
  *
- * @param s Pointer to PSMRTS_ProductConfiguration.
- * @return void
+ * @param config PSMRTS_ProductConfiguration*.
+ * @param invoice PSMRTS_Invoice*.
+ * @return PSMRTS_BOOL.
  */
-PSMRTS_C_EXPORT void psmrts_free_product_config( PSMRTS_ProductConfiguration* config ) {
-  delete config;
-}
+PSMRTS_BOOL psmrts_add_config_invoice( PSMRTS_ProductConfiguration *config,
+                                       PSMRTS_Invoice *invoice ) {
 
-
-/**
- * @brief psmrts_free_string - Frees memory allocated to input PSMRTS_RayTrace
- *                             pointer.
- *
- * This function frees memory allocated to the input PSMRTS_String pointer.
- *
- * @param s Pointer to PSMRTS_String.
- * @return void
- */
-void psmrts_free_string( PSMRTS_String *s ) {
-  delete s;
+  return ( invoice->add_product( *config ) );
 }
 
 /**
- * @brief psmrts_free_string_array - Frees memory allocated to input
- *                                   PSMRTS_StringArray pointer.
+ * @brief psmrts_generate_products - Generates products from given PSMRTS_Invoice.
  *
- * This function frees memory allocated to the input
- * PSMRTS_StringArray pointer.
- * Note that we don't free the strings in the array.
+ * Generates products from given PSMRTS_Invoice.
  *
- * @param ptracearray Pointer to PSMRTS_PhotometricTraceArray.
- * @return void
+ * @param invoice PSMRTS_Invoice*.
+ * @return PSMRTS_BOOL.
  */
-void psmrts_free_string_array( PSMRTS_StringArray *pstringarray ) {
-  delete pstringarray;
+PSMRTS_BOOL psmrts_generate_products( PSMRTS_Invoice *invoice ) {
+  return ( invoice->generate_products() );
+}
+
+/**
+ * @brief psmrts_invoice_error_string - Returns error string from given PSMRTS_Invoice.
+ *
+ * Returns error string from given PSMRTS_Invoice.
+
+ * Note: If input string is nullptr, a new string is allocated and returned with the
+ * caller taking ownership.
+ *
+ * @param invoice PSMRTS_Invoice*.
+ * @return PSMRTS_BOOL.
+ */
+PSMRTS_String *psmrts_invoice_error_string( const PSMRTS_Invoice *invoice,
+                                            PSMRTS_String *string ) {
+
+  PSMRTS_String *string_t = string;
+
+  if ( string_t == nullptr ) {
+    string_t = new PSMRTS_String();
+  }
+  
+  *string_t = invoice->errors_to_string();
+
+  return ( string_t );
+}
+
+/**
+ * @brief psmrts_generate_priority_tracer - Creates PSMRTS_PriorityTracer from the given
+ *                                          PSMRTS_Invoice.
+ *
+ * Creates PSMRTS_PriorityTracer from the given PSMRTS_Invoice.
+ * 
+ * Note: If input PSMRTS_PriorityTracer is nullptr, a new PSMRTS_PriorityTracer is
+ * allocated and returned with the caller taking ownership.
+ *
+ * @param invoice PSMRTS_Invoice*.
+ * @param tracer_p PSMRTS_PriorityTracer*.
+ * @return PSMRTS_BOOL.
+ */
+PSMRTS_PriorityTracer *psmrts_generate_priority_tracer( PSMRTS_Invoice *invoice,
+                                                        PSMRTS_PriorityTracer* tracer_p) {
+  PSMRTS_PriorityTracer *tracer_t = tracer_p;
+
+  if ( tracer_t == nullptr ) {
+    tracer_t = new PSMRTS_PriorityTracer();
+  }
+
+  *tracer_t = invoice->get_priority_tracer();
+
+  return tracer_t;
 }
 
 /**
@@ -1793,6 +1916,71 @@ void psmrts_free_trace_array( PSMRTS_TraceArray *tracearray ) {
  */
 void psmrts_free_photometric_trace_array( PSMRTS_PhotometricTraceArray *ptracearray ) {
   delete ptracearray;
+}
+
+/**
+ * @brief psmrts_free_product_config - Frees memory allocated to input
+ *                                     PSMRTS_ProductConfiguration pointer.
+ *
+ * This function frees memory allocated to the input PSMRTS_ProductConfiguration pointer.
+ *
+ * @param config PSMRTS_ProductConfiguration*.
+ * @return void
+ */
+void psmrts_free_product_config( PSMRTS_ProductConfiguration* config ) {
+  delete config;
+}
+
+/**
+ * @brief psmrts_free_invoice - Frees memory allocated to input PSMRTS_Invoice pointer.
+ *
+ * This function frees memory allocated to the input PSMRTS_Invoice pointer.
+ *
+ * @param invoice PSMRTS_Invoice*.
+ * @return void
+ */
+void psmrts_free_invoice( PSMRTS_Invoice* invoice ) {
+  delete invoice;
+}
+
+/**
+ * @brief psmrts_free_translations - Frees memory allocated to input psmrts_free_translations pointer.
+ *
+ * This function frees memory allocated to the input psmrts_free_translations pointer.
+ *
+ * @param translations psmrts_free_translations*.
+ * @return void
+ */
+void psmrts_free_translations( PSMRTS_Translations* translations ) {
+  delete translations;
+}
+
+/**
+ * @brief psmrts_free_string - Frees memory allocated to input PSMRTS_RayTrace
+ *                             pointer.
+ *
+ * This function frees memory allocated to the input PSMRTS_String pointer.
+ *
+ * @param s Pointer to PSMRTS_String.
+ * @return void
+ */
+void psmrts_free_string( PSMRTS_String *s ) {
+  delete s;
+}
+
+/**
+ * @brief psmrts_free_string_array - Frees memory allocated to input
+ *                                   PSMRTS_StringArray pointer.
+ *
+ * This function frees memory allocated to the input
+ * PSMRTS_StringArray pointer.
+ * Note that we don't free the strings in the array.
+ *
+ * @param ptracearray Pointer to PSMRTS_PhotometricTraceArray.
+ * @return void
+ */
+void psmrts_free_string_array( PSMRTS_StringArray *pstringarray ) {
+  delete pstringarray;
 }
 
 }

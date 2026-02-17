@@ -63,7 +63,7 @@ TEST_CASE( "PSMRTS Product DSK Specification Test", "[product][type][mesh][dsk]"
     auto config_list = config_data.options();
     auto config_meta = config_data.metadata(); 
 
-    CHECK( config_data.isvalid() == true );
+    CHECK( config_data.isvalid() > 0 );
     CHECK( config_data.name()    == "dsk" );
     CHECK( config_data.size()    == 3 ); 
     CHECK( psmrts::psmrts_filename(  config_list.find("dsk_file").to_string() )  == "bennu_20facets.bds" );

@@ -41,6 +41,8 @@ extern "C" {
 
 /*============ Type definitions ============*/
 enum PSMRTSTypes {
+  PSMRTS_INVOICE,
+  PSMRTS_TRANSLATIONS,
   PSMRTS_PRODUCTCONFIGURATION,
   PSMRTS_STRING,
   PSMRTS_STRINGARRAY,
@@ -102,6 +104,8 @@ typedef struct psmrts_facet {
 /*============ PSMRTS C API type definitions ============*/
 #if !defined( PSMRTS_POINTERS )
 #define PSMRTS_POINTERS 1
+typedef struct psmrts_invoice                  PSMRTS_Invoice;
+typedef struct psmrts_translations             PSMRTS_Translations;
 typedef struct psmrts_product_configuration    PSMRTS_ProductConfiguration;
 typedef struct psmrts_string                   PSMRTS_String;
 typedef struct psmrts_string_array             PSMRTS_StringArray;
@@ -263,6 +267,9 @@ PSMRTS_C_EXPORT double psmrts_mesh_volume( const PSMRTS_Shape *shape );
 
 /*============ PSMRTS_ProductConfiguration functions ================*/
 PSMRTS_C_EXPORT PSMRTS_ProductConfiguration *psmrts_create_product_config( const char *id );
+PSMRTS_C_EXPORT PSMRTS_ProductConfiguration
+    *psmrts_create_config( const char *producttype, const char *productname,
+                           PSMRTS_ProductConfiguration *config );
 
 PSMRTS_C_EXPORT PSMRTS_BOOL
     psmrts_product_config_contains( PSMRTS_ProductConfiguration *config, const char* text );
@@ -271,24 +278,41 @@ PSMRTS_C_EXPORT void
     psmrts_product_config_to_string( PSMRTS_ProductConfiguration *config, PSMRTS_String *pstr );
 
 PSMRTS_C_EXPORT void psmrts_add_product_string( PSMRTS_ProductConfiguration *config,
-                                                       const char *name,
-                                                       const char *text );
+                                                const char *name,
+                                                const char *text );
 PSMRTS_C_EXPORT void psmrts_add_product_bool( PSMRTS_ProductConfiguration *config,
-                                                     const char *name,
-                                                     const PSMRTS_BOOL b );
+                                              const char *name,
+                                              const PSMRTS_BOOL b );
 PSMRTS_C_EXPORT void psmrts_add_product_int( PSMRTS_ProductConfiguration *config,
-                                                    const char *name,
-                                                    const int i );
+                                             const char *name,
+                                             const int i );
 PSMRTS_C_EXPORT void psmrts_add_product_sizet( PSMRTS_ProductConfiguration *config,
-                                                      const char *name,
-                                                      const size_t szt );
+                                               const char *name,
+                                               const size_t szt );
 PSMRTS_C_EXPORT void psmrts_add_product_double( PSMRTS_ProductConfiguration *config,
-                                                       const char *name,
-                                                       const double d );
+                                                const char *name,
+                                                const double d );
 PSMRTS_C_EXPORT void psmrts_add_product_double_vector( PSMRTS_ProductConfiguration *config,
-                                                              const char *name,
-                                                              const double *d_vector,
-                                                              const int count );
+                                                       const char *name,
+                                                       const double *d_vector,
+                                                       const int count );
+
+/*============ PSMRTS_Translations functions ================*/
+PSMRTS_C_EXPORT PSMRTS_Translations *psmrts_create_translation();
+PSMRTS_C_EXPORT void psmrts_add_translation_parameter( PSMRTS_Translations *translations,
+                                                  const char* name, const char* value ); 
+
+/*============ PSMRTS_Invoice functions =====================*/
+PSMRTS_C_EXPORT PSMRTS_Invoice *psmrts_create_invoice( const char* name,
+                                                       PSMRTS_Translations* translation );
+PSMRTS_C_EXPORT PSMRTS_BOOL psmrts_add_config_invoice( PSMRTS_ProductConfiguration *config,
+                                                       PSMRTS_Invoice *invoice );
+PSMRTS_C_EXPORT PSMRTS_BOOL psmrts_generate_products( PSMRTS_Invoice *invoice );
+PSMRTS_C_EXPORT PSMRTS_String *psmrts_invoice_error_string( const PSMRTS_Invoice *invoice,
+                                                            PSMRTS_String *string );
+PSMRTS_C_EXPORT PSMRTS_PriorityTracer
+    *psmrts_generate_priority_tracer( PSMRTS_Invoice *invoice,
+                                      PSMRTS_PriorityTracer* tracer_p);
 
 /*============ PSMRTS memory free functions =============*/
 PSMRTS_C_EXPORT void psmrts_free_ray( PSMRTS_RayTrace *trace );
@@ -299,6 +323,8 @@ PSMRTS_C_EXPORT void psmrts_free_photometric_ray( PSMRTS_PhotometricRayTrace *pt
 PSMRTS_C_EXPORT void psmrts_free_trace_array( PSMRTS_TraceArray *tracearray );
 PSMRTS_C_EXPORT void psmrts_free_photometric_trace_array( PSMRTS_PhotometricTraceArray *ptracearray );
 PSMRTS_C_EXPORT void psmrts_free_product_config( PSMRTS_ProductConfiguration* config );
+PSMRTS_C_EXPORT void psmrts_free_invoice( PSMRTS_Invoice* invoice );
+PSMRTS_C_EXPORT void psmrts_free_translations( PSMRTS_Translations* translations );
 PSMRTS_C_EXPORT void psmrts_free_string( PSMRTS_String *pstring );
 PSMRTS_C_EXPORT void psmrts_free_string_array( PSMRTS_StringArray *stringarray );
 
