@@ -162,17 +162,19 @@ namespace psmrts {
 
         // Check to see if don't have a shape and search using configs
         // ok, we have to make one now
-        ProductMaker<PsmrtsShape> maker_t( product_s.shape.name() );
-        if ( maker_t.process_config( product_s.shape.config(), this->translator() ) ) {
-          shape_p.emplace( maker_t.product() );
-          inventory.shapes().add_product( shape_p.value() );
-          PsmrtsFactory().add_product( shape_p.value() );
-          product_s.shape_uid = shape_p.value().uid();
-        }
-        else {
-          if (maker_t.error_count() > 0 ) {
-            this->add_error( maker_t.errors_to_string() );
+        if ( !shape_p.has_value() ) {
+          ProductMaker<PsmrtsShape> maker_t( product_s.shape.name() );
+          if ( maker_t.process_config( product_s.shape.config(), this->translator() ) ) {
+            shape_p.emplace( maker_t.product() );
+            inventory.shapes().add_product( shape_p.value() );
+            PsmrtsFactory().add_product( shape_p.value() );
+            product_s.shape_uid = shape_p.value().uid();
           }
+          else {
+            if (maker_t.error_count() > 0 ) {
+              this->add_error( maker_t.errors_to_string() );
+            }
+          }          
         }
                   
         return ( shape_p.has_value() );
@@ -221,16 +223,18 @@ namespace psmrts {
 
         // Check to see if don't have a shape and search using configs
         // ok, we have to make one now
-        ProductMaker<PsmrtsTracer> maker_t( product_s.tracer.name() );
-        if ( maker_t.process_config( product_s.tracer.config(), this->translator() ) ) {
-          tracer_p.emplace( maker_t.product() );
-          inventory.tracers().add_product( tracer_p.value() );
-          PsmrtsFactory().add_product( tracer_p.value() );
-          product_s.tracer_uid = tracer_p.value().uid();
-        }
-        else {
-          if (maker_t.error_count() > 0 ) {
-            product_s.tracer.add_error( maker_t.errors_to_string() );
+        if ( !tracer_p.has_value() ) {
+          ProductMaker<PsmrtsTracer> maker_t( product_s.tracer.name() );
+          if ( maker_t.process_config( product_s.tracer.config(), this->translator() ) ) {
+            tracer_p.emplace( maker_t.product() );
+            inventory.tracers().add_product( tracer_p.value() );
+            PsmrtsFactory().add_product( tracer_p.value() );
+            product_s.tracer_uid = tracer_p.value().uid();
+          }
+          else {
+            if (maker_t.error_count() > 0 ) {
+              product_s.tracer.add_error( maker_t.errors_to_string() );
+            }
           }
         }
                   
@@ -299,7 +303,6 @@ namespace psmrts {
 
           // Check for errors. If none break for shape processing
           if ( products_t.tracer.error_count() == 0 ) {
-
             break;
           }
         }
