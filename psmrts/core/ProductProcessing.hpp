@@ -20,6 +20,7 @@ find files of those names at the top level of this repository. **/
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsJson.hpp>
+#include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/PsmrtsTranslations.hpp>
 #include <psmrts/core/ProductFeature.hpp>
 #include <psmrts/core/ProductConfiguration.hpp>
@@ -28,6 +29,7 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/tracers/PsmrtsTracer.hpp>
 #include <psmrts/core/ProductMaker.hpp>
+#include <psmrts/core/PsmrtsInventory.hpp>
 #include <psmrts/core/AllOptionConversions.hpp>
 
 
@@ -52,7 +54,17 @@ namespace psmrts {
     public:
       using ProductInfo      = PsmrtsContainer<ProductOption>;
       using ProductFeatures  = PsmrtsContainer<ProductFeature>;
+      using UIDType          = PsmrtsProduct::UIDType;
 
+      using ProductSet       = struct product_set { ProductConfiguration config; 
+                                                    ProductOrder   tracer;
+                                                    ProductOrder   shape;
+                                                    UIDType        tracer_uid;
+                                                    UIDType        shape_uid;
+                                                    inline const std::string &name() const { 
+                                                      return ( config.name() ); 
+                                                    }
+                                                  };
 
       ProductProcessing( ) : m_translator( ) { }
       ProductProcessing( const PsmrtsTranslations &trans ) : m_translator( trans ) { }       
@@ -68,7 +80,17 @@ namespace psmrts {
       }
 
 
-           /**
+      inline bool create_product( const ProductSet &product,
+                                  const PsmrtsInventory &inventory ) const {
+
+        // Refuse to process an invalid product
+        if ( this->is_valid_product( product ) ) return ( false );
+                  
+        return ( false );
+      }
+
+
+      /**
        * @brief Process a configuration returning a product order with status
        * 
        * This method function takes a compound configuration and returns
@@ -78,23 +100,27 @@ namespace psmrts {
        * @param translations 
        * @return ProductOrder 
        */
-      inline ProductOrder process_configuration( const ProductConfiguration &config ) { 
-        ProductOrder order_t( config.name() );                              
-        if ( config.size() == 0 ) return ( order_t );
+      inline ProductSet process_configuration( const ProductConfiguration &config ) { 
+        ProductSet products_t = init_product_set( config );
+        if ( config.size() == 0 ) {
+          products_t.shape.add_error( "process_configuration() - Invalid configuration - has no options"  );
+          return ( products_t );
+        }
 
         // Process the till the first occurance of valid or no errors occurs
         auto tracer_specs_v = ProductMaker<PsmrtsTracer>().get_product_specs();
         for ( const auto &tracer_s : tracer_specs_v ) {
-          order_t = this->process_cart( ProductCart( tracer_s, config) );
-          order_t.add_dependency( tracer_s.name() );
+          products_t.tracer = this->process_cart( ProductCart( tracer_s, config) );
+          // products_t.tracer.add_dependency( tracer_s.name() );
 
           // If this parse is successful, we are done and its a standalone tracer.
-          if ( order_t.isvalid() ) {
-            return ( order_t );
+          if ( products_t.tracer.isvalid() ) {
+            return ( products_t );
           }
 
           // Check for errors. If none break for shape processing
-          if ( order_t.error_count() == 0 ) {
+          if ( products_t.tracer.error_count() == 0 ) {
+
             break;
           }
         }
@@ -106,28 +132,30 @@ namespace psmrts {
         // If we have no errors but its not valid, assume a shape is required
         // and copy the residual config and process shape.
         ProductConfiguration config_t( config.name()  );
-        ProductOrder order_s( config.name() );
-        if ( ( order_t.error_count() > 0 ) || ( order_t.size() == 0 )) {
+        if ( ( products_t.tracer.error_count() > 0 ) || ( products_t.tracer.size() == 0 )) {
           // Process as shape only, start over
           config_t = config;
+          products_t.tracer.set_specification();        
         }
         else {
           // order_t content contains processed tracer, lets see if we have
           // shape to consume the remaining residual/dependencies
-          config_t = order_t.residual_config();
+          config_t = products_t.tracer.residual_config();
+          
         }
 
         auto shape_specs_v  = ProductMaker<PsmrtsShape>().get_product_specs();
         for ( const auto &shape_s : shape_specs_v ) {
-          order_s = this->process_cart( ProductCart( shape_s, config_t ) );
-          if ( order_s.isvalid() ) break;
+          products_t.shape = this->process_cart( ProductCart( shape_s, config_t ) );
+          if ( products_t.shape.isvalid() ) break;
         }
 
-        // Make it all make sense. Retain errors and status in the composite
-        // version.
-        order_t = order_s.make_composite( order_t );
+        // Check for errors 
+        if ( ( products_t.shape.error_count() > 0 ) || ( products_t.shape.size() == 0 ) ) {
+          products_t.shape.set_specification();
+        }
 
-        return ( order_t );
+        return ( products_t );
       }
 
       /**
@@ -140,7 +168,7 @@ namespace psmrts {
        * 
        * Note that special cases may exist when processing comparing
        * configuraitons with specifications. Specs can can contain dependency
-       * keywords that are reqiured to exist, but are passed on unprocessed as a
+       * keywords that are required to exist, but are passed on unprocessed as a
        * residual option. This is most prevelant in some tracers, such as
        * "bullet" that requires a mesh shape. This case 
        * 
@@ -159,8 +187,8 @@ namespace psmrts {
         // Check for invalid configuration
         ProductOrder order( cart, this->translator() );
         if ( cart.has_valid_content() == false ) {
-          std::string mess = "ProductProcssing::process_cart(" + cart.name() + ") does not contain a valid product configuration";
-          order.add_error( std::runtime_error( mess ) );
+          std::string mess = "ProductProcessing::process_cart(" + cart.name() + ") does not contain a valid product configuration";
+          order.add_error(  mess );
           return ( order );
         }
 
@@ -218,11 +246,11 @@ namespace psmrts {
 
         // Now check to see if all required keywords are present
         for ( const auto &key_r : specs_t.required() ) {
-          if ( !this->contains( key_r, required_list ) ) {
+          if ( !psmrts_contains_string( key_r, required_list ) ) {
             std::string mess = "*** ProductProcessing::process_cart(" + cart.name() + ")"
                               "- required feature key " + key_r  + 
                               " is not present in " + specs_t.name() + " specification";
-            order.add_error( std::runtime_error( mess ) );
+            order.add_error(  mess );
           }
         }
 
@@ -280,7 +308,7 @@ namespace psmrts {
           std::string mess = "*** ProductProcessing::process_order() - "
                               "Invalid filename/extension in option(" 
                               + option.name() + ") = " + option.to_string();
-          order.add_error( std::runtime_error( mess ) );
+          order.add_error(  mess );
           order.add_residual( option );
         } 
         return;                                   
@@ -314,7 +342,7 @@ namespace psmrts {
             std::string mess = "*** ProductProcessing::process_order() - "
                               "Double value " + option.to_string( ndx )  + 
                               " in option(" + option.name() + ") is invalid!";
-            order.add_error( std::runtime_error( mess ) );
+            order.add_error(  mess );
           }
         }
         
@@ -336,7 +364,7 @@ namespace psmrts {
                                 "Double value " + option.to_string( opt_nth )  + 
                                 " at index = " + std::to_string( opt_nth ) +
                                 " in option(" + option.name() + ") is not valid!";
-              order.add_error( std::runtime_error( mess ) );                    
+              order.add_error(  mess );                    
             }
           }
         }
@@ -378,7 +406,7 @@ namespace psmrts {
             std::string mess = "*** ProductProcessing::process_order() - "
                               "Integer value " + option.to_string( ndx )  + 
                               " in option(" + option.name() + ") is invalid!";
-            order.add_error( std::runtime_error( mess ) );
+            order.add_error(  mess );
             is_all_valid = false;
           }
         }
@@ -401,7 +429,7 @@ namespace psmrts {
                                 "Integer value " + option.to_string( opt_nth )  + 
                                 " at index = " + std::to_string( opt_nth ) +
                                 " in option(" + option.name() + ") is not valid!";
-              order.add_error( std::runtime_error( mess ) );                    
+              order.add_error(  mess );                    
             }
           }
         }
@@ -441,7 +469,7 @@ namespace psmrts {
             std::string mess = "*** ProductProcessing::process_order() - "
                               "Size_t value " + option.to_string( ndx )  + 
                               " in option(" + option.name() + ") is invalid!";
-            order.add_error( std::runtime_error( mess ) );
+            order.add_error(  mess );
             is_all_valid = false;
           }
         }
@@ -464,7 +492,7 @@ namespace psmrts {
                                 "Size_t value " + option.to_string( opt_nth )  + 
                                 " at index = " + std::to_string( opt_nth ) +
                                 " in option(" + option.name() + ") is not valid!";
-              order.add_error( std::runtime_error( mess ) );                    
+              order.add_error(  mess );                    
             }
           }
         }
@@ -505,7 +533,7 @@ namespace psmrts {
             std::string mess = "*** ProductProcessing::process_order() - "
                               "Boolean value " + option.to_string( ndx )  + 
                               " in option(" + option.name() + ") is invalid!";
-            order.add_error( std::runtime_error( mess ) );
+            order.add_error(  mess );
             is_valid = false;
           }
         } 
@@ -549,7 +577,7 @@ namespace psmrts {
             std::string mess = "*** ProductProcessing::process_order() - "
                               "String value " + option.to_string( ndx )  + 
                               " in option(" + option.name() + ") is invalid!";
-            order.add_error( std::runtime_error( mess ) );
+            order.add_error(  mess );
             is_all_valid = false;
           }
         }
@@ -572,7 +600,7 @@ namespace psmrts {
                                 "String value " + option.to_string( opt_nth )  + 
                                 " at index = " + std::to_string( opt_nth ) +
                                 " in option(" + option.name() + ") is not valid!";
-              order.add_error( std::runtime_error( mess ) );                    
+              order.add_error(  mess );                    
             }
           }
         }        
@@ -584,28 +612,63 @@ namespace psmrts {
           order.add_residual( option );
         }          
       }
+
+      inline ProductSet init_product_set( const ProductConfiguration &config = ProductConfiguration() ) const {
+        ProductSet products;
+        products.config = config;
+        products.tracer_uid = PsmrtsUID::null_uid();
+        products.shape_uid  = PsmrtsUID::null_uid();
+        return ( products );
+      }      
+
+
+      /** Determine if a product is valid */
+      inline bool is_valid_order( const ProductOrder &product ) const {
+        if ( product.name() == "none"  ) return ( false );
+        if ( product.error_count() > 0 ) return ( false );
+        if ( product.size() == 0       ) return ( false );
+        return ( true );
+      }
+
+
+      /** Determine if any of the products are valid */
+      inline bool is_valid_product( const ProductSet &products ) const {
+        if ( is_valid_order( products.tracer ) || 
+             is_valid_order( products.shape  ) ) {
+          return ( true );
+        }
+        return ( false );
+      }
+
+      /** Return a composite set of errors if the exist */
+      inline std::string product_error_string( const ProductSet &products ) const { 
+        std::string error_s;
+        if ( products.tracer.error_count() > 0 ) {
+          error_s += products.tracer.errors_to_string();
+        } 
+
+        if (  products.shape.error_count() > 0 ) {
+          error_s += products.shape.errors_to_string();
+        } 
+  
+        if ( !is_valid_product( products )  ) {
+          auto residuals = products.shape.residual_config();
+          if ( residuals.size() > 0 ) {
+            std::string resid_s = residuals.to_json( residuals.options() ).dump(-1);
+            std::string mess = "Product config (" + products.config.name() +
+                             ") contains unrecognized key/value options: " +
+                             resid_s;
+            error_s += mess;
+          }
+        }
+
+        return ( ( ( error_s.length() > 0 ) ? error_s : "None found!" ) );
+      }
+
       
     private:
       PsmrtsTranslations m_translator;
 
-      /**
-       * @brief Check for a string in a vector of strings
-       * 
-       * This method will search for the string "s" in the vector "v".
-       * The strings must match exactly as the string comparison is case
-       * sensitive.
-       * 
-       * @param s  String to search for in "v"
-       * @param v  Vector containing a list of strings
-       * @return true If "v" contains the string "s"
-       * @return false If "s" is not in "v"
-       */
-      inline bool contains( const std::string &s,
-                            const std::vector<std::string> &v ) const {
-        if ( std::find( v.begin(), v.end(), s) != v.end() ) return ( true );
-        return ( false );
-      }
-      
   };
 
 } // namespace psmrts

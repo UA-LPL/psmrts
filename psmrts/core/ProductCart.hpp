@@ -67,7 +67,7 @@ namespace psmrts {
       ProductCart( const ProductSpecification &specs ) : 
                    PsmrtsRequest( specs.name() ),
                    m_specs( specs ),
-                   m_config( specs.name() ),
+                   m_config(  ),
                    m_residual( "residualoptions" )  { }                    
       ProductCart( const ProductSpecification &specs,
                    const ProductConfiguration &config,
@@ -94,7 +94,10 @@ namespace psmrts {
       }
 
       inline bool has_valid_content() const {
-        return ( this->isvalid() && ( m_config.size() >  0 ) && ( m_specs.size() > 0 ) );
+        return ( this->isvalid() && 
+                ( m_config.size() >  0 ) && 
+                ( m_specs.size() > 0 ) &&
+                ( this->residual_size() == 0 ) );
       }
 
       inline bool size() const {

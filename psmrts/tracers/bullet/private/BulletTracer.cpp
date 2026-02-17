@@ -144,7 +144,7 @@ namespace psmrts {
 
     ProductConfiguration v_conf = cart.configuration();
     if (cart.error_count() > 0 ) {
-      std::string mess = "ObjShape::create(" + cart.name() + ") has errors: " +
+      std::string mess = "BulletTracer::create(" + cart.name() + ") has errors: " +
                           cart.errors_to_string();
       throw std::runtime_error( mess );          
     }

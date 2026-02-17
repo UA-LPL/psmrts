@@ -39,23 +39,23 @@ namespace psmrts {
       using ProductOptionList = ProductCart::ProductOptionList;
       using ResidualOptions   = ProductCart::ResidualOptions;
 
-      ProductOrder( ) : PsmrtsRequest( "ProductOrder" ),
-                        m_submitted( "ProductOrder" ),
-                        m_cart( "ProductOrder" ),
+      ProductOrder( ) : PsmrtsRequest( "none" ),
+                        m_submitted( ),
+                        m_cart( ),
                         m_translations( ),
                         m_dependencies() { }
       ProductOrder( const std::string &name,
                     const PsmrtsTranslations &trans = PsmrtsTranslations() ) : 
                     PsmrtsRequest( name ),
-                    m_submitted( name ),
-                    m_cart( name ),
+                    m_submitted( ),
+                    m_cart( ),
                     m_translations( trans ),
                     m_dependencies() { }
       ProductOrder( const ProductConfiguration &submitted,
                     const PsmrtsTranslations &trans = PsmrtsTranslations() ) : 
                     PsmrtsRequest( submitted.name() ),
                     m_submitted( submitted ),
-                    m_cart( submitted.name() ),
+                    m_cart( ProductSpecification(), submitted ),
                     m_translations( trans ),
                     m_dependencies() {}
       ProductOrder( const ProductConfiguration &submitted,
@@ -109,6 +109,12 @@ namespace psmrts {
       inline const ProductSpecification &specs() const {
         return ( m_cart.specification() );
       }
+
+      inline void set_specification( const ProductSpecification &specs = ProductSpecification() ) {
+        m_cart.set_specification( specs );
+        return;
+      }
+
 
       inline const ProductOptionList &options() const {
         return ( this->config().options()  );

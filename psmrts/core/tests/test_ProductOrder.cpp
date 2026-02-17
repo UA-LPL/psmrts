@@ -8,7 +8,7 @@ TEST_CASE( "ProductOrder Default Test", "[order][default]") {
     psmrts::ProductOrder po;
 
     CHECK( po.isvalid()          == false );
-    CHECK( po.submitted().name() == "ProductOrder" );
+    CHECK( po.submitted().name() == "none" );
     CHECK( po.config().name()    == "none" );
     CHECK( po.residual().name()  == "residualoptions" ); 
 

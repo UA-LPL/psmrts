@@ -205,7 +205,7 @@ namespace psmrts  {
                                  ProductOption( "name", "tracer" ),
                                  ProductOption( "type", "string" ),
                                  ProductOption( "description", "Describe the product type" ),
-                                 ProductOption( "status", "optional" ),
+                                 ProductOption( "status", "required" ),
                                  ProductOption( "default", "bullet" ),
                                  ProductOption( "valid", "bullet" ) } );
         // Not the most ideal way to require a supported shape file format.

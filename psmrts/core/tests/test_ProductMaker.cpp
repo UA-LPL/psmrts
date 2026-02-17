@@ -16,6 +16,8 @@
 
 TEST_CASE( "ProductMaker OBJ Shape Test", "[product][maker][shape][obj]" ) {
 
+  using ProductSet = psmrts::ProductProcessing::ProductSet;
+
   psmrts::PsmrtsTranslations trans_t = psmrts::PsmrtsTranslations::create();
   psmrts::ProductProcessing processor_p(trans_t);
 
@@ -24,20 +26,22 @@ TEST_CASE( "ProductMaker OBJ Shape Test", "[product][maker][shape][obj]" ) {
   shape_p.add( psmrts::ProductOption( "obj_file", psmrts_shapes_path( "obj/data/bennu_20facets.obj") ) );
   CHECK( shape_p.contains( "obj_file" ) == true );
 
-  // CHECK( shape_p.to_json().dump(2) == "" );
-  psmrts::ProductOrder order_s = processor_p.process_configuration( shape_p );
+  ProductSet order_s = processor_p.process_configuration( shape_p );
+  CHECK( processor_p.is_valid_product( order_s )  == true );
+  CHECK( order_s.tracer.specs().name()  == "none" );
+  CHECK( order_s.shape.specs().name()   == "obj" );
   psmrts::ProductMaker<psmrts::PsmrtsShape> maker_s( "obj" );
 
-  CHECK( maker_s.process_config( order_s.config(), trans_t ) == true );
+  CHECK( maker_s.process_config( order_s.config, trans_t ) == true );
   CHECK( maker_s.isvalid() == true );
   psmrts::PsmrtsShape shape_m = maker_s.product();
   CHECK( shape_m.isValid() == true );
- //  CHECK( shape_m.config().to_json().dump() == "" );
 
 }
 
 
 TEST_CASE( "ProductMaker PLY Shape Test", "[product][maker][shape][ply]" ) {
+  using ProductSet = psmrts::ProductProcessing::ProductSet;
 
   psmrts::PsmrtsTranslations trans_t = psmrts::PsmrtsTranslations::create();
   psmrts::ProductProcessing processor_p(trans_t);
@@ -47,19 +51,21 @@ TEST_CASE( "ProductMaker PLY Shape Test", "[product][maker][shape][ply]" ) {
   shape_p.add( psmrts::ProductOption( "ply_file", psmrts_shapes_path( "ply/data/Bennu_Radar.ply" ) ) );
   CHECK( shape_p.contains( "ply_file" ) == true );
 
-  // CHECK( shape_p.to_json().dump(2) == "" );
-  psmrts::ProductOrder order_s = processor_p.process_configuration( shape_p );
+  ProductSet order_s = processor_p.process_configuration( shape_p );
+  CHECK( processor_p.is_valid_product( order_s )  == true );
+  CHECK( order_s.tracer.specs().name()  == "none" );
+  CHECK( order_s.shape.specs().name()   == "ply" );  
   psmrts::ProductMaker<psmrts::PsmrtsShape> maker_s( "ply" );
 
-  CHECK( maker_s.process_config( order_s.config(), trans_t ) == true );
+  CHECK( maker_s.process_config( order_s.config, trans_t ) == true );
   CHECK( maker_s.isvalid() == true );
   psmrts::PsmrtsShape shape_m = maker_s.product();
   CHECK( shape_m.isValid() == true );
- //  CHECK( shape_m.config().to_json().dump() == "" );
 
 }
 
 TEST_CASE( "ProductMaker Bullet Tracer Test", "[product][maker][tracer][bullet]" ) {
+  using ProductSet = psmrts::ProductProcessing::ProductSet;
 
   psmrts::PsmrtsTranslations trans_t = psmrts::PsmrtsTranslations::create();
   psmrts::ProductProcessing processor_p(trans_t);
@@ -71,16 +77,17 @@ TEST_CASE( "ProductMaker Bullet Tracer Test", "[product][maker][tracer][bullet]"
 
   CHECK( bullet_t.contains( "obj_file" ) == true );
 
-  // CHECK( bullet_t.to_json().dump(2) == "" );
-  psmrts::ProductOrder order_t = processor_p.process_configuration( bullet_t );
-  CHECK( order_t.error_count() == 0 );
+  ProductSet order_t = processor_p.process_configuration( bullet_t );
+  CHECK( processor_p.is_valid_product( order_t )  == true );
+  CHECK( order_t.tracer.specs().name()  == "bullet" );
+  CHECK( order_t.shape.specs().name()   == "obj" ); 
+
   psmrts::ProductMaker<psmrts::PsmrtsTracer> maker_t( "bullet" );
 
-  CHECK( maker_t.process_config( order_t.config(), trans_t ) == true );
+  CHECK( maker_t.process_config( order_t.config, trans_t ) == true );
   CHECK( maker_t.isvalid() == true );
   psmrts::PsmrtsTracer bullet_m = maker_t.product();
   CHECK( bullet_m.isValid() == true );
-  // CHECK( bullet_m.config().to_json().dump() == "" );
 }
 
 #if 0
@@ -195,6 +202,7 @@ TEST_CASE( "ProductMaker Bullet Tracer Research", "[product][maker][tracer][bull
 #endif
 
 TEST_CASE( "ProductMaker NaifDsk Tracer Test", "[product][maker][tracer][naifdsk]" ) {
+  using ProductSet = psmrts::ProductProcessing::ProductSet;
 
   psmrts::PsmrtsTranslations trans_t = psmrts::PsmrtsTranslations::create();
   psmrts::ProductProcessing processor_p(trans_t);
@@ -206,20 +214,21 @@ TEST_CASE( "ProductMaker NaifDsk Tracer Test", "[product][maker][tracer][naifdsk
   CHECK( naifdsk_t.contains( "tracer" ) == true );
   CHECK( naifdsk_t.contains( "dsk_file" ) == true );
 
-  // CHECK( naifdsk_t.to_json().dump(2) == "" );
-  psmrts::ProductOrder order_t = processor_p.process_configuration( naifdsk_t );
+  ProductSet order_t = processor_p.process_configuration( naifdsk_t );
+  CHECK( processor_p.is_valid_product( order_t )  == true );
+  CHECK( order_t.tracer.specs().name()  == "naifdsk" );
+  CHECK( order_t.shape.specs().name()   == "none" );    
   psmrts::ProductMaker<psmrts::PsmrtsTracer> maker_t( "naifdsk" );
 
-  // CHECK( order_t.config().to_json().dump(2) == "" );
-  CHECK( maker_t.process_config( order_t.config(), trans_t ) == true );
+  CHECK( maker_t.process_config( order_t.config, trans_t ) == true );
   CHECK( maker_t.isvalid() == true );
   psmrts::PsmrtsTracer naifdsk_m = maker_t.product();
   CHECK( naifdsk_m.isValid() == true );
-  // CHECK( naifdsk_m.config().to_json().dump() == "" );
 }
 
 
 TEST_CASE( "ProductMaker Ellipsoid Tracer Test", "[product][maker][tracer][ellipsoid]" ) {
+  using ProductSet = psmrts::ProductProcessing::ProductSet;
 
   using RadVec = std::vector<double>;
   auto ellipsoid_tests = {
@@ -245,11 +254,13 @@ TEST_CASE( "ProductMaker Ellipsoid Tracer Test", "[product][maker][tracer][ellip
       CHECK( ellipsoid_t.contains( "radii" ) == true );
       CHECK( ellipsoid_t.contains( "name" ) == true );
 
-      psmrts::ProductOrder order_t = processor_p.process_configuration( ellipsoid_t );
-      CHECK( order_t.error_count() == 0 );
+      ProductSet order_t = processor_p.process_configuration( ellipsoid_t );
+      CHECK( processor_p.is_valid_product( order_t )  == true );
+      CHECK( order_t.tracer.specs().name()  == "ellipsoid" );
+      CHECK( order_t.shape.specs().name()   == "none" );          
       psmrts::ProductMaker<psmrts::PsmrtsTracer> maker_t( tracer_t );
 
-      CHECK( maker_t.process_config( order_t.config(), trans_t ) == true );
+      CHECK( maker_t.process_config( order_t.tracer.config(), trans_t ) == true );
       CHECK( maker_t.isvalid() == true );
       psmrts::PsmrtsTracer ellipsoid_m = maker_t.product();
       CHECK( ellipsoid_m.isValid() == true );
