@@ -18,6 +18,7 @@ find files of those names at the top level of this repository. **/
 #include "PsmrtsBulletMeshMap.hpp"
 #include "../BulletTracer.hpp"
 #include <psmrts/core/ProductMaker.hpp>
+#include <psmrts/core/PsmrtsFactory.hpp>
 
 namespace psmrts {
 
@@ -149,38 +150,55 @@ namespace psmrts {
       throw std::runtime_error( mess );          
     }
 
-    m_config = cart.configuration();
-
-    // std::cout << "Bullet::config: " << order_b.config().to_json().dump(-1) << std::endl;
-    // std::cout << "Bullet::residual: " << order_b.residual().to_json().dump(-1) << std::endl;
-    // Parse out and validate the shape config
-    ProductMaker<PsmrtsShape> shape_m( "shape" );
-    ProductConfiguration shape_c( "shape", cart.residual_config() );
-
-    bool shape_made = shape_m.process_config( shape_c,  trans_t );
-    ProductCart cart_s = shape_m.cart();
-    if ( cart_s.error_count() > 0 ) {
-      std::string mess = "BulletTracer::create(" + cart_s.name() + 
-                         ") errors constructing shape with config: \n" +
-                          cart_s.errors_to_string();
-      throw std::runtime_error( mess );          
+    // Check to see if the cart contains a valid shape id and see if its in the
+    // factory. We prefer use of that one over creating many others. We can
+    // validate that the shape associated with this ID is consistent with the 
+    // configuration of the shape  and the current passed one. Not this is
+    // currently only possible because this is a .cpp file.
+    std::optional<PsmrtsShape> shape_t( std::nullopt );
+    ProductCart::UIDType shape_uid = cart.get_shape_uid();
+    if ( PsmrtsUID::is_valid_uid( shape_uid ) ) {
+      // See if its in the default factory and use it!
+      const PsmrtsInventory &inventory = PsmrtsFactory().find();
+      if ( inventory.shapes().contains( shape_uid )  ) {
+        shape_t.emplace( inventory.shapes().find( shape_uid ) );
+      }
     }
-    // std::cout << "Shape::config: " << order_s.config().to_json().dump(-1) << std::endl;
-    // std::cout << "Shape::residual: " << order_s.residual().to_json().dump(-1) << std::endl;    
+    else {
+      // Parse out and validate the shape config
+      ProductMaker<PsmrtsShape> shape_m( "shape" );
+      ProductConfiguration shape_c( "shape", cart.residual_config() );
 
-    // Confirm all is well 
-    if (cart_s.error_count() > 0 ) {
-      std::string mess = "BulletTracer::create(" + cart.name() + ") has errors: " +
-                          cart_s.errors_to_string();
-      throw std::runtime_error( mess );          
+      bool shape_made = shape_m.process_config( shape_c,  trans_t );
+      ProductCart cart_s = shape_m.cart();
+      if ( cart_s.error_count() > 0 ) {
+        std::string mess = "BulletTracer::create(" + cart_s.name() + 
+                          ") errors constructing shape with config: \n" +
+                            cart_s.errors_to_string();
+        throw std::runtime_error( mess );          
+      }
+      // std::cout << "Shape::config: " << order_s.config().to_json().dump(-1) << std::endl;
+      // std::cout << "Shape::residual: " << order_s.residual().to_json().dump(-1) << std::endl;    
+
+      // Confirm all is well 
+      if (cart_s.error_count() > 0 ) {
+        std::string mess = "BulletTracer::create(" + cart.name() + ") has errors: " +
+                            cart_s.errors_to_string();
+        throw std::runtime_error( mess );          
+      }
+
+      // Ensure all options have been parsed/consumed
+      if( !cart_s.isvalid() ) {
+        std::string mess = "BulletTracer::create(" + cart.name() + ") residual config options present: " +
+                            cart_s.to_json().dump(-1);
+        throw std::runtime_error( mess );          
+      }
+      shape_t.emplace( shape_m.product() );
+
+      // Since we can lets put the shape in the factory!
+      PsmrtsFactory().add_product( shape_t.value() );
     }
 
-    // Ensure all options have been parsed/consumed
-    if( !cart_s.isvalid() ) {
-      std::string mess = "BulletTracer::create(" + cart.name() + ") residual config options present: " +
-                          cart_s.to_json().dump(-1);
-      throw std::runtime_error( mess );          
-    }
 
     m_config = cart.configuration();
     if ( m_config.contains( "tracer" ) ) {
@@ -205,7 +223,7 @@ namespace psmrts {
     } 
 
     // Create the bullet tracer
-    m_model = std::make_shared<BulletTracerImpl> ( shape_m.product(), useCompression, useBuildBvh );
+    m_model = std::make_shared<BulletTracerImpl> ( shape_t.value(), useCompression, useBuildBvh );
     return;
   }  
 
