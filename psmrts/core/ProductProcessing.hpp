@@ -30,6 +30,7 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/tracers/PsmrtsTracer.hpp>
 #include <psmrts/core/ProductMaker.hpp>
 #include <psmrts/core/PsmrtsInventory.hpp>
+#include <psmrts/core/PsmrtsFactory.hpp>
 #include <psmrts/core/AllOptionConversions.hpp>
 
 
@@ -50,7 +51,7 @@ namespace psmrts {
    * @author Kris J. Becker, University of Arizona
    * @history 2026-02-15 Kris J. Becker - Original Version
    */
-  class ProductProcessing {
+  class ProductProcessing : public PsmrtsRequest {
     public:
       using ProductInfo      = PsmrtsContainer<ProductOption>;
       using ProductFeatures  = PsmrtsContainer<ProductFeature>;
@@ -66,8 +67,10 @@ namespace psmrts {
                                                     }
                                                   };
 
-      ProductProcessing( ) : m_translator( ) { }
-      ProductProcessing( const PsmrtsTranslations &trans ) : m_translator( trans ) { }       
+      ProductProcessing( ) : PsmrtsRequest( "processor" ), m_translator( ) { }
+      ProductProcessing( const PsmrtsTranslations &trans ) : 
+                         PsmrtsRequest( "processor" ),
+                         m_translator( trans ) { }       
       virtual ~ProductProcessing() = default;
 
 
@@ -79,14 +82,187 @@ namespace psmrts {
          m_translator  = trans;
       }
 
+      /**
+       * @brief Template search of product inventories for an existing prouduct id
+       * 
+       * @tparam Inventory  Type of product inventory such as PsmrtsTracer or
+       *                     PsmrtsShape. It could be a local or the factory
+       *                     inventory. 
+       * @tparam Product    An std::optional<T> where T is PsrmtsTracer or
+       *                     PsmrtsShape
+       * @param uid_t       Assumed to be the valid id of an existing product
+       * @param order       The product order, asummed to be from a ProductOrder
+       *                      that has been processed or correctness.
+       * @param inventory   The appropriate product type inventory such as
+       *                      tracers() or shapes()
+       * @param product     The std::optional<T> that will return the product 
+       * @return true       If the product was successfully found.
+       * @return false      If it was not found.
+       */
+      template<typename Inventory, typename Product>
+        inline bool search_inventory( const UIDType uid_t, 
+                                      const ProductOrder &order,
+                                      const Inventory &inventory, 
+                                      Product &product ) const {
+          if ( inventory.contains( uid_t ) ) {
+            product.emplace( inventory.find( uid_t ) );
+          }
+          else {
+            // search using configs
+            for ( const auto &p : inventory.cache() ) {
+              if ( order.config().matches( p.second.config() ) ) {
+                product.emplace( p.second );
+                break;
+              }
+            }
+          }
+          return ( product.has_value() );
+        }
 
-      inline bool create_product( const ProductSet &product,
-                                  const PsmrtsInventory &inventory ) const {
+      /**
+       * @brief Comprehensive shape maker complete with search of existing resources
+       * 
+       * This method will search the local inventory for a specific product id.
+       * If unsuccessful, it will the iterate through all products comparing
+       * configurations. If it finds a match it ensures the product is in both
+       * the passed inventory and the factory inventory.
+       * 
+       * @param product_s  The product set that contains a valid shape product
+       *                     order 
+       * @param inventory  The local inventory to check for shape products
+       * @param shape_p    The optional parameter to return the result
+       * @return true      If a shape product is succesfully found or created.
+       *                     Upon success the product set is updated accordingly. 
+       * @return false     False if failure. Errors are reported in the shape
+       *                     product order 
+       */
+      inline bool make_shape( ProductSet &product_s,
+                              PsmrtsInventory &inventory,
+                              std::optional<PsmrtsShape> &shape_p ) const {
 
         // Refuse to process an invalid product
-        if ( this->is_valid_product( product ) ) return ( false );
+        if ( !this->is_valid_order( product_s.shape ) ) return ( false );
+        UIDType shape_uid = product_s.shape_uid;
+
+
+        // Let first check to see if we have a shape in the current factory
+        if ( PsmrtsUID::is_valid_uid( shape_uid ) ) {
+          bool has_shape = search_inventory( shape_uid, product_s.shape, inventory.shapes(), shape_p );
+          
+          // If its not in the current inventory, check the factory
+          if ( !has_shape ) {
+            has_shape = search_inventory( shape_uid, product_s.shape, PsmrtsFactory().find().shapes(), shape_p );
+          }
+          if ( has_shape ) {
+            // Add to both factories
+            inventory.shapes().add_product( shape_p.value() );
+            PsmrtsFactory().add_product( shape_p.value() );
+          }
+        }
+
+        // Check to see if don't have a shape and search using configs
+        // ok, we have to make one now
+        ProductMaker<PsmrtsShape> maker_t( product_s.shape.name() );
+        if ( maker_t.process_config( product_s.shape.config(), this->translator() ) ) {
+          shape_p.emplace( maker_t.product() );
+          inventory.shapes().add_product( shape_p.value() );
+          PsmrtsFactory().add_product( shape_p.value() );
+          product_s.shape_uid = shape_p.value().uid();
+        }
+        else {
+          if (maker_t.error_count() > 0 ) {
+            this->add_error( maker_t.errors_to_string() );
+          }
+        }
                   
-        return ( false );
+        return ( shape_p.has_value() );
+      }
+
+      /**
+       * @brief Comprehensive tracer maker complete with search of existing resources
+       * 
+       * This method will search the local inventory for a specific product id.
+       * If unsuccessful, it will the iterate through all products comparing
+       * configurations. If it finds a match it ensures the product is in both
+       * the passed inventory and the factory inventory.
+       * 
+       * @param product_s  The product set that contains a valid tracer product
+       *                     order 
+       * @param inventory  The local inventory to check for tracer products
+       * @param tracer_p   The optional parameter to return the result
+       * @return true      If a tracer product is succesfully found or created.
+       *                     Upon success the product set is updated accordingly. 
+       * @return false     False if failure. Errors are reported in the tracer
+       *                     product order 
+       */      
+      inline bool make_tracer( ProductSet &product_s,
+                              PsmrtsInventory &inventory,
+                              std::optional<PsmrtsTracer> &tracer_p ) const {
+
+        // Refuse to process an invalid product
+        if ( !this->is_valid_order( product_s.tracer ) ) return ( false );
+        UIDType tracer_uid = product_s.tracer_uid;
+
+
+        // Let first check to see if we have a shape in the current factory
+        if ( PsmrtsUID::is_valid_uid( tracer_uid ) ) {
+          bool has_tracer = search_inventory( tracer_uid, product_s.tracer, inventory.tracers(), tracer_p );
+          
+          // If its not in the current inventory, check the factory
+          if ( !has_tracer ) {
+            has_tracer = search_inventory( tracer_uid, product_s.tracer, PsmrtsFactory().find().tracers(), tracer_p );
+          }
+          if ( has_tracer) {
+            // Add to both factories
+            inventory.tracers().add_product( tracer_p.value() );
+            PsmrtsFactory().add_product( tracer_p.value() );
+          }
+        }
+
+        // Check to see if don't have a shape and search using configs
+        // ok, we have to make one now
+        ProductMaker<PsmrtsTracer> maker_t( product_s.tracer.name() );
+        if ( maker_t.process_config( product_s.tracer.config(), this->translator() ) ) {
+          tracer_p.emplace( maker_t.product() );
+          inventory.tracers().add_product( tracer_p.value() );
+          PsmrtsFactory().add_product( tracer_p.value() );
+          product_s.tracer_uid = tracer_p.value().uid();
+        }
+        else {
+          if (maker_t.error_count() > 0 ) {
+            product_s.tracer.add_error( maker_t.errors_to_string() );
+          }
+        }
+                  
+        return ( tracer_p.has_value() );
+      }
+
+      /**
+       * @brief Convenience method to process both types of products
+       * 
+       * This method will process a product set that may contain a tracer and or
+       * a shape. It will create local copies of the products made, but it
+       * inserts each on in the inventory passed in as a paramter. It will also
+       * update the product set to reflect the uids of the newly created or
+       * existing products. Upon return, each product can be reference using the
+       * product id in each product set from the inventory.
+       * 
+       * @param product   The product set containing the products
+       * @param inventory The inventory to propulate with products
+       * @return true     If the any type of the product set was successfully produced.
+       * @return false    If both failed.
+       */
+      inline bool process_product_set( ProductSet &product, 
+                                       PsmrtsInventory &inventory ) const {
+
+        // Process each product type
+        std::optional<PsmrtsShape>  shape_p( std::nullopt );
+        bool status_p = make_shape( product, inventory, shape_p );
+
+        std::optional<PsmrtsTracer> tracer_p( std::nullopt );
+        bool status_t = make_tracer(product, inventory, tracer_p );
+
+        return ( status_p || status_t );
       }
 
 
@@ -94,11 +270,14 @@ namespace psmrts {
        * @brief Process a configuration returning a product order with status
        * 
        * This method function takes a compound configuration and returns
-       * results that are intended to create 
+       * results that are intended to create a PsmrtsTracer or PsrmtsShape,
+       * potentially both if properly configured.
        * 
-       * @param config 
-       * @param translations 
-       * @return ProductOrder 
+       * @param config        The composite product configuration originating
+       *                        from a user
+       * @param translations  A environment/parameter file path translator
+       * @return ProductSet   A product set that contains configurations for a
+       *                        tracer and or a shape if specified.
        */
       inline ProductSet process_configuration( const ProductConfiguration &config ) { 
         ProductSet products_t = init_product_set( config );
@@ -141,7 +320,6 @@ namespace psmrts {
           // order_t content contains processed tracer, lets see if we have
           // shape to consume the remaining residual/dependencies
           config_t = products_t.tracer.residual_config();
-          
         }
 
         auto shape_specs_v  = ProductMaker<PsmrtsShape>().get_product_specs();

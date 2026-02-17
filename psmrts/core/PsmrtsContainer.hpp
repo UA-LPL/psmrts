@@ -205,7 +205,6 @@ namespace psmrts {
           return ( m_data[index] );
         }
 
-
         /** Clear the contents, which invalidates references */
         inline void clear() {
           std::scoped_lock mylocker( this->mutex() );
@@ -224,6 +223,11 @@ namespace psmrts {
 
         /** Return reference to data object vector */
         inline const Container &data() const {
+          std::scoped_lock mylocker( this->mutex() );
+          return ( m_data );
+        }
+
+        inline Container data() {
           std::scoped_lock mylocker( this->mutex() );
           return ( m_data );
         }

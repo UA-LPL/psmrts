@@ -91,6 +91,11 @@ namespace psmrts {
         return ( m_processor.translator() );
       }
 
+      inline const ProductProcessing &processor() const {
+        return ( m_processor );
+      }
+
+
       inline bool add_product( const ProductConfiguration &config ) {
         ProductSet product_s = m_processor.process_configuration( config );
         if ( !m_processor.is_valid_product( product_s ) ) {
@@ -101,7 +106,7 @@ namespace psmrts {
           return ( false );
         }
       
-        // Add it to the invoice
+        // Add it to the invoice but don't generate products yet
         m_orders.add( product_s );
         return ( true );
       }
@@ -127,9 +132,20 @@ namespace psmrts {
        * @return true  If all products are created successfully
        * @return false If product creation fails
        */
-      inline bool generate_products( ) {
+      inline bool generate_products(  ) {
+        // Reset the errors and regenerate the inventory
+        m_processor.clear_errors();
 
-        return ( true );
+        if ( !m_inventory.has_value() ) {
+          m_inventory.emplace( PsmrtsInventory( this->name() ) );
+        }
+
+        // Process the fdata inplace
+        for ( auto &products : m_orders.data() ) {
+          m_processor.process_product_set( products, m_inventory.value() );
+        }
+
+        return ( m_processor.error_count() == 0  );
       }
 
       /**
@@ -149,26 +165,32 @@ namespace psmrts {
       inline PsmrtsPriorityTracer get_priority_tracer( const std::string &name = "" ) {
 
         std::string name_t = ( name.length() > 0 ) ? name : this->name();
-        PsmrtsPriorityTracer tracer_p( name );
 
         // First search the local inventory if one exists
-        if ( m_inventory.has_value() ) {
-          tracer_p = this->find_priority_tracer( m_inventory.value(), name );
+        if ( m_priority_t.has_value() ) {
+          return ( m_priority_t.value() );
         }
 
-        // If its not valid, it wasn't found so try the factory inventory
-        if ( !tracer_p.isValid() ) {
-          const auto &inventory_pt = PsmrtsFactory().find( );
-          tracer_p = this->find_priority_tracer(inventory_pt, name );
+        // If one is not stored, lets generate one by ensuring we have a local
+        // inventory, and then extracting all the tracers from it after
+        // generating the products from the orders
+        if ( !m_inventory.has_value() ) {
+          this->generate_products();
         }
 
-        return ( tracer_p );
+        m_priority_t.emplace( PsmrtsPriorityTracer( name_t ) );
+        for ( const auto &tracer : m_inventory.value().tracers().cache() ) {
+          m_priority_t.value().add_tracer( tracer.second );
+        }
+
+        return ( m_priority_t.value() );
       }
 
     private:
-      ProductOrderList               m_orders;
-      ProductProcessing              m_processor;
-      std::optional<PsmrtsInventory> m_inventory;
+      ProductOrderList                    m_orders;
+      ProductProcessing                   m_processor;
+      std::optional<PsmrtsInventory>      m_inventory;
+      std::optional<PsmrtsPriorityTracer> m_priority_t; 
 
       inline PsmrtsPriorityTracer find_priority_tracer( const PsmrtsInventory &inventory,
                                                         const std::string &name ) 
