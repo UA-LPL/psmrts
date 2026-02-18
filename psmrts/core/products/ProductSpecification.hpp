@@ -23,8 +23,8 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsJson.hpp>
 #include <psmrts/core/PsmrtsContainer.hpp>
 #include <psmrts/core/PsmrtsTranslations.hpp>
-#include <psmrts/core/ProductConfiguration.hpp>
-#include <psmrts/core/ProductFeature.hpp>
+#include <psmrts/core/products/ProductConfiguration.hpp>
+#include <psmrts/core/products/ProductFeature.hpp>
 
 
 namespace psmrts { 

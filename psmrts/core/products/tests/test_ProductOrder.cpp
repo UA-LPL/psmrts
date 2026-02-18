@@ -1,8 +1,8 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
-#include <psmrts/core/ProductOption.hpp>
-#include <psmrts/core/ProductOrder.hpp>
-#include <psmrts/core/ProductCart.hpp>
+#include <psmrts/core/products/ProductOption.hpp>
+#include <psmrts/core/products/ProductOrder.hpp>
+#include <psmrts/core/products/ProductCart.hpp>
 
 TEST_CASE( "ProductOrder Default Test", "[order][default]") {
     psmrts::ProductOrder po;

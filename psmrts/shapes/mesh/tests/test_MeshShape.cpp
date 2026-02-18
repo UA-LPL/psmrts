@@ -3,8 +3,8 @@
 #include "../MeshShape.hpp"
 #include <psmrts/core/PsmrtsMeshData.hpp>
 #include <psmrts/core/PsmrtsVector3.hpp>
-#include <psmrts/core/ProductConfiguration.hpp>
-#include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/core/products/ProductConfiguration.hpp>
+#include <psmrts/core/products/ProductSpecification.hpp>
 
 TEST_CASE ("MESH SHAPE - Default Test", "[mesh][shape][default]") {
     psmrts::ProductSpecification spec = psmrts::MeshShape::product_specifications();

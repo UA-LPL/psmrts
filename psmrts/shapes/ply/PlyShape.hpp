@@ -16,12 +16,12 @@ find files of those names at the top level of this repository. **/
 #include <string>
 
 #include <psmrts/core/PsmrtsRequest.hpp>
-#include <psmrts/core/PsmrtsProduct.hpp>
+#include <psmrts/core/products/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsMeshData.hpp>
 #include <psmrts/core/PsmrtsTranslations.hpp>
-#include <psmrts/core/ProductConfiguration.hpp>
-#include <psmrts/core/ProductSpecification.hpp>
-#include <psmrts/core/ProductCart.hpp>
+#include <psmrts/core/products/ProductConfiguration.hpp>
+#include <psmrts/core/products/ProductSpecification.hpp>
+#include <psmrts/core/products/ProductCart.hpp>
 
 namespace psmrts {
     /**

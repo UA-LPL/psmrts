@@ -21,12 +21,11 @@ find files of those names at the top level of this repository. **/
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsCache.hpp>
-#include <psmrts/core/PRQProduct.hpp>
-#include <psmrts/core/ProductInventory.hpp>
-#include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/core/products/PRQProduct.hpp>
+#include <psmrts/core/products/ProductInventory.hpp>
+#include <psmrts/core/products/ProductSpecification.hpp>
 #include <psmrts/core/PsmrtsInventory.hpp>
 #include <psmrts/core/PsmrtsTranslations.hpp>
-#include <psmrts/core/PRQProduct.hpp>
 
 namespace psmrts {
 

@@ -6,7 +6,7 @@
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsJson.hpp>
-#include <psmrts/core/ProductFeature.hpp>
+#include <psmrts/core/products/ProductFeature.hpp>
 
 TEST_CASE( "ProductFeature Constructor / Base Function Tests", "[product][feature][base]") {
     psmrts::ProductFeature p_param;

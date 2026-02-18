@@ -18,7 +18,7 @@ find files of those names at the top level of this repository. **/
 
 #include <psmrts/core/psmrts_version.h>
 
-#include <psmrts/core/ProductConfiguration.hpp> 
+#include <psmrts/core/products/ProductConfiguration.hpp> 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsContainer.hpp>
 #include <psmrts/core/PsmrtsTranslations.hpp>

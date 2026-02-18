@@ -13,7 +13,7 @@ find files of those names at the top level of this repository. **/
 #include <string>
 
 #include "../EllipsoidTracer.hpp"
-#include <psmrts/core/ProductCart.hpp>
+#include <psmrts/core/products/ProductCart.hpp>
 
 #include <cspice/SpiceUsr.h>
 

@@ -3,13 +3,13 @@
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/tracers/PsmrtsTracer.hpp>
-#include <psmrts/core/ProductOption.hpp>
-#include <psmrts/core/ProductConfiguration.hpp>
-#include <psmrts/core/ProductSpecification.hpp>
-#include <psmrts/core/ProductOrder.hpp>
-#include <psmrts/core/ProductMaker.hpp>
-#include <psmrts/core/ProductCart.hpp>
-#include <psmrts/core/ProductProcessing.hpp>
+#include <psmrts/core/products/ProductOption.hpp>
+#include <psmrts/core/products/ProductConfiguration.hpp>
+#include <psmrts/core/products/ProductSpecification.hpp>
+#include <psmrts/core/products/ProductOrder.hpp>
+#include <psmrts/core/products/ProductMaker.hpp>
+#include <psmrts/core/products/ProductCart.hpp>
+#include <psmrts/core/products/ProductProcessing.hpp>
 #include <psmrts/core/PsmrtsInvoice.hpp>
 
 #include <tuple>

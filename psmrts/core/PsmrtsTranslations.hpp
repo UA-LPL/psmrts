@@ -28,7 +28,7 @@ find files of those names at the top level of this repository. **/
 #include <algorithm>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
-#include <psmrts/core/ProductInventory.hpp>
+#include <psmrts/core/products/ProductInventory.hpp>
 
 namespace psmrts {
 

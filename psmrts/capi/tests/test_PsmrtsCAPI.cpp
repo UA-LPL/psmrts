@@ -1619,7 +1619,7 @@ TEST_CASE( "PSMRTS C API - Mesh Test", "[capi][c++][mesh][obj]" ) {
  *   psmrts_free_invoice*
  * 
  */
-TEST_CASE( "PsmrtsInvoice & Translations Shape Test", "[capi][c++][invoice][translations][shape]" ) {
+TEST_CASE( "C API Invoice & Translations Shape Test", "[capi][c++][invoice][translations][shape]" ) {
   // create PSMRTS_Translations
   PSMRTS_Translations *trans_t = psmrts_create_translation();
 
@@ -1683,7 +1683,7 @@ TEST_CASE( "PsmrtsInvoice & Translations Shape Test", "[capi][c++][invoice][tran
  *   psmrts_free_invoice*
  * 
  */
-TEST_CASE( "PsmrtsInvoice & Translations Tracer Test", "[capi][c++][invoice][translations][tracer]" ) {
+TEST_CASE( "C API Invoice & Translations Tracer Test", "[capi][c++][invoice][translations][tracer]" ) {
   // create PSMRTS_Translations
   PSMRTS_Translations *trans_t = psmrts_create_translation();
 

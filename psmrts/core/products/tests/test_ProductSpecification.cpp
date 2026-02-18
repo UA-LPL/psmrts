@@ -7,12 +7,12 @@
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsTranslations.hpp>
-#include <psmrts/core/ProductFeature.hpp>
-#include <psmrts/core/ProductConfiguration.hpp>
-#include <psmrts/core/ProductOrder.hpp>
-#include <psmrts/core/ProductSpecification.hpp>
-#include <psmrts/core/ProductCart.hpp>
-#include <psmrts/core/ProductProcessing.hpp>
+#include <psmrts/core/products/ProductFeature.hpp>
+#include <psmrts/core/products/ProductConfiguration.hpp>
+#include <psmrts/core/products/ProductOrder.hpp>
+#include <psmrts/core/products/ProductSpecification.hpp>
+#include <psmrts/core/products/ProductCart.hpp>
+#include <psmrts/core/products/ProductProcessing.hpp>
 #include <psmrts/shapes/PsmrtsShape.hpp>
 
 

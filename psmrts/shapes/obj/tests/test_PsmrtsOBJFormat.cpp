@@ -1,7 +1,7 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
 #include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
-#include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/core/products/ProductSpecification.hpp>
 
 #include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
 

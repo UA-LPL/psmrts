@@ -19,8 +19,8 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsStridingBuffer.hpp>
 #include <psmrts/core/PsmrtsVector3.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
-#include <psmrts/core/ProductOption.hpp>
-#include <psmrts/core/ProductConfiguration.hpp>
+#include <psmrts/core/products/ProductOption.hpp>
+#include <psmrts/core/products/ProductConfiguration.hpp>
 
 namespace psmrts {
 

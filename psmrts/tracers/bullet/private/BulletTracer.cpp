@@ -17,7 +17,7 @@ find files of those names at the top level of this repository. **/
 #include "BulletTracerModel.hpp"
 #include "PsmrtsBulletMeshMap.hpp"
 #include "../BulletTracer.hpp"
-#include <psmrts/core/ProductMaker.hpp>
+#include <psmrts/core/products/ProductMaker.hpp>
 #include <psmrts/core/PsmrtsFactory.hpp>
 
 namespace psmrts {

@@ -19,15 +19,15 @@ find files of those names at the top level of this repository. **/
 #include <Eigen/Geometry>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
-#include <psmrts/core/PsmrtsProduct.hpp>
+#include <psmrts/core/products/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsCache.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/PsmrtsTranslations.hpp>
 #include <psmrts/shapes/PsmrtsShape.hpp>
 
-#include <psmrts/core/ProductProcessDispatch.hpp>
-#include <psmrts/core/ProductVoidVariant.hpp>
+#include <psmrts/core/products/ProductProcessDispatch.hpp>
+#include <psmrts/core/products/ProductVoidVariant.hpp>
 #include <psmrts/tracers/bullet/BulletTracer.hpp>
 #include <psmrts/tracers/ellipsoid/EllipsoidTracer.hpp>
 #include <psmrts/tracers/naifdsk/NaifDskTracer.hpp>

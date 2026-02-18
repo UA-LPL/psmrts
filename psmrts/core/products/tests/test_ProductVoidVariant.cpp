@@ -1,10 +1,10 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
-#include <psmrts/core/ProductVoidVariant.hpp>
-#include <psmrts/core/ProductOption.hpp>
-#include <psmrts/core/ProductConfiguration.hpp>
-#include <psmrts/core/ProductSpecification.hpp>
-#include <psmrts/core/ProductCart.hpp>
+#include <psmrts/core/products/ProductVoidVariant.hpp>
+#include <psmrts/core/products/ProductOption.hpp>
+#include <psmrts/core/products/ProductConfiguration.hpp>
+#include <psmrts/core/products/ProductSpecification.hpp>
+#include <psmrts/core/products/ProductCart.hpp>
 
 TEST_CASE( "ProductVoidVariant Default Test", "[product][void][variant][default]") {
     psmrts::ProductVoidVariant v_var;

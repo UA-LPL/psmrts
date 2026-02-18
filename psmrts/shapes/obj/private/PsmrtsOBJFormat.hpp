@@ -25,7 +25,7 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsBuffer.hpp>
 #include <psmrts/core/PsmrtsVector3.hpp>
 #include <psmrts/core/PsmrtsMeshData.hpp>
-#include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/core/products/ProductSpecification.hpp>
 
 // See PsmrtsOBJImplementation.hpp for defining the tinyobj implementation in your main
 #include "tinyobjloader/tiny_obj_loader.h"

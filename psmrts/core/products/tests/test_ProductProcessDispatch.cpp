@@ -1,12 +1,12 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
-#include <psmrts/core/ProductProcessDispatch.hpp>
+#include <psmrts/core/products/ProductProcessDispatch.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 #include <psmrts/shapes/obj/ObjShape.hpp>
 #include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
-#include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/core/products/ProductSpecification.hpp>
 #include <psmrts/shapes/PsmrtsShape.hpp>
 
 

@@ -1,10 +1,10 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
-#include <psmrts/core/ProductCart.hpp>
-#include <psmrts/core/ProductSpecification.hpp>
-#include <psmrts/core/ProductConfiguration.hpp>
-#include <psmrts/core/ProductOption.hpp>
-#include <psmrts/core/ProductFeature.hpp>
+#include <psmrts/core/products/ProductCart.hpp>
+#include <psmrts/core/products/ProductSpecification.hpp>
+#include <psmrts/core/products/ProductConfiguration.hpp>
+#include <psmrts/core/products/ProductOption.hpp>
+#include <psmrts/core/products/ProductFeature.hpp>
 
 TEST_CASE( "ProductCart Default Test", "[cart][default]") {
     psmrts::ProductCart cart;

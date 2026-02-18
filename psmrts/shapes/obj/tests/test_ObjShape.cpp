@@ -2,7 +2,7 @@
 
 #include <psmrts/shapes/obj/ObjShape.hpp>
 #include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
-#include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/core/products/ProductSpecification.hpp>
 
 
 TEST_CASE( "OBJ SHAPE - Default Test", "[obj][shape][specification]") {

@@ -1,7 +1,7 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
 #include <psmrts/core/PsmrtsContainer.hpp>
-#include <psmrts/core/ProductOption.hpp>
+#include <psmrts/core/products/ProductOption.hpp>
 
 /**
   * PSMRTS Container Default Test

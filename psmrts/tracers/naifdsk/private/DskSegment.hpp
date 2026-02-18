@@ -16,8 +16,8 @@ find files of those names at the top level of this repository. **/
 #include <string>
 
 #include <Eigen/Geometry>
-#include <psmrts/core/ProductOption.hpp>
-#include <psmrts/core/ProductConfiguration.hpp>
+#include <psmrts/core/products/ProductOption.hpp>
+#include <psmrts/core/products/ProductConfiguration.hpp>
 
 namespace naif {
 

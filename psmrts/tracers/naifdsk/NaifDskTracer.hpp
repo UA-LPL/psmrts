@@ -16,14 +16,14 @@ find files of those names at the top level of this repository. **/
 #include <string>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
-#include <psmrts/core/PsmrtsProduct.hpp>
+#include <psmrts/core/products/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
-#include <psmrts/core/ProductOption.hpp>
-#include <psmrts/core/ProductFeature.hpp>
+#include <psmrts/core/products/ProductOption.hpp>
+#include <psmrts/core/products/ProductFeature.hpp>
 #include <psmrts/core/PsmrtsTranslations.hpp>
-#include <psmrts/core/ProductConfiguration.hpp>
-#include <psmrts/core/ProductSpecification.hpp>
-#include <psmrts/core/ProductCart.hpp>
+#include <psmrts/core/products/ProductConfiguration.hpp>
+#include <psmrts/core/products/ProductSpecification.hpp>
+#include <psmrts/core/products/ProductCart.hpp>
 
 #include <psmrts/algorithms/TracingBasics.hpp>
 #include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>

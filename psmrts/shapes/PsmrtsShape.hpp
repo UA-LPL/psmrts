@@ -19,16 +19,15 @@ find files of those names at the top level of this repository. **/
 #include <Eigen/Geometry>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
-#include <psmrts/core/PsmrtsProduct.hpp>
+#include <psmrts/core/products/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsCache.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
-#include <psmrts/core/ProductOption.hpp>
-#include <psmrts/core/ProductConfiguration.hpp>
-#include <psmrts/core/ProductSpecification.hpp>
-
-#include <psmrts/core/ProductProcessDispatch.hpp>
-#include <psmrts/core/ProductVoidVariant.hpp>
+#include <psmrts/core/products/ProductOption.hpp>
+#include <psmrts/core/products/ProductConfiguration.hpp>
+#include <psmrts/core/products/ProductSpecification.hpp>
+#include <psmrts/core/products/ProductProcessDispatch.hpp>
+#include <psmrts/core/products/ProductVoidVariant.hpp>
 #include <psmrts/shapes/dsk/DskShape.hpp>
 #include <psmrts/shapes/obj/ObjShape.hpp>
 #include <psmrts/shapes/ply/PlyShape.hpp>
