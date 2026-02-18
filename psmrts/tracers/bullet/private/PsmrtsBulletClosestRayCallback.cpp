@@ -16,7 +16,6 @@ find files of those names at the top level of this repository. **/
 #include "BulletSystemModel.hpp"
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
-
 #include <BulletCollision/NarrowPhaseCollision/btRaycastCallback.h>
 
 namespace psmrts::bullet {

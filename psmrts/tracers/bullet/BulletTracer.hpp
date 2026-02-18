@@ -17,14 +17,15 @@ find files of those names at the top level of this repository. **/
 #include <memory>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
-#include <psmrts/core/products/PsmrtsProduct.hpp>
+#include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
-#include <psmrts/core/products/ProductFeature.hpp>
-#include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/core/PsmrtsTranslations.hpp>
+#include <psmrts/core/products/ProductOption.hpp>
+#include <psmrts/core/products/ProductFeature.hpp>
 #include <psmrts/core/products/ProductConfiguration.hpp>
 #include <psmrts/core/products/ProductSpecification.hpp>
 #include <psmrts/core/products/ProductCart.hpp>
+#include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/algorithms/TracingBasics.hpp>
 
 namespace psmrts  {

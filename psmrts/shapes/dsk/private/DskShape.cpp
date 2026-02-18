@@ -13,8 +13,8 @@ find files of those names at the top level of this repository. **/
 #include <string>
 
 #include "../DskShape.hpp"
-#include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
 #include <psmrts/core/AllOptionConversions.hpp>
+#include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
 
 
 namespace psmrts {

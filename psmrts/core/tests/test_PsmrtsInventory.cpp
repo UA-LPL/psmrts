@@ -2,7 +2,7 @@
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsInventory.hpp>
-#include <psmrts/core/products/PsmrtsProduct.hpp>
+#include <psmrts/core/PsmrtsProduct.hpp>
 
 
 TEST_CASE( "PSMRTS Inventory Default", "[product][inventory][default]") {

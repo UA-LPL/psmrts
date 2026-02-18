@@ -12,6 +12,7 @@ target_sources( psmrts PUBLIC
                                   PsmrtsInvoice.hpp
                                   PsmrtsJson.hpp
                                   PsmrtsMeshData.hpp
+                                  PsmrtsProduct.hpp
                                   PsmrtsRayTrace.hpp
                                   PsmrtsRequest.hpp
                                   PsmrtsStridingBuffer.hpp

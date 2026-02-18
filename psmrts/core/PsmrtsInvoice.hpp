@@ -20,17 +20,16 @@ find files of those names at the top level of this repository. **/
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
-
+#include <psmrts/algorithms/VariantTraits.hpp>
 #include <psmrts/core/products/ProductConfiguration.hpp>
 #include <psmrts/core/products/ProductSpecification.hpp>
-#include <psmrts/algorithms/VariantTraits.hpp>
-#include <psmrts/shapes/PsmrtsShape.hpp>
-#include <psmrts/tracers/PsmrtsTracer.hpp>
 #include <psmrts/core/products/ProductOrder.hpp>
 #include <psmrts/core/products/ProductMaker.hpp>
 #include <psmrts/core/products/ProductCart.hpp>
 #include <psmrts/core/products/ProductProcessing.hpp>
 #include <psmrts/core/products/ProductInventory.hpp>
+#include <psmrts/shapes/PsmrtsShape.hpp>
+#include <psmrts/tracers/PsmrtsTracer.hpp>
 #include <psmrts/core/PsmrtsInventory.hpp>
 #include <psmrts/core/PsmrtsFactory.hpp>
 

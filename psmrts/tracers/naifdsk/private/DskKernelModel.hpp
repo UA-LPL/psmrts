@@ -21,7 +21,7 @@ find files of those names at the top level of this repository. **/
 #include <Eigen/Geometry>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
-#include <psmrts/core/products/PsmrtsProduct.hpp>
+#include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsBufferData.hpp>
 #include <psmrts/core/PsmrtsBuffer.hpp>
 #include <psmrts/core/PsmrtsVector3.hpp>

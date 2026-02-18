@@ -18,7 +18,6 @@ find files of those names at the top level of this repository. **/
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
-
 #include "BulletSystemModel.hpp"
 #include "PsmrtsBulletMeshMap.hpp"
 #include "PsmrtsBulletClosestRayCallback.hpp"

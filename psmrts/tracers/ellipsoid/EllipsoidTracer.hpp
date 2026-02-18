@@ -18,6 +18,7 @@ find files of those names at the top level of this repository. **/
 #include <Eigen/Geometry>
 
 #include <psmrts/core/PsmrtsRequest.hpp>
+#include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/products/ProductOption.hpp>
 #include <psmrts/core/products/ProductFeature.hpp>
 #include <psmrts/core/products/ProductConfiguration.hpp>

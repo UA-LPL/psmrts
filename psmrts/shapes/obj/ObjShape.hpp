@@ -15,10 +15,10 @@ find files of those names at the top level of this repository. **/
 
 #include <string>
 
-#include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
-#include <psmrts/core/PsmrtsRequest.hpp>
-#include <psmrts/core/products/PsmrtsProduct.hpp>
+#include "private/PsmrtsOBJFormat.hpp"
 #include <psmrts/core/PsmrtsMeshData.hpp>
+#include <psmrts/core/PsmrtsProduct.hpp>
+#include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/PsmrtsTranslations.hpp>
 #include <psmrts/core/products/ProductConfiguration.hpp>
 #include <psmrts/core/products/ProductSpecification.hpp>

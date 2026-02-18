@@ -24,7 +24,6 @@ find files of those names at the top level of this repository. **/
 #include "BulletSystemModel.hpp"
 #include "PsmrtsBulletMeshMap.hpp"
 #include "PsmrtsBulletClosestRayCallback.hpp"
-
 #include <BulletCollision/CollisionShapes/btCollisionShape.h>
 #include <BulletCollision/CollisionDispatch/btCollisionObject.h>
 

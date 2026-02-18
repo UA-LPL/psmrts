@@ -20,13 +20,13 @@ find files of those names at the top level of this repository. **/
 #include <algorithm>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
-#include <psmrts/core/products/PsmrtsProduct.hpp>
+#include <psmrts/core/PsmrtsProduct.hpp>
+#include <psmrts/core/PsmrtsTranslations.hpp>
 #include <psmrts/core/products/ProductInventory.hpp>
 #include <psmrts/core/products/ProductOption.hpp>
 #include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/tracers/PsmrtsTracer.hpp>
 #include <psmrts/tracers/PsmrtsPriorityTracer.hpp>
-#include <psmrts/core/PsmrtsTranslations.hpp>
 
 namespace psmrts {
 
