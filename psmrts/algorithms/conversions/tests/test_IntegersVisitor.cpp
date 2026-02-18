@@ -3,7 +3,7 @@
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/products/ProductOption.hpp>
 #include <psmrts/core/PsmrtsJson.hpp>
-#include <psmrts/core/AllOptionConversions.hpp>
+#include <psmrts/core/products/AllOptionConversions.hpp>
 #include <psmrts/algorithms/conversions/IntegersVisitor.hpp>
 
 TEST_CASE("IntegersVisitor Conversion Test", "[conversions][option][integers][visitor]") {

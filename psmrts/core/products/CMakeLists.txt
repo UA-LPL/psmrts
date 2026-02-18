@@ -2,7 +2,8 @@
 target_sources( psmrts PUBLIC
                          FILE_SET psmrts_headers 
                            TYPE HEADERS 
-                           FILES  ProductVoidVariant.hpp
+                           FILES  AllOptionConversions.hpp
+                                  ProductVoidVariant.hpp
                                   ProductCart.hpp
                                   ProductConfiguration.hpp
                                   ProductFeature.hpp

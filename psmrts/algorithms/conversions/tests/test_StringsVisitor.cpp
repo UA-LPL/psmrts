@@ -2,7 +2,7 @@
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/products/ProductOption.hpp>
-#include <psmrts/core/AllOptionConversions.hpp>
+#include <psmrts/core/products/AllOptionConversions.hpp>
 
 
 TEST_CASE("StringsVisitor Conversion Test", "[conversions][option][strings][visitor]") {

@@ -31,7 +31,7 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/products/ProductMaker.hpp>
 #include <psmrts/core/PsmrtsInventory.hpp>
 #include <psmrts/core/PsmrtsFactory.hpp>
-#include <psmrts/core/AllOptionConversions.hpp>
+#include <psmrts/core/products/AllOptionConversions.hpp>
 
 
 namespace psmrts { 

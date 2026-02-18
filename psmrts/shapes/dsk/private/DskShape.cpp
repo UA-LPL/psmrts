@@ -14,7 +14,7 @@ find files of those names at the top level of this repository. **/
 
 #include "../DskShape.hpp"
 #include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
-#include <psmrts/core/AllOptionConversions.hpp>
+#include <psmrts/core/products/AllOptionConversions.hpp>
 
 
 namespace psmrts {

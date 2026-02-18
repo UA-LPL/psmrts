@@ -2,8 +2,7 @@
 target_sources( psmrts PUBLIC
                          FILE_SET psmrts_headers 
                            TYPE HEADERS 
-                           FILES  AllOptionConversions.hpp
-                                  PsmrtsBuffer.hpp
+                           FILES  PsmrtsBuffer.hpp
                                   PsmrtsBufferData.hpp
                                   PsmrtsCache.hpp
                                   PsmrtsContainer.hpp
