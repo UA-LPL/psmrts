@@ -231,7 +231,7 @@ namespace psmrts  {
           m_mesh = PsmrtsMeshData( m_model.get_indexes(), m_model.get_double_vectors() );
         }
 
-        m_config = m_model.get_config();
+        m_config = v_conf;
         m_config.add_metadata( ProductOption( "minimum_radius", m_mesh.minimum_radius() ) );
         m_config.add_metadata( ProductOption( "maximum_radius", m_mesh.maximum_radius() ) );           
 
