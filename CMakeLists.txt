@@ -254,7 +254,7 @@ if(BUILD_DOCS)
   find_package(Doxygen QUIET)
 
   if(DOXYGEN_FOUND)
-    add_custom_target(doxy_docs
+    add_custom_target(docs
         COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/docs
         COMMENT "Generating Doxygen API Documentation.."

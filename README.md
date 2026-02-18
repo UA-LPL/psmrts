@@ -72,7 +72,7 @@ To build `PSMRTS` tests, code coverage and documentation, use the `psmrts_conda_
 3.  conda env create -n psmrts_dev -f psmrts_conda_deps_all.yml
 4.  conda activate psmrts_dev
 5.  ./make_psmrts.sh -s -x -t -d -c -D -C -j4
-6.  cmake --build build --target doxy_docs     # Build doxygen documentation
+6.  cmake --build build --target docs     # Build doxygen documentation
 7.  open docs/html/index.html                  # On Mac, open the PSMRT documentation
 8.  cmake --build build --target coverage      # Build code coverage
 9.  open build/coverage/index.html             # On Mac, open the PSMRT code coverage report
@@ -113,7 +113,7 @@ experience:
 3.  conda env create -n psmrts_vcpkg -f tools/build_addons.yml
 4.  conda activate psmrts_vcpkg
 5.  ./make_psmrts.sh -x -t -s -d -c -D -V -j4
-6.  cmake --build build --target doxy_docs     # Build doxygen documentation
+6.  cmake --build build --target docs     # Build doxygen documentation
 7.  open docs/html/index.html                  # On Mac, open the PSMRTS documentation
 8.  cmake --build build --target coverage      # Build code coverage
 9.  open build/coverage/index.html             # On Mac, open the PSMRTS code coverage report
@@ -129,7 +129,7 @@ The C++ testing framework Catch2 is in `PSMRTS` for the C++ API. `PSMRTS` tests 
 
 ### Creating PSMRTS Documentation
 
-`PSMRTS` documentation system is based upon the [Doxygen](https://www.doxygen.nl) generator. The `docs` directory contains the Doxygen file that contains the configuration to create the `PSMRTS` documentation. The CMAKE target `doxy_docs` creates the HTML documentation in the `docs/html` directory. The `conda` configuration provides the necessary tools to create the documentation but other means can provide the required apps, namely `doxygen`, `graphviz`, `gcovr` and `lcov`. 
+`PSMRTS` documentation system is based upon the [Doxygen](https://www.doxygen.nl) generator. The `docs` directory contains the Doxygen file that contains the configuration to create the `PSMRTS` documentation. The CMAKE target `docs` creates the HTML documentation in the `docs/html` directory. The `conda` configuration provides the necessary tools to create the documentation but other means can provide the required apps, namely `doxygen`, `graphviz`, `gcovr` and `lcov`. 
 
 The following commands can be used to create the necessary `conda` environment and build the documentation (and code coverage):
 
@@ -139,7 +139,7 @@ The following commands can be used to create the necessary `conda` environment a
 3.  conda env create -n psmrts_docs_cov -f psmrts_conda_deps_all.yml
 4.  conda activate psmrts_docs_cov
 5.  ./make_psmrts.sh -t -x -s -d -c -D -C -j4
-6.  cmake --build build --target doxy_docs     # Build doxygen documentation
+6.  cmake --build build --target docs     # Build doxygen documentation
 7.  open docs/html/index.html                  # On Mac, open the PSMRTS documentation
 ```
 
