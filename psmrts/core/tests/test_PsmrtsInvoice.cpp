@@ -16,6 +16,8 @@
 
 TEST_CASE( "PsmrtsInvoice Priority Tracer Test 1", "[product][invoice][prioritytracer]" ) {
 
+  using UIDType = psmrts::PsmrtsInventory::UIDType;
+
   psmrts::PsmrtsTranslations trans_t = psmrts::PsmrtsTranslations::create();
   psmrts::PsmrtsInvoice invoice_t( "invoice", trans_t );
   CHECK( invoice_t.size() == 0 );
@@ -49,7 +51,41 @@ TEST_CASE( "PsmrtsInvoice Priority Tracer Test 1", "[product][invoice][priorityt
 
   CHECK( invoice_t.add_product( ellipsoid_t ) == true );
 
-  psmrts::PsmrtsPriorityTracer priority_t = invoice_t.get_priority_tracer( "priority_tracer1" );
-  CHECK( priority_t.size() == 3 );
+  CHECK( invoice_t.size() == 3);
 
+  psmrts::PsmrtsPriorityTracer priority_t = invoice_t.get_priority_tracer( "priority_tracer1" );
+  CHECK( priority_t.size()                      == 3 );
+  CHECK( invoice_t.inventory().size()           == 5 );
+  CHECK( invoice_t.inventory().tracers().size() == 3 );
+  CHECK( invoice_t.inventory().shapes().size()  == 1);
+
+  // CHECK( invoice_t.inventory().shapes().keys()  == std::vector<UIDType>( { 1 } ) );
+  // CHECK( invoice_t.inventory().tracers().keys() == std::vector<UIDType>( { 1, 2, 3 } ) );
+  CHECK( invoice_t.inventory().prioritytracers().contains( priority_t.uid() ) == true );
+  
+  CHECK( invoice_t.has_priority_tracer( "priority_tracer1") == true);
+  CHECK_NOTHROW( invoice_t.find_priority_tracer( "priority_tracer1") );
+  CHECK_NOTHROW( invoice_t.inventory().prioritytracers().find( priority_t.uid() ) );
+
+  psmrts::ProductConfiguration bullet_t2( "bulletmaker2" );
+  bullet_t2.add( psmrts::ProductOption( "shape", "obj" ) );
+  bullet_t2.add( psmrts::ProductOption( "obj_file", psmrts_shapes_path( "obj/data/bennu_20facets.obj")  ) );
+  bullet_t2.add( psmrts::ProductOption( "tracer", "bullet" ) );
+  bullet_t2.add( psmrts::ProductOption( "bullet_compression", false ) );
+
+  CHECK( invoice_t.add_product( bullet_t2 ) == true );
+  CHECK( invoice_t.size() == 4);
+
+  CHECK( invoice_t.generate_products() == true );
+  // CHECK( invoice_t.inventory().shapes().keys()  == std::vector<UIDType>( { 1 } ) );
+  // CHECK( invoice_t.inventory().tracers().keys() == std::vector<UIDType>( { 1, 2, 3, 5 } ) );
+
+  psmrts::PsmrtsPriorityTracer priority_t2 = invoice_t.get_priority_tracer( "priority_tracer2" );
+  CHECK( priority_t2.isValid() == true );
+  CHECK( priority_t2.size()    == 4 );
+
+  CHECK( invoice_t.has_priority_tracer( "priority_tracer2") == true );
+  CHECK_NOTHROW( invoice_t.find_priority_tracer( "priority_tracer2") );
+  CHECK_NOTHROW( invoice_t.inventory().prioritytracers().find( priority_t2.uid() ) );  
+  
 }

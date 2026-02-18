@@ -104,14 +104,18 @@ namespace psmrts {
                                       const ProductOrder &order,
                                       const Inventory &inventory, 
                                       Product &product ) const {
-          if ( inventory.contains( uid_t ) ) {
+          
+          // Don't test invalid uids
+          if ( PsmrtsUID::is_valid_uid( uid_t ) && inventory.contains( uid_t ) ) {
             product.emplace( inventory.find( uid_t ) );
           }
           else {
             // search using configs
-            for ( const auto &p : inventory.cache() ) {
-              if ( order.config().matches( p.second.config() ) ) {
-                product.emplace( p.second );
+            // std::cout << "ConfigCacheCompare for " << order.name() << ", size = " << inventory.size() << std::endl;
+            for ( const auto &[ uid, p ] : inventory.cache() ) {
+              // std::cout << "\nConfigMatching:\nFirst: " << order.config().to_json().dump(1) << "\n\nSecond: " << p.config().to_json().dump(1) << std::endl;
+              if ( order.config().matches( p.config() ) ) {
+                product.emplace( p );
                 break;
               }
             }
@@ -146,18 +150,16 @@ namespace psmrts {
 
 
         // Let first check to see if we have a shape in the current factory
-        if ( PsmrtsUID::is_valid_uid( shape_uid ) ) {
-          bool has_shape = search_inventory( shape_uid, product_s.shape, inventory.shapes(), shape_p );
-          
-          // If its not in the current inventory, check the factory
-          if ( !has_shape ) {
-            has_shape = search_inventory( shape_uid, product_s.shape, PsmrtsFactory().find().shapes(), shape_p );
-          }
-          if ( has_shape ) {
-            // Add to both factories
+        bool has_shape = search_inventory( shape_uid, product_s.shape, inventory.shapes(), shape_p );
+        
+        // If its not in the current inventory, check the factory
+        if ( !has_shape ) {
+          has_shape = search_inventory( shape_uid, product_s.shape, PsmrtsFactory().find().shapes(), shape_p );
+
+          // Add to local inventory
+          if ( has_shape) {
             inventory.shapes().add_product( shape_p.value() );
-            PsmrtsFactory().add_product( shape_p.value() );
-          }
+          }            
         }
 
         // Check to see if don't have a shape and search using configs
@@ -207,17 +209,15 @@ namespace psmrts {
 
 
         // Let first check to see if we have a shape in the current factory
-        if ( PsmrtsUID::is_valid_uid( tracer_uid ) ) {
-          bool has_tracer = search_inventory( tracer_uid, product_s.tracer, inventory.tracers(), tracer_p );
-          
-          // If its not in the current inventory, check the factory
-          if ( !has_tracer ) {
-            has_tracer = search_inventory( tracer_uid, product_s.tracer, PsmrtsFactory().find().tracers(), tracer_p );
-          }
-          if ( has_tracer) {
-            // Add to both factories
+        bool has_tracer = search_inventory( tracer_uid, product_s.tracer, inventory.tracers(), tracer_p );
+        
+        // If its not in the current inventory, check the factory
+        if ( !has_tracer ) {
+          has_tracer = search_inventory( tracer_uid, product_s.tracer, PsmrtsFactory().find().tracers(), tracer_p );
+
+          // Add to local inventory
+          if ( has_tracer ) {
             inventory.tracers().add_product( tracer_p.value() );
-            PsmrtsFactory().add_product( tracer_p.value() );
           }
         }
 
@@ -233,7 +233,7 @@ namespace psmrts {
           }
           else {
             if (maker_t.error_count() > 0 ) {
-              product_s.tracer.add_error( maker_t.errors_to_string() );
+              this->add_error( maker_t.errors_to_string() );
             }
           }
         }
@@ -465,7 +465,6 @@ namespace psmrts {
                                 ProductOrder &order ) const {
 
         if ( feature.type() == "directory") {
-          // std::cout << "DirectoryOption File: " << option.to_string() << std::endl;
           order.add_option( option );
           std::string expanded_d = order.translate_path( option.to_string() );
           if ( expanded_d != option.to_string() ) {
@@ -474,12 +473,9 @@ namespace psmrts {
         }
         else if ( feature.validate_file_suffix( option.to_string() ) ) {
           // Its a file.
-          //  << "FileOption File: " << option.to_string() << std::endl;
-
           order.add_option( option );
           std::string expanded_f = order.translate_path( option.to_string() );
           if ( option.to_string() != expanded_f ) {
-            // std::cout << "FileOption FileExpanded: " << expanded_f << std::endl;
             order.add_metadata( ProductOption( option.name()+"_expanded", expanded_f) );
           }
         }

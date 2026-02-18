@@ -30,6 +30,7 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/ProductMaker.hpp>
 #include <psmrts/core/ProductCart.hpp>
 #include <psmrts/core/ProductProcessing.hpp>
+#include <psmrts/core/ProductInventory.hpp>
 #include <psmrts/core/PsmrtsInventory.hpp>
 #include <psmrts/core/PsmrtsFactory.hpp>
 
@@ -56,22 +57,27 @@ namespace psmrts {
    */
   class PsmrtsInvoice : public PsmrtsProduct, public PsmrtsRequest {
     public:
-      using ProductSet       = ProductProcessing::ProductSet;
-      using ProductOrderList = PsmrtsContainer<ProductSet>;
+      using UIDType              = PsmrtsProduct::UIDType;
+      using ProductSet           = ProductProcessing::ProductSet;
+      using ProductOrderList     = PsmrtsContainer<ProductSet>;
+      using PriorityTracerList   = ProductInventory<std::string, UIDType>;
+
 
 
       PsmrtsInvoice( ) : PsmrtsProduct( "PsmrtsInvoice" ),
                          PsmrtsRequest( "invoice_errors" ),
                          m_orders(  ),
                          m_processor( ),
-                         m_inventory( "inventory" ) { }
+                         m_inventory( "inventory" ),
+                         m_priorities_t( create_case_sensitive_inventory<UIDType>("prioritytracers") ) { }
       PsmrtsInvoice( const std::string &name,
                      const PsmrtsTranslations &trans = PsmrtsTranslations() ) : 
                      PsmrtsProduct( name ),
                      PsmrtsRequest( "InvoiceErrors" ),                     
                      m_orders( ),
                      m_processor( trans ),
-                     m_inventory( name ) { }                        
+                     m_inventory( name ),
+                     m_priorities_t( create_case_sensitive_inventory<UIDType>("prioritytracers") ) { }                        
       virtual ~PsmrtsInvoice() { }
   
 
@@ -95,12 +101,25 @@ namespace psmrts {
         return ( m_inventory );
       }
 
+      inline bool has_priority_tracer( const std::string & name ) {
+        if ( !m_priorities_t.contains( name) ) return ( false );
+        return ( m_inventory.prioritytracers().contains(m_priorities_t.find( name) ) );
+      }
+      
+      inline PsmrtsPriorityTracer find_priority_tracer( const std::string & name = "" ) {
+        return ( m_inventory.prioritytracers().find( m_priorities_t.find( name) ));
+      }
+
+      inline std::vector<std::string> get_priority_tracer_list(  ) {
+        return ( m_priorities_t.keys() );
+      }
+
       inline bool add_product( const ProductConfiguration &config ) {
         ProductSet product_s = m_processor.process_configuration( config );
         if ( !m_processor.is_valid_product( product_s ) ) {
           std::string mess = "PsmrtsInvoice::add_product(" + config.name() +
-                             ") errors occured during validation: " +
-                             m_processor.product_error_string( product_s );
+                              ") errors occured during validation: " +
+                              m_processor.product_error_string( product_s );
           this->add_error( mess );
           return ( false );
         }
@@ -161,8 +180,8 @@ namespace psmrts {
         std::string name_t = ( name.length() > 0 ) ? name : this->name();
 
         // First search the local inventory if one exists
-        if ( m_priority_t.has_value() ) {
-          return ( m_priority_t.value() );
+        if ( this->has_priority_tracer( name_t ) ) {
+          return ( this->find_priority_tracer( name_t )  );
         }
 
         // Check to see if we have any products. If not we assume
@@ -177,34 +196,24 @@ namespace psmrts {
           }
         }
 
-        m_priority_t.emplace( PsmrtsPriorityTracer( name_t ) );
+        PsmrtsPriorityTracer tracer_p( name_t );
         for ( const auto &tracer : m_inventory.tracers().cache() ) {
-          m_priority_t.value().add_tracer( tracer.second );
+          tracer_p.add_tracer( tracer.second );
         }
 
-        m_inventory.prioritytracers().add_product( m_priority_t.value() );
-        return ( m_priority_t.value() );
+        // Add to inventories and return the current tracer
+        m_inventory.prioritytracers().add_product( tracer_p );
+        m_priorities_t.add( name_t, tracer_p.uid() );
+
+        return ( tracer_p );
       }
 
     private:
-      ProductOrderList                    m_orders;
-      ProductProcessing                   m_processor;
-      PsmrtsInventory                     m_inventory;
-      std::optional<PsmrtsPriorityTracer> m_priority_t; 
+      ProductOrderList   m_orders;
+      ProductProcessing  m_processor;
+      PsmrtsInventory    m_inventory;
+      PriorityTracerList m_priorities_t; 
 
-      inline PsmrtsPriorityTracer find_priority_tracer( const PsmrtsInventory &inventory,
-                                                        const std::string &name ) 
-                                                        const {
-        const auto &inventory_pt = inventory.prioritytracers();
-        for ( const auto &pt : inventory_pt.cache() ) {
-          if ( pt.second.name() == name ) {
-            return ( pt.second );
-          }       
-        }
-
-        // Returns an empty tracer indicating it wasn't found
-        return ( PsmrtsPriorityTracer( name ) );
-      }
   };
 
 } // namespace psmrts
