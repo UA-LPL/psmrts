@@ -1609,17 +1609,17 @@ TEST_CASE( "PSMRTS C API - Mesh Test", "[capi][c++][mesh][obj]" ) {
  * @brief Tests PSMRTS C API PSMRTS_Invoice and PSMRTS_Translations methods for ply shape.
  *
  * Methods tested...
- *   psmrts_create_translation*
- *   psmrts_create_config*
- *   psmrts_create_invoice*
- *   psmrts_invoice_error_string*
- *   psmrts_add_config_invoice*
- *   psmrts_generate_priority_tracer*
- *   psmrts_free_translations*
- *   psmrts_free_invoice*
+ *   psmrts_create_translation
+ *   psmrts_create_config
+ *   psmrts_create_invoice
+ *   psmrts_invoice_error_string
+ *   psmrts_add_config_invoice
+ *   psmrts_generate_priority_tracer
+ *   psmrts_free_translations
+ *   psmrts_free_invoice
  * 
  */
-TEST_CASE( "PsmrtsInvoice & Translations Shape Test", "[capi][c++][invoice][translations][shape]" ) {
+TEST_CASE( "PSMRTS C API - Invoice & Translations Shape Test", "[capi][c++][invoice][translations][shape]" ) {
   // create PSMRTS_Translations
   PSMRTS_Translations *trans_t = psmrts_create_translation();
 
@@ -1673,17 +1673,17 @@ TEST_CASE( "PsmrtsInvoice & Translations Shape Test", "[capi][c++][invoice][tran
  * @brief Tests PSMRTS C API PSMRTS_Invoice and PSMRTS_Translations methods for bullet tracer.
  *
  * Methods tested...
- *   psmrts_create_translation*
- *   psmrts_create_config*
- *   psmrts_create_invoice*
- *   psmrts_invoice_error_string*
- *   psmrts_add_config_invoice*
- *   psmrts_generate_priority_tracer*
- *   psmrts_free_translations*
- *   psmrts_free_invoice*
+ *   psmrts_create_translation
+ *   psmrts_create_config
+ *   psmrts_create_invoice
+ *   psmrts_invoice_error_string
+ *   psmrts_add_config_invoice
+ *   psmrts_generate_priority_tracer
+ *   psmrts_free_translations
+ *   psmrts_free_invoice
  * 
  */
-TEST_CASE( "PsmrtsInvoice & Translations Tracer Test", "[capi][c++][invoice][translations][tracer]" ) {
+TEST_CASE( "PSMRTS C API - Invoice & Translations Tracer Test", "[capi][c++][invoice][translations][tracer]" ) {
   // create PSMRTS_Translations
   PSMRTS_Translations *trans_t = psmrts_create_translation();
 
