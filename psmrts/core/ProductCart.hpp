@@ -86,7 +86,8 @@ namespace psmrts {
                    m_residual( residuals ),
                    m_tracer_uid( PsmrtsUID::null_uid() ),
                    m_shape_uid( PsmrtsUID::null_uid() ) { }                                     
-      virtual ~ProductCart() = default;  
+      virtual ~ProductCart() = default; 
+       
       /** Special constructor to extract a product from a combined config */
       static inline ProductCart extract_config(const ProductConfiguration &config,
                                                const ProductSpecification &specs ) {
@@ -108,7 +109,7 @@ namespace psmrts {
                 ( this->residual_size() == 0 ) );
       }
 
-      inline bool size() const {
+      inline size_t size() const {
         return ( m_config.size() );
       }
 
@@ -122,7 +123,7 @@ namespace psmrts {
         return ( this->specification().product() );
       }
 
-      inline bool residual_size() const {
+      inline size_t residual_size() const {
         return ( m_residual.size() );
       }
 
