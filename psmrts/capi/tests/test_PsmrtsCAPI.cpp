@@ -1605,4 +1605,134 @@ TEST_CASE( "PSMRTS C API - Mesh Test", "[capi][c++][mesh][obj]" ) {
   psmrts_free_shape( plyshape );
 }
 
+/**
+ * @brief Tests PSMRTS C API PSMRTS_Invoice and PSMRTS_Translations methods for ply shape.
+ *
+ * Methods tested...
+ *   psmrts_create_translation*
+ *   psmrts_create_config*
+ *   psmrts_create_invoice*
+ *   psmrts_invoice_error_string*
+ *   psmrts_add_config_invoice*
+ *   psmrts_generate_priority_tracer*
+ *   psmrts_free_translations*
+ *   psmrts_free_invoice*
+ * 
+ */
+TEST_CASE( "PsmrtsInvoice & Translations Shape Test", "[capi][c++][invoice][translations][shape]" ) {
+  // create PSMRTS_Translations
+  PSMRTS_Translations *trans_t = psmrts_create_translation();
+
+  // create PSMRTS_ProductConfiguration
+  PSMRTS_ProductConfiguration* shape_config = psmrts_create_config( "shape", "ply", nullptr );
+
+  // add products to shape_config
+  psmrts_add_product_string( shape_config, "shape", "ply" );
+  psmrts_add_product_string( shape_config,
+                             "ply_file",
+                             psmrts_shapes_path( "ply/data/Bennu_Radar.ply" ).c_str() );
+
+  // retrieve and validate string with product config metadata
+  PSMRTS_String *checkstr = psmrts_create_string( "" );
+  psmrts_product_config_to_string( shape_config, checkstr );
+  CHECK( (std::string( psmrts_string_content( checkstr )).find("options") ) != std::string::npos );
+  CHECK( (std::string( psmrts_string_content( checkstr )).find("shape") )   != std::string::npos );
+  CHECK( (std::string( psmrts_string_content( checkstr )).find("ply") )     != std::string::npos );
+  CHECK( (std::string( psmrts_string_content( checkstr )).find("ply_file") ) != std::string::npos );
+  CHECK( (std::string( psmrts_string_content( checkstr )).find("ply/data/Bennu_Radar.ply") ) != std::string::npos );
+
+  CHECK( psmrts_product_config_contains( shape_config, "shape" ) == PSMRTS_TRUE );
+  CHECK( psmrts_product_config_contains( shape_config, "ply_file" ) == PSMRTS_TRUE );
+
+  // create invoice
+  PSMRTS_Invoice *plyinvoice = psmrts_create_invoice( "plyinvoice", trans_t );
+
+  // check for errors
+  PSMRTS_String *error_str = psmrts_invoice_error_string( plyinvoice, nullptr );
+  CHECK( std::string( psmrts_string_content( error_str ) ) == "" );
+
+  // add shape_config to invoice
+  CHECK( psmrts_add_config_invoice( shape_config, plyinvoice ) == PSMRTS_TRUE );
+
+  // create priority tracer
+  PSMRTS_PriorityTracer *ptracer = psmrts_generate_priority_tracer( plyinvoice, nullptr );
+
+  // test psmrts_generate_products
+  CHECK( psmrts_generate_products( plyinvoice ) == PSMRTS_TRUE );
+
+  // free memory
+  psmrts_free_translations( trans_t );
+  psmrts_free_product_config( shape_config );
+  psmrts_free_string( checkstr );
+  psmrts_free_invoice( plyinvoice );
+  psmrts_free_string( error_str );
+  psmrts_free_priority_tracer( ptracer );
+}
+
+/**
+ * @brief Tests PSMRTS C API PSMRTS_Invoice and PSMRTS_Translations methods for bullet tracer.
+ *
+ * Methods tested...
+ *   psmrts_create_translation*
+ *   psmrts_create_config*
+ *   psmrts_create_invoice*
+ *   psmrts_invoice_error_string*
+ *   psmrts_add_config_invoice*
+ *   psmrts_generate_priority_tracer*
+ *   psmrts_free_translations*
+ *   psmrts_free_invoice*
+ * 
+ */
+TEST_CASE( "PsmrtsInvoice & Translations Tracer Test", "[capi][c++][invoice][translations][tracer]" ) {
+  // create PSMRTS_Translations
+  PSMRTS_Translations *trans_t = psmrts_create_translation();
+
+  // create PSMRTS_ProductConfiguration
+  PSMRTS_ProductConfiguration* tracer_config = psmrts_create_config( "tracer", "bullet", nullptr );
+
+  // add products to shape_config
+  psmrts_add_product_string( tracer_config, "shape", "obj" );
+  psmrts_add_product_string( tracer_config,
+                             "obj_file",
+                             psmrts_shapes_path( "obj/data/bennu_20facets.obj" ).c_str() );
+  psmrts_add_product_string( tracer_config, "tracer", "bullet" );
+
+  CHECK( psmrts_product_config_contains( tracer_config, "shape" ) == PSMRTS_TRUE );
+  CHECK( psmrts_product_config_contains( tracer_config, "tracer" ) == PSMRTS_TRUE );
+  CHECK( psmrts_product_config_contains( tracer_config, "obj_file" ) == PSMRTS_TRUE );
+
+  // retrieve and validate string with product config metadata
+  PSMRTS_String *checkstr = psmrts_create_string( "" );
+  psmrts_product_config_to_string( tracer_config, checkstr );
+  CHECK( (std::string( psmrts_string_content( checkstr )).find("shape") ) != std::string::npos );
+  CHECK( (std::string( psmrts_string_content( checkstr )).find("tracer") )   != std::string::npos );
+  CHECK( (std::string( psmrts_string_content( checkstr )).find("bullet") )     != std::string::npos );
+  CHECK( (std::string( psmrts_string_content( checkstr )).find("obj_file") ) != std::string::npos );
+  CHECK( (std::string( psmrts_string_content( checkstr )).find("obj/data/bennu_20facets.obj") ) != std::string::npos );
+
+  // create invoice
+  PSMRTS_Invoice *bulletinvoice = psmrts_create_invoice( "bulletinvoice", trans_t );
+
+  // check for errors
+  PSMRTS_String *errorstr = psmrts_invoice_error_string( bulletinvoice, nullptr );
+  CHECK( std::string( psmrts_string_content( errorstr ) ) == "" );
+
+  // add shape_config to invoice
+  CHECK( psmrts_add_config_invoice( tracer_config, bulletinvoice ) == PSMRTS_TRUE );
+
+  // create priority tracer
+  PSMRTS_PriorityTracer *ptracer = psmrts_generate_priority_tracer( bulletinvoice, nullptr );
+
+  // test psmrts_generate_products
+  CHECK( psmrts_generate_products( bulletinvoice ) == PSMRTS_TRUE );
+
+  // free memory
+  psmrts_free_translations( trans_t );
+  psmrts_free_product_config( tracer_config );
+  psmrts_free_string( checkstr );
+  psmrts_free_invoice( bulletinvoice );
+  psmrts_free_string( errorstr );
+  psmrts_free_priority_tracer( ptracer );  
+}
+
 
