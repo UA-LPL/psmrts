@@ -227,7 +227,7 @@ namespace psmrts {
           return ( m_data );
         }
 
-        inline Container data() {
+        inline Container &data() {
           std::scoped_lock mylocker( this->mutex() );
           return ( m_data );
         }

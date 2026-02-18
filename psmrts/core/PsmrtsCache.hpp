@@ -135,13 +135,13 @@ namespace psmrts {
         /** Return the const begin iterator of the map */
         inline CacheMapConstIter begin() const {
           std::scoped_lock mylocker( this->mutex() );
-          return ( m_cache.cbegin() );
+          return ( m_cache.begin() );
         }
 
         /** Return the const end iterator of the map */
         inline CacheMapConstIter end() const {
           std::scoped_lock mylocker( this->mutex() );
-          return ( m_cache.cend() );
+          return ( m_cache.end() );
         }
 
         inline void clear() {
