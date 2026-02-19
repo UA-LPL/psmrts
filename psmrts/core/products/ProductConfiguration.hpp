@@ -18,11 +18,15 @@ find files of those names at the top level of this repository. **/
 #include <initializer_list>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsJson.hpp>
 #include <psmrts/core/PsmrtsContainer.hpp>
-#include <psmrts/core/ProductOption.hpp>
+#include <psmrts/core/products/ProductOption.hpp>
+#include <psmrts/core/AllOptionConversions.hpp>
+
 
 namespace psmrts { 
 
+  namespace json_p = psmrts::json_utils;
 
   /**
    * @brief Process/maintain user/dev product requests 
@@ -39,7 +43,7 @@ namespace psmrts {
       using ProductOptionList = ContainerType;
       using ProductMetadata   = ContainerType;
 
-      ProductConfiguration( ) : m_identifier("undefined"), 
+      ProductConfiguration( ) : m_identifier("none"), 
                                 m_options( "options"),
                                 m_metadata( "metadata" ) { }
       ProductConfiguration( const std::string &cid ) :
@@ -50,12 +54,13 @@ namespace psmrts {
                             const ProductConfiguration &config ) :
                             m_identifier( cid ), 
                             m_options( config.options() ), 
-                            m_metadata( config.metadata() ) { }                            
+                            m_metadata( config.metadata() ) { }
       ProductConfiguration( const std::string &cid,
-                            const ProductOptionList &info ) :
+                            const ProductOptionList &info,
+                            const ProductMetadata &meta = ProductMetadata( "metadata" ) ) :
                             m_identifier( cid ), 
                             m_options( info ), 
-                            m_metadata( "metadata" ) { }                            
+                            m_metadata( "metadata", meta.data() ) { }                            
       explicit ProductConfiguration( const std::string &cid, 
                                      const std::initializer_list<ProductOption> &options ) : 
                                      m_identifier( cid ),
@@ -71,6 +76,10 @@ namespace psmrts {
 
       inline const std::string &name() const {
         return ( m_identifier );
+      }
+
+      inline size_t isvalid() const {
+        return ( m_options.size()  > 0 );
       }
 
       inline size_t size() const {
@@ -115,8 +124,26 @@ namespace psmrts {
           m_metadata.replace( m );
         }
         return;
-      }      
+      }
+      
+      inline ProductConfiguration &merge( const ProductConfiguration &other ) {
+        for ( const ProductOption &option_t : other.options() )  {
+          m_options.replace( option_t );
+        }
 
+        for ( const ProductOption &meta_t : other.metadata() ) {
+          m_metadata.replace( meta_t );
+        }
+
+        return ( *this );
+      }
+
+      inline ProductConfiguration combine( const ProductConfiguration &other ) const {
+        ProductConfiguration combo = *this;
+        combo.merge( other );
+        return ( combo );
+      }
+      
       inline const ProductOption &find_option( const std::string &name ) const {       
         return ( m_options.find( name ) );
       }
@@ -134,14 +161,15 @@ namespace psmrts {
       }
 
       inline ordered_json to_json( ) const {
-        ordered_json j_opts = this->to_json( this->options() );
-        j_opts["metadata"].update( to_json( this->metadata() ) );
+        ordered_json j_opts;
+        j_opts.update( json_p::insert_object( "options",  this->to_json( this->options() ) ) );
+        j_opts.update( json_p::insert_object( "metadata", this->to_json( this->metadata() ) ) );
         return ( j_opts );
       }
 
       inline ordered_json to_json( const ContainerType &c ) const {
 
-        ordered_json j_opts;
+        ordered_json j_opts = {};
         for ( const auto &opt_t : c ) {
           j_opts.update( opt_t.to_json() );
         }
@@ -192,19 +220,19 @@ namespace psmrts {
                            const bool throw_errors = false ) const {
         std::string errors_t;
         std::string newline("");
+
         for ( const auto &opt_t : this->options() ) {
-          try {
-            if ( !( opt_t == config.find( opt_t.name() ) ) ) {
-              std::string mess = newline + "Option " + opt_t.name() + " does not match!";
+          if ( !config.contains( opt_t.name() ) ) {
+            std::string mess = newline + "Option " + opt_t.name() + " does not match!";
+            errors_t += mess;
+            newline = "\n";
+          }
+          else {
+            if ( !OptionStringsComparator::compare( opt_t, config.find( opt_t.name() ) ) ) {
+              std::string mess = newline + "Option values in " + opt_t.name() + " do not match!";
               errors_t += mess;
               newline = "\n";
             }
-          }
-          catch ( const std::runtime_error &e ) {
-            // Doesn't exist
-            std::string mess = newline + "*** RuntimeError: " + opt_t.name() + " - " + e.what();            
-            errors_t += mess;
-            newline = "\n";
           }
         }
 
@@ -220,7 +248,7 @@ namespace psmrts {
       }
 
       inline bool matches( const ProductConfiguration &conf ) const {
-        return ( this->compare( conf ) );
+        return ( this->compare( conf ) && conf.compare( *this) );
       }
 
     private:

@@ -35,6 +35,28 @@ release.
 ## TODO
 - See [TODO](TODO.md)
 
+## [0.5.0] 2026-02-11
+- Add string and string array support to C API.
+- Add product configuration and creation functions to C API.
+- Add explicit void variant class ProductVoidVariant.
+- Add PsmrtsTranslations class providing support for environment variable and
+  (ISIS mission) parameter file path substitutions.
+- Complete support for product invoicing providing a local inventory of
+  products shapes, tracers, priority tracers. It is designed to create a
+  priority tracer that may have additional tracers added for building complex
+  systems of tracers. This is manifest in the classes ProductCart, ProductOrder,
+  ProductInvoice.
+- Greatly improved handling of JSON structures in PSMRTS.
+- Improved DskShape dependency requirements and DSK segment support.
+- Improved product configuration/specification processing.
+- Improvements and code cleanup of shapes and tracers implementations.
+- Moved Product* classes to new directory psmrts/core/products.
+- Renamed documentation target from "doxy_docs" to "docs".
+- Removed the "isis" directory as it is no longer compatible with the current
+  state of PSMRTS.
+- Update version to 0.5.0.
+- Update CHANGELOG.
+
 ## [0.4.1] 2026-02-03
 - Add PSMRTS licensing to repo
 - Add CC0-1.0 LICENSE file

@@ -17,20 +17,13 @@ find files of those names at the top level of this repository. **/
 #include <string>
 #include <cstdio>
 #include <tuple>
-
-// Setup for environment variable support
-#if defined(WIN32) || defined(_MSC_VER) || defined(__CYGWIN__)
-#define NOMINMAX
-#include <windows.h>
-#else
-  extern char **environ;
-#endif
 #include <algorithm>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsProduct.hpp>
-#include <psmrts/core/ProductInventory.hpp>
-#include <psmrts/core/ProductOption.hpp>
+#include <psmrts/core/PsmrtsTranslations.hpp>
+#include <psmrts/core/products/ProductInventory.hpp>
+#include <psmrts/core/products/ProductOption.hpp>
 #include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/tracers/PsmrtsTracer.hpp>
 #include <psmrts/tracers/PsmrtsPriorityTracer.hpp>
@@ -57,8 +50,8 @@ namespace psmrts {
         using ShapeInventory          = ProductInventory<UIDType, PsmrtsShape>;
         using TracerInventory         = ProductInventory<UIDType, PsmrtsTracer>;
         using PriorityTracerInventory = ProductInventory<UIDType, PsmrtsPriorityTracer>;
-        using ParameterInventory      = ProductInventory<std::string, PsmrtsParameter>;
-        using EnvInventory            = ProductInventory<std::string, std::string>;
+        using ParameterInventory      = PsmrtsTranslations::ParameterInventory;        
+        using EnvironmentInventory    = PsmrtsTranslations::EnvironmentInventory;        
 
 
         PsmrtsInventory( ) : PsmrtsProduct( "product", "inventory" ) {
@@ -106,21 +99,17 @@ namespace psmrts {
         }
 
         inline const ParameterInventory &parameters( ) const {
-          return ( m_parameters );
-        }        
-
-        inline ParameterInventory &parameters( ) {
-          return ( m_parameters );
+          return ( m_translations.parameters() );
         }
 
-        inline const EnvInventory &env( ) const {
-          return ( m_env );
-        }        
-
-        inline EnvInventory &env( ) {
-          return ( m_env );
-        }
+        inline const EnvironmentInventory &environment( ) const {
+          return ( m_translations.environment() );
+        }     
         
+        inline const PsmrtsTranslations &translations() const {
+          return ( m_translations );
+        }
+
         /** Merge a PsmrtsInventory into another inventory */
         inline size_t merge( const PsmrtsInventory &other ) {
           size_t n_merged = 0;
@@ -128,8 +117,7 @@ namespace psmrts {
             n_merged += this->shapes().merge( other.shapes() );
             n_merged += this->tracers().merge( other.tracers() );
             n_merged += this->prioritytracers().merge( other.prioritytracers() );
-            n_merged += this->parameters().merge( other.parameters() );
-            n_merged += this->env().merge( other.env() );
+            n_merged += m_translations.merge( other.translations() );
           }
           return ( n_merged );
         }
@@ -140,22 +128,11 @@ namespace psmrts {
           this->prioritytracers().remove( uid );
         }
 
-        /** Remove a keyword from the parameter set */
-        inline void remove_param( const std::string &uid) {
-          this->parameters().remove( uid );
-        }
-
-        inline void remove_env( const std::string &env ) {
-          this->env().remove( env );
-        }
-
         /** Clear everything out, liquidate */
         inline void clear() {
           this->shapes().clear();
           this->tracers().clear();
           this->prioritytracers().clear();
-          this->parameters().clear();
-          this->env().clear();
         }
 
         /** Reinitialize everything  */
@@ -163,71 +140,14 @@ namespace psmrts {
           m_shapes          = ShapeInventory{ this->product().name(), "shapes" } ;
           m_tracers         = TracerInventory{ this->product().name(), "tracers" } ;
           m_prioritytracers = PriorityTracerInventory{ this->product().name(), "prioritytracers" };
-          m_parameters      = ParameterInventory{  this->product().name(), "parameters",
-                                                  &ParameterInventory::case_insensitive_key } ;
-          m_env             = EnvInventory{  this->product().name(), "env", &EnvInventory::get_real_map_key } ;
-        }
-
-        inline const EnvInventory &load_and_merge_env() {
-          this->env().merge( PsmrtsInventory::getenv( this->product().name() ) );
-          return ( this->env() );
-        }
-
-        static inline EnvInventory getenv( const std::string &name_p = "env ") {
-          return ( PsmrtsInventory::get_environment_variables( name_p ) );
+          m_translations    = PsmrtsTranslations::create();
         }
 
       private:
         ShapeInventory           m_shapes;
         TracerInventory          m_tracers;
         PriorityTracerInventory  m_prioritytracers;
-        ParameterInventory       m_parameters;
-        EnvInventory             m_env;
-
-      static inline std::tuple<std::string,std::string> parse_env_string( const std::string &env_s ) {
-        size_t eq_pos = env_s.find( "=" );
-        if ( std::string::npos != eq_pos ) {
-          return ( std::make_tuple( env_s.substr(0, eq_pos), env_s.substr( eq_pos+1, std::string::npos ) ) );
-        }
-        else {
-          return ( std::make_tuple( env_s, std::string("") ) );
-        }
-      }
-
-              
-      /** Load all the environment variables */
-      static inline EnvInventory get_environment_variables( const std::string &name_p ) {
-          EnvInventory env_t{ name_p, "env", &EnvInventory::get_real_map_key };
-
-#if defined(WIN32) || defined(_MSC_VER) || defined(__CYGWIN__)
-          // **** Windows implementation *****/
-          LPCH envStrings = GetEnvironmentStringsA();
-          if ( nullptr == envStrings ) {
-            return ( env_t );
-          }
-
-          LPCH env = envStrings;
-          while ( *env != '\0' ) {
-            std::string env_entry(env);
-            auto [ key, value ] = PsmrtsInventory::parse_env_string( env_entry );            
-            env_t.add(key, value);
-
-            env += strlen(env) + 1;
-          }
-          
-           FreeEnvironmentStringsA(envStrings);           
-#else
-          // **** Linux implementation *****/
-          char **env = environ;
-          while ( *env != nullptr ) {
-            auto [ key, value ] = PsmrtsInventory::parse_env_string(  *env );
-            env_t.add( key, value );
-            env++;
-          }
-#endif
-
-          return ( env_t );
-        }
+        PsmrtsTranslations       m_translations;
 
     };
 

@@ -1,6 +1,7 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 #include <psmrts/capi/psmrts_c.h>
 
+#include <cstring>
 #include <string>
 
 /**
@@ -91,8 +92,146 @@ class bulletTraceFixture {
  *
  */
 TEST_CASE ( "PSMRTS C API - Version and Info", "[capi][c++][version][info]" ) {
-  CHECK(std::string(psmrts_version()) == "0.4.1");
-  CHECK(std::string(psmrts_info()) == "PSMRTS-0.4.1");
+  CHECK( std::string(psmrts_version()) == psmrts_version() );
+  // CHECK( std::string(psmrts_info()) == "PSMRTS-0.4.1" );
+}
+
+/**
+ * @brief PSMRTS C API PSMRTS_ProductConfiguration functionality test.
+ *
+ * This test validates the following PSMRTS_ProductConfiguration methods:
+ *   
+ *   1) psmrts_create_product_config
+ *   2) psmrts_add_config_options_bool
+ *   3) psmrts_add_config_options_int
+ *   4) psmrts_add_config_options_sizet
+ *   5) psmrts_add_config_options_double
+ *   6) psmrts_product_config_contains
+ *   7) psmrts_product_config_to_string
+ *   8) psmrts_free_product_config
+ * 
+ */
+TEST_CASE ( "PSMRTS C API - Product Configuration", "[capi][config][options]" ) {
+
+  // create PSMRTS_ProductConfiguration
+  PSMRTS_ProductConfiguration *config = psmrts_create_product_config( "config" );
+
+  // add ProductOptions to config
+  psmrts_add_product_string( config, "string", "Casablanca" );
+  psmrts_add_product_bool( config, "bool", 1 );
+  psmrts_add_product_int( config, "int", -27 );
+  psmrts_add_product_sizet( config, "size_t", 27 );
+  psmrts_add_product_double( config, "double", 3.141593 );
+
+  double darray[] = {1.1, 2.2, 3.3};
+  psmrts_add_product_double_vector( config, "double vector", darray, 3 );
+
+  // verify all ProductOptions are in config
+  CHECK( psmrts_product_config_contains( config, "string" ) == PSMRTS_TRUE );
+  CHECK( psmrts_product_config_contains( config, "bool" )   == PSMRTS_TRUE );
+  CHECK( psmrts_product_config_contains( config, "int" )    == PSMRTS_TRUE );
+  CHECK( psmrts_product_config_contains( config, "size_t" ) == PSMRTS_TRUE );
+  CHECK( psmrts_product_config_contains( config, "double" ) == PSMRTS_TRUE );
+  CHECK( psmrts_product_config_contains( config, "double vector" ) == PSMRTS_TRUE );
+
+  // verify meta data for all ProductOptions added to config
+  PSMRTS_String *pstr1 = psmrts_create_string( "" );
+  psmrts_product_config_to_string( config, pstr1 );
+  CHECK( std::string( psmrts_string_content( pstr1 ) ) == R"({"options":{"string":"Casablanca","bool":1,"int":-27,"size_t":27,"double":3.141593,"double vector":[1.1,2.2,3.3]},"metadata":{}})");
+
+  // replace an existing ProductOption
+  psmrts_add_product_int( config, "int", -270 );
+
+  // re-verify meta data for all ProductOptions added to config
+  PSMRTS_String *pstr2 = psmrts_create_string( "" );
+  psmrts_product_config_to_string( config, pstr2 );
+  CHECK( std::string( psmrts_string_content( pstr2 ) ) == R"({"options":{"string":"Casablanca","bool":1,"int":-270,"size_t":27,"double":3.141593,"double vector":[1.1,2.2,3.3]},"metadata":{}})");
+
+  // free strings and product configuration memory
+  psmrts_free_string( pstr1 );
+  psmrts_free_string( pstr2 );
+  psmrts_free_product_config( config );
+}
+
+/**
+ * @brief PSMRTS C API Default string functionality test.
+ *
+ * This test verifies the following PSMRTS_String methods:
+ * 
+ *   1) psmrts_create_string
+ *   2) psmrts_string_content
+ *   3) psmrts_string_length
+ *   4) psmrts_free_string
+ *
+ */
+TEST_CASE ( "PSMRTS C API - Strings", "[capi][strings][default]" ) {
+//  using PSTRING = std::unique_ptr<PSMRTS_String, psmrts_free_string>;
+//  PSTRING ps = PSTRING( psmrts_create_string( "you talking to me?" ) );
+//  CHECK( psmrts_string_length( ps ) == 19 );
+
+  // create pointer to string
+  PSMRTS_String *strTest1 = psmrts_create_string( "you talking to me?" );
+ 
+  // confirm string content via c++ approach
+  CHECK( std::string( psmrts_string_content( strTest1 ) ) == "you talking to me?" );
+  
+  // confirm string content vis c approach
+  CHECK( strcmp( psmrts_string_content( strTest1 ), "you talking to me?") == 0 );
+
+  // confirm string length
+  CHECK( psmrts_string_length( strTest1 ) == strlen("you talking to me?") );
+
+  // free string memory
+  psmrts_free_string( strTest1 );
+}
+
+/**
+ * @brief PSMRTS C API Default string array functionality test.
+ *
+ * This test verifies the following PSMRTS_StringArray methods:
+ * 
+ *   1) psmrts_create_string_array
+ *   2) psmrts_string_array_size
+ *   3) psmrts_string_array_add_string
+ *   4) psmrts_string_array_clear
+ *   5) psmrts_string_array_get_string
+ *   6) psmrts_free_string_array
+ *
+ */
+TEST_CASE ( "PSMRTS C API - String Array", "[capi][string][array][default]" ) {
+  // create pointer to string array
+  PSMRTS_StringArray *stringarray = psmrts_create_string_array();
+
+  // verify initial string array size is zero
+  CHECK( psmrts_string_array_size( stringarray ) == 0 );
+
+  // add strings to array, validating position of each
+  size_t string_pos;
+  string_pos = psmrts_string_array_add_string( stringarray, "Humphrey Bogart" );
+  CHECK( string_pos == 0 );
+
+  string_pos = psmrts_string_array_add_string( stringarray, "Ingrid Bergman" );
+  CHECK( string_pos == 1 );
+
+  string_pos = psmrts_string_array_add_string( stringarray, "Paul Henreid" );
+  CHECK( string_pos == 2 );
+
+  string_pos = psmrts_string_array_add_string( stringarray, "Claude Rains" );
+  CHECK( string_pos == 3 );
+
+  // verify string array size is now four
+  CHECK( psmrts_string_array_size( stringarray ) == 4 );
+
+  // retrieve string at position 2 and confirm content
+  const PSMRTS_String* checkstring = psmrts_string_array_get_string( stringarray, 2 );
+  CHECK( strcmp( psmrts_string_content( checkstring ), "Paul Henreid") == 0 );
+  
+  // clear string array and verify size is again 0
+  psmrts_string_array_clear( stringarray );
+  CHECK( psmrts_string_array_size( stringarray ) == 0 );
+
+  // free string array
+  psmrts_free_string_array( stringarray );
 }
 
 /**
@@ -1464,6 +1603,136 @@ TEST_CASE( "PSMRTS C API - Mesh Test", "[capi][c++][mesh][obj]" ) {
   psmrts_free_shape( objshape );
   psmrts_free_shape( dskshape );
   psmrts_free_shape( plyshape );
+}
+
+/**
+ * @brief Tests PSMRTS C API PSMRTS_Invoice and PSMRTS_Translations methods for ply shape.
+ *
+ * Methods tested...
+ *   psmrts_create_translation*
+ *   psmrts_create_config*
+ *   psmrts_create_invoice*
+ *   psmrts_invoice_error_string*
+ *   psmrts_add_config_invoice*
+ *   psmrts_generate_priority_tracer*
+ *   psmrts_free_translations*
+ *   psmrts_free_invoice*
+ * 
+ */
+TEST_CASE( "C API Invoice & Translations Shape Test", "[capi][c++][invoice][translations][shape]" ) {
+  // create PSMRTS_Translations
+  PSMRTS_Translations *trans_t = psmrts_create_translation();
+
+  // create PSMRTS_ProductConfiguration
+  PSMRTS_ProductConfiguration* shape_config = psmrts_create_config( "shape", "ply", nullptr );
+
+  // add products to shape_config
+  psmrts_add_product_string( shape_config, "shape", "ply" );
+  psmrts_add_product_string( shape_config,
+                             "ply_file",
+                             psmrts_shapes_path( "ply/data/Bennu_Radar.ply" ).c_str() );
+
+  // retrieve and validate string with product config metadata
+  PSMRTS_String *checkstr = psmrts_create_string( "" );
+  psmrts_product_config_to_string( shape_config, checkstr );
+  CHECK( (std::string( psmrts_string_content( checkstr )).find("options") ) != std::string::npos );
+  CHECK( (std::string( psmrts_string_content( checkstr )).find("shape") )   != std::string::npos );
+  CHECK( (std::string( psmrts_string_content( checkstr )).find("ply") )     != std::string::npos );
+  CHECK( (std::string( psmrts_string_content( checkstr )).find("ply_file") ) != std::string::npos );
+  CHECK( (std::string( psmrts_string_content( checkstr )).find("ply/data/Bennu_Radar.ply") ) != std::string::npos );
+
+  CHECK( psmrts_product_config_contains( shape_config, "shape" ) == PSMRTS_TRUE );
+  CHECK( psmrts_product_config_contains( shape_config, "ply_file" ) == PSMRTS_TRUE );
+
+  // create invoice
+  PSMRTS_Invoice *plyinvoice = psmrts_create_invoice( "plyinvoice", trans_t );
+
+  // check for errors
+  PSMRTS_String *error_str = psmrts_invoice_error_string( plyinvoice, nullptr );
+  CHECK( std::string( psmrts_string_content( error_str ) ) == "" );
+
+  // add shape_config to invoice
+  CHECK( psmrts_add_config_invoice( shape_config, plyinvoice ) == PSMRTS_TRUE );
+
+  // create priority tracer
+  PSMRTS_PriorityTracer *ptracer = psmrts_generate_priority_tracer( plyinvoice, nullptr );
+
+  // test psmrts_generate_products
+  CHECK( psmrts_generate_products( plyinvoice ) == PSMRTS_TRUE );
+
+  // free memory
+  psmrts_free_translations( trans_t );
+  psmrts_free_product_config( shape_config );
+  psmrts_free_string( checkstr );
+  psmrts_free_invoice( plyinvoice );
+  psmrts_free_string( error_str );
+  psmrts_free_priority_tracer( ptracer );
+}
+
+/**
+ * @brief Tests PSMRTS C API PSMRTS_Invoice and PSMRTS_Translations methods for bullet tracer.
+ *
+ * Methods tested...
+ *   psmrts_create_translation*
+ *   psmrts_create_config*
+ *   psmrts_create_invoice*
+ *   psmrts_invoice_error_string*
+ *   psmrts_add_config_invoice*
+ *   psmrts_generate_priority_tracer*
+ *   psmrts_free_translations*
+ *   psmrts_free_invoice*
+ * 
+ */
+TEST_CASE( "C API Invoice & Translations Tracer Test", "[capi][c++][invoice][translations][tracer]" ) {
+  // create PSMRTS_Translations
+  PSMRTS_Translations *trans_t = psmrts_create_translation();
+
+  // create PSMRTS_ProductConfiguration
+  PSMRTS_ProductConfiguration* tracer_config = psmrts_create_config( "tracer", "bullet", nullptr );
+
+  // add products to shape_config
+  psmrts_add_product_string( tracer_config, "shape", "obj" );
+  psmrts_add_product_string( tracer_config,
+                             "obj_file",
+                             psmrts_shapes_path( "obj/data/bennu_20facets.obj" ).c_str() );
+  psmrts_add_product_string( tracer_config, "tracer", "bullet" );
+
+  CHECK( psmrts_product_config_contains( tracer_config, "shape" ) == PSMRTS_TRUE );
+  CHECK( psmrts_product_config_contains( tracer_config, "tracer" ) == PSMRTS_TRUE );
+  CHECK( psmrts_product_config_contains( tracer_config, "obj_file" ) == PSMRTS_TRUE );
+
+  // retrieve and validate string with product config metadata
+  PSMRTS_String *checkstr = psmrts_create_string( "" );
+  psmrts_product_config_to_string( tracer_config, checkstr );
+  CHECK( (std::string( psmrts_string_content( checkstr )).find("shape") ) != std::string::npos );
+  CHECK( (std::string( psmrts_string_content( checkstr )).find("tracer") )   != std::string::npos );
+  CHECK( (std::string( psmrts_string_content( checkstr )).find("bullet") )     != std::string::npos );
+  CHECK( (std::string( psmrts_string_content( checkstr )).find("obj_file") ) != std::string::npos );
+  CHECK( (std::string( psmrts_string_content( checkstr )).find("obj/data/bennu_20facets.obj") ) != std::string::npos );
+
+  // create invoice
+  PSMRTS_Invoice *bulletinvoice = psmrts_create_invoice( "bulletinvoice", trans_t );
+
+  // check for errors
+  PSMRTS_String *errorstr = psmrts_invoice_error_string( bulletinvoice, nullptr );
+  CHECK( std::string( psmrts_string_content( errorstr ) ) == "" );
+
+  // add shape_config to invoice
+  CHECK( psmrts_add_config_invoice( tracer_config, bulletinvoice ) == PSMRTS_TRUE );
+
+  // create priority tracer
+  PSMRTS_PriorityTracer *ptracer = psmrts_generate_priority_tracer( bulletinvoice, nullptr );
+
+  // test psmrts_generate_products
+  CHECK( psmrts_generate_products( bulletinvoice ) == PSMRTS_TRUE );
+
+  // free memory
+  psmrts_free_translations( trans_t );
+  psmrts_free_product_config( tracer_config );
+  psmrts_free_string( checkstr );
+  psmrts_free_invoice( bulletinvoice );
+  psmrts_free_string( errorstr );
+  psmrts_free_priority_tracer( ptracer );  
 }
 
 

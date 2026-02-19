@@ -18,8 +18,10 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsMeshData.hpp>
-#include <psmrts/core/ProductSpecification.hpp>
-#include <psmrts/core/ProductConfiguration.hpp>
+#include <psmrts/core/products/ProductSpecification.hpp>
+#include <psmrts/core/products/ProductConfiguration.hpp>
+#include <psmrts/core/products/ProductCart.hpp>
+
 
 namespace psmrts {
     /**
@@ -27,84 +29,138 @@ namespace psmrts {
      * 
      */
     class MeshShape : public PsmrtsProduct {
-        public:
+      public:
         using ProductInfo     = ProductSpecification::ProductInfo;
         using ProductFeatures = ProductSpecification::ProductFeatures; 
 
-         MeshShape() : PsmrtsProduct( "mesh", "mesh"),
-                       m_mesh( ), m_config( init_mesh( "mesh") )  { }
-         MeshShape( const PsmrtsMeshData &mesh, 
-                    const std::string &name = "mesh") : 
-                    PsmrtsProduct( name, "mesh" ),
-                    m_mesh( mesh ),
-                    m_config( mesh.config() ) { }
-         virtual ~MeshShape() = default;
+        MeshShape() : PsmrtsProduct( "mesh", "mesh"),
+                      m_mesh( ), m_config( init_mesh( "mesh") )  { }
+        MeshShape( const PsmrtsMeshData &mesh, 
+                   const std::string &name = "mesh") : 
+                   PsmrtsProduct( name, "mesh" ),
+                   m_mesh( mesh ),
+                   m_config( mesh.config() ) { }
+        MeshShape( const ProductCart &processed_cart ) {
+          this->set_name( processed_cart.name() );
+          this->set_type( "mesh" );          
+          this->create( processed_cart );
+        }                      
+        virtual ~MeshShape() = default;
          
-         /**
+        /**
           * @brief PRQFeatures holding Format-relevant specification data
           *  - Possibly needs removal
           * @param features 
           * @return true 
           * @return false 
           */
-         inline bool process( PRQFeatures &features ) const {
+        inline bool process( PRQFeatures &features ) const {
             features.add_feature( this->product_specifications().to_json() );
             return ( true );
-         }
-        
-
-         static inline ProductSpecification product_specifications() {
+        }
+          
+        static inline ProductSpecification product_specifications() {
           ProductInfo  info( "mesh", { 
                         ProductOption( "name",        "mesh"),
                         ProductOption( "product",     "shape"),
                         ProductOption( "description", "Provides support for a genric user defined shape" ) } );
+          ProductFeature product( "shape", {
+                                  ProductOption( "name", "shape" ),
+                                  ProductOption( "type", "string" ),
+                                  ProductOption( "description", "Describe the product type" ),
+                                  ProductOption( "status", "optional" ),
+                                  ProductOption( "default", "mesh" ),
+                                  ProductOption( "valid", "mesh" ) } );                          
           ProductFeature source( "mesh_name", {
                                   ProductOption( "name", "mesh_name"),
-                                  ProductOption( "type", "file"),
+                                  ProductOption( "type", "string"),
                                   ProductOption( "description", "Name of mesh data" ),
                                   ProductOption( "status", "required"),
-                                  ProductOption( "aliases", { "mesh", "source" } ) } );
+                                  ProductOption( "aliases", { "mesh", "source", "shapefile" } ) } );
           ProductFeature dtype( "mesh_data_type", {
-                                  ProductOption( "name", "data_type"),
+                                  ProductOption( "name", "mesh_data_type"),
                                   ProductOption( "type", "string"),
                                   ProductOption( "description", "Type of mesh vector data provided" ),
                                   ProductOption( "status", "optional"),
-                                  ProductOption( "aliases", "mesh_data_type" ), 
+                                  ProductOption( "aliases", "data_type" ), 
                                   ProductOption( "valid", { "double", "float" } ) });
 
           // This validates the JSON structure and provides product info to callers
-          return ( ProductSpecification( info, { source, dtype } ) );             
-         }
+          return ( ProductSpecification( info, { product, source, dtype } ) );             
+        }
 
-         inline const PsmrtsMeshData &get_mesh() const {
-            return m_mesh;
-         }
+        inline const PsmrtsMeshData &get_mesh() const {
+           return m_mesh;
+        }
 
-         inline const ProductConfiguration &config() const {
-            return m_config;
-         }
+        inline const ProductConfiguration &config() const {
+           return m_config;
+        }
 
         inline bool matches( const ProductConfiguration &conf ) const {
           return ( this->config().matches( conf ) );
         }
 
-         PSMRTS_PROCESS_CATCHALL( "MeshShape" )
+        PSMRTS_PROCESS_CATCHALL( "MeshShape" )
 
-        protected:
-          PsmrtsMeshData m_mesh;
-          ProductConfiguration m_config;
+      protected:
+        PsmrtsMeshData m_mesh;
+        ProductConfiguration m_config;
 
-          inline ProductConfiguration init_mesh( const std::string &name ) {
-            ProductConfiguration config( name, PsmrtsMeshData().config() );
-            config.add( ProductOption( "file", "mesh" ) );
-            return ( config );
-          }
+        inline ProductConfiguration init_mesh( const std::string &name ) {
+          ProductConfiguration config( name, PsmrtsMeshData().config() );
+          config.add( ProductOption( "shape", "mesh" ) );
+          config.add( ProductOption( "file", "mesh" ) );
+          return ( config );
+        }
 
-          inline ProductConfiguration init_mesh( const PsmrtsMeshData &mesh, const std::string &name ) {
-            ProductConfiguration config( name, mesh.config() );
-            config.add( ProductOption( "file", "mesh" ) );
-            return ( config );
-          }
+        inline ProductConfiguration init_mesh( const PsmrtsMeshData &mesh, const std::string &name ) {
+          ProductConfiguration config( name, mesh.config() );
+          config.add( ProductOption( "shape", "mesh" ) );
+          config.add( ProductOption( "file", "mesh" ) );
+          return ( config );
+        }
+
+        inline void create( const ProductCart &cart ) {
+
+            // Check for valid shape type
+            if (cart.error_count() > 0 ) {
+              std::string mess = "MeshShape::create(" + cart.name() + 
+                                ") has config/spec processing errors: \n" +
+                                  cart.errors_to_string();
+              throw std::runtime_error( mess );          
+            }
+
+            ProductConfiguration v_conf = cart.configuration();
+            if (cart.error_count() > 0 ) {
+              std::string mess = "MeshShape::create(" + cart.name() + ") has errors: " +
+                                  cart.errors_to_string();
+              throw std::runtime_error( mess );          
+            }
+
+            m_config = cart.configuration();
+            if ( m_config.contains( "shape" ) ) {
+              if ( m_config.find( "shape" ).to_string() != "mesh" ) {
+                std::string mess = "MeshShape::create() - shape type must be \"mesh\""
+                                  " but found " + m_config.find("shape").to_string();
+                throw std::runtime_error( mess );
+              }
+            }
+
+            // Set the name of the mesh
+            this->set_name( m_config.find( "mesh_name" ).to_string() );
+
+            // Create an empty mesh
+            if ( m_config.contains( "mesh_data_type") && 
+                ( m_config.find( "mesh_data_type" ).to_string() == "float" ) ) {
+              m_mesh = PsmrtsMeshData( PsmrtsVector3i(), PsmrtsVector3f() );
+            }
+            else {
+              m_mesh = PsmrtsMeshData( PsmrtsVector3i(), PsmrtsVector3d()  );
+            }
+
+            return;
+          }          
     };  
 
 } // namespace psmrts

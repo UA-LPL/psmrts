@@ -26,6 +26,7 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsBuffer.hpp>
 #include <psmrts/core/PsmrtsVector3.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
+#include <psmrts/core/products/ProductConfiguration.hpp>
 
 #include "NaifUtilities.hpp"
 #include "DskSegment.hpp"
@@ -73,7 +74,6 @@ namespace naif {
         return ( tracer_model_type() + "::" + tracer_model_name() + "::" + shapename );
       }
 
-
       /** Default constructor */
       DskKernelModel( ) : psmrts::PsmrtsProduct( "dskkernelmodel", "tracer" ) {
         reset();
@@ -98,6 +98,22 @@ namespace naif {
         init( k_descr );
       }
 
+      /** Recreate a model using a DSK segment from an existing segment */
+      DskKernelModel( const DskKernelModel &model, const DskSegment &segment ) {  
+        reset( &model.dskdsc() );
+        add_segment( segment );
+        return;
+      }
+
+      /** Recreate a model using a DSK segment from an existing segment */
+      DskKernelModel( const DskKernelModel &model, 
+                      const std::vector<DskSegment> &segments ) {  
+        reset( &model.dskdsc() );
+        for (const auto &segment : segments ) {
+          add_segment( segment );
+        }
+        return;
+      }      
       /** Destructor */
       virtual ~DskKernelModel() { }
 
@@ -216,6 +232,21 @@ namespace naif {
         // Segment does not exist with that surface id
         return ( nullptr );
       }
+
+      /** Add a segment to the DSK model */
+      inline void add_segment( const DskSegment &segment ) {
+          m_total_vertices += segment.n_vertices();
+          m_total_plates   += segment.n_plates();
+
+          // Just use the first segment as the radii. Note this is likely an
+          // issue for multiple segments with different bodies or a situation
+          // where the segment does not have global coverage!
+          if ( this->n_dsk_segments() == 0 ) { m_radii = segment.radii(); }
+
+          // Done with this segment so save it!
+          m_segments.push_back( segment );
+          return;
+      }      
 
       /** Returns minimum radius */
       inline double minimum_radius() const {
@@ -497,14 +528,42 @@ namespace naif {
         return ( m_tracker.clone() );
       }
 
+      inline psmrts::ProductConfiguration config( const std::vector<DskSegment> &segments ) const {
+        psmrts::ProductConfiguration config( "dsksegment" );
+
+        std::vector<int> bodyid, segnum, surfid, frameid, segtype, classtype, nvertices, nfacets;
+        std::vector<double> maxradius, minradius;
+        for ( const auto &segment : segments ) {
+          bodyid.push_back( segment.bodyid() );
+          segnum.push_back( segment.segment_number() );
+          surfid.push_back( segment.surfaceid() );
+          frameid.push_back( segment.frameid() );
+          segtype.push_back( segment.dtype() );
+          classtype.push_back( segment.dclass() );
+          nvertices.push_back( segment.n_vectors() );
+          nfacets.push_back( segment.n_plates() );
+          minradius.push_back( segment.minimum_radius() );
+          maxradius.push_back( segment.maximum_radius() );
+        }
+
+        config.add( psmrts::ProductOption( "dsk_segment_index",         segnum ) );
+        config.add( psmrts::ProductOption( "dsk_surface_id",            surfid ) );
+        config.add_metadata( psmrts::ProductOption( "dsk_frame_id",     frameid ) );
+        config.add_metadata( psmrts::ProductOption( "dsk_body_id",      bodyid) );
+        config.add_metadata( psmrts::ProductOption( "dsk_segment_type", segtype ) );
+        config.add_metadata( psmrts::ProductOption( "dsk_class_type",   classtype ) );
+        config.add_metadata( psmrts::ProductOption( "n_vertices",       nvertices) );
+        config.add_metadata( psmrts::ProductOption( "n_facets",         nfacets ) );
+        config.add_metadata( psmrts::ProductOption( "maximum_radius",   maxradius ) );
+        config.add_metadata( psmrts::ProductOption( "minimum_radius",   minradius ) );
+
+        return ( config );
+
+      }
+
+
     protected:
 
-      /** This is a protected constructor as it requires the segment to be in the DSK */
-      DskKernelModel( const DskKernelModel &model, const DskSegment &segment ) {  
-        reset( &model.dskdsc() );
-        add_segment( segment );
-        return;
-      }
 
       /** Return a reference to the NAIF SpiceDSKDescr for the NAIF DSK file */
       inline const SharedDskDescriptor &dskdsc() const {
@@ -549,20 +608,7 @@ namespace naif {
       }
 
 
-      /** Add a segment to the DSK model */
-      inline void add_segment( const DskSegment &segment ) {
-          m_total_vertices += segment.n_vertices();
-          m_total_plates   += segment.n_plates();
 
-          // Just use the first segment as the radii. Note this is likely an
-          // issue for multiple segments with different bodies or a situation
-          // where the segment does not have global coverage!
-          if ( this->n_dsk_segments() == 0 ) { m_radii = segment.radii(); }
-
-          // Done with this segment so save it!
-          m_segments.push_back( segment );
-          return;
-      }
 
       /**
        * @brief Initialize the DSK using the kernel descriptpr

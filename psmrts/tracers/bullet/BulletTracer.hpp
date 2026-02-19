@@ -19,7 +19,12 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
-#include <psmrts/core/ProductFeature.hpp>
+#include <psmrts/core/PsmrtsTranslations.hpp>
+#include <psmrts/core/products/ProductOption.hpp>
+#include <psmrts/core/products/ProductFeature.hpp>
+#include <psmrts/core/products/ProductConfiguration.hpp>
+#include <psmrts/core/products/ProductSpecification.hpp>
+#include <psmrts/core/products/ProductCart.hpp>
 #include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/algorithms/TracingBasics.hpp>
 
@@ -38,6 +43,7 @@ namespace psmrts  {
 
       BulletTracer( );
       BulletTracer( const PsmrtsShape &shape );
+      BulletTracer( const ProductCart &processed_cart  );      
       virtual ~BulletTracer();
 
       double maximum_radius() const;
@@ -193,26 +199,44 @@ namespace psmrts  {
             
       static inline ProductSpecification product_specifications() {
         ProductInfo  info( "bullet", { 
-                                 FeatureOption( "name", "bullet"),
-                                 FeatureOption( "product", "tracer"),
+                                 FeatureOption( "name", "bullet" ),
+                                 FeatureOption( "product", "tracer" ),
                                  FeatureOption( "description", "The Bullet Physics ray tracing system specification") } );
+        ProductFeature product( "tracer", {
+                                 ProductOption( "name", "tracer" ),
+                                 ProductOption( "type", "string" ),
+                                 ProductOption( "description", "Describe the product type" ),
+                                 ProductOption( "status", "required" ),
+                                 ProductOption( "default", "bullet" ),
+                                 ProductOption( "valid", "bullet" ) } );
+        // Not the most ideal way to require a supported shape file format.
+        ProductFeature shapefile( "shape", {
+                                 ProductOption( "name", "shape" ),
+                                 ProductOption( "type", "string" ),
+                                 ProductOption( "status", "dependency" ),
+                                 ProductOption( "description", "Bullet requires a file/mesh shape" ),
+                                 ProductOption( "aliases", { "file", "filename", 
+                                                             "obj_file", "obj_mesh", "obj_string",
+                                                             "ply_file", "ply_mesh", 
+                                                             "dsk_file", "dsk_mesh", 
+                                                             "mesh_file", "source" } ) } );
         ProductFeature bvh( "bullet_optimize_bvh", {
-                                 FeatureOption( "name", "bullet_optimize_bvh"),
-                                 FeatureOption( "type", "bool"),
-                                 FeatureOption( "description", "Use optimized bounding volume hierachy (BVH) when created"),
-                                 FeatureOption( "status", "optional"),
-                                 FeatureOption( "default", "false"),
-                                 FeatureOption( "valid", {"true", "1", "yes", "false", "0", "no"} ) } );
-        ProductFeature cmp( "bullet_compressed", {
-                                 FeatureOption( "name", "bullet_compressed"),
-                                 FeatureOption( "type", "bool"),
-                                 FeatureOption( "description", "Compress Bullet data during construction"),
-                                 FeatureOption( "status", "optional"),
-                                 FeatureOption( "default", "false"),
-                                 FeatureOption( "valid", {"true", "1", "yes", "false", "0", "no"} ) } );
+                                 FeatureOption( "name", "bullet_optimize_bvh" ),
+                                 FeatureOption( "type", "bool" ),
+                                 FeatureOption( "description", "Use optimized bounding volume hierachy (BVH) when created" ),
+                                 FeatureOption( "status", "optional" ),
+                                 FeatureOption( "default", "true" ),
+                                 FeatureOption( "valid", { "true", "1", "yes", "false", "0", "no" } ) } );
+        ProductFeature cmp( "bullet_compression", {
+                                 FeatureOption( "name", "bullet_compression" ),
+                                 FeatureOption( "type", "bool" ),
+                                 FeatureOption( "description", "Compress Bullet data during construction" ),
+                                 FeatureOption( "status", "optional" ),
+                                 FeatureOption( "default", "true" ),
+                                 FeatureOption( "valid", { "true", "1", "yes", "false", "0", "no" } ) } );
 
         // This validates the JSON structure and provides product info to callers
-        return ( ProductSpecification( info, { bvh, cmp } ) );
+        return ( ProductSpecification( info, { product, shapefile, bvh, cmp } ) );
       }
 
       /** Return reference to PsmrtsShape used in this instance */
@@ -220,7 +244,7 @@ namespace psmrts  {
 
       /** Return the current product configuration */
       inline const ProductConfiguration &config() const {
-        return ( m_configured );
+        return ( m_config );
       }
 
       inline bool matches( const ProductConfiguration &conf ) const {
@@ -230,16 +254,18 @@ namespace psmrts  {
 
         return ( false );
       }
-
-
-      /** Report all remaining features not available - e.g., PRQFacet not relevant to Ellipsoid format */
+                      
+      /** Catcha nd report errors on all remaining processes not available */
       PSMRTS_PROCESS_CATCHALL( "BulletTracer" )
 
 
     private:
       class BulletTracerImpl;
       std::shared_ptr<BulletTracerImpl> m_model;
-      ProductConfiguration              m_configured;
+      ProductConfiguration              m_config;
+
+      void create( const ProductCart &cart  );
+
   };
 
 } // namespace psmrts

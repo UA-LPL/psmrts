@@ -17,8 +17,8 @@ find files of those names at the top level of this repository. **/
 #include <functional>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
-#include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsCache.hpp>
+#include <psmrts/core/PsmrtsProduct.hpp>
 
 namespace psmrts {
 

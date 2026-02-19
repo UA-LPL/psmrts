@@ -63,8 +63,8 @@ endif(BUILD_SHARED)
 #-----------------------------------------------------------------------------
 # PSMRTS project configuration. PROJECT_SOURCE_DIR=psmrts
 #-----------------------------------------------------------------------------
-project(PSMRTS VERSION 0.4.1 LANGUAGES CXX C)
-set( PSMRTS_VERSION_DATE  "2026-02-03")
+project(PSMRTS VERSION 0.5.0 LANGUAGES CXX C)
+set( PSMRTS_VERSION_DATE  "2026-02-15")
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -254,7 +254,7 @@ if(BUILD_DOCS)
   find_package(Doxygen QUIET)
 
   if(DOXYGEN_FOUND)
-    add_custom_target(doxy_docs
+    add_custom_target(docs
         COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/docs
         COMMENT "Generating Doxygen API Documentation.."

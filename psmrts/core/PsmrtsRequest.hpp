@@ -20,9 +20,9 @@ find files of those names at the top level of this repository. **/
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
-#include <psmrts/core/ProductConfiguration.hpp>
 
 namespace psmrts { 
+
 
   /**
    * @brief A specialized NOOP class process handler
@@ -35,37 +35,15 @@ namespace psmrts {
    */
   class MissingProcessRequestHandler {
     public:
-      MissingProcessRequestHandler() : m_name( "Product" ),
-                                       m_type( "missing" ),
-                                       m_config( "none" ) { }
-      MissingProcessRequestHandler( const std::string &name,
-                                    const std::string &type_t = "missing" ) : 
-                                   m_name ( name ),
-                                   m_type( type_t ),
-                                   m_config( name ) { }
+      MissingProcessRequestHandler() : m_name( "Product" ) { }
+      MissingProcessRequestHandler( const std::string &name ) : 
+                                   m_name ( name ) { }
       virtual ~MissingProcessRequestHandler() = default;
-      
+
       inline const std::string &name() const {
         return ( m_name );
       }
 
-      inline const std::string &type() const {
-        return ( m_type );
-      }
-
-      /** Returns a null (invalid) product ID */
-      inline const PsmrtsUID::UIDType &uid() const {
-        return ( PsmrtsUID::null_uid() );
-      }
-
-      inline const ProductConfiguration &config() const {
-        return ( m_config );
-      }
-
-      inline bool matches( const ProductConfiguration &conf ) const {
-        return ( false );
-      }
-      
       template <class PRQ>
         bool process( PRQ &request ) const {
           request.reset();
@@ -78,8 +56,6 @@ namespace psmrts {
 
     private:
       std::string m_name;
-      std::string m_type;
-      ProductConfiguration m_config;
   };
 
   /**
@@ -192,9 +168,20 @@ namespace psmrts {
           (void) m_errors.pop_front();
         }
 
-        m_errors.push_back( e );
+        m_errors.push_back( e.what() );
         return;
       }
+
+      inline void add_error( const std::string &s ) const {
+      // Monitor the cache size of the error queue
+        if ( m_errors.size() >= MaxQueuedErrors ) {
+          (void) m_errors.pop_front();
+        }
+
+        m_errors.push_back( s );
+        return;
+      }
+
 
       inline size_t run_count() const {
         return ( m_times_run );
@@ -219,7 +206,7 @@ namespace psmrts {
         return ( m_errors.size() );
       }
 
-      inline const std::deque<std::exception> &errors() const {
+      inline const std::deque<std::string> &errors() const {
         return ( m_errors );
       }
 
@@ -227,8 +214,8 @@ namespace psmrts {
         std::string mess("");
         if ( this->error_count() > 0 ) {
           // mess = "*** " + this->name() + " has encountered errors!\n";
-          for ( const auto &e : this->errors() ) {
-            mess += std::string( e.what() ) + "\n"; 
+          for ( const auto &e_string : this->errors() ) {
+            mess += e_string + "\n"; 
           }
         }
         return ( mess );
@@ -271,7 +258,7 @@ namespace psmrts {
       }
 
     protected:
-      inline static const size_t MaxQueuedErrors = 20;  // Limit cached error size
+      inline static const size_t MaxQueuedErrors = 30;  // Limit cached error size
 
       PsmrtsThreadSafeCounter    m_tracker;
       double                     m_runtime_ms;
@@ -279,7 +266,7 @@ namespace psmrts {
       bool                       m_success_status;
       bool                       m_is_present;
       size_t                     m_times_run;
-      mutable std::deque<std::exception> m_errors;
+      mutable std::deque<std::string> m_errors;
 
 
     private:

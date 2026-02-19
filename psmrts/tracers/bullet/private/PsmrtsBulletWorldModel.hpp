@@ -24,7 +24,6 @@ find files of those names at the top level of this repository. **/
 #include "BulletSystemModel.hpp"
 #include "PsmrtsBulletMeshMap.hpp"
 #include "PsmrtsBulletClosestRayCallback.hpp"
-
 #include <BulletCollision/CollisionShapes/btCollisionShape.h>
 #include <BulletCollision/CollisionDispatch/btCollisionObject.h>
 
@@ -48,30 +47,35 @@ namespace psmrts::bullet {
       PsmrtsBulletWorldModel( const std::string &name );
 
       PsmrtsBulletWorldModel( const PsmrtsBulletMeshMap &mesh, 
-                              const std::string &name );
+                              const std::string &name, 
+                              const bool useCompression = true,
+                              const bool buildBvh = true );
 
       /** Destructor - order of destruction is important here */
       virtual ~PsmrtsBulletWorldModel();
 
       /** Returns validity state of the world model and its' datum */
       bool isValid() const;
+      bool useCompression() const;
+      bool useBuildBvh() const;
+      bool useThreadSafety() const;
 
       /** Returns world model name, ie. Body-Fixed-Coordinate-System */
       const std::string &name() const;
 
       /** Adds an additional body object to the world model */
       btCollisionObject *add_body( btBvhTriangleMeshShape *shape,
-                                          void *userptr = nullptr );
+                                   void *userptr = nullptr );
 
       /** Adds an additional body object, compressed and optimized, to the world model */
       btCollisionObject *add_body( const PsmrtsBulletMeshMap &mesh,
-                                          const bool useCompression = true,
-                                          const bool buildBvh = true,
-                                          void *userptr = nullptr  );
+                                   const bool useCompression = true,
+                                   const bool buildBvh = true,
+                                   void *userptr = nullptr  );
 
       /** Returns true if ray trace result contains a hit, directing the trace data into the ray parameter */
       bool extract_ray_trace_results( const PsmrtsBulletClosestRayCallback &results,
-                                             PsmrtsRayTrace &ray ) const;
+                                      PsmrtsRayTrace &ray ) const;
 
       /**
        * @brief Bullet World Model Ray Trace
@@ -96,8 +100,8 @@ namespace psmrts::bullet {
        * @return false  If no ray trace intercept was found
        */
       bool ray_trace( const Eigen::Vector3d &observer, 
-                             const Eigen::Vector3d &lookdir,
-                             PsmrtsRayTrace &ray ) const;
+                      const Eigen::Vector3d &lookdir,
+                      PsmrtsRayTrace &ray ) const;
 
       bool ray_trace( PsmrtsRayTrace &ray ) const;
 
@@ -125,8 +129,8 @@ namespace psmrts::bullet {
        * @return false  If no ray trace intercept was found
        */
       bool bullet_ray_trace( const Eigen::Vector3d &observer, 
-                                    const Eigen::Vector3d &lookdir,
-                                    PsmrtsBulletClosestRayCallback &results ) const;
+                             const Eigen::Vector3d &lookdir,
+                             PsmrtsBulletClosestRayCallback &results ) const;
       /** Returns the model's associated mesh */
       const PsmrtsBulletMeshMap &mesh() const;
 
@@ -177,6 +181,8 @@ namespace psmrts::bullet {
       std::string            m_name; /**! The name of the Bullet world. */
       int                    m_id;   /**! Identifier of the shape */
       PsmrtsBulletMeshMap    m_mesh_map; /**! The mesh map to trace */
+      bool                   m_usecompression;
+      bool                   m_buildbvh;
 
           // Order of these pointers matter due to destructor behavior!
       std::shared_ptr<btDefaultCollisionConfiguration> m_collision; /**! The collision

@@ -23,7 +23,9 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsCache.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
-#include <psmrts/core/ProductProcessDispatch.hpp>
+#include <psmrts/core/PsmrtsTranslations.hpp>
+#include <psmrts/core/products/ProductProcessDispatch.hpp>
+#include <psmrts/core/products/ProductVoidVariant.hpp>
 #include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/tracers/bullet/BulletTracer.hpp>
 #include <psmrts/tracers/ellipsoid/EllipsoidTracer.hpp>
@@ -66,42 +68,43 @@ namespace psmrts {
    * 
    * See PsmrtsRequest.hpp and ProductProcessDispatch.hpp for details.
    */
-  class PsmrtsTracer : public ProductProcessDispatch< MissingProcessRequestHandler,
+  class PsmrtsTracer : public ProductProcessDispatch< ProductVoidVariant,
                                                       EllipsoidTracer, 
                                                       BulletTracer, 
                                                       NaifDskTracer> {
     public:
-      using Tracer = ProductProcessDispatch::ProductType;
+      using Tracer   = ProductProcessDispatch::ProductType;
+      using Variants = Tracer;  // Standardization for ProductMaker
       using UIDType = PsmrtsUID::UIDType;
 
-      PsmrtsTracer( ) : ProductProcessDispatch ( MissingProcessRequestHandler( "invalid" ) ) {  }
+      PsmrtsTracer( ) : ProductProcessDispatch ( ProductVoidVariant( "void" ) ) {  }
       PsmrtsTracer( const std::string &name ) : 
-                    ProductProcessDispatch ( MissingProcessRequestHandler( name ) ) {  }
-      PsmrtsTracer( const Tracer &tracer,
-                    const std::string &name = "tracer" ) : 
-                    ProductProcessDispatch( tracer ) {  }
+                    ProductProcessDispatch ( ProductVoidVariant( name ) ) {  }
+      PsmrtsTracer( const Tracer &tracer ) : ProductProcessDispatch( tracer ) {  }
       virtual ~PsmrtsTracer() { }
 
-      inline static PsmrtsTracer sphere( const double radius_km, const std::string &name="sphere" ) {
-        Eigen::Vector3d radii( { radius_km, radius_km, radius_km } );
-        return ( PsmrtsTracer( EllipsoidTracer( radii, name ), name ) );
+      inline static PsmrtsTracer sphere( const double radius_km, 
+                                         const std::string &name="sphere" ) {
+        return ( PsmrtsTracer( EllipsoidTracer( radius_km, name ) ) );
       }
 
-      inline static PsmrtsTracer spheroid( const double a_km, const double c_km, 
-                                                const std::string &name="spheroid" ) {
-        Eigen::Vector3d radii( { a_km, a_km, c_km} ); // testing
-        return ( PsmrtsTracer( EllipsoidTracer( radii, name ), name ) );
+      inline static PsmrtsTracer spheroid( const double a_km, 
+                                           const double c_km, 
+                                           const std::string &name="spheroid" ) {
+        return ( PsmrtsTracer( EllipsoidTracer( a_km, c_km, name ) ) );
       }
 
-      inline static PsmrtsTracer ellipsoid( const double a_km,  const double b_km, const double c_km, 
-                                                const std::string &name="ellipsoid" ) {
+      inline static PsmrtsTracer ellipsoid( const double a_km,
+                                            const double b_km,
+                                            const double c_km, 
+                                            const std::string &name="ellipsoid" ) {
         Eigen::Vector3d radii( { a_km, b_km, c_km } );
-        return ( PsmrtsTracer( EllipsoidTracer( radii, name ), name ) ); 
+        return ( PsmrtsTracer( EllipsoidTracer( radii, name ) ) ); 
       }
 
       inline static PsmrtsTracer ellipsoid( const Eigen::Vector3d radii, 
-                                                const std::string &name="ellipsoid" ) {
-        return ( PsmrtsTracer( EllipsoidTracer( radii, name ), name ) ); 
+                                            const std::string &name="ellipsoid" ) {
+        return ( PsmrtsTracer( EllipsoidTracer( radii, name ) ) ); 
       }
 
       inline static PsmrtsTracer bullet( const std::string &meshfile ) {
@@ -109,12 +112,32 @@ namespace psmrts {
       }
 
       inline static PsmrtsTracer naifdsk( const std::string &dskfile ) {
-        return ( PsmrtsTracer( NaifDskTracer( dskfile ), dskfile ) ); 
+        return ( PsmrtsTracer( NaifDskTracer( dskfile ) ) ); 
       }
 
       inline bool isValid() const {
-        return ( !std::holds_alternative<MissingProcessRequestHandler>( m_product ) );
+        return ( !std::holds_alternative<ProductVoidVariant>( m_product ) );
       }
+
+      inline UIDType uid() const {
+        const auto visitor = overload{            
+                  [](auto &&tracer ) -> UIDType {
+                       return ( tracer.uid() ); 
+                  }
+        };
+       
+        return ( std::visit(visitor, m_product ) ); 
+      } 
+
+      inline ProductSpecification specs() const {
+        const auto visitor = overload{            
+                  [](auto &&tracer ) -> ProductSpecification {
+                       return ( tracer.product_specifications() ); 
+                  }
+        };
+       
+        return ( std::visit(visitor, m_product ) ); 
+      } 
 
       inline const ProductConfiguration &config() const {
         const auto visitor = overload{            
@@ -127,13 +150,7 @@ namespace psmrts {
       }        
 
       inline bool matches( const ProductConfiguration &conf ) const {
-        const auto visitor = overload{            
-                  [&conf]( auto &&tracer ) -> bool {
-                       return ( tracer.matches( conf ) ); 
-                  }
-        };
-      
-        return ( std::visit(visitor, m_product ) );        
+        return ( this->config().matches( conf ) );
       }
 
   };

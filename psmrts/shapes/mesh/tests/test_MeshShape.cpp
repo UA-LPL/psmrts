@@ -3,21 +3,21 @@
 #include "../MeshShape.hpp"
 #include <psmrts/core/PsmrtsMeshData.hpp>
 #include <psmrts/core/PsmrtsVector3.hpp>
-#include <psmrts/core/ProductConfiguration.hpp>
-#include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/core/products/ProductConfiguration.hpp>
+#include <psmrts/core/products/ProductSpecification.hpp>
 
 TEST_CASE ("MESH SHAPE - Default Test", "[mesh][shape][default]") {
     psmrts::ProductSpecification spec = psmrts::MeshShape::product_specifications();
 
     CHECK( spec.name()              == "mesh" );
     CHECK( spec.product()           == "shape" );
-    CHECK( spec.features().size() == 2 );
+    CHECK( spec.features().size()   == 3 );
     CHECK( spec.required().size()   == 1 );
-    CHECK( spec.optional().size()   == 1 );
+    CHECK( spec.optional().size()   == 2 );
 
     CHECK( spec.contains( "obj_mtl_search_path" ) == false );
     CHECK( spec.contains( "mesh_name" )           == true );
-    CHECK( spec.contains( "data_type" )           == true );
+    CHECK( spec.contains( "mesh_data_type" )      == true );
 
     psmrts::MeshShape shape;
     CHECK( shape.get_mesh().isValid()  == false );
@@ -27,8 +27,11 @@ TEST_CASE ("MESH SHAPE - Default Test", "[mesh][shape][default]") {
     psmrts_json mesh_json = mesh_config.to_json();
 
     CHECK( mesh_config.name()          == "mesh" ); // possible constructor error in PConfig file?
-    CHECK( mesh_config.size()          == 3 );
-    CHECK( mesh_json["data_type"]      == "undefined" );
+    CHECK( mesh_config.size()          == 4 );
+    CHECK( mesh_json["options"]["name"]           == "mesh" );
+    CHECK( mesh_json["options"]["shape"]          == "mesh" );
+    CHECK( mesh_json["options"]["file"]           == "mesh" );
+    CHECK( mesh_json["options"]["data_type"]      == "undefined" );
     CHECK( mesh_json["metadata"]["n_vertices"]     == 0 );
     CHECK( mesh_json["metadata"]["n_facets"]       == 0 );
     CHECK( mesh_json["metadata"]["minimum_radius"] == 0 );
@@ -71,10 +74,10 @@ TEST_CASE( "MESH SHAPE - Values Test", "[mesh][shape][values]") {
     psmrts_json mesh_json = mesh_config.to_json();
     psmrts_json meta_json = mesh_config.to_json( mesh_config.metadata() );
 
-    CHECK( mesh_config.name()      == "mesh" );
-    CHECK( mesh_config.size()      == 2 );
-    CHECK( mesh_json["name"]       == "mesh" ); 
-    CHECK( mesh_json["data_type"]  == "double" );
+    CHECK( mesh_config.name()     == "mesh" );
+    CHECK( mesh_config.size()     == 2 );
+    CHECK( mesh_json["options"]["name"]      == "mesh" ); 
+    CHECK( mesh_json["options"]["data_type"]  == "double" ); 
     CHECK( mesh_json["metadata"]["n_vertices"] == 10 );
     CHECK( mesh_json["metadata"]["n_facets"]   == 10 );
     CHECK_THAT( mesh_json["metadata"]["minimum_radius"], Catch::Matchers::WithinAbs( 3.7416573867739413, tolerance ) );

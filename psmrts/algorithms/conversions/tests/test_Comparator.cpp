@@ -2,7 +2,7 @@
 
 #include <psmrts/algorithms/conversions/Comparator.hpp>
 #include <psmrts/core/PsmrtsUtilities.hpp>
-#include <psmrts/core/ProductOption.hpp>
+#include <psmrts/core/products/ProductOption.hpp>
 #include <psmrts/core/PsmrtsJson.hpp>
 #include <psmrts/algorithms/conversions/AllConversionsVisitors.hpp>
 

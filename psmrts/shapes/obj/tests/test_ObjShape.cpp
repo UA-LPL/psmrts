@@ -2,7 +2,7 @@
 
 #include <psmrts/shapes/obj/ObjShape.hpp>
 #include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
-#include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/core/products/ProductSpecification.hpp>
 
 
 TEST_CASE( "OBJ SHAPE - Default Test", "[obj][shape][specification]") {
@@ -10,10 +10,10 @@ TEST_CASE( "OBJ SHAPE - Default Test", "[obj][shape][specification]") {
 
   CHECK( spec.name()              == "obj"   );
   CHECK( spec.product()           == "shape" );
-  CHECK( spec.size()              == 4 );
-  CHECK( spec.features().size() == 4 );
+  CHECK( spec.size()              == 5 );
+  CHECK( spec.features().size()   == 5 );
   CHECK( spec.required().size()   == 1 );
-  CHECK( spec.optional().size()   == 3 );
+  CHECK( spec.optional().size()   == 4 );
   CHECK( spec.contains( "obj_mtl_search_path" ) == true );
 }
 

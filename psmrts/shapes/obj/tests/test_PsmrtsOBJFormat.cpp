@@ -1,7 +1,7 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
 #include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
-#include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/core/products/ProductSpecification.hpp>
 
 #include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
 
@@ -38,10 +38,10 @@ TEST_CASE ( "OBJ FORMAT Asset Test - Basic Load/Init Tests", "[format][obj][benn
     // Is param intentional? shape() returns const, function accepts non-const version
     psmrts::ProductConfiguration meta_data = t_loader.get_config( &reader ); 
     CHECK( meta_data.name()             == "obj" );
-    CHECK( meta_data.size()             == 2 );
+    CHECK( meta_data.size()             == 3 );
     CHECK( meta_data.metadata().size()  == 3 );
     CHECK( psmrts::psmrts_filename( meta_data.find("obj_file").to_string() )  == "bennu_20facets.obj" );
-    CHECK( meta_data.find("data_type").to_string()           == "double" );
+    CHECK( meta_data.find("obj_data_type").to_string()       == "double" );
     CHECK( meta_data.contains("obj_mtl_search_path")         == false );
     CHECK( meta_data.find_metadata("n_shapes").to_string()   == "1" );
     CHECK( meta_data.find_metadata("n_vertices").to_string() == "20" );
@@ -244,22 +244,3 @@ TEST_CASE ( "OBJ FORMAT Asset Test - OBJ / DSK Vector Comparison Test", "[format
 
     CHECK_THAT ( sum_double, Catch::Matchers::WithinAbs(0.0, tolerance) );
 }
-
-
-#if 0
-TEST_CASE ( "OBJ FORMAT Asset Test - Huge OBJ Tests", "[format][obj][hugeone]" ) {
-    //std::string objfile = "/opt/isis3/data/osirisrex/kernels/dsk/l_00050mm_alt_ptm_5595n04217_v020.obj";
-    std::string objfile = "watermarkRedTest1.obj";
-
-    psmrts::PsmrtsOBJFormat t_loader( objfile );
-    CHECK_NOTHROW( t_loader.check_obj_errors() ); 
-    CHECK( t_loader.isValid()           == true );
-
-    CHECK( t_loader.obj_source()        == objfile );
-    CHECK( t_loader.nShapes()           == 1 );
-    CHECK( t_loader.nVertexes()         == 2148456 );
-    CHECK( t_loader.nIndexes()          == 4289659 );
-    CHECK( t_loader.shape_facet_count() == 4289659 );
-    CHECK( t_loader.nMaterials()        == 0 );
-}
-#endif

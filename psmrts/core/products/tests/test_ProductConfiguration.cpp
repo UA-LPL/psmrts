@@ -1,15 +1,15 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
-#include <psmrts/core/ProductOption.hpp>
-#include <psmrts/core/ProductConfiguration.hpp>
+#include <psmrts/core/products/ProductOption.hpp>
+#include <psmrts/core/products/ProductConfiguration.hpp>
 
 
 TEST_CASE( "PSMRTS Product Configuration", "[product][configuration][default]") {
 
   // Construct default product configuration.
   psmrts::ProductConfiguration config;
-  CHECK( config.name()          == "undefined" );
+  CHECK( config.name()          == "none" );
   CHECK( config.size()          == 0 );
   // CHECK( config.remove("name")  == false);
 

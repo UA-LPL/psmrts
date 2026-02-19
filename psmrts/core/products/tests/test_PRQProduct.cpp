@@ -1,6 +1,6 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
-#include <psmrts/core/PRQProduct.hpp>
+#include <psmrts/core/products/PRQProduct.hpp>
 
 /**
  * @brief Tests the construction of a PRQProduct using available methods.

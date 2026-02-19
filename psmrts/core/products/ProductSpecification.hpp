@@ -18,15 +18,18 @@ find files of those names at the top level of this repository. **/
 #include <exception>
 #include <optional>
 
-#include <psmrts/core/PsmrtsJson.hpp>
-#include <psmrts/core/ProductFeature.hpp>
-#include <psmrts/core/ProductConfiguration.hpp>
+#include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
+#include <psmrts/core/PsmrtsJson.hpp>
 #include <psmrts/core/PsmrtsContainer.hpp>
-// #include <psmrts/core/PRQProduct.hpp>
+#include <psmrts/core/PsmrtsTranslations.hpp>
+#include <psmrts/core/products/ProductConfiguration.hpp>
+#include <psmrts/core/products/ProductFeature.hpp>
 
 
 namespace psmrts { 
+
+  namespace json_p = psmrts::json_utils;
 
 
   /**
@@ -47,10 +50,11 @@ namespace psmrts {
     public:
       using ProductInfo      = PsmrtsContainer<ProductOption>;
       using ProductFeatures  = PsmrtsContainer<ProductFeature>;
+      using ResidualList     = PsmrtsContainer<ProductOption>;
       using Creator = std::function<void(const ProductConfiguration &config)>;
 
 
-      ProductSpecification( ) : m_name( "" ), m_product( "" ),
+      ProductSpecification( ) : m_name( "none" ), m_product( "none" ),
                                 m_info( "info" ), m_features( "features" ),
                                 m_creator( std::nullopt ) { }
       ProductSpecification( const std::string &name,
@@ -78,11 +82,11 @@ namespace psmrts {
       virtual ~ProductSpecification() = default;
 
 
-      inline std::string name() const {
+      inline const std::string &name() const {
         return ( m_name );
       }
 
-      inline std::string product() const {
+      inline const std::string &product() const {
         return ( m_product );
       }
 
@@ -130,10 +134,18 @@ namespace psmrts {
         return ( keys );
       }
 
+      inline std::vector<std::string> dependency() const {
+        std::vector<std::string> keys;
+        for ( const auto &f : this->features() ) {
+          if ( f.is_dependency() ) keys.push_back( f.name() );
+        }
+        return ( keys );
+      }
+
       inline std::vector<std::string> optional() const {
         std::vector<std::string> keys;
         for ( const auto &f : this->features() ) {
-          if ( !f.is_required() ) keys.push_back( f.name() );
+          if ( f.is_optional() ) keys.push_back( f.name() );
         }
         return ( keys );
       }
@@ -156,40 +168,126 @@ namespace psmrts {
        */
       inline std::string get_alias_feature_name( const std::string &name ) const {
         for ( const auto &f : this->features() ) {
-          if ( !f.isa_alias( name ) ) return ( f.name() );
+          if ( f.isa_alias( name ) ) return ( f.name() );
         }
         return ( "" );        
       }
 
+      inline std::string find_feature_option_name( const ProductFeature &feature,
+                                                   const ProductConfiguration &config ) 
+                                                   const {
+
+        // Check for feature name before checking aliases
+        if ( config.contains ( feature.name() ) ) return ( feature.name() );
+
+        // Search for feature aliases in config
+        for ( const auto &alias : feature.aliases() ) {
+          if ( config.contains( alias ) ) return ( alias );
+        }
+
+        // Not feature option not in config
+        return ( "" );        
+      }
+
+
       /** Return the JSON specification */
       inline ordered_json to_json() const {
 
-        ordered_json j_info = ordered_json::array();
+        ordered_json j_info = {};
         for ( const auto &j_data : info().data()  ) {
-          j_info.push_back( j_data.to_json() );
+          j_info.update( j_data.to_json() );
         }
 
-        ordered_json j_features = ordered_json::array();
+        ordered_json j_features = {};
         for ( const auto &j_feature : features().data()  ) {
-          j_features.push_back( j_feature.to_json() );
+          j_features.update( j_feature.to_json() );
         } 
         
-        ordered_json j = ordered_json::object();
-        if ( j_info.size() > 0 ) j["info"]      = j_info;
-        if ( j_info.size() > 0 ) j["features"]  = j_features;
+        ordered_json j;
+        j.update( json_p::insert_object( "info",  j_info ) );
+        j.update( json_p::insert_object( "features", j_features ) );
         return ( j );
+      }
+
+      inline bool valid_option_with_feature( const ProductOption &option,
+                                             const ProductFeature &feature,
+                                             PsmrtsRequest &validator ) const {
+
+        bool is_good = true;
+        if ( feature.contains( "valid" ) ) {
+          bool is_valid = psmrts_contains_string( option.to_string(), feature.valid_list() );
+          if ( !is_valid ) {
+            std::string mess = "ProductSpecification::validate option (" +
+                               option.name() + ") value is not valid."
+                               " Value: " + option.to_string() + ", Expected: " +
+                               feature.find("valid").to_string();
+            validator.add_error( std::runtime_error( mess ) );
+            is_good = false;
+          }
+        }
+
+        return ( is_good );
+      }
+
+
+      inline ProductConfiguration extract( const ProductConfiguration &config,
+                                           ResidualList &residuals, 
+                                           PsmrtsRequest &validator ) const {
+
+        ProductConfiguration config_t( this->name() );
+        std::vector<std::string> required_list;   
+
+        for ( const auto &option : config.options() ) {
+          std::string f_name = this->get_alias_feature_name( option.name() ); 
+
+          if ( this->contains( option.name() ) || this->contains( f_name ) ) {
+            if ( f_name.length() == 0 ) f_name = option.name();
+
+            const ProductFeature &feature = this->find( f_name );
+            if ( feature.is_required() ) required_list.push_back( f_name );
+
+            if ( feature.is_dependency() ) {
+              residuals.add( option );
+            }
+            else {
+              ProductOption option_t( f_name, option );  
+              config_t.add( option_t );
+              this->valid_option_with_feature( option_t, feature, validator );          
+              if ( config.metadata().contains( f_name+"_expanded" ) ) {
+                config_t.add_metadata( config.metadata().find( f_name+"_expanded" ) );
+              }
+            }
+          }
+          else {
+            residuals.add( option );
+          }
+        }
+
+        // Now check to see if all required keywords are present
+        for ( const auto &key_r : this->required() ) {
+          if ( std::find(required_list.begin(), required_list.end(), key_r ) == required_list.end() ) {
+            std::string mess = "*** ProductSpecifications::extract(" + config.name() + ")"
+                              "- required feature key " + key_r  + 
+                              " is not present in " + this->name() + " specification";
+            validator.add_error( std::runtime_error( mess ) );
+          }
+        }
+
+        return ( config_t );
       }
 
       inline void add_creator( const Creator &creator ) {
         m_creator = creator;
       }
 
+      
     private:
       std::string     m_name;
       std::string     m_product;
       ProductInfo     m_info;
       ProductFeatures m_features;
       std::optional<Creator> m_creator;
+      
   };
 
 } // namespace psmrts

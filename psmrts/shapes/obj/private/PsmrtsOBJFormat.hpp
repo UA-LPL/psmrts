@@ -25,7 +25,7 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsBuffer.hpp>
 #include <psmrts/core/PsmrtsVector3.hpp>
 #include <psmrts/core/PsmrtsMeshData.hpp>
-#include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/core/products/ProductSpecification.hpp>
 
 // See PsmrtsOBJImplementation.hpp for defining the tinyobj implementation in your main
 #include "tinyobjloader/tiny_obj_loader.h"
@@ -440,16 +440,16 @@ namespace psmrts {
         
       inline ProductConfiguration get_config( tinyobj::ObjReader *reader ) const {
         ProductConfiguration config( "obj" );
+        config.add( ProductOption( "shape", "obj" ) );
         config.add( ProductOption( "obj_file", this->obj_source() ) );
-        config.add( ProductOption( "data_type", PsmrtsOBJFormat::get_data_type() ) );
+        config.add( ProductOption( "obj_data_type", PsmrtsOBJFormat::get_data_type() ) );
 
         if ( !this->obj_mtl_search_path().empty() ) {
           config.add( ProductOption( "obj_mtl_search_path", this->obj_mtl_search_path() ) );
         }
         config.add_metadata( ProductOption( "n_shapes", this->nShapes() ) );
         config.add_metadata( ProductOption( "n_vertices", this->nVertexes() ) );
-        config.add_metadata( ProductOption( "n_facets", this->nIndexes() ) );    
-
+        config.add_metadata( ProductOption( "n_facets", this->nIndexes() ) ); 
         return ( config );
       }
 

@@ -18,7 +18,6 @@ find files of those names at the top level of this repository. **/
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
-
 #include "BulletSystemModel.hpp"
 #include "PsmrtsBulletMeshMap.hpp"
 #include "PsmrtsBulletClosestRayCallback.hpp"
@@ -44,9 +43,11 @@ namespace psmrts::bullet {
       }
 
       PsmrtsBulletWorldModel::PsmrtsBulletWorldModel( const PsmrtsBulletMeshMap &mesh, 
-                              const std::string &name ) {
+                                                      const std::string &name,
+                                                      const bool useCompression,
+                                                      const bool buildBvh ) {
         initWorld( name );
-        add_body( mesh );
+        add_body( mesh, useCompression, buildBvh );
       }
 
       /** Destructor - order of destruction is important here */
@@ -65,6 +66,21 @@ namespace psmrts::bullet {
         return ( m_bt_object.datum().isValid() );
       }
 
+      /** Return state of bullet shape compression status */
+      bool PsmrtsBulletWorldModel::useCompression() const {
+        return ( m_usecompression );
+      }
+
+      /** Return state of bound volume heirachy build status */
+      bool PsmrtsBulletWorldModel::useBuildBvh() const {
+        return ( m_buildbvh );
+      }
+      
+      /** Return state of thread safety status */
+      bool PsmrtsBulletWorldModel::useThreadSafety() const {
+        return ( m_thread_safety );
+      }
+      
       /** Returns world model name, ie. Body-Fixed-Coordinate-System */
       const std::string &PsmrtsBulletWorldModel::name() const {
         return ( m_name );

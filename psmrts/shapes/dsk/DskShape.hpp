@@ -15,11 +15,14 @@ find files of those names at the top level of this repository. **/
 
 #include <string>
 
-#include <psmrts/core/ProductConfiguration.hpp>
 #include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
-#include <psmrts/core/ProductSpecification.hpp>
-#include <psmrts/shapes/dsk/private/PsmrtsDSKFormat.hpp>
+#include <psmrts/core/PsmrtsMeshData.hpp>
+#include <psmrts/core/PsmrtsTranslations.hpp>
+#include <psmrts/core/products/ProductConfiguration.hpp>
+#include <psmrts/core/products/ProductSpecification.hpp>
+#include <psmrts/core/products/ProductCart.hpp>
+
 
 namespace psmrts {
   class DskShape : public PsmrtsProduct {
@@ -28,17 +31,10 @@ namespace psmrts {
       using ProductFeatures = ProductSpecification::ProductFeatures;
 
       DskShape( ) : PsmrtsProduct("none", "dsk"), 
-                    m_model(), m_mesh() /**m_configured("dsk")*/ { }
-      DskShape( const psmrts::PsmrtsDSKFormat &dsk_t ) :
-                PsmrtsProduct(dsk_t.dsk_source(), "dsk"), 
-                m_model( dsk_t ), m_mesh( dsk_t.get_mesh() )
-                /**m_configured( dsk_t.get_metadata() )*/ { }
-      DskShape( const std::string &dsk_file ) :
-                PsmrtsProduct( dsk_file, "dsk"), 
-                m_model( dsk_file ), 
-                m_mesh( m_model.get_mesh() )
-                /**m_configured( m_model.get_metadata() )*/ { }
-      virtual ~DskShape() { } 
+                    m_mesh(), m_config( { ProductConfiguration("dsk") } )  { }
+      DskShape( const std::string &dsk_file, const int segnum = 0 );
+      DskShape( const ProductCart &processed_cart );
+      virtual ~DskShape() = default;
      
 
       inline bool process( PRQFeatures &features ) const {
@@ -51,21 +47,28 @@ namespace psmrts {
                                  ProductOption( "name", "dsk"),
                                  ProductOption( "product", "shape"),
                                  ProductOption( "description", "Reads SPICE DSK (bds) surface shape models and creates a PMRTS mesh object") } );
+        ProductFeature product( "shape", {
+                                 ProductOption( "name", "shape" ),
+                                 ProductOption( "type", "string" ),
+                                 ProductOption( "description", "Describe the product type" ),
+                                 ProductOption( "status", "optional" ),
+                                 ProductOption( "default", "dsk" ),
+                                 ProductOption( "valid", "dsk" ) } );                                   
         ProductFeature dfile( "dsk_file", {
                                  ProductOption( "name", "dsk_file"),
                                  ProductOption( "type", "file"),
                                  ProductOption( "description", "Name of DSK file to read"),
                                  ProductOption( "status", "required"),
-                                 ProductOption( "aliases", {"file", "dsk_mesh", "mesh_file"} ),
+                                 ProductOption( "aliases", {"file", "filename", "dsk_mesh", "mesh_file", "shapefile" } ),
                                  ProductOption( "file_suffixes", { "bds", "BDS" } ) } );
-
         ProductFeature dtype( "dsk_data_type", {
                                  ProductOption( "name", "dsk_data_type"),
                                  ProductOption( "type", "string"),
                                  ProductOption( "description", "Type of mesh vector data requested/read"),
                                  ProductOption( "status", "optional"),
-                                 ProductOption( "aliases", "mesh_data_type" ), 
-                                 ProductOption( "valid", { "double", "float"} ),
+                                 ProductOption( "aliases", { "data_type", "mesh_data_type" } ), 
+//                                 ProductOption( "valid", { "double", "float"} ),
+                                 ProductOption( "valid", "double" ),
                                  ProductOption( "default", "double" ) } );
         ProductFeature bodyid( "dsk_body_id", {
                                  ProductOption( "name", "dsk_body_id"),
@@ -79,28 +82,32 @@ namespace psmrts {
                                  ProductOption( "description", "NAIF ID of the target body whose surface is described"),
                                  ProductOption( "status", "optional"),
                                  ProductOption( "aliases", { "segment", "dsk_segment"} ) } );
+                                 ProductOption( "default", static_cast<int>( 0 ) );
 
         // This validates the JSON structure and provides product info to callers
-        return ( ProductSpecification( info, { dfile, dtype, bodyid, segid } ) );        
+        return ( ProductSpecification( info, { product, dfile, dtype, bodyid, segid } ) );        
       }
 
       inline const PsmrtsMeshData &get_mesh() const {
         return m_mesh; 
       }
 
-      inline const ProductConfiguration &config() const {
-        return ( m_configured );
+      inline const ProductConfiguration &config( ) const {
+        return ( m_config );
       }
 
       inline bool matches( const ProductConfiguration &conf ) const {
         return ( this->config().matches( conf ) );
       }
 
+
     protected:
-       psmrts::PsmrtsDSKFormat m_model; // Need to address this, .cpp?
-       psmrts::PsmrtsMeshData m_mesh;
-       psmrts::ProductConfiguration m_configured;
-    };
+      PsmrtsMeshData       m_mesh;
+      ProductConfiguration m_config;
+
+      void create( const ProductCart &cart );
+
+  };
 }
 
 #endif

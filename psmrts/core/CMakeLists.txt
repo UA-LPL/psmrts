@@ -3,29 +3,25 @@ target_sources( psmrts PUBLIC
                          FILE_SET psmrts_headers 
                            TYPE HEADERS 
                            FILES  AllOptionConversions.hpp
-                                  ProductConfiguration.hpp
-                                  ProductFeature.hpp
-                                  ProductInventory.hpp
-                                  ProductOption.hpp
-                                  ProductProcessDispatch.hpp
-                                  ProductSpecification.hpp
-                                  PRQProduct.hpp
                                   PsmrtsBuffer.hpp
                                   PsmrtsBufferData.hpp
                                   PsmrtsCache.hpp
                                   PsmrtsContainer.hpp
                                   PsmrtsFactory.hpp
                                   PsmrtsInventory.hpp
+                                  PsmrtsInvoice.hpp
                                   PsmrtsJson.hpp
                                   PsmrtsMeshData.hpp
                                   PsmrtsProduct.hpp
                                   PsmrtsRayTrace.hpp
                                   PsmrtsRequest.hpp
                                   PsmrtsStridingBuffer.hpp
+                                  PsmrtsTranslations.hpp
                                   PsmrtsUtilities.hpp
                                   PsmrtsVector3.hpp
-                                  psmrts_version.h
-              )
+                                  psmrts_version.h )
+
+add_subdirectory( products )
 
 # Only add if requested
 if(BUILD_TESTING)

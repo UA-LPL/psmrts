@@ -23,9 +23,11 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsCache.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
-#include <psmrts/core/ProductOption.hpp>
-
-#include <psmrts/core/ProductProcessDispatch.hpp>
+#include <psmrts/core/products/ProductOption.hpp>
+#include <psmrts/core/products/ProductConfiguration.hpp>
+#include <psmrts/core/products/ProductSpecification.hpp>
+#include <psmrts/core/products/ProductProcessDispatch.hpp>
+#include <psmrts/core/products/ProductVoidVariant.hpp>
 #include <psmrts/shapes/dsk/DskShape.hpp>
 #include <psmrts/shapes/obj/ObjShape.hpp>
 #include <psmrts/shapes/ply/PlyShape.hpp>
@@ -34,13 +36,14 @@ find files of those names at the top level of this repository. **/
 
 namespace psmrts {
 
-  class PsmrtsShape : public ProductProcessDispatch< MissingProcessRequestHandler, 
+  class PsmrtsShape : public ProductProcessDispatch< ProductVoidVariant, 
                                                      DskShape, 
                                                      ObjShape, 
                                                      PlyShape,
                                                      MeshShape> {
     public:
-      using Shape = ProductProcessDispatch::ProductType;
+      using Shape    = ProductProcessDispatch::ProductType;
+      using Variants = Shape;  // Standardization for ProductMaker
       using UIDType = PsmrtsUID::UIDType;
 
       PsmrtsShape( ) {  }
@@ -65,9 +68,20 @@ namespace psmrts {
       virtual ~PsmrtsShape() { }
 
       inline bool isValid() const {
-        return ( !std::holds_alternative<MissingProcessRequestHandler>( m_product ) );
+        return ( !std::holds_alternative<ProductVoidVariant>( m_product ) );
       }
 
+      inline UIDType uid() const {
+        const auto visitor = overload{            
+                  [](auto &&shape ) -> UIDType {
+                       return ( shape.uid() ); 
+                  }
+        };
+       
+        return ( std::visit(visitor, m_product ) ); 
+      }
+
+    
       inline const PsmrtsMeshData &get_mesh() const {
         static const PsmrtsMeshData empty_mesh{};
         const auto visitor = overload{
@@ -80,6 +94,16 @@ namespace psmrts {
         return std::visit(visitor, m_product);
       }
 
+      inline ProductSpecification specs() const {
+        const auto visitor = overload{            
+                  [](auto &&shape ) -> ProductSpecification {
+                       return ( shape.product_specifications() ); 
+                  }
+        };
+       
+        return ( std::visit(visitor, m_product ) ); 
+      } 
+
       inline const ProductConfiguration &config() const {
         const auto visitor = overload{            
                   [](auto &&shape ) -> const ProductConfiguration & {
@@ -90,15 +114,9 @@ namespace psmrts {
         return ( std::visit(visitor, m_product ) ); 
       }        
 
-      inline bool matches( const ProductConfiguration &conf ) const {
-        const auto visitor = overload{            
-                  [&conf]( auto &&tracer ) -> bool {
-                       return ( tracer.matches( conf ) ); 
-                  }
-        };
-        return ( std::visit(visitor, m_product ) );        
+       inline bool matches( const ProductConfiguration &conf ) const {
+        return ( this->config().matches( conf ) );
       }
-      
       
       inline double minimum_radius() const {
         return this->get_mesh().minimum_radius();

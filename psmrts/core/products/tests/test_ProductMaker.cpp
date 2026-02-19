@@ -1,0 +1,171 @@
+#include <psmrts/core/tests/psmrts_catch2_environment.hpp>
+
+#include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/shapes/PsmrtsShape.hpp>
+#include <psmrts/tracers/PsmrtsTracer.hpp>
+#include <psmrts/core/products/ProductOption.hpp>
+#include <psmrts/core/products/ProductConfiguration.hpp>
+#include <psmrts/core/products/ProductSpecification.hpp>
+#include <psmrts/core/products/ProductOrder.hpp>
+#include <psmrts/core/products/ProductMaker.hpp>
+#include <psmrts/core/products/ProductCart.hpp>
+#include <psmrts/core/products/ProductProcessing.hpp>
+
+
+#include <tuple>
+
+TEST_CASE( "ProductMaker OBJ Shape Test", "[product][maker][shape][obj]" ) {
+
+  using ProductSet = psmrts::ProductProcessing::ProductSet;
+
+  psmrts::PsmrtsTranslations trans_t = psmrts::PsmrtsTranslations::create();
+  psmrts::ProductProcessing processor_p(trans_t);
+
+  psmrts::ProductConfiguration shape_p("objmaker");
+  shape_p.add( psmrts::ProductOption( "shape", "obj" ) );
+  shape_p.add( psmrts::ProductOption( "obj_file", psmrts_shapes_path( "obj/data/bennu_20facets.obj") ) );
+  CHECK( shape_p.contains( "obj_file" ) == true );
+
+  ProductSet order_s = processor_p.process_configuration( shape_p );
+  CHECK( processor_p.is_valid_product( order_s )  == true );
+  CHECK( order_s.tracer.specs().name()  == "none" );
+  CHECK( order_s.shape.specs().name()   == "obj" );
+  psmrts::ProductMaker<psmrts::PsmrtsShape> maker_s( "obj" );
+
+  CHECK( maker_s.process_config( order_s.config, trans_t ) == true );
+  CHECK( maker_s.isvalid() == true );
+  psmrts::PsmrtsShape shape_m = maker_s.product();
+  CHECK( shape_m.isValid() == true );
+
+}
+
+
+TEST_CASE( "ProductMaker PLY Shape Test", "[product][maker][shape][ply]" ) {
+  using ProductSet = psmrts::ProductProcessing::ProductSet;
+
+  psmrts::PsmrtsTranslations trans_t = psmrts::PsmrtsTranslations::create();
+  psmrts::ProductProcessing processor_p(trans_t);
+
+  psmrts::ProductConfiguration shape_p("plymaker");
+  shape_p.add( psmrts::ProductOption( "shape", "ply" ) );
+  shape_p.add( psmrts::ProductOption( "ply_file", psmrts_shapes_path( "ply/data/Bennu_Radar.ply" ) ) );
+  CHECK( shape_p.contains( "ply_file" ) == true );
+
+  ProductSet order_s = processor_p.process_configuration( shape_p );
+  CHECK( processor_p.is_valid_product( order_s )  == true );
+  CHECK( order_s.tracer.specs().name()  == "none" );
+  CHECK( order_s.shape.specs().name()   == "ply" );  
+  psmrts::ProductMaker<psmrts::PsmrtsShape> maker_s( "ply" );
+
+  CHECK( maker_s.process_config( order_s.config, trans_t ) == true );
+  CHECK( maker_s.isvalid() == true );
+  psmrts::PsmrtsShape shape_m = maker_s.product();
+  CHECK( shape_m.isValid() == true );
+
+}
+
+TEST_CASE( "ProductMaker Bullet Tracer Test", "[product][maker][tracer][bullet]" ) {
+  using ProductSet = psmrts::ProductProcessing::ProductSet;
+
+  psmrts::PsmrtsTranslations trans_t = psmrts::PsmrtsTranslations::create();
+  psmrts::ProductProcessing processor_p(trans_t);
+
+  psmrts::ProductConfiguration bullet_t("bulletmaker");
+  bullet_t.add( psmrts::ProductOption( "shape", "obj" ) );
+  bullet_t.add( psmrts::ProductOption( "obj_file", psmrts_shapes_path( "obj/data/bennu_20facets.obj")  ) );
+  bullet_t.add( psmrts::ProductOption( "tracer", "bullet" ) );
+
+  CHECK( bullet_t.contains( "obj_file" ) == true );
+
+  ProductSet order_t = processor_p.process_configuration( bullet_t );
+  CHECK( processor_p.is_valid_product( order_t )  == true );
+  CHECK( order_t.tracer.specs().name()  == "bullet" );
+  CHECK( order_t.shape.specs().name()   == "obj" ); 
+
+  psmrts::ProductMaker<psmrts::PsmrtsTracer> maker_t( "bullet" );
+
+  CHECK( maker_t.process_config( order_t.config, trans_t ) == true );
+  CHECK( maker_t.isvalid() == true );
+  psmrts::PsmrtsTracer bullet_m = maker_t.product();
+  CHECK( bullet_m.isValid() == true );
+}
+
+
+TEST_CASE( "ProductMaker NaifDsk Tracer Test", "[product][maker][tracer][naifdsk]" ) {
+  using ProductSet = psmrts::ProductProcessing::ProductSet;
+
+  psmrts::PsmrtsTranslations trans_t = psmrts::PsmrtsTranslations::create();
+  psmrts::ProductProcessing processor_p(trans_t);
+
+  psmrts::ProductConfiguration naifdsk_t("naifdskmaker");
+  naifdsk_t.add( psmrts::ProductOption( "tracer", "naifdsk" ) );
+  naifdsk_t.add( psmrts::ProductOption( "dsk_file", psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds")  ) );
+
+  CHECK( naifdsk_t.contains( "tracer" ) == true );
+  CHECK( naifdsk_t.contains( "dsk_file" ) == true );
+
+  ProductSet order_t = processor_p.process_configuration( naifdsk_t );
+  CHECK( processor_p.is_valid_product( order_t )  == true );
+  CHECK( order_t.tracer.specs().name()  == "naifdsk" );
+  CHECK( order_t.shape.specs().name()   == "none" );    
+  psmrts::ProductMaker<psmrts::PsmrtsTracer> maker_t( "naifdsk" );
+
+  CHECK( maker_t.process_config( order_t.config, trans_t ) == true );
+  CHECK( maker_t.isvalid() == true );
+  psmrts::PsmrtsTracer naifdsk_m = maker_t.product();
+  CHECK( naifdsk_m.isValid() == true );
+}
+
+
+TEST_CASE( "ProductMaker Ellipsoid Tracer Test", "[product][maker][tracer][ellipsoid]" ) {
+  using ProductSet = psmrts::ProductProcessing::ProductSet;
+
+  using RadVec = std::vector<double>;
+  auto ellipsoid_tests = {
+    // Tuple vars are: ( tracer, radii, name )
+    std::make_tuple( std::string("sphere"),    RadVec({ 0.283065 }), std::string("test_sphere") ),
+    std::make_tuple( std::string("spheroid"),  RadVec({ 0.283065, 0.249720 }), std::string("test_spheroid") ),
+    std::make_tuple( std::string("ellipsoid"), RadVec({ 0.283065, 0.271215, 0.249720 }), std::string("test_ellipsoid") )
+  };
+
+  // Setup constant translations for efficieny
+  psmrts::PsmrtsTranslations trans_t = psmrts::PsmrtsTranslations::create();
+  psmrts::ProductProcessing processor_p(trans_t);
+
+  for ( const auto &[ tracer_t, radii_t, model_t ] : ellipsoid_tests ) {
+
+    SECTION("Ellipsoid Maker Tracer " + tracer_t + " for Model " + model_t ) {
+      psmrts::ProductConfiguration ellipsoid_t("ellipsoidmaker");
+      ellipsoid_t.add( psmrts::ProductOption( "tracer", tracer_t  ) );
+      ellipsoid_t.add( psmrts::ProductOption( "radii", radii_t ) );
+      ellipsoid_t.add( psmrts::ProductOption( "name",  model_t )  );
+
+      CHECK( ellipsoid_t.contains( "tracer" ) == true );
+      CHECK( ellipsoid_t.contains( "radii" ) == true );
+      CHECK( ellipsoid_t.contains( "name" ) == true );
+
+      ProductSet order_t = processor_p.process_configuration( ellipsoid_t );
+      CHECK( processor_p.is_valid_product( order_t )  == true );
+      CHECK( order_t.tracer.specs().name()  == "ellipsoid" );
+      CHECK( order_t.shape.specs().name()   == "none" );          
+      psmrts::ProductMaker<psmrts::PsmrtsTracer> maker_t( tracer_t );
+
+      CHECK( maker_t.process_config( order_t.tracer.config(), trans_t ) == true );
+      CHECK( maker_t.isvalid() == true );
+      psmrts::PsmrtsTracer ellipsoid_m = maker_t.product();
+      CHECK( ellipsoid_m.isValid() == true );
+    }
+  }
+
+}
+
+
+TEST_CASE( "ProductMaker Shape Specifications Test", "[product][maker][shape][specs]" ) {
+  auto specs_v = psmrts::ProductMaker<psmrts::PsmrtsShape>( "shapes" ).get_product_specs();
+  CHECK( specs_v.size() == 4 );
+}
+
+TEST_CASE( "ProductMaker Tracer Specifications Test", "[product][maker][tracer][specs]" ) {
+  auto specs_v = psmrts::ProductMaker<psmrts::PsmrtsTracer>( "shapes" ).get_product_specs();
+  CHECK( specs_v.size() == 3 );
+}

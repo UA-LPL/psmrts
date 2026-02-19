@@ -10,7 +10,7 @@
 
 TEST_CASE( "Ellipsoid Shape Tracer - Request Default Constructor", "[default][ellipsoid][shapetracer]") {
 
-    CHECK( sizeof( psmrts::EllipsoidTracer ) <= 480 );  
+    CHECK( sizeof( psmrts::EllipsoidTracer ) <= 504 );  
 
     psmrts::EllipsoidTracer e_tracer;
 
@@ -457,13 +457,13 @@ TEST_CASE( "Ellipsoid Shape Tracer Product Specification Test", "[ellipsoid][sha
     psmrts::ProductSpecification spec = psmrts::EllipsoidTracer::product_specifications();
     CHECK( spec.name()              == "ellipsoid"   );
     CHECK( spec.product()           == "tracer"      ); 
-    CHECK( spec.features().size()   == 2             );
+    CHECK( spec.features().size()   == 3             );
     CHECK( spec.required().size()   == 1             );
-    CHECK( spec.optional().size()   == 1             );
+    CHECK( spec.optional().size()   == 2             );
 
     CHECK( spec.contains( "obj_mtl_search_path" ) == false );
     CHECK( spec.contains( "radii" )               == true  );
-    CHECK( spec.contains( "source" )              == true  );
+    CHECK( spec.contains( "tracer" )              == true  );
 }
 
 TEST_CASE ( "Ellipsoid Tracer Value-Range Test - Spheroid/Ellipsoid", "[raytrace][observer][spheroid][triaxial][ellipsoid]") {

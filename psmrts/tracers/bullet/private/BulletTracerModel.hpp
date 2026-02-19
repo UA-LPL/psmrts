@@ -33,7 +33,9 @@ namespace psmrts::bullet {
       BulletTracerModel( );
       BulletTracerModel( const PsmrtsBulletWorldModel &bt_model );
       BulletTracerModel( const PsmrtsMeshData &mesh, 
-                         const std::string &name );
+                         const std::string &name,
+                         const bool useCompression = true,
+                         const bool buildBvh = true );
 
       virtual ~BulletTracerModel() = default;
 
@@ -77,8 +79,8 @@ namespace psmrts::bullet {
        * @return false   If no ray trace intercept was found
        */
       bool ray_trace( const Eigen::Vector3d &observer,
-                              const Eigen::Vector3d &lookdir,
-                              PsmrtsRayTrace &ray ) const;
+                      const Eigen::Vector3d &lookdir,
+                      PsmrtsRayTrace &ray ) const;
 
       bool ray_trace( PsmrtsRayTrace &ray ) const;
 

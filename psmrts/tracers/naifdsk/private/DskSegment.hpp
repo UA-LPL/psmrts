@@ -16,8 +16,8 @@ find files of those names at the top level of this repository. **/
 #include <string>
 
 #include <Eigen/Geometry>
-#include <psmrts/core/ProductOption.hpp>
-#include <psmrts/core/ProductConfiguration.hpp>
+#include <psmrts/core/products/ProductOption.hpp>
+#include <psmrts/core/products/ProductConfiguration.hpp>
 
 namespace naif {
 
@@ -160,17 +160,17 @@ namespace naif {
       inline ProductConfiguration config() const {
         ProductConfiguration config( "dsksegment" );
 
-        config.add( ProductOption( "dsk_body_id", this->bodyid() ) );
-        config.add( ProductOption( "dsk_segment_index", this->segment_number() ) );
-        config.add_metadata( ProductOption( "dsk_frame_id", this->frameid() ) );
-        config.add_metadata( ProductOption( "dsk_surface_id", this->surfaceid() ) );
-        config.add_metadata( ProductOption( "dsk_body_id", this->bodyid() ) );
+        config.add( ProductOption( "dsk_surface_id",            this->surfaceid() ) );
+        config.add( ProductOption( "dsk_segment_index",         this->segment_number() ) );
+        config.add_metadata( ProductOption( "dsk_body_id",      this->bodyid() ) );
+        config.add_metadata( ProductOption( "dsk_frame_id",     this->frameid() ) );
+        config.add_metadata( ProductOption( "dsk_body_id",      this->bodyid() ) );
         config.add_metadata( ProductOption( "dsk_segment_type", this->dtype() ) );
-        config.add_metadata( ProductOption( "dsk_class_type", this->dclass() ) );
-        config.add_metadata( ProductOption( "n_vertices",     this->n_vectors() ) );
-        config.add_metadata( ProductOption( "n_facets",       this->n_plates() ) );
-        config.add_metadata( ProductOption( "maximum_radius", this->maximum_radius() ) );
-        config.add_metadata( ProductOption( "maximum_radius", this->maximum_radius() ) );
+        config.add_metadata( ProductOption( "dsk_class_type",   this->dclass() ) );
+        config.add_metadata( ProductOption( "n_vertices",       this->n_vectors() ) );
+        config.add_metadata( ProductOption( "n_facets",         this->n_plates() ) );
+        config.add_metadata( ProductOption( "maximum_radius",   this->maximum_radius() ) );
+        config.add_metadata( ProductOption( "minimum_radius",   this->minimum_radius() ) );
 
         return ( config );
 

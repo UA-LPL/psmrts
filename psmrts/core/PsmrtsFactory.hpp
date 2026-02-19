@@ -21,11 +21,10 @@ find files of those names at the top level of this repository. **/
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsCache.hpp>
-#include <psmrts/core/PRQProduct.hpp>
-#include <psmrts/core/ProductInventory.hpp>
-#include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/core/PsmrtsTranslations.hpp>
+#include <psmrts/core/products/ProductInventory.hpp>
+#include <psmrts/core/products/ProductSpecification.hpp>
 #include <psmrts/core/PsmrtsInventory.hpp>
-#include <psmrts/core/PRQProduct.hpp>
 
 namespace psmrts {
 
@@ -76,58 +75,30 @@ namespace psmrts {
    * state of the PSMRTS factory product inventory environment in use.
    * 
    * @code
-   *  // State of an empty factory.
-   *  psmrts::PsmrtsFactory factory1;
-   *  CHECK( factory1.size()               == 0 );
-   *  CHECK( factory1.contains( "psmrts" ) == false );
+   * // State of an empty factory.
+   * psmrts::PsmrtsFactory factory1;
+   * factory1.liquidate();  // Start with empty factory, "psmrts" always exists
+   *  
+   * CHECK( factory1.size()               == 1 );
+   * CHECK( factory1.contains( "psmrts" ) == true );
+   * 
+   * // Add a bullet tracer into unque inventory
+   * std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
+   * auto uid1 = factory1.add_product( psmrts::PsmrtsTracer::bullet( objfile ), "inv1" );
+   * CHECK( factory1.size() == 2 );
+   * CHECK( factory1.find( "inv1" ).tracers().size() == 1 );
+   * CHECK( factory1.contains( "psmrts" )            == true );
+   * CHECK( factory1.contains( "inv1" )              == true );
+   * CHECK( factory1.contains( "INV1" )              == true );
    *
-   *  // Add a bullet tracer into unque inventory
-   *  std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
-   *  auto uid1 = factory1.add_product( psmrts::PsmrtsTracer::bullet( objfile ), "inv1" );
-   *  CHECK( factory1.size() == 1 );
-   *  CHECK( factory1.find( "inv1" ).tracers().size() == 1 );
-   *  CHECK( factory1.contains( "psmrts" )            == false );
-   *  CHECK( factory1.contains( "inv1" )              == true );
-   *  CHECK( factory1.contains( "INV1" )              == true );
-   * 
-   *  // Instantiate second factory and compare its state to factory1.
-   *  psmrts::PsmrtsFactory factory2;
-   *  CHECK( factory2.size()                          == 1 );
-   *  CHECK( factory2.size()                          == factory1.size() );
-   *  CHECK( factory2.contains( "psmrts" )            == factory1.contains( "psmrts" ) );
-   *  CHECK( factory2.contains( "inv1" )              == factory1.contains( "inv1" ) );
-   *  CHECK( factory2.find( "inv1" ).tracers().size() == factory1.find( "inv1" ).tracers().size() );
-   * 
-   *  // Adding a new shape to a new inventory will appear in both (all) factory objects.
-   *  std::string dskfile = psmrts_shapes_path( "dsk/data/bennu_20facets.bds" );
-   *  psmrts::DskShape dsk( dskfile );
-   *  auto uid2 = factory2.add_product( psmrts::PsmrtsShape( dsk ), "inv2");
-   *  CHECK( factory2.size()                           == 2 );
-   *  CHECK( factory2.size()                          == factory1.size() );
-   *  CHECK( factory2.contains( "inv2" )              == true );
-   *  CHECK( factory2.contains( "inv2" )              == factory1.contains( "inv2" ) );
-   *  CHECK( factory2.find( "inv2" ).shapes().size()  == 1 );
-   *  CHECK( factory2.find( "inv2" ).shapes().size()  == factory1.find( "inv2" ).shapes().size());
-   * 
-   *  // PSMRTS inventory cache content check
-   *  CHECK( factory1.get_inventory_list() == std::vector<std::string>( { "inv1", "inv2" } ) );
-   *  CHECK( factory2.get_inventory_list() == factory1.get_inventory_list() );
-   * 
-   *  // Removing a product in one factory affects all factory instances
-   *  CHECK( factory2.find( "inv2" ).shapes().contains( uid2 ) == true );
-   *  CHECK( factory1.find( "inv2" ).shapes().contains( uid2 ) == true ); 
-   *  CHECK_NOTHROW( factory2.find( "inv2" ).shapes().remove( uid2 ) );
-   * 
-   *  CHECK( factory2.find( "inv2" ).shapes().contains( uid2 ) == false );
-   *  CHECK( factory1.find( "inv2" ).shapes().contains( uid2 ) == false );
-   *  CHECK( factory2.find( "inv2" ).shapes().size()           == 0 );
-   *  CHECK( factory2.find( "inv2" ).shapes().size()           == factory1.find( "inv2" ).shapes().size() );
+   * // Instantiate second factory and compare its state to factory1.
+   * psmrts::PsmrtsFactory factory2;
+   * CHECK( factory2.size()                          == 2 );
+   * CHECK( factory2.size()                          == factory1.size() );
+   * CHECK( factory2.contains( "psmrts" )            == factory1.contains( "psmrts" ) );
+   * CHECK( factory2.contains( "inv1" )              == factory1.contains( "inv1" ) );
+   * CHECK( factory2.find( "inv1" ).tracers().size() == factory1.find( "inv1" ).tracers().size() );
    *
-   *  CHECK( factory1.size()   == 2 );
-   *  CHECK( factory2.size()   == 2 );
-   *  factory1.liquidate();
-   *  CHECK( factory1.size()               == 0 );
-   *  CHECK( factory2.size()               == 0 );
    * @endcode 
    *
    * If your application requires an isolated ray tracing system, a custom
@@ -142,12 +113,12 @@ namespace psmrts {
    * @history 2025-09-07 Kris J. Becker  Original Version
    * @history 2026-01-01 Kris J. Becker  Add thread locking for merge, add and
    *                      remove operations
+   * @history 2026-02-17 Kris J. Becker  Fix initialization and tests
    */
   class PsmrtsFactory {
     public:
       inline static const std::string psmrts_inventory{ "psmrts" };
       using UIDType         = PsmrtsUID::UIDType;
-      using EnvInventory    = PsmrtsInventory::EnvInventory;
 
       PsmrtsFactory( )  {  }
       virtual ~PsmrtsFactory() { }
@@ -156,25 +127,25 @@ namespace psmrts {
       /** Return the number of inventories present in the factory */
       inline size_t size() const {
         std::scoped_lock mylocker( m_mutex );
-        return ( this->inventory().size() );
+        return ( PsmrtsFactory::inventory().size() );
       }
 
       /** Looking for an inventory by name case insensive */
       inline bool contains( const std::string &name ) const {
         std::scoped_lock mylocker( m_mutex );
-        return (this->inventory().contains( name ) );
+        return ( PsmrtsFactory::inventory().contains( name ) );
       }
 
       /** Returns list of all cached inventories by name/uid */
       inline std::vector<std::string>  get_inventory_list( ) const {
         std::scoped_lock mylocker( m_mutex );
-        return ( m_inventory.cache().keys() );
+        return ( PsmrtsFactory::inventory().cache().keys() );
       }
 
       /** Looking for an inventory by name */
-      inline const PsmrtsInventory &find( const std::string &name ) const {
+      inline const PsmrtsInventory &find( const std::string &name  = "psmrts" ) const {
         std::scoped_lock mylocker( m_mutex );
-        return (this->inventory().find( name ) );
+        return ( PsmrtsFactory::inventory().find( name ) );
       }
 
 
@@ -193,13 +164,13 @@ namespace psmrts {
                                   const std::string &inventory_name = psmrts_inventory  ) {
                                     
         std::scoped_lock mylocker( m_mutex );
-        if ( this->inventory().contains( inventory_name ) ) {
-          return ( this->inventory().find( inventory_name ).shapes().add_product( shape ) );
+        if ( PsmrtsFactory::inventory().contains( inventory_name ) ) {
+          return ( PsmrtsFactory::inventory().find( inventory_name ).shapes().add_product( shape ) );
         }
         else {
           PsmrtsInventory inv_t( inventory_name );
           auto uid = inv_t.shapes().add_product( shape );
-          this->inventory().add( inventory_name, inv_t );
+          PsmrtsFactory::inventory().add( inventory_name, inv_t );
         }           
         return ( shape.uid() );
       }
@@ -208,8 +179,8 @@ namespace psmrts {
       inline void remove_shape( const UIDType &uid, 
                                 const std::string &inventory_name = psmrts_inventory  ) {
         std::scoped_lock mylocker( m_mutex );
-        if ( this->inventory().contains( inventory_name )  ) {
-          this->inventory().find( inventory_name ).shapes().remove( uid );
+        if ( PsmrtsFactory::inventory().contains( inventory_name )  ) {
+          PsmrtsFactory::inventory().find( inventory_name ).shapes().remove( uid );
         }
         return;
       } 
@@ -229,13 +200,13 @@ namespace psmrts {
       inline UIDType add_product( const PsmrtsTracer &tracer,
                                   const std::string &inventory_name = psmrts_inventory  ) {
         std::scoped_lock mylocker( m_mutex );
-        if ( this->inventory().contains( inventory_name )  ) {
-          return ( this->inventory().find( inventory_name ).tracers().add_product( tracer ) );
+        if ( PsmrtsFactory::inventory().contains( inventory_name )  ) {
+          return ( PsmrtsFactory::inventory().find( inventory_name ).tracers().add_product( tracer ) );
         }
         else {
           PsmrtsInventory inv_t( inventory_name );
           auto uid = inv_t.tracers().add_product( tracer );
-          this->inventory().add( inventory_name, inv_t );
+          PsmrtsFactory::inventory().add( inventory_name, inv_t );
         }        
         return ( tracer.uid() );
       }
@@ -244,8 +215,8 @@ namespace psmrts {
       inline void remove_tracer( const UIDType &uid, 
                                 const std::string &inventory_name = psmrts_inventory  ) {
         std::scoped_lock mylocker( m_mutex );
-        if ( this->inventory().contains( inventory_name )  ) {
-          this->inventory().find( inventory_name ).tracers().remove( uid );
+        if ( PsmrtsFactory::inventory().contains( inventory_name )  ) {
+          PsmrtsFactory::inventory().find( inventory_name ).tracers().remove( uid );
         }
         return;
       }       
@@ -264,13 +235,13 @@ namespace psmrts {
       inline UIDType add_product( const PsmrtsPriorityTracer &tracer_p,
                                   const std::string &inventory_name = psmrts_inventory  ) {
         std::scoped_lock mylocker( m_mutex );
-        if ( this->inventory().contains( inventory_name )  ) {
-          return ( this->inventory().find( inventory_name ).prioritytracers().add_product( tracer_p ) );
+        if ( PsmrtsFactory::inventory().contains( inventory_name )  ) {
+          return ( PsmrtsFactory::inventory().find( inventory_name ).prioritytracers().add_product( tracer_p ) );
         }
         else {
           PsmrtsInventory inv_t( inventory_name );
           auto uid = inv_t.prioritytracers().add_product( tracer_p );
-          this->inventory().add( inventory_name, inv_t );
+          PsmrtsFactory::inventory().add( inventory_name, inv_t );
         }
         return ( tracer_p.uid() );
       }
@@ -279,8 +250,8 @@ namespace psmrts {
       inline void remove_priority_tracer( const UIDType &uid, 
                                           const std::string &inventory_name = psmrts_inventory  ) {
         std::scoped_lock mylocker( m_mutex );
-        if ( this->inventory().contains( inventory_name )  ) {
-          this->inventory().find( inventory_name ).prioritytracers().remove( uid );
+        if ( PsmrtsFactory::inventory().contains( inventory_name )  ) {
+          PsmrtsFactory::inventory().find( inventory_name ).prioritytracers().remove( uid );
         }
         return;
       }                                            
@@ -291,9 +262,9 @@ namespace psmrts {
         return ( this->merge( inventory, cache_name ) );
       }
 
-      /** Get the current state of the environment variable system */
-      static inline EnvInventory getenv( const std::string &name = "env" ) {
-        return ( PsmrtsInventory::getenv( name) );
+      /** Get the current state of the parameter/environment variable system */
+      static inline PsmrtsTranslations getenv( ) {
+        return ( PsmrtsTranslations::create() );
       }
 
       
@@ -304,12 +275,12 @@ namespace psmrts {
         std::scoped_lock mylocker( m_mutex );
         size_t n_merged = 0;
 
-        if ( this->inventory().contains( cache_name ) ) {
-          PsmrtsInventory &cache = this->inventory().find( cache_name );
+        if ( PsmrtsFactory::inventory().contains( cache_name ) ) {
+          PsmrtsInventory &cache = PsmrtsFactory::inventory().find( cache_name );
           n_merged += cache.merge( inventory );
         }
         else {
-          this->inventory().add( cache_name, inventory );
+          PsmrtsFactory::inventory().add( cache_name, inventory );
           n_merged += inventory.size();
         }
 
@@ -324,40 +295,37 @@ namespace psmrts {
       /** Remove a system inventory from the factory! */
       inline void remove( const std::string &invname ) {
         std::scoped_lock mylocker( m_mutex );
-        m_inventory.remove( invname );
+        PsmrtsFactory::inventory().remove( invname );
       }
     
       /** Liquidate/empty all PSRMTS factory inventory - affects all instances of PsmrtsFactory! */
       inline static void liquidate( ) {
         std::scoped_lock mylocker( m_mutex );
-        PsmrtsFactory::m_inventory.clear();
+        PsmrtsFactory::PsmrtsFactory::inventory().clear();
         
-        // Be sure to set up the defaul inventory
-        PsmrtsFactory::m_inventory = { "psmrts", "inventory", &FactoryInventory::case_insensitive_key  };
+        // Be sure to set up the default "psmrts" inventory
+        PsmrtsFactory::PsmrtsFactory::inventory().add( "psmrts", PsmrtsInventory("psmrts") );
         return;
       }
 
     private:
-    // Definitions for the product registry. This holds all the products that have specifications
-      using ProductSpecs    =  ProductInventory<std::string, ProductSpecification>;
-      using ProductRegistry =  ProductInventory<std::string, ProductSpecs>;
-      static inline ProductRegistry  m_registry  = { "psmrts", "registry", &ProductRegistry::case_insensitive_key };
-
       // Definitions and cache of active product inventories.
       using FactoryInventory = ProductInventory<std::string, PsmrtsInventory>;
-      static inline FactoryInventory m_inventory = { "psmrts", "inventory", &FactoryInventory::case_insensitive_key  }; // set up default product cache
       static inline std::mutex       m_mutex{};
 
-      /** Return the factory inventory */
-      inline const FactoryInventory &inventory() const {
-        return ( PsmrtsFactory::m_inventory );
-      }
+      // Flag to initialize at startup
+      static inline std::once_flag psmrts_inventory_init;
 
       /** Return the factory inventory */
-      inline FactoryInventory &inventory()  {
-        return ( PsmrtsFactory::m_inventory );
-      }
+      static inline FactoryInventory &inventory()  {
+        static FactoryInventory m_inventory;
+         std::call_once( psmrts_inventory_init, [&]( ){ 
+            m_inventory = create_case_insensitive_inventory<PsmrtsInventory>( "psmrts" );
+            m_inventory.add( "psmrts", PsmrtsInventory("psmrts") ); 
+          } ); // set up default product inventory cache on first call
 
+        return ( m_inventory );
+      }
   };
 
 } // namespace psmrts

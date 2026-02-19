@@ -194,6 +194,17 @@ namespace psmrts {
           return ( m_data.cend() );
         }
 
+        /** Return the const end iterator of the map */
+        inline const T operator()(const size_t index ) const {
+          std::scoped_lock mylocker( this->mutex() );
+          if ( index > this->size() ) {
+            std::ostringstream mess_s;
+            mess_s << "*** Error - PsmrtsContainer:operator(index) - invalid index (" << index << ")";
+            throw std::runtime_error( mess_s.str() );            
+          }
+          return ( m_data[index] );
+        }
+
         /** Clear the contents, which invalidates references */
         inline void clear() {
           std::scoped_lock mylocker( this->mutex() );
@@ -212,6 +223,11 @@ namespace psmrts {
 
         /** Return reference to data object vector */
         inline const Container &data() const {
+          std::scoped_lock mylocker( this->mutex() );
+          return ( m_data );
+        }
+
+        inline Container &data() {
           std::scoped_lock mylocker( this->mutex() );
           return ( m_data );
         }

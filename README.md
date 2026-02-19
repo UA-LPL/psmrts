@@ -27,7 +27,7 @@ The `PSMRTS` system upon cloning from the repo is contained in the `./psmrts` di
 
 1. `cd psmrts`
 2. `./make_psmrts.sh`
-   - Add `-s` to build shared libraries
+   - Add `-s` to build shared libraries (required for conda builds)
    - Add `-t` to enable testing
    - Add `-c` to enable code coverage
    - Add `-x` to build extras
@@ -40,7 +40,7 @@ The `PSMRTS` system upon cloning from the repo is contained in the `./psmrts` di
 
    You must use one of -V (vcpkg) or -C (conda) to provide the required PSMRTS dependencies or provide them by some other means. In some cases it may be useful to specify an alternative vcpkg triplet for certain platforms.
    
-   When the build completes, the system cam be installed with the following command:
+   When the build completes, the system can be installed with the following command:
  ```
  cmake  --install build --prefix install
  ``` 
@@ -72,17 +72,17 @@ To build `PSMRTS` tests, code coverage and documentation, use the `psmrts_conda_
 3.  conda env create -n psmrts_dev -f psmrts_conda_deps_all.yml
 4.  conda activate psmrts_dev
 5.  ./make_psmrts.sh -s -x -t -d -c -D -C -j4
-6.  cmake --build build --target doxy_docs     # Build doxygen documentation
+6.  cmake --build build --target docs     # Build doxygen documentation
 7.  open docs/html/index.html                  # On Mac, open the PSMRT documentation
 8.  cmake --build build --target coverage      # Build code coverage
 9.  open build/coverage/index.html             # On Mac, open the PSMRT code coverage report
 10. cd build
 11. ctest --output-on-failure -j4              # Run the PSMRT tests
 ```
-`PSMRTS` documentation is build in the `./docs/html` directory. Code coverage is build in `./build/coverage`. The results of both are contained in a file named `index.html` and can be viewed with any web browser.
+`PSMRTS` documentation is built in the `./docs/html` directory. Code coverage is build in `./build/coverage`. The results of both are contained in a file named `index.html` and can be viewed with any web browser.
 
 ### Building PSMRT with vcpkg
-As mentioned, `vcpkg` was used to develop `PSMRTS` due to its ease of setup/installation and the default state of dependency libraries being static arhive (.a) libraries. In addition, instead of delivering prebuilt binaries, `vcpkg` builds all dependencies from source and caches them locally for efficient builds. `vcpkg` can also build `PSMRTS` with `classic` or `manifest` mode. The major difference between these modes are `classic` maintains a system wide installation of a `vcpkg` installation whereas `manifest` mode installs dependencies in a local directory, typcially in `./build/vcpkg_installed` - and at times dependencies can be installed from a system or user cache and not rebuilt from source. `PSMRTS` detects `classic` mode by checking for the existance of the environment variable called `VCPKG_ROOT`. If it is not set, it sets VCPKG_ROOT=$PWD/vcpkg, clones `vcpkg` in `./psmrts` and runs cmake. This is `manifest` mode. If `VCPKG_ROOT` is set prior to running `make_psmrts.sh` `PSMRTS` does not install `vcpkg` or install any of is dependencies and assumes they are installed in a system-wide `vcpkg` installation. This is `classic` mode.
+As mentioned, `vcpkg` was used to develop `PSMRTS` due to its ease of setup/installation and the default state of dependency libraries being static archive (.a) libraries. In addition, instead of delivering prebuilt binaries, `vcpkg` builds all dependencies from source and caches them locally for efficient builds. `vcpkg` can also build `PSMRTS` with `classic` or `manifest` mode. The major difference between these modes are `classic` maintains a system wide installation of a `vcpkg` installation whereas `manifest` mode installs dependencies in a local directory, typcially in `./build/vcpkg_installed` - and at times dependencies can be installed from a system or user cache and not rebuilt from source. `PSMRTS` detects `classic` mode by checking for the existance of the environment variable called `VCPKG_ROOT`. If it is not set, it sets VCPKG_ROOT=$PWD/vcpkg, clones `vcpkg` in `./psmrts` and runs cmake. This is `manifest` mode. If `VCPKG_ROOT` is set prior to running `make_psmrts.sh` `PSMRTS` does not install `vcpkg` or install any of is dependencies and assumes they are installed in a system-wide `vcpkg` installation. This is `classic` mode.
 
 When building with `vcpkg`, you can build outside a `conda` environment with testing turned on (-t -d) and without code coverage and documentation (exlude -s -c -D). This also requires not preinstall as does when builing with a full `conda` environment. The instructions to build in `manifest` mode:
 
@@ -112,8 +112,8 @@ experience:
 2.  cd psmrts
 3.  conda env create -n psmrts_vcpkg -f tools/build_addons.yml
 4.  conda activate psmrts_vcpkg
-5.  ./make_psmrts.sh -x -t -d -c -D -V -j4
-6.  cmake --build build --target doxy_docs     # Build doxygen documentation
+5.  ./make_psmrts.sh -x -t -s -d -c -D -V -j4
+6.  cmake --build build --target docs     # Build doxygen documentation
 7.  open docs/html/index.html                  # On Mac, open the PSMRTS documentation
 8.  cmake --build build --target coverage      # Build code coverage
 9.  open build/coverage/index.html             # On Mac, open the PSMRTS code coverage report
@@ -121,7 +121,7 @@ experience:
 11. ctest --output-on-failure -j4              # Run the PSMRTS tests
 ```
 
-In some cases you may need to explicitly specify a `vcpkg` triplet. You may specify a specific triplet to build for other platforms should the `make_psmrts.sh` script fail to determine the proper triplet. See the `vcpkg` documentation describing [triplets](https://learn.microsoft.com/en-us/vcpkg/concepts/triplets) for additional details.
+In some cases you may need to explicitly specify a `vcpkg` triplet. You may provide a specific triplet to build for other platforms should the `make_psmrts.sh` script fail to determine the proper triplet. See the `vcpkg` documentation describing [triplets](https://learn.microsoft.com/en-us/vcpkg/concepts/triplets) for additional details.
 
 ### Testing PSMRTS Code
 
@@ -129,7 +129,7 @@ The C++ testing framework Catch2 is in `PSMRTS` for the C++ API. `PSMRTS` tests 
 
 ### Creating PSMRTS Documentation
 
-`PSMRTS` documentation system is based upon the [Doxygen](https://www.doxygen.nl) generator. The `docs` directory contains the Doxygen file that contains the configuration to create the `PSMRTS` documentation. The CMAKE target `doxy_docs` creates the HTML documentation in the `docs/html` directory. The `conda` configuration provides the necessary tools to create the documentation but other means can provide the required apps, namely `doxygen`, `graphviz`, `gcovr` and `lcov`. 
+`PSMRTS` documentation system is based upon the [Doxygen](https://www.doxygen.nl) generator. The `docs` directory contains the Doxygen file that contains the configuration to create the `PSMRTS` documentation. The CMAKE target `docs` creates the HTML documentation in the `docs/html` directory. The `conda` configuration provides the necessary tools to create the documentation but other means can provide the required apps, namely `doxygen`, `graphviz`, `gcovr` and `lcov`. 
 
 The following commands can be used to create the necessary `conda` environment and build the documentation (and code coverage):
 
@@ -138,8 +138,8 @@ The following commands can be used to create the necessary `conda` environment a
 2.  cd psmrts
 3.  conda env create -n psmrts_docs_cov -f psmrts_conda_deps_all.yml
 4.  conda activate psmrts_docs_cov
-5.  ./make_psmrts.sh -t -x -d -c -D -C -j4
-6.  cmake --build build --target doxy_docs     # Build doxygen documentation
+5.  ./make_psmrts.sh -t -x -s -d -c -D -C -j4
+6.  cmake --build build --target docs     # Build doxygen documentation
 7.  open docs/html/index.html                  # On Mac, open the PSMRTS documentation
 ```
 
@@ -178,4 +178,6 @@ Note that code coverage is not included in Windows support at this time. For any
 errors or complications of above, please reach out to the development team.
 
 ## License
-<a href="https://github.com/UA-LPL/psmrts">Planetary Shape Model and Ray Tracing System</a> by <a href="https://lpl.arizona.edu">University of Arizona</a> is marked <a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0 1.0</a>
+<a href="https://github.com/UA-LPL/psmrts">Planetary Shape Model and Ray Tracing
+System</a> by <a href="https://lpl.arizona.edu">University of Arizona</a> is
+marked <a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0 1.0</a>

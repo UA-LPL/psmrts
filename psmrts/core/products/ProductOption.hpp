@@ -82,6 +82,8 @@ namespace psmrts {
                             };
 
       ProductOption() : m_name( "false" ), m_data( false ), m_enum( PsmrtsBoolean ) { }
+      ProductOption( const std::string &name, const ProductOption &option ) : 
+                     m_name( name ), m_data( option.m_data ), m_enum( option.m_enum ) { }
       explicit ProductOption( const std::string &name, const bool b_data ) : 
                               m_name( psmrts_tolower(name)), 
                               m_data( b_data ), 
@@ -321,9 +323,9 @@ namespace psmrts {
           size_t i = 0;
           for ( auto it_v = j_data.begin() ; it_v != j_data.end() ; ++it_v, i++ ) {
             if ( !it_v->is_primitive() ) {
-            std::string j_string = j_data.dump(-1);
-            std::string mess = "***ERROR - ProductOption(json): JSON array value at index [" +
-                                std::to_string(i) + "] is not a required primitive type!\n" +
+              std::string j_string = j_data.dump(-1);
+              std::string mess = "***ERROR - ProductOption(json): JSON array value at index [" +
+                                 std::to_string(i) + "] is not a required primitive type!\n" +
                                 " Invalid JSON Object: " + j_string;            
               throw std::runtime_error( mess );
             }

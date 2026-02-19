@@ -1,6 +1,6 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
-#include <psmrts/core/ProductInventory.hpp>
+#include <psmrts/core/products/ProductInventory.hpp>
 #include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/shapes/PsmrtsShape.hpp>
 

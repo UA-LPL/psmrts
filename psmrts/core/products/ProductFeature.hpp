@@ -25,7 +25,8 @@ find files of those names at the top level of this repository. **/
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsContainer.hpp>
-#include <psmrts/core/ProductOption.hpp>
+#include <psmrts/core/products/ProductOption.hpp>
+#include <psmrts/core/AllOptionConversions.hpp>
 
 namespace psmrts { 
 
@@ -155,6 +156,12 @@ namespace psmrts {
       inline bool contains( const std::string &key ) const {
         return ( m_options.contains( key ) );
       }
+      
+      /** Returns feature option */
+      inline FeatureOption find( const std::string &key ) const {
+        return ( m_options.find( key ) );
+      }
+
 
       template <class T>
         inline T value( const std::string &key, const T &v_default = T{} ) const {
@@ -207,33 +214,66 @@ namespace psmrts {
 
       inline std::vector<std::string> aliases() const {
         std::vector<std::string> p_alias{};
-        return ( this->value( "aliases", p_alias ) );
+        if ( this->contains( "aliases" ) ) {
+          p_alias = OptionStringsExtractor( m_options.find( "aliases" ) ).get_all();
+        }
+        return ( p_alias );
       }
 
       inline std::vector<std::string> exclusions( ) const {
         std::vector<std::string> conflicts_with{};
-        return ( this->value( "exclusions", conflicts_with ) );
+        if ( this->contains( "exclusions" ) ) {
+          conflicts_with = OptionStringsExtractor( m_options.find( "exclusions" ) ).get_all();
+        }        
+        return ( conflicts_with );
       }        
       
       inline std::vector<std::string> inclusions( ) const {
         std::vector<std::string> required_for{};
-        return ( this->value( "inclusions", required_for ) );
+        if ( this->contains( "inclusions" ) ) {
+          required_for = OptionStringsExtractor( m_options.find( "inclusions" ) ).get_all();
+        }         
+        return (  required_for );
       }     
 
       inline std::vector<std::string> file_suffixes() const {
         std::vector<std::string> p_suffixes{};
-        return ( this->value( "file_suffixes", p_suffixes ) );
+        if ( this->contains( "file_suffixes" ) ) {
+          p_suffixes = OptionStringsExtractor( m_options.find( "file_suffixes" ) ).get_all();
+        }        
+        return ( p_suffixes );
       }   
 
+      inline std::vector<std::string> valid_list() const {
+        std::vector<std::string> p_valid{};
+        if ( this->contains( "valid" ) ) {
+          p_valid = OptionStringsExtractor( m_options.find( "valid" ) ).get_all();
+        }        
+        return ( p_valid );
+      } 
+      
+      
       /** Return the JSON structure */
       inline ordered_json specs( ) const {
         return ( this->to_json() );
       }
 
+      /** Checks required status for this feature */
       inline bool is_required() const {
         return ( this->status() == "required" );
       }
 
+      /** Checks if this feature is a dependency */
+      inline bool is_dependency() const {
+        return ( this->status() == "dependency" );
+      }
+
+      /** Checks if this feature is optional */
+      inline bool is_optional() const {
+        return ( this->status() == "optional" );
+      }
+
+      /** Checks if this feature is an alias */
       inline bool isa_alias( const std::string &a_key ) const {
         for (const auto &alias_k : this->aliases()) {
             if (alias_k == a_key) {
@@ -317,6 +357,18 @@ namespace psmrts {
         return ( m_options.data() );
       }
 
+      /** Confirm the filename has the appropriate suffix for this feature */
+      inline bool validate_file_suffix( const std::string &filename ) const {
+        std::vector<std::string> sfx_v = this->file_suffixes();
+        if ( sfx_v.size() == 0 ) return ( true );
+
+        std::string suffix_f = psmrts_file_extension( filename );
+        for ( const std::string &sfx : sfx_v ) {
+          if ( sfx == suffix_f ) return ( true );
+        }
+        return ( false );
+      }
+
 
     private:
       FeatureOptionList m_options;
@@ -328,7 +380,6 @@ namespace psmrts {
         for ( const FeatureOption &opt : options ) {
           if ( opt.name() == "name" ) {
             name_t = opt.to_string();
-            // std::cout << "FeatureOptionList::create::name_T: " << name_t << std::endl;
             break;
           }
         }

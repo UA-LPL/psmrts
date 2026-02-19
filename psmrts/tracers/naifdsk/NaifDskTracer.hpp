@@ -18,10 +18,13 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
-#include <psmrts/core/ProductOption.hpp>
-#include <psmrts/core/ProductFeature.hpp>
-#include <psmrts/core/ProductConfiguration.hpp>
-#include <psmrts/core/ProductSpecification.hpp>
+#include <psmrts/core/PsmrtsTranslations.hpp>
+#include <psmrts/core/products/ProductOption.hpp>
+#include <psmrts/core/products/ProductFeature.hpp>
+#include <psmrts/core/products/ProductConfiguration.hpp>
+#include <psmrts/core/products/ProductSpecification.hpp>
+#include <psmrts/core/products/ProductCart.hpp>
+
 #include <psmrts/algorithms/TracingBasics.hpp>
 #include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
 
@@ -38,18 +41,23 @@ namespace psmrts  {
 
       NaifDskTracer( ) : PsmrtsProduct( "naifdsktracer", "tracer" ), 
                          m_model() {
-        m_configured = init_naifdsk( "naifdsk" );
+        m_config = init_naifdsk( "naifdsk" );
       }
       NaifDskTracer( const naif::DskKernelModel &dsktracer ) : 
                      PsmrtsProduct( dsktracer.shapefile(), "tracer" ),
                      m_model( dsktracer ) { 
-        m_configured = init_naifdsk( dsktracer, dsktracer.shapefile() );
+        m_config = init_naifdsk( dsktracer, dsktracer.shapefile() );
       }
       NaifDskTracer( const std::string &dsk ) : 
                      PsmrtsProduct( dsk, "tracer" ),
-                     m_model( dsk ) { 
-                      //m_configured = init_naifdsk( m_model, m_model.shapefile() );
-                      }
+                     m_model( dsk ) {
+        m_config = init_naifdsk( m_model, dsk );
+      }
+      NaifDskTracer( const ProductCart &processed_cart ) {
+        this->set_name( processed_cart.name() );
+        this->set_type( "naifdsk" );           
+        this->create( processed_cart );
+      }        
       virtual ~NaifDskTracer() { }
 
       /**
@@ -211,49 +219,132 @@ namespace psmrts  {
                                  ProductOption( "name", "naifdsk"),
                                  ProductOption( "product", "tracer"),
                                  ProductOption( "description", "NAIF DSK ray tracing system specifications") } );
+        ProductFeature product( "tracer", {
+                                 ProductOption( "name", "tracer" ),
+                                 ProductOption( "type", "string" ),
+                                 ProductOption( "description", "Describe the product type" ),
+                                 ProductOption( "status", "optional" ),
+                                 ProductOption( "default", "naifdsk" ),
+                                 ProductOption( "valid", "naifdsk" ) } );
         ProductFeature dfile( "dsk_file", {
-                                 ProductOption( "name", "dsk_file"),
-                                 ProductOption( "type", "file"),
-                                 ProductOption( "description", "Name of DSK kernel"),
-                                 ProductOption( "status", "required"),
-                                 ProductOption( "aliases", "file" ),
+                                 ProductOption( "name", "dsk_file" ),
+                                 ProductOption( "type", "file" ),
+                                 ProductOption( "description", "Name of DSK kernel" ),
+                                 ProductOption( "status", "required" ),
+                                 ProductOption( "aliases", { "file", "filename" } ),
                                  ProductOption( "file_suffixes", { "bds", "BDS" } ) } );
         ProductFeature bodyid( "dsk_body_id", {
-                                 ProductOption( "name", "dsk_body_id"),
-                                 ProductOption( "type", "int"),
-                                 ProductOption( "description", "NAIF ID of the target body whose surface is described"),
-                                 ProductOption( "status", "optional"),
+                                 ProductOption( "name", "dsk_surface_id" ),
+                                 ProductOption( "type", "int" ),
+                                 ProductOption( "description", "NAIF ID of the target body whose surface is described" ),
+                                 ProductOption( "status", "optional" ),
+                                 ProductOption( "conflicts_with", "dsk_segment_index" ),
                                  ProductOption( "aliases", { "target_id", "naif_id" } ) } );
         ProductFeature segid( "dsk_segment_index", {
-                                 ProductOption( "name", "dsk_segment_index"),
-                                 ProductOption( "type", "int"),
-                                 ProductOption( "description", "NAIF ID of the target body whose surface is described"),
-                                 ProductOption( "status", "optional"),
-                                 ProductOption( "default", 0),
-                                 ProductOption( "aliases", { "segment", "dsk_segment"} ) } );
+                                 ProductOption( "name", "dsk_segment_index" ),
+                                 ProductOption( "type", "int" ),
+                                 ProductOption( "description", "Segement index of desired body in the DSK file" ),
+                                 ProductOption( "status", "optional" ),
+                                 ProductOption( "conflicts_with", "dsk_surface_id" ),
+                                 ProductOption( "default", 0 ),
+                                 ProductOption( "aliases", { "segment", "dsk_segment" } ) } );
+#if 0
+        // Not implemented.  
         ProductFeature kernels( "kernels", {
-                                 ProductOption( "name", "kernels"),
-                                 ProductOption( "type", "string"),
-                                 ProductOption( "description", "Additional kernels required to load for target"),
-                                 ProductOption( "status", "optional"),
+                                 ProductOption( "name", "kernels" ),
+                                 ProductOption( "type", "string" ),
+                                 ProductOption( "description", "Additional kernels required to load for target" ),
+                                 ProductOption( "status", "optional" ),
                                  ProductOption( "aliases", "required_kernels" ) } );
-
+#endif
         // This validates the JSON structure and provides product info to callers
-        return ( ProductSpecification( info, { dfile, bodyid, segid, kernels } ) );
+        return ( ProductSpecification( info, { product, dfile, bodyid, segid } ) );
       }
       
       
       inline const ProductConfiguration &config() const {
-        return ( m_configured );
+        return ( m_config );
       }
       
       inline bool matches( const ProductConfiguration &conf ) const {
         return ( this->config().matches( conf ) );
       }
 
+      inline void create( const ProductCart &cart ) {
+
+        // Check for valid shape type
+        if ( cart.error_count() > 0 ) {
+          std::string mess = "EllipsoidTracer::create(" + cart.name() + 
+                            ") has config/spec processing errors: \n" +
+                              cart.errors_to_string();
+          throw std::runtime_error( mess );          
+        }
+
+        if ( !cart.isvalid() ) {
+          std::string mess = "EllipsoidTracer::create(" + cart.name() + 
+                            ") is invalid with " + 
+                            std::to_string( cart.configuration().size() ) +
+                            " config options and " +
+                            std::to_string( cart.residual().size() ) +
+                            " residual options";
+          throw std::runtime_error( mess );          
+        }
+
+        ProductConfiguration v_conf = cart.configuration();
+        if ( v_conf.contains( "dsk_segment_index" ) && ( v_conf.contains( "dsk_body_id" ) ) ) {
+          std::string mess = "NaifDskTracer::create(" + cart.name() + 
+                            ") cannot have both dsk_segment_index and dsk_surface_id";
+          throw std::runtime_error( mess );    
+        }
+
+        // Get the sk file and open it
+        std::string dskfile;
+        if ( v_conf.metadata().contains( "dsk_file_expanded" ) ) {
+          dskfile = v_conf.metadata().find("dsk_file_expanded").to_string();
+        }
+        else {
+          dskfile = v_conf.find("dsk_file").to_string();
+        }
+        m_model = naif::DskKernelModel( dskfile );
+
+        // Check for segment indexes
+        if ( v_conf.contains( "dsk_segment_index" ) ) {
+          std::vector<int> segnums = OptionIntegersExtractor( v_conf.find( "dsk_segment_index" ) ).get_all();
+          std::vector<naif::DskSegment> segments;
+          for ( const auto &segnum : segnums ) {
+            segments.push_back( m_model.segment( segnum ) );
+          }
+
+          m_model = naif::DskKernelModel( m_model, segments );
+        }
+
+        // Check for surface id requests
+        if ( v_conf.contains( "dsk_surface_id" ) ) {
+          std::vector<int> surfids = OptionIntegersExtractor( v_conf.find( "dsk_surface_id" ) ).get_all();
+          std::vector<naif::DskSegment> segments;
+          for ( const auto &sid : surfids ) {
+            const naif::DskSegment *segment = m_model.get_segment_with_id( sid );
+            if ( nullptr == segment ) {
+              std::string mess = "Cannot find segment with (surface) id " + 
+                                  std::to_string( sid ) + " to create new model";
+              throw std::runtime_error( mess );
+            }
+            segments.push_back( *segment );
+          }
+          m_model = naif::DskKernelModel( m_model, segments );
+        }
+
+          m_config = ProductConfiguration( "naifdsk" );
+          m_config.add( ProductOption( "tracer", "naifdsk" ) );
+          m_config.merge( m_model.config( m_model.segments() ) );
+          return;     
+      }
+
+
+
     private:
       naif::DskKernelModel m_model;
-      ProductConfiguration m_configured;
+      ProductConfiguration m_config;
 
       inline ProductConfiguration init_naifdsk( const std::string &source ) {
         auto config = ProductConfiguration( source, { ProductOption( "tracer", "naifdsk" ),
