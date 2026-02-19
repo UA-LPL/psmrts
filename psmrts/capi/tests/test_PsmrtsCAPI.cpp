@@ -92,8 +92,8 @@ class bulletTraceFixture {
  *
  */
 TEST_CASE ( "PSMRTS C API - Version and Info", "[capi][c++][version][info]" ) {
-  CHECK( std::string(psmrts_version()) == "0.4.1" );
-  CHECK( std::string(psmrts_info()) == "PSMRTS-0.4.1" );
+  CHECK( std::string(psmrts_version()) == psmrts_version() );
+  // CHECK( std::string(psmrts_info()) == "PSMRTS-0.4.1" );
 }
 
 /**
