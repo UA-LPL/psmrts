@@ -35,22 +35,48 @@ namespace psmrts {
   /**
    * @brief PSMRTS translations using environment and parameter replacements 
    * 
+   * This class sets up a system of path-like substitutions that start with a
+   * "$" and are present in a file path string. There are two types of path
+   * variables supported in the class. 
+   * 
+   * One is the system path environment variable as maintained in the
+   * Linux/Windows shell environment. For /bin/bash these are created using the
+   * "export variable=value". Both are variable and value are interpreted as
+   * strings with single values. These variables are case sensitive.
+   * 
+   * The second is a parameter of the same format as the enviroment variable but
+   * the paramater varible is case insensitive. This is mainly to support
+   * ISIS-like DataDirectory group key/value pairs that can have mixed case.
+   * These variables will be converted automatically to lower case by the
+   * container that stores these variables.
+   * 
+   * @author Kris J. Becker, University of Arizona
+   * @history 2026-02-04 Kris J. Becker  Original Version
   */
   class PsmrtsTranslations {
     public:
       using ParameterInventory   = ProductInventory<std::string, std::string>;
       using EnvironmentInventory = ProductInventory<std::string, std::string>;
 
-      PsmrtsTranslations( ) {
-        this->init();
+      PsmrtsTranslations(  ) {
+        this->init( "translations" );
       }
+      PsmrtsTranslations( const std::string &name  ) {
+        this->init( name );
+      }      
       virtual ~PsmrtsTranslations() { }
 
-      static PsmrtsTranslations create() {
-        PsmrtsTranslations trans_t;
-        trans_t.load_and_merge_environment();
+      static PsmrtsTranslations create( const std::string &name = "translations" ) {
+        PsmrtsTranslations trans_t ( name );
+        trans_t.load_and_merge_environment( );
         return ( trans_t );
       }
+
+      /** Return the name of this environment */
+      inline const std::string &name () const {
+        return ( m_name );
+      }
+
       /** Return parameter inventory set */
       inline const ParameterInventory &parameters( ) const {
         return ( m_parameters );
@@ -211,17 +237,19 @@ namespace psmrts {
       }
 
     private:
+      std::string          m_name;
       ParameterInventory   m_parameters;
       EnvironmentInventory m_environment;
       
       
       /** Reinitialize everything  */
-      inline void init( ) {
+      inline void init( const std::string &name = "translations" ) {
+        m_name = name;
         m_parameters  = create_case_insensitive_inventory<std::string>( "parameters" );
         m_environment = create_case_sensitive_inventory<std::string>( "environment");
       }
 
-      inline const EnvironmentInventory &load_and_merge_environment() {
+      inline const EnvironmentInventory &load_and_merge_environment( ) {
         m_environment.merge( PsmrtsTranslations::get_environment_variables( ) );
         return ( m_environment );
       }

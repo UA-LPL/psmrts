@@ -9,6 +9,7 @@ TEST_CASE( "PSMRTS Translations Default", "[translations][inventory][default]") 
 
   psmrts::PsmrtsTranslations translations;
 
+  CHECK( translations.name()              == "translations" );
   CHECK( translations.parameters().size() == 0 );
   CHECK( translations.parameters().name() == "parameters" );
   CHECK( translations.parameters().type() == "inventory" );

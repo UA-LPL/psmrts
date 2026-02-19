@@ -11,16 +11,6 @@
 
 
 TEST_CASE( "ProductProcessDispatch Default / MissingProcessRequestHandler", "[ProductProcessDispatch][Default]") {
-#if 0  
-    psmrts::ProductProcessDispatch<psmrts::MissingProcessRequestHandler> dispatch;
-
-    psmrts::PRQRayTrace ray_req;
-
-    CHECK( dispatch.process(ray_req) == false );
-    CHECK( ray_req.was_invoked() == false ); // ?
-    CHECK( ray_req.process_status() == false );
-    CHECK( ray_req.error_count() > 0 );
-#endif
     struct BadProduct {
         using UIDType = psmrts::PsmrtsUID::UIDType;
         bool process(psmrts::PRQVersion &request) const {
@@ -52,28 +42,3 @@ TEST_CASE( "ProductProcessDispatch Default / MissingProcessRequestHandler", "[Pr
     CHECK( request.was_invoked()      == true );
     CHECK( request.process_status()   == false );
 }
-
-#if 0
-TEST_CASE( "ProductProcessDispatch Values Test", "[ProductProcessDispatch][values]") {
-    double tolerance = 1.0e-6;
-
-    std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
-    psmrts::PsmrtsShape shape_s(  objfile );
-
-    // psmrts::ProductProcessDispatch<psmrts::PsmrtsShape> shape( shape_s );
-
-    psmrts::PRQFeatures feat;
-
-    CHECK( shape_s.process(feat) == true );
-    CHECK( feat.name() == "PRQFeatures" );
-    CHECK( feat.error_count() == 0 );
-
-    psmrts_json feat_json = feat.config();
-    CHECK( feat_json.size() != 0 );
-
-    // Uninitialized ray trace should fail.
-    psmrts::PRQRayTrace ray;
-    // CHECK( shape_s.process(ray) == false );
-
-}
-#endif

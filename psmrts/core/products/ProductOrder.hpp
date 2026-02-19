@@ -17,13 +17,13 @@ find files of those names at the top level of this repository. **/
 #include <functional>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsJson.hpp>
 #include <psmrts/core/PsmrtsContainer.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/PsmrtsTranslations.hpp>
 #include <psmrts/core/products/ProductConfiguration.hpp>
 #include <psmrts/core/products/ProductSpecification.hpp>
 #include <psmrts/core/products/ProductCart.hpp>
-#include <psmrts/core/PsmrtsJson.hpp>
 
 namespace psmrts {
 
