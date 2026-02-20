@@ -1,27 +1,30 @@
-# <a name="#psmrtsonboardingprocess">psmrts Onboarding Process for Developers</a>
-This document is a HOWTO of sorts to aid/guide developers in the process and procedures to contribute to psmrts. Topics covered here include: configuring a development computer system (this covers the Mac platform for now), acquiring and familiarization of resources and tools, installing psmrts for development, and setting up the development environment. These processes will enable the psmrts developer to create an psmrts system, make changes to existing code and/or add new software to psmrts, build and install psmrts, develop unit and application tests, and add documentation. These activities are all performed on your local system. The next step is to submit your contributions to the USGS/Astro psmrts repo for distribution.
+@page developerOnboard Developer Onboarding
 
-## <a name="#fordevelopers">PSMRTS Resources - What Developers Need To Know</a>
+This document is a HOWTO of sorts to aid/guide developers in the process and procedures to contribute to PSMRTS. Topics covered here include: configuring a development computer system (this covers the Mac platform for now), acquiring and familiarization of resources and tools, installing PSMRTS for development, and setting up the development environment. These processes will enable the PSMRTS developer to create an PSMRTS system, make changes to existing code and/or add new software to PSMRTS, build and install PSMRTS, develop unit and application tests, and add documentation. These activities are all performed on your local system. The next step is to submit your contributions to the USGS/Astro PSMRTS repo for distribution.
+
+@section sectionDeveloperKnowledge What Developers Need To Know
+
 There are considerable resources for PSMRTS developers available to assist development processes. Adding your software contribution to the PSMRTS repository takes considerable understanding and compliance with polices and best practices of open source software development standards. Below are some references to topics and tools that are useful to assist developers in understanding and learning about the PSMRTS development processes.
 
-### <a name="#helpfulreferences">PSMRTS Comphensive Guide to Resources</a>
-1. [Rocky Linux](https://rockylinux.org)
-1. [Bash Shell](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/toc.html)
-1. [Visual Studio Code](https://code.visualstudio.com) (vscode)
-1. [Markdown Guide](https://www.markdownguide.org) - The Common Language of Communicating Code
-1. [Anaconda](https://anaconda.org)/[Miniconda](https://docs.conda.io/projects/miniconda/en/latest/) - Python Environment Management
-1. [Git]( https://git-scm.com) - Fundamenantal to Most All Public Code Repositories
-1. [GitHub](https://github.com) - Public Source Code Repository Platform
-1. [GitLab](https://gilab.com) - Public Source Code Repository Platform
-1. [CMAKE](https://cmake.org) - Source Code Build System
-1. [C++](https://cplusplus.com) - Cool!
-1. [C++ Reference](https://en.cppreference.com/w/) - All About C++ Standards
-1. [C++ FAQ](https://isocpp.org/faq) - Very Good C++ FAQ
-1. [vcpkg](https://vcpkg.io/en/) - A C++ Dependency Manager
-1. [Catch2](https://github.com/catchorg/Catch2) - A C++ Testing Framework
+@section sectionDeveloperResources Developer Resources
+- [Rocky Linux](https://rockylinux.org)
+- [Bash Shell](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/toc.html)
+- [Visual Studio Code](https://code.visualstudio.com) (vscode)
+- [Markdown Guide](https://www.markdownguide.org) - The Common Language of Communicating Code
+- [Anaconda](https://anaconda.org)/[Miniconda](https://docs.conda.io/projects/miniconda/en/latest/) - Python Environment Management
+- [Git]( https://git-scm.com) - Fundamenantal to Most All Public Code Repositories
+- [GitHub](https://github.com) - Public Source Code Repository Platform
+- [GitLab](https://gilab.com) - Public Source Code Repository Platform
+- [CMAKE](https://cmake.org) - Source Code Build System
+- [C++](https://cplusplus.com) - Cool!
+- [C++ Reference](https://en.cppreference.com/w/) - All About C++ Standards
+- [C++ FAQ](https://isocpp.org/faq) - Very Good C++ FAQ
+- [vcpkg](https://vcpkg.io/en/) - A C++ Dependency Manager
+- [Catch2](https://github.com/catchorg/Catch2) - A C++ Testing Framework
 
 
-## <a name="#macsetup">Mac Configuration for PSMRTS Development</a>
+@section sectionMacConfig Mac Configuration for PSMRTS Development
+
 The Apple Mac platform provides a well-suited platform for PSMRTS development that is not too complicated to setup. The basic requirement is to install the latest version of Xcode to get started. Note that development on the new ARM platform is not fully supported in `vcpkg` but does seem to work for most of the current PSMRTS dependencies. The major reason for this is due to lack of ARM compatibility of many of the libraries in the `vcpkg` ports.
 
 If you have a Mac ARM computer you wish to use for PSMRTS development, please see this [ISIS issues post](https://github.com/DOI-USGS/ISIS3/issues/5188) regarding how to set up your Mac to enable ISIS development on the ARM platform. This post is also relevant for any project using `conda` but also projects that use other configurations.

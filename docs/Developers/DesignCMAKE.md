@@ -1,9 +1,8 @@
-# **PSMRTS CMAKE Design Objectives/Goals**
+@page designCmakePage CMAKE
+@author Kris J. Becker
+@date February 5, 2025
 
-  **Date**: February 5, 2025  
-  **Author**: Kris J. Becker
-
-### PSMRTS CMAKE Build Manangement System
+@section cmakeBuildMgmt PSMRTS CMAKE Build Management System
 
 PSMRTS uses CMake to manage its C++, C API and test code build systems. Along with the management of internal builds, this CMake system will provide three distinct [target EXPORT interfaces](https://cmake.org/cmake/help/latest/guide/importing-exporting/index.html#exporting-targets):
 
@@ -11,7 +10,7 @@ PSMRTS uses CMake to manage its C++, C API and test code build systems. Along wi
 - C API target that provides a C header (at a minimum) and a static library (psmrts::psmarts_capi)
 - Standalone PMSRTS plugin for runtime loading and isolated environment (psmsrts::psmarts_plugin)
 
-#### PSMRTS CMake Objectives and Goals
+@subsection cmakeObjectivesGoals PSMRTS CMake Objectives and Goals
 
 The objectives and goals of the PSMRTS CMAKE system are provided here. These bullets will also contain certain policy goals that are common in [modern CMAKE](https://cliutils.gitlab.io/modern-cmake/README.html) systems. In general, during development of the PSMRTS CMake system, all best practices of modern CMAKE will be applied that will focus on ease of internal management (i.e., adding/removing products like mesh format readers and ray tracing libraries), external project integration and runtime use.
 
@@ -26,7 +25,7 @@ The objectives and goals of the PSMRTS CMAKE system are provided here. These bul
 - Develop build system around concept of targets.
 
 
-### Targets and Requirements
+@section cmakeTargetsRequirements Targets and Requirements
 
 This section discusses the main targets within the PSMRTS system and what type of processing and variables are part of each of the major code feature in PSMRTS. Below are some of the targets that are in PSMRTS and thier requirements and characteristics. Here is the current directory structure:
 ```
@@ -74,7 +73,7 @@ Each of these library sources must have at minimum a CMakeLists.txt configuratio
 
 In addition to these directories, the ./docs section needs a CMake target. **PSMRTS will provide a CMake `docs` target to build documentation!**
 
-#### Formats CMake Configuration/Targets
+@subsection cmakeFormats Formats CMake Configuration/Targets
 To add a new `Format` (or `Tracer`) support library API to PSMRTS, developers are responsible for intergrating the library and its dependencies into PSMRTS build system developed with CMake. This section outlines the steps and CMake configuration requirements to ingest and install the package in PSMRTS.
 
 

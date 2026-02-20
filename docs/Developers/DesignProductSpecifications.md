@@ -1,3 +1,4 @@
+@page designCAPIPage C API
 
 # **PSMRTS Product Specifications**
 
@@ -5,7 +6,7 @@
   **Author**: Kris J. Becker
 
 ### PSMRTS Product Concept
-`PSMRTS` product request system is similar to a transactional system that allows users to select and configure mesh data sources and apply them in ray tracing enviroments. These environments are typically tracing libraries or systems, that can be customized for planetary shape/body ray tracers created by `PSMRTS`. Priority tracers contain more than one tracer where ray tracing operations can be specialized (e.g., prioritized, nearest-observer) and customized to suite.
+`PSMRTS` product request system is similar to a transactional system that allows users to select and configure mesh data sources and apply them in ray tracing environments. These environments are typically tracing libraries or systems, that can be customized for planetary shape/body ray tracers created by `PSMRTS`. Priority tracers contain more than one tracer where ray tracing operations can be specialized (e.g., prioritized, nearest-observer) and customized to suite.
 
 `PSMRTS`' prime objective is to create customized/optimized ray tracing configurations primarily for small irregular planetary bodies and shapes while efficiently managing these resources for large systematic processing operations.
 
@@ -713,88 +714,3 @@ Here are the processing steps ran in PsmrtsFactory::process(`PRQ`) to create PSR
 1. For each defined product, exiting PSMRTS product caches are executed as defined above.
 1. If cached products don't exist, a new one is created and added to the `PRQ` local result inventory for future reference (remember the local cache is also searched first).
 1. Priority tracers can efficiently and effectively be stored as an entire PsmrtsInventory. 
-
-### Multi-tracer Creation using ProductConfigurations
-
-Using a series of ProductOptions, users can create priority tracers using
-ProductConfigurations that compare with ProductSpecifications. PsmrtsFactory
-provides process term storage of PsmrtsShapes and PsmrtsTracers for reuse and
-acts as the resource for initial product creation from existing products.
-Compound tracers can be created from existing products that are compare during
-the creation process, creating new products when it does not exist, and then
-storing them back in factory.
-
-#### ProductConfiguration Processing
-
-Here is a step-by-step overview of conditions and expectations creating PSMRTS
-products through the configuration process:
-
-1. A single ProductConfiguration is used to create a single PsmrtsShape or a
-   PsmrtsTracer, typically with a PsrmtShape.
-1. A priority tracer is created from an ordered list of ProductConfigurations
-   where exising PSMRTS products can be reused from previous products created
-   from any/all earlier creative processes.
-1. The ProductOrder contains a single ProductConfiguration that will
-   generate a PsmrtsShape and/or a PsmrtsTarget. Each config is paired with a
-   residual config that contains any remaining unprocessed ProductOptions after
-   creation processes have completed.
-1. A PsmrtsInvoice contains a set of ProductOrders that will typically result in
-   the creation of a PsmrtsPriorityTracer. The tracers are initially configured
-   in the order in which the ProductOrders are added to the PsmrtsInvoice.
-1. Processing of a PsmrtsInvoice will take a PsmrtsInventory arg that will
-   contain the results of all the configurations.
-1. It will first check the PsmrtsInvoice inventory for any existing product that
-   might fullfil a ProductOrder.   
-1. It will then (optionally?) check the contents of the PsmrtsFactory for
-   any/all product orders.
-1. Both checks involve using the ProductConfiguration check each PsmrtsShape,
-   PsmrtsTracer and/or PsmrtsPriorityTracer for existing products that can help
-   fill the order.
-1. Existing products are identified and confirmed by comparing the
-   ProductConfiguration specified by user with the ProductConfiguration used to
-   create the existing product. The ProductSpecification becomes involved to
-   check for optional options should they be given or exist in either product
-   option. This occurs to confirm default values.
-1. If an existing product does not exist for the config, a new product is
-   created using the user config and product configurations.
-1. Creating new products will _consume_ all applicable ProductOptions for a
-   given product and return the remaining, if any, product options as residuals.
-   This procedure assumes each config contains parameters for a shape and a
-   tracer. After both are created and there is residual product options, this
-   results in an error and the products are discarded (or not created until
-   confirmed valid?).
-1. After all products are successfully created:
-    - A priority tracer is created from all tracers generated from the
-      discovery/creation process.
-    - The existing inventory of products are merged into the PsmrtsFactory for
-      further shares/resuse. (Should this be optional?)
-    - The PsmrtsInvoice can safely be deallocated as the priority tracer
-      contains a copy of all the products generated.
-    - The priority tracer itself can be saved to the factory and recalled by
-      name. However, if multiple priority tracers of the same name exist, a
-      complete ProductInvoice must be provided to ensure the proper tracer is
-      identified.
-
-
-#### PsmrtsInvoice Details
-
-PsmrtsInvoices contain a list of ProductConfigurations. ProductConfigurations
-are processed by creating a ProductOrder from each ProductConfiguration and
-processing the order by lookup/comparison of existing products or creation of
-new products. The PsrmtsOrder will contain the original ProductConfiguration and
-any residual ProductOptions that were not used to create the products. It is
-considered an error if any ProductOptions remain after the ProductOrder is
-processed.
-
-The PsmrtsInvoice contains its own internal PsmrtsInventory that is an
-accumulation of ProductOrders that are filled by the procedure defined above.
-Each ProductOrder is evaluated for validity (i.e, no residual ProductOptions)
-and an error will be generated if any residual options exist.
-
-
-#### ProductOrder Details
-
-ProductOrders contain an original ProductConfiguration and a list of additional
-ProductOptions that are not used to create a PsmrtsShape or PsmrtsTracer.
-
-
