@@ -17,20 +17,18 @@ find files of those names at the top level of this repository. **/
 #include <Eigen/Geometry>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
-#include <psmrts/core/PsmrtsRequest.hpp>
-#include <psmrts/core/products/ProductSpecification.hpp>
 #include <psmrts/core/PsmrtsJson.hpp>
 #include <psmrts/core/PsmrtsContainer.hpp>
-#include <psmrts/algorithms/VariantTraits.hpp>
+#include <psmrts/core/products/ProductSpecification.hpp>
 #include <psmrts/core/products/ProductMaker.hpp>
 #include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/tracers/PsmrtsTracer.hpp>
 
-
+/** Usage function for the application */
 inline void usage(int argc, char *argv[] ) {
   std::cout << "\nUsage: " << argv[0] << " - display PMRST product specifications interface" << std::endl;
   std::cout << "\n  Paramaters: -h/--usage      Display this help/usage text and exit" << std::endl;
-  std::cout << "              --index <n>     Number of spaces to indec JSON text [default:1]" << std::endl;
+  std::cout << "              --indent <n>    Number of spaces to indent JSON text [default:1]" << std::endl;
   std::cout << "                                -1 is no spaces (compact), 0 is left aligned, 1 is one space, etc..." << std::endl;
   std::cout << "              --tracers       Lists all tracers only" << std::endl;
   std::cout << "              --shapes        Lists all shapes only" << std::endl;
@@ -40,26 +38,37 @@ inline void usage(int argc, char *argv[] ) {
 
 
 /**
- * @brief Main function of the psmrts_capi_features application.
+ * @brief Main function of the psmrts_product_specs application.
  *
- * This application serves as a demonstration of the Bullet shape tracing sytem
- * in the PSMRTS library.
+ * This application provides a list of all available shape and tracer products
+ * and the user configurable options and driver configurations. The "features"
+ * sections contains the list of available options that can be supplied when
+ * creating a particular product. 
+ * 
+ * Output is generated in JSON format where the "--indent" option controls the
+ * JSON spacing on output. A value of -1 produces a compact JSON string with no
+ * indention. Only shapes (--shapes) or tracers (--tracers) can be listed. Users
+ * can also select specific products by name as optional arguments to the app.
  *
  * @param argc Number of command line arguments.
  * @param argv Array of strings representing command line arguments.
  * @return Integer indicating exit status of the application. Returns 0 upon
  *         successful execution, non-zero otherwise.
+ * @author 2026-02-20 Kris J. Becker - Univerity of Arizona
+ * @history2026-02-20 Kris J. Becker Original verison
  */
 int main( int argc, char *argv[] ) {
-
+  using SpecsList = psmrts::PsmrtsContainer<psmrts::ProductSpecification>;
 
 // Parse the arguments. This app can be run with no arguments!
   std::vector<std::string> products;
   int j_indent   = 1;
-  bool do_all    = true;
+  bool do_all     = true;
   bool do_tracers = false;
-  bool do_shapes = false;
+  bool do_shapes  = false;
+  bool got_list   = false;
 
+  // Parse the input parameters from the user
   size_t nth = 1;
   for ( ; nth < argc ; nth++ ) {
     std::string arg_s( argv[nth] );
@@ -69,7 +78,7 @@ int main( int argc, char *argv[] ) {
         usage( argc, argv );
         return ( 1 );
       }
-      else if ( "--index" == arg_s ) {
+      else if ( "--indent" == arg_s ) {
         if ( ++nth >= argc ) {
           std::cerr << "--index must provide an integer argument!" << std::endl;
           return ( 2 );
@@ -96,33 +105,82 @@ int main( int argc, char *argv[] ) {
       }
     }
     else {
-      products.push_back( arg_s );
+      products.push_back( psmrts::psmrts_tolower( arg_s ) );
+      got_list = true;
     }
   }
 
-  psmrts::PsmrtsContainer<psmrts::ProductSpecification> products_v("products");
-  
-  psmrts::ProductMaker<psmrts::PsmrtsShape> shape_m;
+
+  // Keep track of found products
+  std::vector<std::string> found_products;
+
+  // List of found shapes
+  SpecsList shape_v;
   ordered_json shapes_j = ordered_json::array();
-  for ( const auto &s : shape_m.get_product_specs() ) {
-    ordered_json s_j;
-    s_j = psmrts::json_utils::insert_object( s.name(), s.to_json() );
-   shapes_j.push_back(  s_j );
+
+  if ( do_all || do_shapes ) {
+    shape_v = psmrts::ProductMaker<psmrts::PsmrtsShape>().get_product_specs(); 
+    for ( const auto &s : shape_v ) {
+      ordered_json s_j;
+      if ( got_list ) {
+        if ( psmrts::psmrts_contains_string( s.name(), products ) ) {
+          found_products.push_back( s.name() );
+          s_j = psmrts::json_utils::insert_object( s.name(), s.to_json() );
+          shapes_j.push_back(  s_j );
+        }
+      }
+      else {
+        s_j = psmrts::json_utils::insert_object( s.name(), s.to_json() );
+        shapes_j.push_back(  s_j );
+      }
+    }
+  }
+  
+  // List of found tracers
+  SpecsList tracer_v;
+  ordered_json tracers_j = ordered_json::array();
+
+  if ( do_all || do_tracers ) {
+    tracer_v = psmrts::ProductMaker<psmrts::PsmrtsTracer>().get_product_specs();
+    for ( const auto &t : tracer_v ) {
+      ordered_json t_j;
+      if ( got_list ) {
+        if ( psmrts::psmrts_contains_string( t.name(), products ) ) {
+          found_products.push_back( t.name() );
+          t_j = psmrts::json_utils::insert_object( t.name(), t.to_json() );
+          tracers_j.push_back( t_j );
+        }
+      }
+      else {
+        t_j = psmrts::json_utils::insert_object( t.name(), t.to_json() );
+        tracers_j.push_back( t_j );
+      }
+    }    
   }
 
-  psmrts::ProductMaker<psmrts::PsmrtsTracer> tracer_m;
-  ordered_json tracers_j = ordered_json::array();
-  for ( const auto &t : tracer_m.get_product_specs() ) {
-    ordered_json t_j;
-    t_j = psmrts::json_utils::insert_object( t.name(), t.to_json() );
-     tracers_j.push_back( t_j );
+  // Check if list is satisfied list
+  if ( got_list ) {
+    size_t nerrs = 0;
+    for ( const auto &s : products ) {
+      if ( !psmrts::psmrts_contains_string( s, found_products ) ) {
+        std::cerr << "*** Error - product " << s << " in requestd list not found!" << std::endl;
+        nerrs++;
+      }
+    }
+    if ( nerrs > 0 ) return ( 5 );
   }
 
   ordered_json specs_j = ordered_json::object();
-  specs_j["shapes"]  = shapes_j;
-  specs_j["tracers"] = tracers_j;
+  if ( shapes_j.size() > 0)  specs_j["shapes"]   = shapes_j;
+  if ( tracers_j.size() > 0) specs_j["tracers"] = tracers_j;
 
-  std::cout << specs_j.dump(1) << std::endl;
+  if (specs_j.size() == 0 ) {
+    std::cerr << "*** Error No products found!" << std::endl;
+    return ( 6 );
+  }
+
+  // Report the results!
+  std::cout << specs_j.dump( j_indent ) << std::endl;
   
   return ( 0 );
 }
