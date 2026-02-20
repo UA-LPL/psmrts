@@ -197,6 +197,9 @@ namespace psmrts {
       if ( j.is_null() ) {
           obj_j[name] = null_j;
       }
+      else if ( j.is_array() ) {
+        obj_j[name] = j;
+      }
       else {
         for ( auto &[ key, value] : j.items() ) {
           if ( value.is_null() ) {

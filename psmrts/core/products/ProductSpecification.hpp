@@ -198,9 +198,9 @@ namespace psmrts {
           j_info.update( j_data.to_json() );
         }
 
-        ordered_json j_features = {};
+        ordered_json j_features = ordered_json::array();
         for ( const auto &j_feature : features().data()  ) {
-          j_features.update( j_feature.to_json() );
+          j_features.push_back( j_feature.to_json() );
         } 
         
         ordered_json j;
