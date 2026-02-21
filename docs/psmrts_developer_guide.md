@@ -28,25 +28,25 @@ shapes specified by a filename. Each of the shape products contain a list of
 file suffixes that are used to unquely and easily identify a supported format
 from which a mesh is read and processed.
 
-Each product contains a [ProductSpecification](../../psmrts/core/products/ProductSpecification.hpp) definition that accepts a
-[ProductConfiguration](../../psmrts/core/products/ProductConfiguration.hpp) that contains feature option keyword/value pairs that are
+Each product contains a [ProductSpecification](../psmrts/core/products/ProductSpecification.hpp) definition that accepts a
+[ProductConfiguration](../psmrts/core/products/ProductConfiguration.hpp) that contains feature option keyword/value pairs that are
 compared to its specifications. Each option is evaluated against features by
 name or _alias_. A feature _alias_ is simply another keyword that can be
 substituded for the real feature option name so that generic configurations can
 be used. All 
 
 The PSMRTS application,
-[psmrts_product_specs](../../psmrts/apps/psmrts_product_specs.cpp) provides the
+[psmrts_product_specs](../psmrts/apps/psmrts_product_specs.cpp) provides the
 the product interface specifications of all shapes and tracers. The output is
 parseable JSON format.
 
 ## PsmrtsShape Product Configurations
-The class [PsrmtsShape](../../psmrts/shapes/PsmrtsShape.hpp) maintains a set of
+The class [PsrmtsShape](../psmrts/shapes/PsmrtsShape.hpp) maintains a set of
 shape file readers. The supported shape formats are provided NAIF DSKs by
-[DskShape](../../psmrts/shapes/dsk/DskShape.hpp), OBJ by
-[ObjShape](../../psmrts/shapes/obj/ObjShape.hpp), PLY by
-[PlyShape](../../psmrts/shapes/ply/PlyShape.hpp) and generic mesh in
-[MeshShape](../../psmrts/shapes/mesh/MeshShape.hpp). 
+[DskShape](../psmrts/shapes/dsk/DskShape.hpp), OBJ by
+[ObjShape](../psmrts/shapes/obj/ObjShape.hpp), PLY by
+[PlyShape](../psmrts/shapes/ply/PlyShape.hpp) and generic mesh in
+[MeshShape](../psmrts/shapes/mesh/MeshShape.hpp). 
 
 To configure a shape, refer to the shape only product configuration as reported
 by by running the command `psmrts_product_specs --shapes` or with a specific
@@ -129,7 +129,7 @@ following configuration:
 The minimum requrement to specify this shape is to provide a `obj_file` option
 naming a specific file name, such as
 `bennu_g_00880mm_alt_obj_0000n00000_v021.obj`, using the
-[ProductOption](../../psmrts/core/products/ProductOption.hpp). To more
+[ProductOption](../psmrts/core/products/ProductOption.hpp). To more
 fully specify the `obj` format directy, you can use the _product_ and _name_
 options shown in the __info__ section of the above JSON structure. To configure
 this shape in PSMRTS, use the following code:
@@ -302,7 +302,7 @@ three dimensional (3D) vector system. In this system, there are two vectors that
 define a ray trace: a vector describing the position of the observer and a
 second unit vector that represents the direction from the observer to perform a
 trace. These two vectors combined is a PSMRTS ray trace and are stored in the
-[PsmrtsRayTrace](../../psmrts/core/PsmrtsRayTrace.hpp) class.
+[PsmrtsRayTrace](../psmrts/core/PsmrtsRayTrace.hpp) class.
 
 ### Observer/Look Direction Coordinate System
 PSMRTS performs ray traces in the planet body-fixed coordinate system. The
@@ -310,7 +310,7 @@ position of the observer is a ray that extends from the center of the planet
 body to a point in 3D space. The look vector is a unit vector where the orgin
 is from the observer position presumably toward the plant body surface. These
 two vectors are parameters to constructors provided in the
-[PsmrstRayTrace](../../psmrts/core/PsmrtsRayTrace.hpp) class. This class is the
+[PsmrstRayTrace](../psmrts/core/PsmrtsRayTrace.hpp) class. This class is the
 fundamental basis for a system of extended classes that perform different types
 and varieties of traces. However, the result of every trace in the PSRMTS
 system is retained in a PsmrtsRayTrace object after the PSMRTS tracer calculates
@@ -335,7 +335,7 @@ computed from the observer/look direction vector.
 PSMRTS provides a _process request_ system of classes, called `PRQ`, that
 extends ray tracing capabilites. These classes compute one or more ray trace
 computations. These classes are defined in the file
-[PsmrtsRequest](../../psmrts/core/PsmrtsRequest.hpp). These classes are special
+[PsmrtsRequest](../psmrts/core/PsmrtsRequest.hpp). These classes are special
 processing class that inherit `PsmrtsRequest` as a base class that tracks errors
 and performance metrics. The primary purpose of these classes are to provide
 conditional execution of PRQ request class processing operations. 
@@ -357,7 +357,7 @@ implement any of the tracer process() methods. This minimizes the burden of
 writting dummy methods and minimizes code maintanence.
 
 Here is a list and brief description of all the PRQ classes contained in the
-[PsrmtsRequest](../../psmrts/core/PsmrtsRequest.hpp) file:
+[PsrmtsRequest](../psmrts/core/PsmrtsRequest.hpp) file:
 
 - __PQRRayTrace__ contains a single ray trace and is the fundamental class for all
   ray tracers. It is primarily for precision tracking of ray trace operations.
@@ -386,16 +386,16 @@ to be added at the bottom of the ray tracer classes to trap all unimplemented
 In previous discussion of PSMRTS product creation, the products created are
 unique instances of shapes and tracers. One of the most critical properties of
 PSMRTS is the sharing of products to minimize use and manage memory resources.
-The [PsrmtsFactory](../../psmrts/core/PsmrtsFactory.hpp) class maintains a
+The [PsrmtsFactory](../psmrts/core/PsmrtsFactory.hpp) class maintains a
 system-wide inventory of shapes, tracers and priority tracers primarly for reuse
 purposes. The fundamental storage mechanism is the
-[PsrmtsInventory](../../psmrts/core/PsmrtsInventory.hpp) database. It consists of
+[PsrmtsInventory](../psmrts/core/PsmrtsInventory.hpp) database. It consists of
 product storage containers of PSMRTS shapes, tracers, priority tracers and file
 path translators. 
 
 ### File Path Translations 
 File path translators, called
-[PsmrtsTranslations](../../psmrts/core/PsmrtsTranslations.hpp) contain OS shell
+[PsmrtsTranslations](../psmrts/core/PsmrtsTranslations.hpp) contain OS shell
 environment variables and ISIS DataDirectory-like parameters that are primarly used
 to substitute instances of file path elements containing tags that start with a
 "$". The file path substitution algorithm performs a parameterized count of
@@ -405,13 +405,13 @@ in the configuration/specification processing phase of product creation. The
 expanded paths are stored in configuration _metadata_ containers.
 
 ### PsmrtsInvoice - Resource Management Strategies
-The [PsmrtsInvoice](../../psmrts/core/PsmrtsInvoice.hpp) class is the primary
+The [PsmrtsInvoice](../psmrts/core/PsmrtsInvoice.hpp) class is the primary
 resource management system that should be used to take full advantage of all
 PSRMTS capabilites. It contains a local PsmrtsInventory of all shapes, tracers,
 priority tracers and translators for maximum efficiency. It also integrates use
 of the system-wide PSRMTS factory system for centralized and coordinated
 resource management. See
-[ProductProcessing](../../psmrts/core/products/ProductProcessing.hpp) for
+[ProductProcessing](../psmrts/core/products/ProductProcessing.hpp) for
 additional details.
 
 PsmrtsInvoice applies a factory/invoicing model to create priorty tracers from
