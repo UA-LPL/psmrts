@@ -1,4 +1,4 @@
-##### Planetary Shape Model and Ray Tracing System (PSMRTS)
+##### Planetary Shape Model Ray Tracing System (PSMRTS)
 
 ## PSMRTS Readme
 
