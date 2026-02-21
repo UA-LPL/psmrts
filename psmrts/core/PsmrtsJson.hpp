@@ -50,13 +50,13 @@ namespace Eigen {
     j = json::array( { v[0], v[1], v[2] } );
   }
 
-  /** Translate a JSON object to an Eigen::Quaterniond  */
+  /** Translate a JSON object to an Eigen::Vector3d  */
   inline void from_json( json &j, Eigen::Vector3d &v) {
     auto j_v = j.template get<std::vector<double>>();
     v = Eigen::Vector3d( j_v.data() );
   }    
 
-  /** Translate a JSON object to an Eigen::Quaterniond  */
+  /** Translate a JSON object to an Eigen::Vector3i */
   inline void from_json( json &j, Eigen::Vector3i &v)  {
     auto j_v = j.template get<std::vector<int>>();
     v = Eigen::Vector3i( j_v.data() );
@@ -196,6 +196,9 @@ namespace psmrts {
       ordered_json obj_j;
       if ( j.is_null() ) {
           obj_j[name] = null_j;
+      }
+      else if ( j.is_array() ) {
+        obj_j[name] = j;
       }
       else {
         for ( auto &[ key, value] : j.items() ) {

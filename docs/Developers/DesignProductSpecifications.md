@@ -1,11 +1,9 @@
+@page designProductSpecs Product Specifications
+@tableofcontents
 
-# **PSMRTS Product Specifications**
+@section designProductConcept PSMRTS Product Concept
 
-  **Date**: May 24, 2025  
-  **Author**: Kris J. Becker
-
-### PSMRTS Product Concept
-`PSMRTS` product request system is similar to a transactional system that allows users to select and configure mesh data sources and apply them in ray tracing enviroments. These environments are typically tracing libraries or systems, that can be customized for planetary shape/body ray tracers created by `PSMRTS`. Priority tracers contain more than one tracer where ray tracing operations can be specialized (e.g., prioritized, nearest-observer) and customized to suite.
+`PSMRTS` product request system is similar to a transactional system that allows users to select and configure mesh data sources and apply them in ray tracing environments. These environments are typically tracing libraries or systems, that can be customized for planetary shape/body ray tracers created by `PSMRTS`. Priority tracers contain more than one tracer where ray tracing operations can be specialized (e.g., prioritized, nearest-observer) and customized to suite.
 
 `PSMRTS`' prime objective is to create customized/optimized ray tracing configurations primarily for small irregular planetary bodies and shapes while efficiently managing these resources for large systematic processing operations.
 
@@ -13,7 +11,8 @@ Each element - meshes, tracers, even priority tracers - are products. Meshes com
 
 The implementation plan is described in this document.
 
-#### Product Description
+@section designProductDescription PSMRTS Product Description
+
 Each `PSMRTS` product, such as a `mesh`, `tracer`, must have a description that defines the product API specification and software driver information. This specification will be implemented in s/w as a JSON structure. Our objective is to design a product description that considers the following requirements, functionality and flexibility:
 - Products must have a unique _name_. For example, `obj`, `ply`, `dsk` (`bds`) for meshes and `bullet`, `naifdsk`, `ellipsoid` (`sphere`, `spheroid`) as tracers. **NOTE: This will also be the default of the software driver name that creates these products.**
 - Products must define its _type_. Current options are: `mesh`, `tracer` (`shapetracer`) and `prioritytracer`.
@@ -32,10 +31,12 @@ Each `PSMRTS` product, such as a `mesh`, `tracer`, must have a description that 
 - This configuration is a critical part of the registration procedure that adds drivers and functionality to the `PSMRTS` system.
 - Drivers are constructed for each product and registered in a lookup table for the driver name. The table must be iterable as well to support match operations to determine if a user config matches a product specification, which would typically result in a `create()` call.
 
-#### ProductSpecification class 
+@section designProductSpecClass PSMRTS Product ProductSpecification Class
+
 The `ProductSpecification` class defines the format for product specification. This class will maintain a product name and type along with parameterization specifications and driver information. Each product driver must provide the details shown below and subsequently discussed in the following example. This static method is required in each `PSMRTS` product implementation.
 
-##### Shape Specification
+@section designShapeSpec PSMRTS Shape Specification
+
 The example shown here is the specification for the `tinyobjloader` OBJ reader. It also reads materials. Additional functionality can be added to support reading/retaining the materials structure and provide an object functor interface to get access to the materials data read by `tinyobjloader`. We are currently recommending this specification belongs in the product process class, such as ObjShape.hpp.
 
 ```
@@ -93,7 +94,8 @@ The example shown here is the specification for the `tinyobjloader` OBJ reader. 
 
 Note this approach also provides some interesting possibilitites. Developers can add their own parameters that could be used to turn on debugging, logging and I/O options for analysis/debugging. We should anticipate a need for global `psmrts` parameter options (ex: `psmrts_maximum_threads=0`) that drivers could recognize and apply within their scope. Note that special types like `file` can include methods that check the _value_ of the type for a _file_suffixes_ to satisfy its required file extension. Note that most string values, excluding `file` and `directory`, are converted to lower case (such as JSON keyword names should all be lowercase - enforced in the `ProductParameter` class).
 
-##### Tracer Specification
+@section designTracerSpec PSMRTS Tracer Specification
+
 The Bullet system configuration provides users the abilility to use a bounding volume hierarchy, use compression and apply measures to ensure single thread safety when running a ray trace. Here is the prelimimary specfication for Bullet:
 ```
       static inline ProductSpecification product_specifications() {
@@ -140,7 +142,8 @@ The Bullet system configuration provides users the abilility to use a bounding v
       }
 ```
 
-#### ProductParameter class
+@section designProductParameter ProductParameter Class
+
 The `ProductParameter` class that maintains and provides operations on the JSON array of `"parameters"` structures. These object instances of the parsed JSON content of the `"parameters"` array will provide operations as needed such as validation of the required format and comparisons of other instances. It should also allow storage of a _value_ keyword that will be added to the ProductParameter object when specified from a user. 
 
 This class will maintain a single product parameter for each element extracted from the `"parameters"` array as shown above. Specifically, structures of the following format will be supported/expected:
@@ -169,12 +172,13 @@ A match validation call will be of the form:
 
 Along with `ProductSpecification`, this class should provide much of the needs to support product specification, driver configuration, user parameterization and validation for every product.
 
-### ProductRequest class
+@section designProductRequest ProductRequest Class
 The `ProductRequest` class maintains a configuration for a particular product. `ProductRequest` objects originate ultimately from users, but developers produce the class instances. This class should interact directly with the `ProductSpecification` class to determine if the driver has all the required parameters and proper values for options in the product configuration. I am thinking this class can inherit the `ProductParameter` class and the ability to interogate values is added in methods here. Search capabilties on, at least, parameter names in both `ProductSpecification` and `ProductRequest`.
 
 An instance of a `ProductRequest` is intended to be a simple, linear set of keywords that define all the products needed along with customized parameters to configure a product, ultimately a `shapetracer`. This design needs to support at a minimum our three defined types: `mesh` (formats), `tracer` (`shapetracer`) and `prioritytracer`. The idea here is that each product will be checked for what is needed and calls are made in the `ProductManufacturing` class starting with tracer calls and if tracers need a mesh, it will request a mesh product from its contents. Note that validation of the configuration should be validated with JSON diff() function on the remaining parameters after each product request is fullfilled. A successful configuration occurs when no JSON keys remain after processing a product request in a `ProductRequest`.
 
-#### Tracer configurations
+@section designTracerConfig Tracer Configurations
+
 This is an example showing how to a Bullet tracer with a DSK file is requested and its configured status:
 
 ```
@@ -249,7 +253,8 @@ char sphere_config[] = R"(
 } )";
 ```
 
-#### PriorityTracer configurations
+@section designPriorityTracerConfig PriorityTracer Configurations
+
 The `PSMRTS` `prioritytracer` configuration is simply an ordered array of `ProductRequest`s contained in JSON format. While construction of tracers w/wo meshes can be achieved using simple `keyword=value`, which is easy for C or Python users, creating a `priortytracer` requires a chain of ordered tracers. This will require additional support for those users to create a `prioritytracer` in `PSMRTS`, which we will provide. 
 
 The format of `prioritytracer`s are of the following form:
@@ -276,7 +281,8 @@ The `bennu_tag_tracer` user config provides high resolution (5cm GSD) coverage a
 
 One thing to note: `PSMRTS` will not share any instances of `ellipsoid`s. They typically have very little overhead and it simplifies support for mathematically defined shape models in `PSMRTS` to simply create unique instances of ellipsoids.
 
-## Usage in the C API
+@section designCAPI Usage in the C API
+
 This framework lays the foundation for the PSMRTS C/C++ and user interface. It is not lost that some configurations can be quite complex in conveying parameterization for each product requested by a user - particularly when using text strings only. The configurations the `ellisoid`, `spheroid` and `sphere` products are the most basic types. The string configurations expected from the user and applied in the `PSMRTS` C api has the following form:
 
 ```
@@ -374,7 +380,8 @@ std::shared_ptr<PSMRTS_RayTrace>     ray( psmrts_ray_trace( ellisoid, observer, 
 ```
 This form works really well to ensure your applications are neatly memory manageable.
 
-#### PSMRTS_Vector3d C Structure
+@section designPSMRTS_Vector3d PSMRTS_Vector3d C Structure
+
 You can see where the PSMRTS_Vector3d plays a large part in the code above. This structure is nothing more that an analogy to Eigen::Vector3d. It is defined as a union of several convenient forms of 3 double precision data values.
 ```
 typedef union {
@@ -401,18 +408,19 @@ You can see an similar approach as this [PROJ_COORD](https://proj.org/en/stable/
 REQUIRE( sizeof(PSMRTS_Vector3d) == (3 * sizeof(double)) );
 ```
 
-#### PSMRTS_RayTrace C Structure
+@section designPSMRTS_RayTrace PSMRTS_RayTrace C Structure
+
 The `PSMRTS_RayTrace` type consists of observer position and look direction vectors. Both vectors are provided in units of kilometers (km) although the direction vectors are typically unitless and can be normalized. `PSMRTS_RayTrace` is an opaque pointer to a ray tracer object. In this context, they are actually _PSMRTS request functor_ (PRQ) objects. Specifically, the `PSMRTS_RayTrace` C API type is actually mapped to the `PRQRayTrace` functor object. These PRQ functor objects are well suited for this feature as they all contain inherent error checking/catching, with full accounting of its execution processing. All PRQ functors are contained in the header file `PsmrtsRequest.hpp`.
 
 To implement the opaque pointer method using this technique, declarations occur in both the psmrts_c.h and psmrts_c.cpp files. Keep in mind that content of `psmrts_c.h` must typically contain only code that can be compiled by both the C and C++ compilers. `psmrts_c.cpp` contain C++ elements that define the C++ interface.
 
-#### psmrts_c.cpp
+@section designC_CPP psmrts_c.cpp
 ```
 using PSMRTS_RayTrace = psmrts::PRQRayTrace;
 ```
 
 
-#### psmrts_c.h
+@section designC_H psmrts_c.h
 ```
 #pragma once 
 #ifndef psmrts_c_h
@@ -625,12 +633,14 @@ extern void psmrts_free_photometric_trace_array( PSMRTS_PhotometricTraceArray *p
 #endif // psmrts_c_h
 ```
 
-## Product Configuration Syntax: Rules and Examples
+@section designConfigSyntax Product Configuration Syntax: Rules and Examples
+
 The PSMRTS system contains C and C++ API componets that provide product parameterization techniques. They are designed with user specification considerations which mainly entails string syntax product configurations. The preferred format is JSON, but admittedly, it can be tedious with all the double quotes, curly braces and square brackets. So we have embrace support for parameter-value language (PVL) as an option to simplify the user configuration process while imposing some JSON syntax into the rules. Note that this format is supported for both the C and C++ developer where indicated - which is certainly testing processes!
 
 The JSON string format is highly preferred as the parsing rules are standardized across many third party tools. One thing we rely on that is not a JSON standard is retaining the order of JSON keywords, which are typically ordered alphabetically.  We use nlohmann::json in our implementation that provides an `ordered_json` type. This type retains the order of keywords as they are parsed in strings. We also generate full JSON strings to convey nearly all our data to users. The PVL format satisfies configuration requirements and simplifies syntax for many users.
 
-### PSMRTS Product Configuration JSON String Syntax
+@section designConfigJsonSyntax PSMRTS Product Configuration JSON String Syntax
+
 JSON string representations of product specifications are the recommended method to configure PSRMTS products. We use the nhlohman::json::dump utilites to construct output strings that can be used to reconfigure a copy or find a cached version of an existing product. The following example shows the product specification for the PLY Shape format. Each PSRMTS product must create a product specification similar to this for parsing user input strings.
 
 Configurations are created using the following syntax. It constructs a product configuration request that creates a NAIF DSK shape tracer using a specific segment in a DSK BDS file.
@@ -654,7 +664,8 @@ PriorityTracerConfig ptlist = {
                                                       } ) 
                               };
 ```                                                       
-### PSMRTS Product Configuration PVL String Syntax
+@section designConfigPvlSyntax PSMRTS Product Configuration PVL String Syntax
+
 PVL `keyword=value` type data is provided as an alternative to JSON string PSMRTS product configurations. This format is easier to use and still provide the requirements to specify the full range of PSMRTS product configurations.
 
 Here are the general syntax rules for PVL product configuration strings:
@@ -677,7 +688,8 @@ const char *bennu_tag_global = "[{tracer=bullet;obj_file=l_00050mm_alt_ptm_5595n
 ```
 Clearly, order matters here. You can also separate the arrays with commas as is allowed by JSON, otherwise use the semicolon or line feed characters to separate all keyword/value pairs and priority shape tracers.
 
-### Processes to Create Products
+@section designCreateProducts Processes to Create Products
+
 Process requests, or PRQs, are used to configure PSMRTS products. Ultimately, this process results in compound ray tracing objects for individual targets. Targets can be global or regional for most any composition. These instances are scalable and can result in complex configurations.
 
 PSMRTS products are primarily comprised of shapes, tracers and priority tracers. Shapes are typically stored in files containing tesselated plate/mesh-like formatted data. Currently, PSMRTS supports OBJ, PLY and NAIF DSK file formats. Users can also map data to PMSRTS buffers that can also be used in PSMRTS tracers. (DEMONSTRATE THIS!!)
@@ -688,7 +700,8 @@ Priority tracers are set of two or more tracers that act on the same body. Compl
 
 PSMRTS products are constructed from a user/dev supplied configuration. Individual product configurations are contained in the ProductConfiguration object. The PRQConfiguration class, utilizing a fundamental request/process technique, contains one or more product configurations that ultimately end up as a tracer or a priority tracer. Shapes are consumed by tracers and tracers are comprised of multiple tracers.
 
-### Steps to create PSMRTS Products
+@section designCreateProductSteps Steps to Create Products
+
 The steps required to create PSMRTS products are outlined below. Generally, users must construct a ProductConfiguration comprised of product options specified to the desired object to create. Fundamentally, ProductConfigurations are designed toward tracers. As such, the configuration of a shape is included within a ProductConfiguration as required by the tracer. Tracer shape requirements can vary significantly. For example, spheres, spheroids and ellipsoids have no physical data associated with its mathematical model other than radii; NAIF DSK tracers support only one file format (NAIF DSK .bds) and are not physically loaded but disk bound; Bullet can accept any triangular/facet-based mesh (including float and double types - PSMRTS standardizes on double precison mesh data). However, a configuration can specify only a shape. Priority tracers are created from individual tracers where each has a ProductConfiguration.
 
 Here are preconditions/actions/considerations that occur in the creation of PSRMTS tracer products:
@@ -704,7 +717,6 @@ Here are preconditions/actions/considerations that occur in the creation of PSRM
 1. Priority tracers can efficiently and effectively be stored as an entire PsmrtsInventory. However, all the components of a priorty tracer are contained in the cache system individually and constructed on demand unless the priority tracer is constructed by name.
 
 
-
 Here are the processing steps ran in PsmrtsFactory::process(`PRQ`) to create PSRMTS tracer products:
 1. Evalute `config` to identify individual products using `ProductSpecification` as stored in the factory caching system.
 1. After each product has been identified, check to determine if any residual options remain.
@@ -713,88 +725,3 @@ Here are the processing steps ran in PsmrtsFactory::process(`PRQ`) to create PSR
 1. For each defined product, exiting PSMRTS product caches are executed as defined above.
 1. If cached products don't exist, a new one is created and added to the `PRQ` local result inventory for future reference (remember the local cache is also searched first).
 1. Priority tracers can efficiently and effectively be stored as an entire PsmrtsInventory. 
-
-### Multi-tracer Creation using ProductConfigurations
-
-Using a series of ProductOptions, users can create priority tracers using
-ProductConfigurations that compare with ProductSpecifications. PsmrtsFactory
-provides process term storage of PsmrtsShapes and PsmrtsTracers for reuse and
-acts as the resource for initial product creation from existing products.
-Compound tracers can be created from existing products that are compare during
-the creation process, creating new products when it does not exist, and then
-storing them back in factory.
-
-#### ProductConfiguration Processing
-
-Here is a step-by-step overview of conditions and expectations creating PSMRTS
-products through the configuration process:
-
-1. A single ProductConfiguration is used to create a single PsmrtsShape or a
-   PsmrtsTracer, typically with a PsrmtShape.
-1. A priority tracer is created from an ordered list of ProductConfigurations
-   where exising PSMRTS products can be reused from previous products created
-   from any/all earlier creative processes.
-1. The ProductOrder contains a single ProductConfiguration that will
-   generate a PsmrtsShape and/or a PsmrtsTarget. Each config is paired with a
-   residual config that contains any remaining unprocessed ProductOptions after
-   creation processes have completed.
-1. A PsmrtsInvoice contains a set of ProductOrders that will typically result in
-   the creation of a PsmrtsPriorityTracer. The tracers are initially configured
-   in the order in which the ProductOrders are added to the PsmrtsInvoice.
-1. Processing of a PsmrtsInvoice will take a PsmrtsInventory arg that will
-   contain the results of all the configurations.
-1. It will first check the PsmrtsInvoice inventory for any existing product that
-   might fullfil a ProductOrder.   
-1. It will then (optionally?) check the contents of the PsmrtsFactory for
-   any/all product orders.
-1. Both checks involve using the ProductConfiguration check each PsmrtsShape,
-   PsmrtsTracer and/or PsmrtsPriorityTracer for existing products that can help
-   fill the order.
-1. Existing products are identified and confirmed by comparing the
-   ProductConfiguration specified by user with the ProductConfiguration used to
-   create the existing product. The ProductSpecification becomes involved to
-   check for optional options should they be given or exist in either product
-   option. This occurs to confirm default values.
-1. If an existing product does not exist for the config, a new product is
-   created using the user config and product configurations.
-1. Creating new products will _consume_ all applicable ProductOptions for a
-   given product and return the remaining, if any, product options as residuals.
-   This procedure assumes each config contains parameters for a shape and a
-   tracer. After both are created and there is residual product options, this
-   results in an error and the products are discarded (or not created until
-   confirmed valid?).
-1. After all products are successfully created:
-    - A priority tracer is created from all tracers generated from the
-      discovery/creation process.
-    - The existing inventory of products are merged into the PsmrtsFactory for
-      further shares/resuse. (Should this be optional?)
-    - The PsmrtsInvoice can safely be deallocated as the priority tracer
-      contains a copy of all the products generated.
-    - The priority tracer itself can be saved to the factory and recalled by
-      name. However, if multiple priority tracers of the same name exist, a
-      complete ProductInvoice must be provided to ensure the proper tracer is
-      identified.
-
-
-#### PsmrtsInvoice Details
-
-PsmrtsInvoices contain a list of ProductConfigurations. ProductConfigurations
-are processed by creating a ProductOrder from each ProductConfiguration and
-processing the order by lookup/comparison of existing products or creation of
-new products. The PsrmtsOrder will contain the original ProductConfiguration and
-any residual ProductOptions that were not used to create the products. It is
-considered an error if any ProductOptions remain after the ProductOrder is
-processed.
-
-The PsmrtsInvoice contains its own internal PsmrtsInventory that is an
-accumulation of ProductOrders that are filled by the procedure defined above.
-Each ProductOrder is evaluated for validity (i.e, no residual ProductOptions)
-and an error will be generated if any residual options exist.
-
-
-#### ProductOrder Details
-
-ProductOrders contain an original ProductConfiguration and a list of additional
-ProductOptions that are not used to create a PsmrtsShape or PsmrtsTracer.
-
-

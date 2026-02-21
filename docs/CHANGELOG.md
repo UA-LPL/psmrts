@@ -35,17 +35,6 @@ release.
 ## TODO
 - See [TODO](TODO.md)
 
-## [0.5.1] 2026-02-21
-- Work on documentation.
-- Fix JSON object insertion for arrays in PsmrtsJson.
-- Add psmrts_product_specs applicaton.
-- Add test for PsrtsJson.
-- Add PSMRTS Developer documentation.
-- Remove CONTRIBUTING document for now.
-- Update version to v0.5.1.
-- Update CHANGELOG.
-
-
 ## [0.5.0] 2026-02-11
 - Add string and string array support to C API.
 - Add product configuration and creation functions to C API.
