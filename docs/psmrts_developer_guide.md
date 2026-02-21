@@ -342,7 +342,7 @@ conditional execution of PRQ request class processing operations.
 
 This is necessary since not all tracers possess the same properties. For example,
 mathematical models such as ellipsoids, spheroids and spheres do not have
-facets. One datum provided within the PsrmtsRayTrace is a __facet__. A _facet__
+facets. One datum provided within the PsrmtsRayTrace is a __facet__. A __facet__
 is comprised of a 3-vector set required to describe a mesh triangle in 3D space
 that originates from the shape mesh and an integer-based vector where each value
 in the vector is the index into the mesh data buffer containing the surface
@@ -372,7 +372,7 @@ Here is a list and brief description of all the PRQ classes contained in the
   exists. If it does not exist, then PsmrtsRequest::was_invoked() returns false.
 
 `PsmrtsRequest` contains methods that return timing information from the time a
-process()) method was invoked and returned (see runtime_ms()), now many times a
+process() method was invoked and returned (see runtime_ms()), now many times a
 process method was called (see run_count()) and if any errors occured (see
 error_count()) among other inforamation. It is recommend these PRQs be utilized
 and developed in tracers. 
