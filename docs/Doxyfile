@@ -949,7 +949,7 @@ WARN_LOGFILE           =
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 INPUT                  = ../psmrts \
-                         psmrts_intro.md psmrts_license.md psmrts_getstarted.md \
+                         psmrts_intro.md psmrts_license.md psmrts_getstarted.md psmrts_developer_guide.md \
                          Developers/ForDevelopers.md \
                          Developers/DeveloperOnboarding.md \
                          Developers/DeveloperInstall.md \
