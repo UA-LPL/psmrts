@@ -42,13 +42,13 @@ DOXYFILE_ENCODING      = UTF-8
 # title of most generated pages and in a few other places.
 # The default value is: My Project.
 
-PROJECT_NAME           = "Planetary Shape Model and Ray Tracing System"
+PROJECT_NAME           = "Planetary Shape Model Ray Tracing System"
 
 # The PROJECT_NUMBER tag can be used to enter a project or revision number. This
 # could be handy for archiving the generated documentation or if some version
 # control system is used.
 
-PROJECT_NUMBER         = "v0.0.9"
+PROJECT_NUMBER         = "v0.5.1"
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description
 # for a project that appears at the top of each page and should give viewer a
@@ -948,12 +948,12 @@ WARN_LOGFILE           =
 # directories like /usr/src/myproject. Separate the files or directories with
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
-# INPUT =
 INPUT                  = ../psmrts \
-                         psmrts_intro.md psmrts_install.md psmrts_getstarted.md \
+                         psmrts_intro.md psmrts_license.md psmrts_getstarted.md \
                          Developers/ForDevelopers.md \
                          Developers/DeveloperOnboarding.md \
                          Developers/DeveloperInstall.md \
+                         Developers/DesignProductSpecifications.md \
                          CHANGELOG.md
 
 # This tag can be used to specify the character encoding of the source files
@@ -1013,7 +1013,7 @@ RECURSIVE              = YES
 # Note that relative paths are relative to the directory from which doxygen is
 # run.
 
-EXCLUDE                =
+EXCLUDE                = ../psmrts/shapes/ply/private/miniply
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
@@ -1349,7 +1349,7 @@ HTML_EXTRA_FILES       =
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
 #HTML_COLORSTYLE        = AUTO_LIGHT
-TML_COLORSTYLE        = LIGHT
+HTML_COLORSTYLE        = LIGHT
 
 # The HTML_COLORSTYLE_HUE tag controls the color of the HTML output. Doxygen
 # will adjust the colors in the style sheet and background images according to

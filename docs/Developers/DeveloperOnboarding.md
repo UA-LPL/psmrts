@@ -1,4 +1,5 @@
 @page developerOnboard Developer Onboarding
+@tableofcontents
 
 This document is a HOWTO of sorts to aid/guide developers in the process and procedures to contribute to PSMRTS. Topics covered here include: configuring a development computer system (this covers the Mac platform for now), acquiring and familiarization of resources and tools, installing PSMRTS for development, and setting up the development environment. These processes will enable the PSMRTS developer to create an PSMRTS system, make changes to existing code and/or add new software to PSMRTS, build and install PSMRTS, develop unit and application tests, and add documentation. These activities are all performed on your local system. The next step is to submit your contributions to the USGS/Astro PSMRTS repo for distribution.
 
