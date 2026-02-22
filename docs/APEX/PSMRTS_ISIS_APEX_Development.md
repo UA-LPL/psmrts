@@ -1,10 +1,10 @@
-# **Discussion - API Design of ISIS Dependency Libraries**
+# Discussion - API Design of ISIS Dependency Libraries
 
-- **Topic**: ISIS External Library Dependency API Design - __PSMRTS__
-- **Date**: October 11, 2023
-- **Author**: Kris J. Becker
+- __Topic__: ISIS External Library Dependency API Design - __PSMRTS__
+- __Date__: October 11, 2023
+- __Author__: Kris J. Becker
 
-## **Introduction**
+## __Introduction__
 
 The University of Arizona (UA has been funded to deliver ISIS software developed during the OSIRIS-REx encounter at asteroid 101955 Bennu to the USGS ISIS repository for distribution to the science community. This effort has been funded as part of the OREX extended mission now called OSIRIS-APophis EXplorer (APEX), which will orbit the asteroid 99942 Apophis shortly after a close Earth flyby in 2029.
 
