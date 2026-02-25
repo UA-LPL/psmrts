@@ -169,7 +169,7 @@ namespace psmrts {
         }
         else {
           PsmrtsInventory inv_t( inventory_name );
-          auto uid = inv_t.shapes().add_product( shape );
+          (void) inv_t.shapes().add_product( shape );
           PsmrtsFactory::inventory().add( inventory_name, inv_t );
         }           
         return ( shape.uid() );
@@ -205,10 +205,10 @@ namespace psmrts {
         }
         else {
           PsmrtsInventory inv_t( inventory_name );
-          auto uid = inv_t.tracers().add_product( tracer );
+          (void) inv_t.tracers().add_product( tracer );
           PsmrtsFactory::inventory().add( inventory_name, inv_t );
         }        
-        return ( tracer.uid() );
+        return ( tracer.uid()  );
       }
 
       /** Remove a tracer from a named inventory */
@@ -240,7 +240,7 @@ namespace psmrts {
         }
         else {
           PsmrtsInventory inv_t( inventory_name );
-          auto uid = inv_t.prioritytracers().add_product( tracer_p );
+          (void) inv_t.prioritytracers().add_product( tracer_p );
           PsmrtsFactory::inventory().add( inventory_name, inv_t );
         }
         return ( tracer_p.uid() );

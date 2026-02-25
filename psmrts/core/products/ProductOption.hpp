@@ -319,7 +319,6 @@ namespace psmrts {
         }
           
         if ( j_data.is_array() ) {
-          size_t nvalues = j_data.size();
           size_t i = 0;
           for ( auto it_v = j_data.begin() ; it_v != j_data.end() ; ++it_v, i++ ) {
             if ( !it_v->is_primitive() ) {

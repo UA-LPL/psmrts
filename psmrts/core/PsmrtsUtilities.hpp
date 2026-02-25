@@ -473,7 +473,6 @@ namespace psmrts {
                                                    const std::string &t_sep = ",") {
     std::vector<std::string> values;
     std::string::size_type spos = 0;
-    size_t s_size = s.length();
 
     for (std::string::size_type i=0; i != std::string::npos; spos = i+1) {
       i = s.find_first_of(t_sep, spos);

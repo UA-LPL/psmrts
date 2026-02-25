@@ -265,7 +265,7 @@ TEST_CASE( "ProductFeature Vaidate String Test", "[product][feature][string]") {
         "description": "Format-compatible string containing contents of an OBJ file",
         "status": "optional",
         "aliases": ["obj_mesh_string"],
-        "obj_string": ["test_value"]
+        "valid": ["test_value"]
     })";
     psmrts::ProductFeature param( psmrts::json_utils::parse_json_string(vals) );
 

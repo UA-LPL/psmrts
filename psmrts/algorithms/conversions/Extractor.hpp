@@ -194,7 +194,6 @@ namespace psmrts::algorithms::conversions {
         inline TypeVector get_all( const size_t index = 0,
                                    const size_t nvals = 0 ) const {
 
-          size_t n = ( nvals == 0 ) ? this->size() : nvals;
           ConversionParameters p = compute_range( index, nvals, this->size() );
 
           TypeVector d;

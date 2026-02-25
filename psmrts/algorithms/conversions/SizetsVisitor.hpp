@@ -36,13 +36,15 @@ namespace psmrts::algorithms::conversions {
       SizetsVisitor( std::vector<size_t> &data,
                       const int &default_v,
                       const ConversionParameters parms = ConversionParameters() ) : 
-                      m_datum( data ),m_default( default_v),
-                      m_parameters( parms ) { }
+                      m_datum( data ),
+                      m_parameters( parms ),
+                      m_default( default_v) { }
       //! SizetsVisitor constructor using TypeDefault as the default value
       SizetsVisitor( TypeVector &data,
                       const ConversionParameters parms = ConversionParameters() ) : 
-                      m_datum( data ),m_default( TypeDefault ),
-                      m_parameters( parms ) { }                        
+                      m_datum( data ),
+                      m_parameters( parms ),
+                      m_default( TypeDefault ) { }                        
       virtual ~SizetsVisitor() = default;
 
       //! Check if a value is valid and not the default type
@@ -109,8 +111,8 @@ namespace psmrts::algorithms::conversions {
       inline void operator()( const double d ) {
         auto process = [&]( const bool addit, const size_t index ) {
           if ( addit ) { 
-            if (d >= std::numeric_limits<size_t>::min() &&
-                d <= std::numeric_limits<size_t>::max() ) {
+            if (d >= static_cast<double>( std::numeric_limits<size_t>::min() ) &&
+                d <= static_cast<double>( std::numeric_limits<size_t>::max() ) ) {
               m_datum.push_back( static_cast<Type>( d ) );
             }
             else {
@@ -174,7 +176,8 @@ namespace psmrts::algorithms::conversions {
       inline void operator()( const std::vector<double> &d_array ) {
         auto process = [&]( const bool addit, const size_t index ) {
           if ( addit ) {
-            if (d_array[index] < 0.0 || d_array[index] > std::numeric_limits<Type>::max() ) {
+            if ( ( d_array[index] < 0.0 ) || 
+                 ( d_array[index] > static_cast<double>( std::numeric_limits<Type>::max() ) ) ) {
               m_datum.push_back( default_value() );
             }
             else {
@@ -258,7 +261,6 @@ namespace psmrts::algorithms::conversions {
         }; 
 
         // Preliminary processing of the JSON structure to determine its nature
-        size_t level = 0;
         try { 
 
           // Now check if we actually have primitives or arrays
