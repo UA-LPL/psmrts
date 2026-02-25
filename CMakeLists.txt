@@ -194,7 +194,7 @@ write_basic_package_version_file(
 install(FILES 
          "${CMAKE_CURRENT_BINARY_DIR}/psmrts-config.cmake"
          "${CMAKE_CURRENT_BINARY_DIR}/psmrts-config-version.cmake"
-         "${CMAKE_SOURCE_DIR}/cmake/psmrts_dependency_standards.cmake"
+         "${CMAKE_CURRENT_SOURCE_DIR}/cmake/psmrts_dependency_standards.cmake"
         DESTINATION  ${CMAKE_INSTALL_LIBDIR}/cmake/psmrts )
 
 #-----------------------------------------------------------------------------
