@@ -22,6 +22,7 @@ target_sources( psmrts_c PRIVATE psmrts_c.cpp
 
               )
 target_include_directories(psmrts_c PUBLIC 
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
     $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
     $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>
