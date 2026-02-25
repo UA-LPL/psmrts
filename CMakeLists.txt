@@ -218,10 +218,12 @@ if( BUILD_TESTING )
     target_link_options(psmrts    INTERFACE -g0 --coverage)
 
 
-    # Exclude any instances of VCPKG
-    psmrts_register_code_coverage(EXCLUDES "${CMAKE_BINARY_DIR}/vcpkg_installed/*")
-    psmrts_register_code_coverage(EXCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg_installed/*")
-    psmrts_register_code_coverage(EXCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/*")
+    # Exclude any instances of external files. lcov behaves
+    # differently than gcovr so try to exclude as much as we
+    # can.
+    psmrts_register_code_coverage(EXCLUDES "*/vcpkg_installed/*")
+    psmrts_register_code_coverage(EXCLUDES "*/vcpkg_installed/*")
+    psmrts_register_code_coverage(EXCLUDES "*/vcpkg/*")
     psmrts_register_code_coverage(EXCLUDES "/usr/include/*")
     psmrts_register_code_coverage(EXCLUDES "deps/*")
 
@@ -235,10 +237,31 @@ if( BUILD_TESTING )
       message("CC_BaseDir:      ${PSMRTS_SOURCE_DIR}/psmrts")
     endif(CODE_COVERAGE_VERBOSE)
 
-    # Omit closing scope braces from counts
+    # The results of gcovr are perhaps slightly more accurate as it provides a
+    # parameter that omit closing scope braces from counts whereas lcov does
+    # not. Use the target "lcov_coverage" in the CI to automatically report the
+    # coverage results in text. 
     set(GCOVR_ADDITIONAL_ARGS --exclude-noncode-lines)
+    set(CONVERAGE_EXCLUDES ${psmrts_cc_excludes} )
     setup_target_for_coverage_gcovr_html(
       NAME coverage
+      EXECUTABLE ctest --schedule-random
+      DEPENDENCIES   ${psmrts_cc_depends}
+      BASE_DIRECTORY "${PSMRTS_SOURCE_DIR}/psmrts"
+      EXCLUDE        ${psmrts_cc_excludes}
+    )
+
+    # Set up for generation of coverage info using lcov. Some very specific
+    # excludes are needed for lcov that differ from gcovr to get similar, but
+    # not exact, coverage results.
+    set(LCOV_ARGS --no-external --quiet)
+    set(COVERAGE_LCOV_EXCLUDES "/*/*conda*/*" 
+                               "/*/catch2/*" 
+                               "/Applications/*" 
+                               "/*/include/eigen/*" 
+                               "/*/include/nlohmann/*")
+    setup_target_for_coverage_lcov(
+      NAME lcov_coverage
       EXECUTABLE ctest --schedule-random
       DEPENDENCIES   ${psmrts_cc_depends}
       BASE_DIRECTORY "${PSMRTS_SOURCE_DIR}/psmrts"
