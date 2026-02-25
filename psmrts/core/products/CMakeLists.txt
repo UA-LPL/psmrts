@@ -7,6 +7,7 @@ target_sources( psmrts PUBLIC
                                   ProductConfiguration.hpp
                                   ProductFeature.hpp
                                   ProductInventory.hpp
+                                  ProductMaker.hpp
                                   ProductOption.hpp
                                   ProductOrder.hpp
                                   ProductProcessDispatch.hpp
