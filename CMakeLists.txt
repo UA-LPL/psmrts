@@ -9,7 +9,7 @@ if(DEFINED VCPKG_TARGET_TRIPLET)
   message(STATUS "VCPKG_TARGET_TRIPLET: ${VCPKG_TARGET_TRIPLET}")
 endif()
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(psmrts_register_code_coverage)
 
 #-----------------------------------------------------------------------------
