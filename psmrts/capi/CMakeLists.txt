@@ -18,7 +18,7 @@ target_sources( psmrts_c PRIVATE psmrts_c.cpp
                            FILE_SET generated_headers 
                              TYPE HEADERS
                              BASE_DIRS $<TARGET_PROPERTY:psmrts_c,BINARY_DIR>
-                             FILES ${CMAKE_BINARY_DIR}/psmrts/capi/psmrts_c_export.h
+                             FILES ${CMAKE_CURRENT_BINARY_DIR}/psmrts/capi/psmrts_c_export.h
 
               )
 target_include_directories(psmrts_c PUBLIC 
