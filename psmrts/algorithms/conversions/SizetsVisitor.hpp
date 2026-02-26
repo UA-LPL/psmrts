@@ -316,8 +316,8 @@ namespace psmrts::algorithms::conversions {
           double val = std::stod( s, &len );
           if (len != s.length() ) return ( default_value() );
 
-          if (val >= std::numeric_limits<size_t>::min() &&
-              val <= std::numeric_limits<size_t>::max() ) {
+          if (val >= static_cast<double>( std::numeric_limits<size_t>::min() ) &&
+              val <= static_cast<double>( std::numeric_limits<size_t>::max() ) ) {
             return static_cast<Type>( val );
           }
           else {
