@@ -4,6 +4,7 @@ testopts=""
 codecovopts=""
 extraopts=""
 buildopts="-DCMAKE_BUILD_TYPE=Release"
+buildapps="-DPSMRTS_BUILD_APPS=ON"
 usecpus=""
 doxyopts=""
 sharedopts=""
@@ -12,27 +13,33 @@ vcpkg_triplet=""
 uselocalpsmrtsvcpkg=0
 conda_specs=""
 
-while getopts ":hstcdxDVT:Cj:" o; do
+while getopts ":aAhstcdxDVT:Cj:" o; do
     case "${o}" in
+        a) 
+            buildapps="-DPSMRTS_BUILD_APPS=ON"
+            ;;
+        A) 
+            buildapps="-DPSMRTS_BUILD_APPS=OFF"
+            ;;            
         s)
-            sharedopts="-DBUILD_SHARED=ON"
+            sharedopts="-DPSMRTS_BUILD_SHARED=ON"
             ;;    
         t)
-            testopts="-DBUILD_TESTING=ON"
+            testopts="-DPSMRTS_BUILD_TESTS=ON"
             ;;
         c)
-            codecovopts="-DBUILD_COVERAGE=ON" #  "-DCODE_COVERAGE_VERBOSE=ON"
-            testopts="-DBUILD_TESTING=ON"
+            codecovopts="-DPSMRTS_BUILD_COVERAGE=ON" #  "-DCODE_COVERAGE_VERBOSE=ON"
+            testopts="-DPSMRTS_BUILD_TESTS=ON"
 
             ;;
         x)
-            extraopts="-DBUILD_EXTRAS=ON"
+            extraopts="-DPSMRTS_BUILD_EXTRAS=ON"
             ;;
         d)
             buildopts="-DCMAKE_BUILD_TYPE=Debug"
             ;;
         D)
-            doxyopts="-DBUILD_DOCS=ON"
+            doxyopts="-DPSMRTS_BUILD_DOCS=ON"
             ;;
         V)
             # Check for installed vcpkg system
@@ -50,7 +57,7 @@ while getopts ":hstcdxDVT:Cj:" o; do
             ;;            
         C)
             conda_specs="-DCMAKE_PREFIX_PATH=${CONDA_PREFIX}"
-            sharedopts="-DBUILD_SHARED=ON"
+            sharedopts="-DPSMRTS_BUILD_SHARED=ON"
             ;;                         
         j)
             usecpus="-j ${OPTARG}"
@@ -88,11 +95,12 @@ fi
 
 # Do the build 
 set -x
-cmake  -B build -S . ${sharedopts} ${buildopts} ${testopts} ${codecovopts} ${extraopts} ${doxyopts} ${vcpkg_specs} ${vcpkg_triplet} ${conda_specs}
+cmake  -B build -S . ${sharedopts} ${buildopts} ${testopts} ${codecovopts} ${extraopts} ${buildapps} ${doxyopts} ${vcpkg_specs} ${vcpkg_triplet} ${conda_specs}
 cmake  --build build ${usecpus}
 set +x
 
 # Example builds of other targets 
 # cmake --install build --prefix install
 # cmake --build build   --target coverage
-# cmake --build build   --target doxy_docs
+# cmake --build build   --target lcov_coverage
+# cmake --build build   --target docs

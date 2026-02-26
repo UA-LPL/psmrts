@@ -10,6 +10,6 @@ add_subdirectory( obj )
 add_subdirectory( ply )
 add_subdirectory( mesh )
 
-if(BUILD_TESTING)
+if(PSMRTS_BUILD_TESTS)
     add_subdirectory( tests )
-endif(BUILD_TESTING)
+endif(PSMRTS_BUILD_TESTS)

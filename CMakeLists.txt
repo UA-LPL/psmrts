@@ -16,41 +16,42 @@ include(psmrts_register_code_coverage)
 # PSMRTS build options
 #-----------------------------------------------------------------------------
 # Add option to build tests and tools
-option( BUILD_SHARED     "Build PSMRTS shared libraries"       OFF )
-option( BUILD_TESTING    "Add PSMRTS unit tests"               OFF )
-option( BUILD_COVERAGE   "Build with code coverage"            OFF )
-option( BUILD_EXTRAS     "Add PSMRTS tools extras"             OFF )
-option( BUILD_CAPI       "Build PSMRTS C API"                  ON  )
-option( BUILD_CAPI_APPS  "Build PMSRTS C API and APPS"         ON  )
-option( BUILD_DOCS       "Build API Doxygen Documentation"     OFF )
-option( WITH_ISIS        "Build with ISIS Shapemodel Support"  OFF )
+option( PSMRTS_BUILD_SHARED    "Build PSMRTS shared libraries"      OFF )
+option( PSMRTS_BUILD_TESTS     "Add PSMRTS unit tests"              OFF )
+option( PSMRTS_BUILD_COVERAGE  "Build with code coverage"           OFF )
+option( PSMRTS_BUILD_EXTRAS    "Add PSMRTS tools extras"            OFF )
+option( PSMRTS_BUILD_CAPI      "Build PSMRTS C API"                  ON )
+option( PSMRTS_BUILD_APPS      "Build PSMRTS C++ Applications"      OFF )
+option( PSMRTS_BUILD_CAPI_APPS "Build PMSRTS C Applications"        OFF )
+option( PSMRTS_BUILD_DOCS      "Build API Doxygen Documentation"    OFF )
+option( PSMRTS_WITH_ISIS       "Build with ISIS Shapemodel Support" OFF )
 
 # Check for type of library build.
-if(BUILD_SHARED)
+if(PSMRTS_BUILD_SHARED)
   set(PSMRTS_BUILD_TYPE SHARED)
 else()
   set(PSMRTS_BUILD_TYPE STATIC)
-endif(BUILD_SHARED)
+endif(PSMRTS_BUILD_SHARED)
 
 # Build PSMRTS C API.
-if(BUILD_CAPI_APPS)
+if(PSMRTS_BUILD_APPS)
   # Ensure we build the complete C API.
-  set(BUILD_CAPI ON)
-endif(BUILD_CAPI_APPS)
+  set(PSMRTS_BUILD_CAPI_APPS ON)
+endif(PSMRTS_BUILD_APPS)
 
 # Build coverage requires testing as well.
-if(BUILD_COVERAGE)
-    set(BUILD_TESTING ON)
+if(PSMRTS_BUILD_COVERAGE)
+    set(PSMRTS_BUILD_TESTS ON)
     # Initialize configs to build up coverage targets
     psmrts_register_code_coverage(DEPENDENCY  EXCLUDES  )
-endif(BUILD_COVERAGE)
+endif(PSMRTS_BUILD_COVERAGE)
 
-if(BUILD_TESTING)
+if(PSMRTS_BUILD_TESTS)
     enable_testing()
-endif(BUILD_TESTING)
+endif(PSMRTS_BUILD_TESTS)
 
 # Set shared library RPATH configs here
-if(BUILD_SHARED)
+if(PSMRTS_BUILD_SHARED)
     set(CMAKE_SKIP_BUILD_RPATH FALSE)
     set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
   if(UNIX AND NOT APPLE)
@@ -58,7 +59,7 @@ if(BUILD_SHARED)
   elseif(APPLE)
     set(CMAKE_INSTALL_RPATH "@loader_path" "@loader_path/../lib" )
   endif()
-endif(BUILD_SHARED)
+endif(PSMRTS_BUILD_SHARED)
 
 #-----------------------------------------------------------------------------
 # PSMRTS project configuration. PROJECT_SOURCE_DIR=psmrts
@@ -137,7 +138,7 @@ target_link_libraries( psmrts PRIVATE
 #-----------------------------------------------------------------------------
 # Set up SHARED PSMRTS library versioning.
 #-----------------------------------------------------------------------------
-if(BUILD_SHARED)
+if(PSMRTS_BUILD_SHARED)
   set_target_properties( psmrts PROPERTIES VERSION ${PROJECT_VERSION} )
   # Set SOVERSION for non-WINDOWS systems.
   if(NOT WIN32 OR MINGW)
@@ -157,7 +158,7 @@ endif()
  )
 
 # Build C-API here if requested
-if( BUILD_CAPI OR BUILD_CAPI_APPS )
+if( PSMRTS_BUILD_CAPI OR PSMRTS_BUILD_CAPI_APPS )
   add_subdirectory( psmrts/capi )
   install(TARGETS psmrts_c
           EXPORT psmrts_targets
@@ -167,7 +168,7 @@ if( BUILD_CAPI OR BUILD_CAPI_APPS )
           FILE_SET psmrts_c_headers DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/psmrts/capi
           FILE_SET generated_headers DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/psmrts/capi
         )
-endif( BUILD_CAPI OR BUILD_CAPI_APPS )
+endif( PSMRTS_BUILD_CAPI OR PSMRTS_BUILD_CAPI_APPS )
 
 # Export target configurations
 install(EXPORT psmrts_targets
@@ -200,7 +201,7 @@ install(FILES
 #-----------------------------------------------------------------------------
 # Optionally build unit tests and code coverage of PSMRTS classes
 #-----------------------------------------------------------------------------
-if( BUILD_TESTING )
+if( PSMRTS_BUILD_TESTS )
   configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/psmrts/core/tests/psmrts_test_config.h.in 
                   ${CMAKE_CURRENT_SOURCE_DIR}/psmrts/core/tests/psmrts_test_config.h @ONLY )
 
@@ -208,7 +209,7 @@ if( BUILD_TESTING )
 
   # Now check for code coverage. Note this must be done
   # before adding the subdirectories!
-  if(BUILD_COVERAGE)
+  if(PSMRTS_BUILD_COVERAGE)
     include(CodeCoverage)
     append_coverage_compiler_flags()
 
@@ -267,13 +268,13 @@ if( BUILD_TESTING )
       BASE_DIRECTORY "${PSMRTS_SOURCE_DIR}/psmrts"
       EXCLUDE        ${psmrts_cc_excludes}
     )
-  endif(BUILD_COVERAGE)
-endif( BUILD_TESTING )
+  endif(PSMRTS_BUILD_COVERAGE)
+endif( PSMRTS_BUILD_TESTS )
 
 #-----------------------------------------------------------------------------
 # Build PSMRTS documentation
 #-----------------------------------------------------------------------------
-if(BUILD_DOCS)
+if(PSMRTS_BUILD_DOCS)
   find_package(Doxygen QUIET)
 
   if(DOXYGEN_FOUND)
@@ -286,4 +287,4 @@ if(BUILD_DOCS)
   else ()
     message(WARNING "ERROR: Doxygen not found, unable to generate documentation.")
   endif()
-endif(BUILD_DOCS)
+endif(PSMRTS_BUILD_DOCS)

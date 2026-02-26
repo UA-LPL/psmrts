@@ -9,7 +9,10 @@ target_sources(psmrts PUBLIC
 
 # Add source directories
 add_subdirectory( algorithms )
-add_subdirectory( apps )
 add_subdirectory( core )
 add_subdirectory( shapes )
 add_subdirectory( tracers )
+
+if (PSMRTS_BUILD_APPS)
+  add_subdirectory( apps )
+endif(PSMRTS_BUILD_APPS)

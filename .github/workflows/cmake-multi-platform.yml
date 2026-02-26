@@ -72,7 +72,7 @@ jobs:
        git clone https://github.com/microsoft/vcpkg
        ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
        # ./scripts/install_vcpkg_packages.sh
-       ./make_psmrts.sh -t -c -d -V 
+       ./make_psmrts.sh -t -a -c -d -V 
        du -sh .
 
    # - name: Build PSMRTS Environment (Mac)
@@ -93,7 +93,7 @@ jobs:
     - name: Build PSMRTS Environment (Windows)
       if: runner.os == 'Windows'
       run: |
-        .\make_psmrts.ps1 -t -V -j 4
+        .\make_psmrts.ps1 -t -a -V -j 4
         Write-Host "Size in GB:"
         Get-ChildItem -Recurse | Measure-Object -Property Length -Sum | ForEach-Object {
           [math]::Round($_.Sum / 1GB, 2)

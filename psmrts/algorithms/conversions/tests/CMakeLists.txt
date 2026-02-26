@@ -26,8 +26,8 @@ include( Catch )
 catch_discover_tests( conversions_test_suite WORKING_DIRECTORY ${CMAKE_BINARY_DIR} )
 
 # Update the test dependencies ad excludes
-if(BUILD_COVERAGE) 
+if(PSMRTS_BUILD_COVERAGE) 
     get_target_property(conversions_test_sources conversions_test_suite SOURCES)
     list(TRANSFORM conversions_test_sources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/" )
     psmrts_register_code_coverage(DEPENDENCY "conversions_test_suite" EXCLUDES "${conversions_test_sources}")
-endif(BUILD_COVERAGE)
+endif(PSMRTS_BUILD_COVERAGE)

@@ -32,7 +32,7 @@ add_test( NAME capi_cmocka_test_suite
                WORKING_DIRECTORY ${CMAKE_BINARY_DIR} )
 
 # Update the test dependencies and excludes
-if(BUILD_COVERAGE)
+if(PSMRTS_BUILD_COVERAGE)
   get_target_property(capi_test_sources   capi_test_suite SOURCES)
   get_target_property(cmocka_test_sources capi_cmocka_test_suite SOURCES)
 
@@ -48,4 +48,4 @@ if(BUILD_COVERAGE)
   psmrts_register_code_coverage(EXCLUDES "capi/apps/psmrts_capi_features.cpp")
   psmrts_register_code_coverage(EXCLUDES "capi/apps/psmrts_capi_c_features.c")
 
-endif(BUILD_COVERAGE)
+endif(PSMRTS_BUILD_COVERAGE)

@@ -25,10 +25,10 @@ target_sources( psmrts_c PRIVATE psmrts_c.cpp
 target_link_libraries( psmrts_c PUBLIC psmrts::psmrts )
 
 # Build all C applications
-if(BUILD_CAPI_APPS)
+if(PSMRTS_BUILD_CAPI_APPS)
   add_subdirectory( apps )
-endif(BUILD_CAPI_APPS)
+endif(PSMRTS_BUILD_CAPI_APPS)
 
-if(BUILD_TESTING)
+if(PSMRTS_BUILD_TESTS)
   add_subdirectory(tests)
-endif(BUILD_TESTING)
+endif(PSMRTS_BUILD_TESTS)
