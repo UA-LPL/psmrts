@@ -117,7 +117,7 @@ add_library( psmrts ${PSMRTS_BUILD_TYPE} )
 add_library( psmrts::psmrts ALIAS psmrts )
 add_subdirectory(psmrts)
 target_include_directories( psmrts PUBLIC 
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
   $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
   $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>
 )
@@ -225,7 +225,7 @@ if( BUILD_TESTING )
     psmrts_register_code_coverage(EXCLUDES "*/vcpkg_installed/*")
     psmrts_register_code_coverage(EXCLUDES "*/vcpkg/*")
     psmrts_register_code_coverage(EXCLUDES "/usr/include/*")
-    psmrts_register_code_coverage(EXCLUDES "deps/*")
+    psmrts_register_code_coverage(EXCLUDES "_deps/*")
 
     # Set code coverage dependencies and exclude properties 
     get_property(psmrts_cc_depends  GLOBAL PROPERTY PSMRTS_COVERAGE_DEPENDENCIES )
