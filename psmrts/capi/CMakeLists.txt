@@ -24,7 +24,7 @@ target_sources( psmrts_c PRIVATE psmrts_c.cpp
                              BASE_DIRS
                             ${CMAKE_CURRENT_SOURCE_DIR}
                              ${CMAKE_CURRENT_BINARY_DIR}
-                             FILES ${CMAKE_BINARY_DIR}/psmrts/capi/psmrts_c_export.h
+                             FILES ${CMAKE_CURRENT_BINARY_DIR}/psmrts_c_export.h
 
               )
 target_include_directories(psmrts_c PUBLIC
