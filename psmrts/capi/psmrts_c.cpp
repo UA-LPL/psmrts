@@ -76,7 +76,7 @@ inline Eigen::Vector3d vector_to_eigen_d( const PSMRTS_Vector3d &v3d ) {
  * @return PSMRTS_Vector3d converted from Eigen::Vector3d.
  */
 inline PSMRTS_Vector3d eigen_to_vector_d( const Eigen::Vector3d &v ) {
-  PSMRTS_Vector3d v3d = { v[0], v[1], v[2] };
+  PSMRTS_Vector3d v3d = { { v[0], v[1], v[2] } };
   return ( v3d );
 }
 
@@ -105,7 +105,7 @@ inline Eigen::Vector3i vector_to_eigen_i( const PSMRTS_Vector3i &v3i ) {
  * @return PSMRTS_Vector3i converted from Eigen::Vector3i.
  */
 inline PSMRTS_Vector3i eigen_to_vector_i( const Eigen::Vector3i &v ) {
-  PSMRTS_Vector3i v3i = { v[0], v[1], v[2] };
+  PSMRTS_Vector3i v3i = { { v[0], v[1], v[2] } };
   return ( v3i );
 }
 
@@ -463,7 +463,7 @@ double psmrts_length( const PSMRTS_Vector3d *v ) {
  */
 PSMRTS_Vector3i psmrts_vector3i( const int v1, const int v2, const int v3 ) {
 
-  PSMRTS_Vector3i v3i = { v1, v2, v3 };
+  PSMRTS_Vector3i v3i = { { v1, v2, v3 } };
   return ( v3i );
 }
 
