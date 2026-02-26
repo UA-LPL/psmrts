@@ -117,7 +117,7 @@ add_library( psmrts ${PSMRTS_BUILD_TYPE} )
 add_library( psmrts::psmrts ALIAS psmrts )
 add_subdirectory(psmrts)
 target_include_directories( psmrts PUBLIC 
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
   $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
   $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>
 )
