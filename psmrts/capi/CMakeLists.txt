@@ -15,6 +15,7 @@ target_sources( psmrts_c PRIVATE psmrts_c.cpp
                          PUBLIC
                            FILE_SET psmrts_c_headers 
                              TYPE HEADERS
+                             BASE_DIRS ${CMAKE_SOURCE_DIR}/psmrts/capi
                              FILES psmrts_c.h
                            FILE_SET generated_headers 
                              TYPE HEADERS
