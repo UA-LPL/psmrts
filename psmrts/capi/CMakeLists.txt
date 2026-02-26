@@ -9,7 +9,7 @@ set_target_properties( psmrts_c PROPERTIES
                                   VERSION ${PROJECT_VERSION} 
                                   SOVERSION ${PROJECT_VERSION_MAJOR} )
 generate_export_header( psmrts_c
-                         EXPORT_FILE_NAME ${CMAKE_BINARY_DIR}/psmrts/capi/psmrts_c_export.h )
+                         EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/psmrts_c_export.h )
 
 target_sources( psmrts_c PRIVATE psmrts_c.cpp 
                          PUBLIC
