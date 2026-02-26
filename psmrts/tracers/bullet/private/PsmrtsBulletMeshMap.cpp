@@ -102,7 +102,6 @@ namespace psmrts::bullet {
       // Allocate a new mesh map
       bt_mesh.reset( new btTriangleIndexVertexArray() );
 
-      auto bt_max_triangles_t = bt_MaxTrianglesPerPart();
       size_t nfacets_t = this->nfacets();
 
       const PsmrtsStridingBuffer &vector_m = this->vectors().buffer();
