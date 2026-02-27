@@ -210,7 +210,6 @@ if( PSMRTS_BUILD_TESTS )
   # Now check for code coverage. Note this must be done
   # before adding the subdirectories!
   if(PSMRTS_BUILD_COVERAGE)
-    set(CODE_COVERAGE_VERBOSE TRUE)
     include(CodeCoverage)
     append_coverage_compiler_flags()
 
