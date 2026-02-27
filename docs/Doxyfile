@@ -48,7 +48,7 @@ PROJECT_NAME           = "Planetary Shape Model Ray Tracing System"
 # could be handy for archiving the generated documentation or if some version
 # control system is used.
 
-PROJECT_NUMBER         = "v0.5.1"
+PROJECT_NUMBER         = "v0.6.0"
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description
 # for a project that appears at the top of each page and should give viewer a
@@ -190,7 +190,7 @@ FULL_PATH_NAMES        = YES
 # will be relative from the directory where doxygen is started.
 # This tag requires that the tag FULL_PATH_NAMES is set to YES.
 
-STRIP_FROM_PATH        = 
+STRIP_FROM_PATH        = docs/
 
 # The STRIP_FROM_INC_PATH tag can be used to strip a user-defined part of the
 # path mentioned in the documentation of a class, which tells the reader which
@@ -950,9 +950,9 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 INPUT                  = ./psmrts \
                          docs/psmrts_intro.md \
+                         docs/psmrts_developer_guide.md \
                          docs/psmrts_license.md \
                          docs/psmrts_getstarted.md \
-                         docs/psmrts_developer_guide.md \
                          docs/Developers/ForDevelopers.md \
                          docs/Developers/DeveloperOnboarding.md \
                          docs/Developers/DeveloperInstall.md \
