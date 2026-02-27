@@ -1,6 +1,6 @@
 param(
     [switch]$a,
-    [switch]$A,
+    [switch]$Noapps,
     [switch]$s,
     [switch]$t,
     [switch]$c,
@@ -29,7 +29,7 @@ $conda_specs = ""
 
 
 if ($a) { $buildapps = "-DPSMRTS_BUILD_APPS=ON" }
-if ($A) { $buildapps = "-DPSMRTS_BUILD_APPS=OFF" }
+if ($Noapps) { $buildapps = "-DPSMRTS_BUILD_APPS=OFF" }
 if ($s) { $sharedopts = "-DPSMRTS_BUILD_SHARED=ON" }
 if ($t) { $testopts = "-DPSMRTS_BUILD_TESTS=ON" }
 if ($c) { 
