@@ -255,7 +255,7 @@ if( PSMRTS_BUILD_TESTS )
     # Set up for generation of coverage info using lcov. Some very specific
     # excludes are needed for lcov that differ from gcovr to get similar, but
     # not exact, coverage results.
-    set(LCOV_ARGS --no-external --quiet)
+    set(LCOV_ARGS --no-external --quiet --ignore-errors unused)
     set(COVERAGE_LCOV_EXCLUDES "/*/*conda*/*" 
                                "/*/catch2/*" 
                                "/Applications/*" 
