@@ -35,6 +35,24 @@ release.
 ## TODO
 - See [TODO](TODO.md)
 
+## [0.6.0] 2026-02-21
+- Changes to documentation.
+- Fix CMake system for import and use in other projects.
+- Remove compilation warnings most due to unused variables.
+- Add lcov code coverage run for CI reporting.
+- Update/add targets "docs", "lcov_coverage".
+- Change "docs" target to run from the project directory rather than docs.
+- Some files were not being exported during install.
+- Made psmrts target PUBLIC when linking to psmrts_c. This is required to
+  propate the top level include path of pmsrts.
+- Changed all PSMRTS CMake options so as to remove side effects of variables.
+  BUILD_TESTING is set when enable_tests() is called which was initially the
+  name of an option. Prepend PSMRTS to each option to make them unqiue.
+- Update build and CI scripts to incorporate these changes.
+- Update version to v0.6.0.
+- Update CHANGELOG.
+
+
 ## [0.5.1] 2026-02-21
 - Work on documentation.
 - Fix JSON object insertion for arrays in PsmrtsJson.
