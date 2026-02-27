@@ -210,6 +210,7 @@ if( PSMRTS_BUILD_TESTS )
   # Now check for code coverage. Note this must be done
   # before adding the subdirectories!
   if(PSMRTS_BUILD_COVERAGE)
+    set(CODE_COVERAGE_VERBOSE TRUE)
     include(CodeCoverage)
     append_coverage_compiler_flags()
 
@@ -255,7 +256,8 @@ if( PSMRTS_BUILD_TESTS )
     # Set up for generation of coverage info using lcov. Some very specific
     # excludes are needed for lcov that differ from gcovr to get similar, but
     # not exact, coverage results.
-    set(LCOV_ARGS --no-external --quiet --ignore-errors unused)
+    set(LCOV_ARGS --no-external --quiet --ignore-errors unused,gcov,source,graph )
+    # set(GENHTML_ARGS --no-external --quiet --ignore-errors unused  )
     set(COVERAGE_LCOV_EXCLUDES "/*/*conda*/*" 
                                "/*/catch2/*" 
                                "/Applications/*" 
