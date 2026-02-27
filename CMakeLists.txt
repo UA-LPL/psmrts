@@ -7,7 +7,7 @@ set( CMAKE_C_STANDARD 17 )
 
 if(DEFINED VCPKG_TARGET_TRIPLET)
   message(STATUS "VCPKG_TARGET_TRIPLET: ${VCPKG_TARGET_TRIPLET}")
-endif()
+endif(DEFINED VCPKG_TARGET_TRIPLET)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(psmrts_register_code_coverage)
@@ -58,7 +58,7 @@ if(PSMRTS_BUILD_SHARED)
     set(CMAKE_INSTALL_RPATH "$ORIGIN" "$ORIGIN/../lib")
   elseif(APPLE)
     set(CMAKE_INSTALL_RPATH "@loader_path" "@loader_path/../lib" )
-  endif()
+  endif(UNIX AND NOT APPLE)
 endif(PSMRTS_BUILD_SHARED)
 
 #-----------------------------------------------------------------------------
@@ -100,7 +100,7 @@ if (NOT "${_conda_bullet_config}" MATCHES ".*-NOTFOUND")
 else()
   # All non-conda environments assumes double is default.
   find_package( Bullet           CONFIG REQUIRED )
-endif()
+endif(NOT "${_conda_bullet_config}" MATCHES ".*-NOTFOUND")
 
 # Create standardized/common targets. Note that Bullet and cspice can be
 # provided in projects by other means. This macro will check for other
@@ -143,8 +143,8 @@ if(PSMRTS_BUILD_SHARED)
   # Set SOVERSION for non-WINDOWS systems.
   if(NOT WIN32 OR MINGW)
     set_target_properties( psmrts PROPERTIES SOVERSION ${PROJECT_VERSION_MAJOR} )
-  endif()
-endif()
+  endif(NOT WIN32 OR MINGW)
+endif(PSMRTS_BUILD_SHARED)
 
 #-----------------------------------------------------------------------------
 # Install PSMRTS targets and export/import configuration.
@@ -286,5 +286,5 @@ if(PSMRTS_BUILD_DOCS)
     )
   else ()
     message(WARNING "ERROR: Doxygen not found, unable to generate documentation.")
-  endif()
+  endif(DOXYGEN_FOUND)
 endif(PSMRTS_BUILD_DOCS)
