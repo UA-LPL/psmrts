@@ -223,7 +223,6 @@ if( PSMRTS_BUILD_TESTS )
     # differently than gcovr so try to exclude as much as we
     # can.
     psmrts_register_code_coverage(EXCLUDES "*/vcpkg_installed/*")
-    psmrts_register_code_coverage(EXCLUDES "*/vcpkg_installed/*")
     psmrts_register_code_coverage(EXCLUDES "*/vcpkg/*")
     psmrts_register_code_coverage(EXCLUDES "/usr/include/*")
     psmrts_register_code_coverage(EXCLUDES "_deps/*")
@@ -243,7 +242,6 @@ if( PSMRTS_BUILD_TESTS )
     # not. Use the target "lcov_coverage" in the CI to automatically report the
     # coverage results in text. 
     set(GCOVR_ADDITIONAL_ARGS --exclude-noncode-lines)
-    # set(CONVERAGE_EXCLUDES ${psmrts_cc_excludes} )
     setup_target_for_coverage_gcovr_html(
       NAME coverage
       EXECUTABLE ctest --schedule-random
