@@ -249,10 +249,8 @@ if( PSMRTS_BUILD_TESTS )
     # Set up for generation of coverage info using lcov. Some very specific
     # excludes are needed for lcov that differ from gcovr to get similar, but
     # not exact, coverage results.
-    # set(psmrts_lcov_args --no-external --quiet --ignore-errors gcov,source,graph )
-    set(psmrts_lcov_args --no-external --ignore-errors gcov,source,graph )
-    #set(psmrts_genhtml_args --quiet --rc geninfo_unexecuted_blocks=1 )
-    set(psmrts_genhtml_args --rc geninfo_unexecuted_blocks=1 )
+    set(psmrts_lcov_args --no-external --quiet --ignore-errors gcov,source,graph )
+    set(psmrts_genhtml_args --quiet --rc geninfo_unexecuted_blocks=1 )
     set(psmrts_lcov_excludes "/*/vcpkg_installed/*")
     setup_target_for_coverage_lcov(
       NAME lcov_coverage
