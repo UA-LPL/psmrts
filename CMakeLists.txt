@@ -72,6 +72,7 @@ include(CMakePackageConfigHelpers)
 
 set( PSMRTS_PROJECT_DIR  ${CMAKE_SOURCE_DIR} )
 set( PSMRTS_DIR          ${CMAKE_SOURCE_DIR}/psmrts )
+set( PSMRTS_SOURCE_DIR   ${CMAKE_SOURCE_DIR}/psmrts )
 set( PSMRTS_TEST_DIR     ${CMAKE_SOURCE_DIR}/psmrts )
 set( PSMRTS_DATA_DIR     ${CMAKE_SOURCE_DIR}core/data )
 set( PSMRTS_TRACERS_DIR  ${CMAKE_SOURCE_DIR}/tracers )
@@ -222,10 +223,10 @@ if( PSMRTS_BUILD_TESTS )
     # Exclude any instances of external files. lcov behaves
     # differently than gcovr so try to exclude as much as we
     # can.
-    psmrts_register_code_coverage(EXCLUDES "*/vcpkg_installed/*")
-    psmrts_register_code_coverage(EXCLUDES "*/vcpkg/*")
-    psmrts_register_code_coverage(EXCLUDES "/usr/include/*")
-    psmrts_register_code_coverage(EXCLUDES "_deps/*")
+    #psmrts_register_code_coverage(EXCLUDES "*/vcpkg_installed/*")
+    #psmrts_register_code_coverage(EXCLUDES "*/vcpkg/*")
+    #psmrts_register_code_coverage(EXCLUDES "/usr/include/*")
+    #psmrts_register_code_coverage(EXCLUDES "_deps/*")
 
     # Set code coverage dependencies and exclude properties 
     get_property(psmrts_cc_depends  GLOBAL PROPERTY PSMRTS_COVERAGE_DEPENDENCIES )
@@ -234,7 +235,7 @@ if( PSMRTS_BUILD_TESTS )
     if(CODE_COVERAGE_VERBOSE)
       message("CC_Dependencies: ${psmrts_cc_depends}")
       message("CC_Exclusions:   ${psmrts_cc_excludes}")
-      message("CC_BaseDir:      ${PSMRTS_SOURCE_DIR}/psmrts")
+      message("CC_BaseDir:      ${PSMRTS_SOURCE_DIR}")
     endif(CODE_COVERAGE_VERBOSE)
 
     # The results of gcovr are perhaps slightly more accurate as it provides a
@@ -246,7 +247,7 @@ if( PSMRTS_BUILD_TESTS )
       NAME coverage
       EXECUTABLE ctest --schedule-random
       DEPENDENCIES   ${psmrts_cc_depends}
-      BASE_DIRECTORY "${PSMRTS_SOURCE_DIR}/psmrts"
+      BASE_DIRECTORY "${PSMRTS_SOURCE_DIR}"
       EXCLUDE        ${psmrts_cc_excludes}
     )
 
@@ -264,8 +265,8 @@ if( PSMRTS_BUILD_TESTS )
       NAME lcov_coverage
       EXECUTABLE ctest --schedule-random
       DEPENDENCIES   ${psmrts_cc_depends}
-      BASE_DIRECTORY "${PSMRTS_SOURCE_DIR}/psmrts"
-      EXCLUDE        ${psmrts_cc_excludes} ${psmrts_lcov_excludes}
+      BASE_DIRECTORY "${PSMRTS_SOURCE_DIR}"
+      EXCLUDE        ${psmrts_cc_excludes}
       LCOV_ARGS      ${psmrts_lcov_args}
       GENHTML_ARGS   ${psmrts_genhtml_args}
     )
