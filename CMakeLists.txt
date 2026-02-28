@@ -223,11 +223,6 @@ if( PSMRTS_BUILD_TESTS )
     # Exclude any instances of external files. lcov behaves
     # differently than gcovr so try to exclude as much as we
     # can.
-    #psmrts_register_code_coverage(EXCLUDES "*/vcpkg_installed/*")
-    #psmrts_register_code_coverage(EXCLUDES "*/vcpkg/*")
-    #psmrts_register_code_coverage(EXCLUDES "/usr/include/*")
-    #psmrts_register_code_coverage(EXCLUDES "_deps/*")
-
     # Set code coverage dependencies and exclude properties 
     get_property(psmrts_cc_depends  GLOBAL PROPERTY PSMRTS_COVERAGE_DEPENDENCIES )
     get_property(psmrts_cc_excludes GLOBAL PROPERTY PSMRTS_COVERAGE_EXCLUDES )
@@ -256,7 +251,8 @@ if( PSMRTS_BUILD_TESTS )
     # not exact, coverage results.
     # set(psmrts_lcov_args --no-external --quiet --ignore-errors gcov,source,graph )
     set(psmrts_lcov_args --no-external --ignore-errors gcov,source,graph )
-    set(psmrts_genhtml_args --quiet --rc geninfo_unexecuted_blocks=1 )
+    #set(psmrts_genhtml_args --quiet --rc geninfo_unexecuted_blocks=1 )
+    set(psmrts_genhtml_args --rc geninfo_unexecuted_blocks=1 )
     set(psmrts_lcov_excludes "/*/*conda*/*" 
                                "/*/catch2/*" 
                                "/Applications/*" 
@@ -267,7 +263,7 @@ if( PSMRTS_BUILD_TESTS )
       EXECUTABLE ctest --schedule-random
       DEPENDENCIES   ${psmrts_cc_depends}
       BASE_DIRECTORY "${PSMRTS_SOURCE_DIR}"
-      EXCLUDE        ${psmrts_cc_excludes} "/usr/include/*"
+      EXCLUDE        ${psmrts_cc_excludes}
       LCOV_ARGS      ${psmrts_lcov_args} 
       GENHTML_ARGS   ${psmrts_genhtml_args}
     )
