@@ -259,7 +259,7 @@ if( PSMRTS_BUILD_TESTS )
       EXECUTABLE ctest --schedule-random
       DEPENDENCIES   ${psmrts_cc_depends}
       BASE_DIRECTORY "${PSMRTS_SOURCE_DIR}"
-      EXCLUDE        ${psmrts_cc_excludes} ${psmrts_lcov_excludes}
+      EXCLUDE        ${psmrts_cc_excludes} ${psmrts_lcov_excludes} 
       LCOV_ARGS      ${psmrts_lcov_args} 
       GENHTML_ARGS   ${psmrts_genhtml_args}
     )
