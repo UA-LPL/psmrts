@@ -253,17 +253,13 @@ if( PSMRTS_BUILD_TESTS )
     set(psmrts_lcov_args --no-external --ignore-errors gcov,source,graph )
     #set(psmrts_genhtml_args --quiet --rc geninfo_unexecuted_blocks=1 )
     set(psmrts_genhtml_args --rc geninfo_unexecuted_blocks=1 )
-    set(psmrts_lcov_excludes "/*/*conda*/*" 
-                               "/*/catch2/*" 
-                               "/Applications/*" 
-                               "/*/include/eigen/*" 
-                               "/*/include/nlohmann/*")
+    set(psmrts_lcov_excludes "/*/vcpkg_installed/*")
     setup_target_for_coverage_lcov(
       NAME lcov_coverage
       EXECUTABLE ctest --schedule-random
       DEPENDENCIES   ${psmrts_cc_depends}
       BASE_DIRECTORY "${PSMRTS_SOURCE_DIR}"
-      EXCLUDE        ${psmrts_cc_excludes}
+      EXCLUDE        ${psmrts_cc_excludes} ${psmrts_lcov_excludes}
       LCOV_ARGS      ${psmrts_lcov_args} 
       GENHTML_ARGS   ${psmrts_genhtml_args}
     )
