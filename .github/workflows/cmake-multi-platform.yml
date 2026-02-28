@@ -122,4 +122,4 @@ jobs:
         echo "open .build/lcov_coverage/index.html"
         #lcov --directory . --capture --output-file coverage.info
         #lcov --summary coverage.info
-        cmake --build build --target lcov_coverage || true
+        cmake --build build --target lcov_coverage

@@ -243,7 +243,7 @@ if( PSMRTS_BUILD_TESTS )
     # not. Use the target "lcov_coverage" in the CI to automatically report the
     # coverage results in text. 
     set(GCOVR_ADDITIONAL_ARGS --exclude-noncode-lines)
-    set(CONVERAGE_EXCLUDES ${psmrts_cc_excludes} )
+    # set(CONVERAGE_EXCLUDES ${psmrts_cc_excludes} )
     setup_target_for_coverage_gcovr_html(
       NAME coverage
       EXECUTABLE ctest --schedule-random
@@ -255,9 +255,9 @@ if( PSMRTS_BUILD_TESTS )
     # Set up for generation of coverage info using lcov. Some very specific
     # excludes are needed for lcov that differ from gcovr to get similar, but
     # not exact, coverage results.
-    set(LCOV_ARGS --no-external --quiet --ignore-errors unused,gcov,source,graph )
-    # set(GENHTML_ARGS --no-external --quiet --ignore-errors unused  )
-    set(COVERAGE_LCOV_EXCLUDES "/*/*conda*/*" 
+    set(psmrts_lcov_args --no-external --quiet --ignore-errors gcov,source,graph )
+    set(psmrts_genhtml_args --quiet --rc geninfo_unexecuted_blocks=1 )
+    set(psmrts_lcov_excludes "/*/*conda*/*" 
                                "/*/catch2/*" 
                                "/Applications/*" 
                                "/*/include/eigen/*" 
@@ -267,7 +267,9 @@ if( PSMRTS_BUILD_TESTS )
       EXECUTABLE ctest --schedule-random
       DEPENDENCIES   ${psmrts_cc_depends}
       BASE_DIRECTORY "${PSMRTS_SOURCE_DIR}/psmrts"
-      EXCLUDE        ${psmrts_cc_excludes}
+      EXCLUDE        ${psmrts_cc_excludes} ${psmrts_lcov_excludes}
+      LCOV_ARGS      ${psmrts_lcov_args}
+      GENHTML_ARGS   ${psmrts_genhtml_args}
     )
   endif(PSMRTS_BUILD_COVERAGE)
 endif( PSMRTS_BUILD_TESTS )
