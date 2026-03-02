@@ -7,6 +7,7 @@ target_sources( psmrts PUBLIC
                                   ProductConfiguration.hpp
                                   ProductFeature.hpp
                                   ProductInventory.hpp
+                                  ProductMaker.hpp
                                   ProductOption.hpp
                                   ProductOrder.hpp
                                   ProductProcessDispatch.hpp
@@ -15,6 +16,6 @@ target_sources( psmrts PUBLIC
                                   PRQProduct.hpp )
  
 # Only add if requested
-if(BUILD_TESTING)
+if(PSMRTS_BUILD_TESTS)
   add_subdirectory( tests )
-endif(BUILD_TESTING)
+endif(PSMRTS_BUILD_TESTS)

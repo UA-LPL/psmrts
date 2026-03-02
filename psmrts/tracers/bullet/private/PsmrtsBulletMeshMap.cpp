@@ -102,10 +102,6 @@ namespace psmrts::bullet {
       // Allocate a new mesh map
       bt_mesh.reset( new btTriangleIndexVertexArray() );
 
-      size_t n_parts = bt_MaxBodyParts();
-      if ( maxparts > 0 ) n_parts = std::min( maxparts, bt_MaxBodyParts() );
-
-      auto bt_max_triangles_t = bt_MaxTrianglesPerPart();
       size_t nfacets_t = this->nfacets();
 
       const PsmrtsStridingBuffer &vector_m = this->vectors().buffer();

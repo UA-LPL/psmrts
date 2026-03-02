@@ -179,7 +179,6 @@ namespace psmrts::bullet {
 
       /// Variables for the Bullet system
       std::string            m_name; /**! The name of the Bullet world. */
-      int                    m_id;   /**! Identifier of the shape */
       PsmrtsBulletMeshMap    m_mesh_map; /**! The mesh map to trace */
       bool                   m_usecompression;
       bool                   m_buildbvh;

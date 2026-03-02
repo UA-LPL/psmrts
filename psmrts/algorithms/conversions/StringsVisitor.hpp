@@ -37,12 +37,14 @@ namespace psmrts::algorithms::conversions {
       StringsVisitor( TypeVector &data,
                       const Type &default_v,
                       const ConversionParameters parms = ConversionParameters() ) : 
-                      m_datum( data ),m_default( default_v),
-                      m_parameters( parms ) { }
+                      m_datum( data ), 
+                      m_parameters( parms ), 
+                      m_default( default_v) { }
       StringsVisitor( TypeVector &data,
                       const ConversionParameters parms = ConversionParameters() ) : 
-                      m_datum( data ),m_default( TypeDefault ),
-                      m_parameters( parms ) { }                        
+                      m_datum( data ),
+                      m_parameters( parms ),
+                      m_default( TypeDefault ) { }                        
       virtual ~StringsVisitor() = default;
 
 
@@ -216,7 +218,6 @@ namespace psmrts::algorithms::conversions {
         }; 
 
         // Preliminary processing of the JSON structure to determine its nature
-        size_t level = 0;
         try { 
           // Now check if we actually have primitives or arrays
           if ( j_data.is_primitive() ) {
@@ -253,7 +254,7 @@ namespace psmrts::algorithms::conversions {
 
     private:
       /** Reference to vector that collects strings */
-      TypeVector           &m_datum;
+      TypeVector            &m_datum;
       ConversionParameters  m_parameters;
       Type                  m_default; 
   };

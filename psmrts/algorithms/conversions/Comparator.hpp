@@ -139,7 +139,6 @@ namespace psmrts::algorithms::conversions {
                          
           size_t this_size  = this->size();
           size_t other_size = other.size();
-          size_t max_vals = std::max( this_size, other_size ) ;
 
           TypeVector this_data, other_data;
           this_data.reserve( this_size );

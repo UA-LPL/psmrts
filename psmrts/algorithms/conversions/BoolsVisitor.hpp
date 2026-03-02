@@ -37,12 +37,14 @@ namespace psmrts::algorithms::conversions {
         BoolsVisitor( TypeVector &data,
                       const Type &default_v,
                       const ConversionParameters &params = ConversionParameters() ) :
-                      m_datum( data ), m_default( default_v ),
-                      m_parameters( params ) { }
+                      m_datum( data ),
+                      m_parameters( params ),
+                       m_default( default_v ) { }
         BoolsVisitor( TypeVector &data,
                       const ConversionParameters &params = ConversionParameters() ) :
-                      m_datum( data ), m_default( TypeDefault ),
-                      m_parameters( params ) { }
+                      m_datum( data ),
+                      m_parameters( params ),
+                       m_default( TypeDefault ) { }
         virtual ~BoolsVisitor() = default;
 
         /** Check if a value is valid and not the default type */
@@ -207,7 +209,6 @@ namespace psmrts::algorithms::conversions {
           }; 
 
           // Preliminary processing of the JSON structure to determine its nature
-          size_t level = 0;
           try { 
             // Now check if we actually have primitives or arrays
             if ( j_data.is_primitive() ) {

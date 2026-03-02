@@ -161,7 +161,6 @@ namespace psmrts {
         if ( s.find_first_of( '$') == std::string::npos ) return ( s );
 
         std::vector<std::string> dirs = psmrts::string_tokenizer( s, "/\\" );
-        auto first_slash = s.find_first_of( "/\\" );
         std::vector<std::string> path_t;
         for ( std::string sub_d : dirs ) {
           auto index_d = sub_d.find_first_of('$');

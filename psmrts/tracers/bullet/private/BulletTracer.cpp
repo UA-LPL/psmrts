@@ -84,8 +84,8 @@ namespace psmrts {
    * 
    */
   BulletTracer::BulletTracer( ) : PsmrtsProduct( "bullet", "bullet" ),
-                                  m_config("bullet"),
-                                  m_model( std::make_shared<BulletTracerImpl>() ) {  }
+                                  m_model( std::make_shared<BulletTracerImpl>() ),
+                                  m_config("bullet") {  }
 
   BulletTracer::BulletTracer( const PsmrtsShape &shape ) : 
                               PsmrtsProduct( shape.config().name(), "bullet"),
@@ -93,8 +93,8 @@ namespace psmrts {
     m_model = std::make_shared<BulletTracerImpl> ( shape );
     m_config.merge( shape.config() );
     m_config.add( ProductOption( "tracer", "bullet" ) );
-    m_config.add( ProductOption( "bullet_optimize_bvh", m_model->useBuildBvh() ) );
-    m_config.add( ProductOption( "bullet_compressed",  m_model->useCompression() ) );
+    m_config.add_metadata( ProductOption( "bullet_optimize_bvh", m_model->useBuildBvh() ) );
+    m_config.add_metadata( ProductOption( "bullet_compressed",  m_model->useCompression() ) );
     m_config.add_metadata( ProductOption( "bullet_thread_safety", m_model->useThreadSafety() ) );
   }
   
@@ -169,7 +169,7 @@ namespace psmrts {
       ProductMaker<PsmrtsShape> shape_m( "shape" );
       ProductConfiguration shape_c( "shape", cart.residual_config() );
 
-      bool shape_made = shape_m.process_config( shape_c,  trans_t );
+      (void) shape_m.process_config( shape_c,  trans_t );
       ProductCart cart_s = shape_m.cart();
       if ( cart_s.error_count() > 0 ) {
         std::string mess = "BulletTracer::create(" + cart_s.name() + 

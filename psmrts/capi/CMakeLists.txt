@@ -13,26 +13,22 @@ generate_export_header( psmrts_c )
 target_sources( psmrts_c PRIVATE psmrts_c.cpp 
                          PUBLIC
                            FILE_SET psmrts_c_headers 
-                             TYPE HEADERS 
+                             TYPE HEADERS
                              FILES psmrts_c.h
                            FILE_SET generated_headers 
                              TYPE HEADERS
-                             BASE_DIRS $<TARGET_PROPERTY:psmrts_c,BINARY_DIR>
-                             FILES ${CMAKE_BINARY_DIR}/psmrts/capi/psmrts_c_export.h
-
+                             BASE_DIRS
+                               ${CMAKE_CURRENT_BINARY_DIR}
+                             FILES ${CMAKE_CURRENT_BINARY_DIR}/psmrts_c_export.h
               )
-target_include_directories(psmrts_c PUBLIC 
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
-    $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>
-)
-target_link_libraries( psmrts_c PRIVATE psmrts::psmrts )
+
+target_link_libraries( psmrts_c PUBLIC psmrts::psmrts )
 
 # Build all C applications
-if(BUILD_CAPI_APPS)
+if(PSMRTS_BUILD_CAPI_APPS)
   add_subdirectory( apps )
-endif(BUILD_CAPI_APPS)
+endif(PSMRTS_BUILD_CAPI_APPS)
 
-if(BUILD_TESTING)
+if(PSMRTS_BUILD_TESTS)
   add_subdirectory(tests)
-endif(BUILD_TESTING)
+endif(PSMRTS_BUILD_TESTS)

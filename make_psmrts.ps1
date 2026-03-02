@@ -1,4 +1,6 @@
 param(
+    [switch]$a,
+    [switch]$Noapps,
     [switch]$s,
     [switch]$t,
     [switch]$c,
@@ -16,6 +18,7 @@ $sharedopts = ""
 $testopts = ""
 $codecovopts = ""
 $extraopts = ""
+$buildapps="-DPSMRTS_BUILD_APPS=ON"
 $buildopts = "-DCMAKE_BUILD_TYPE=Release"
 $doxyopts = ""
 $vcpkg_specs = ""
@@ -25,15 +28,17 @@ $conda_specs = ""
 
 
 
-if ($s) { $sharedopts = "-DBUILD_SHARED=ON" }
-if ($t) { $testopts = "-DBUILD_TESTING=ON" }
+if ($a) { $buildapps = "-DPSMRTS_BUILD_APPS=ON" }
+if ($Noapps) { $buildapps = "-DPSMRTS_BUILD_APPS=OFF" }
+if ($s) { $sharedopts = "-DPSMRTS_BUILD_SHARED=ON" }
+if ($t) { $testopts = "-DPSMRTS_BUILD_TESTS=ON" }
 if ($c) { 
-    $codecovopts = "-DBUILD_COVERAGE=ON"
-    $testopts = "-DBUILD_TESTING=ON"
+    $codecovopts = "-DPSMRTS_BUILD_COVERAGE=ON"
+    $testopts = "-DPSMRTS_BUILD_TESTS=ON"
 }
-if ($x) { $extraopts = "-DBUILD_EXTRAS=ON" }
+if ($x) { $extraopts = "-DPSMRTS_BUILD_EXTRAS=ON" }
 if ($d) { $buildopts = "-DCMAKE_BUILD_TYPE=Debug" }
-if ($Doxy) { $doxyopts = "-DBUILD_DOCS=ON" }
+if ($Doxy) { $doxyopts = "-DPSMRTS_BUILD_DOCS=ON" }
 
 # vcpkg logic
 if ($V) {
@@ -104,6 +109,7 @@ $cmake_configure = @(
     $testopts
     $codecovopts
     $extraopts
+    $buildapps
     $doxyopts
     $vcpkg_specs
     $vcpkg_triplet
@@ -150,5 +156,6 @@ Write-Host "Build complete."
 # Examples:
 # cmake --install build --prefix install
 # cmake --build build --target coverage
-# cmake --build build --target doxy_docs
+# cmake --build build --target lcov_coverage
+# cmake --build build --target docs
 

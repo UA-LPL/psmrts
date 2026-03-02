@@ -24,6 +24,6 @@ target_sources( psmrts PUBLIC
 add_subdirectory( products )
 
 # Only add if requested
-if(BUILD_TESTING)
+if(PSMRTS_BUILD_TESTS)
   add_subdirectory( tests )
-endif(BUILD_TESTING)
+endif(PSMRTS_BUILD_TESTS)

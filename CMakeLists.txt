@@ -7,70 +7,72 @@ set( CMAKE_C_STANDARD 17 )
 
 if(DEFINED VCPKG_TARGET_TRIPLET)
   message(STATUS "VCPKG_TARGET_TRIPLET: ${VCPKG_TARGET_TRIPLET}")
-endif()
+endif(DEFINED VCPKG_TARGET_TRIPLET)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(psmrts_register_code_coverage)
 
 #-----------------------------------------------------------------------------
 # PSMRTS build options
 #-----------------------------------------------------------------------------
 # Add option to build tests and tools
-option( BUILD_SHARED     "Build PSMRTS shared libraries"       OFF )
-option( BUILD_TESTING    "Add PSMRTS unit tests"               OFF )
-option( BUILD_COVERAGE   "Build with code coverage"            OFF )
-option( BUILD_EXTRAS     "Add PSMRTS tools extras"             OFF )
-option( BUILD_CAPI       "Build PSMRTS C API"                  ON  )
-option( BUILD_CAPI_APPS  "Build PMSRTS C API and APPS"         ON  )
-option( BUILD_DOCS       "Build API Doxygen Documentation"     OFF )
-option( WITH_ISIS        "Build with ISIS Shapemodel Support"  OFF )
+option( PSMRTS_BUILD_SHARED    "Build PSMRTS shared libraries"      OFF )
+option( PSMRTS_BUILD_TESTS     "Add PSMRTS unit tests"              OFF )
+option( PSMRTS_BUILD_COVERAGE  "Build with code coverage"           OFF )
+option( PSMRTS_BUILD_EXTRAS    "Add PSMRTS tools extras"            OFF )
+option( PSMRTS_BUILD_CAPI      "Build PSMRTS C API"                  ON )
+option( PSMRTS_BUILD_APPS      "Build PSMRTS C++ Applications"      OFF )
+option( PSMRTS_BUILD_CAPI_APPS "Build PMSRTS C Applications"        OFF )
+option( PSMRTS_BUILD_DOCS      "Build API Doxygen Documentation"    OFF )
+option( PSMRTS_WITH_ISIS       "Build with ISIS Shapemodel Support" OFF )
 
 # Check for type of library build.
-if(BUILD_SHARED)
+if(PSMRTS_BUILD_SHARED)
   set(PSMRTS_BUILD_TYPE SHARED)
 else()
   set(PSMRTS_BUILD_TYPE STATIC)
-endif(BUILD_SHARED)
+endif(PSMRTS_BUILD_SHARED)
 
 # Build PSMRTS C API.
-if(BUILD_CAPI_APPS)
+if(PSMRTS_BUILD_APPS)
   # Ensure we build the complete C API.
-  set(BUILD_CAPI ON)
-endif(BUILD_CAPI_APPS)
+  set(PSMRTS_BUILD_CAPI_APPS ON)
+endif(PSMRTS_BUILD_APPS)
 
 # Build coverage requires testing as well.
-if(BUILD_COVERAGE)
-    set(BUILD_TESTING ON)
+if(PSMRTS_BUILD_COVERAGE)
+    set(PSMRTS_BUILD_TESTS ON)
     # Initialize configs to build up coverage targets
     psmrts_register_code_coverage(DEPENDENCY  EXCLUDES  )
-endif(BUILD_COVERAGE)
+endif(PSMRTS_BUILD_COVERAGE)
 
-if(BUILD_TESTING)
+if(PSMRTS_BUILD_TESTS)
     enable_testing()
-endif(BUILD_TESTING)
+endif(PSMRTS_BUILD_TESTS)
 
 # Set shared library RPATH configs here
-if(BUILD_SHARED)
+if(PSMRTS_BUILD_SHARED)
     set(CMAKE_SKIP_BUILD_RPATH FALSE)
     set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
   if(UNIX AND NOT APPLE)
     set(CMAKE_INSTALL_RPATH "$ORIGIN" "$ORIGIN/../lib")
   elseif(APPLE)
     set(CMAKE_INSTALL_RPATH "@loader_path" "@loader_path/../lib" )
-  endif()
-endif(BUILD_SHARED)
+  endif(UNIX AND NOT APPLE)
+endif(PSMRTS_BUILD_SHARED)
 
 #-----------------------------------------------------------------------------
 # PSMRTS project configuration. PROJECT_SOURCE_DIR=psmrts
 #-----------------------------------------------------------------------------
-project(PSMRTS VERSION 0.5.1 LANGUAGES CXX C)
-set( PSMRTS_VERSION_DATE  "2026-02-21")
+project(PSMRTS VERSION 0.6.0 LANGUAGES CXX C)
+set( PSMRTS_VERSION_DATE  "2026-02-27")
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 set( PSMRTS_PROJECT_DIR  ${CMAKE_SOURCE_DIR} )
 set( PSMRTS_DIR          ${CMAKE_SOURCE_DIR}/psmrts )
+set( PSMRTS_SOURCE_DIR   ${CMAKE_SOURCE_DIR}/psmrts )
 set( PSMRTS_TEST_DIR     ${CMAKE_SOURCE_DIR}/psmrts )
 set( PSMRTS_DATA_DIR     ${CMAKE_SOURCE_DIR}core/data )
 set( PSMRTS_TRACERS_DIR  ${CMAKE_SOURCE_DIR}/tracers )
@@ -99,7 +101,7 @@ if (NOT "${_conda_bullet_config}" MATCHES ".*-NOTFOUND")
 else()
   # All non-conda environments assumes double is default.
   find_package( Bullet           CONFIG REQUIRED )
-endif()
+endif(NOT "${_conda_bullet_config}" MATCHES ".*-NOTFOUND")
 
 # Create standardized/common targets. Note that Bullet and cspice can be
 # provided in projects by other means. This macro will check for other
@@ -118,7 +120,7 @@ add_library( psmrts::psmrts ALIAS psmrts )
 add_subdirectory(psmrts)
 target_include_directories( psmrts PUBLIC 
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-  $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
@@ -137,13 +139,13 @@ target_link_libraries( psmrts PRIVATE
 #-----------------------------------------------------------------------------
 # Set up SHARED PSMRTS library versioning.
 #-----------------------------------------------------------------------------
-if(BUILD_SHARED)
+if(PSMRTS_BUILD_SHARED)
   set_target_properties( psmrts PROPERTIES VERSION ${PROJECT_VERSION} )
   # Set SOVERSION for non-WINDOWS systems.
   if(NOT WIN32 OR MINGW)
     set_target_properties( psmrts PROPERTIES SOVERSION ${PROJECT_VERSION_MAJOR} )
-  endif()
-endif()
+  endif(NOT WIN32 OR MINGW)
+endif(PSMRTS_BUILD_SHARED)
 
 #-----------------------------------------------------------------------------
 # Install PSMRTS targets and export/import configuration.
@@ -157,7 +159,7 @@ endif()
  )
 
 # Build C-API here if requested
-if( BUILD_CAPI OR BUILD_CAPI_APPS )
+if( PSMRTS_BUILD_CAPI OR PSMRTS_BUILD_CAPI_APPS )
   add_subdirectory( psmrts/capi )
   install(TARGETS psmrts_c
           EXPORT psmrts_targets
@@ -167,7 +169,7 @@ if( BUILD_CAPI OR BUILD_CAPI_APPS )
           FILE_SET psmrts_c_headers DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/psmrts/capi
           FILE_SET generated_headers DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/psmrts/capi
         )
-endif( BUILD_CAPI OR BUILD_CAPI_APPS )
+endif( PSMRTS_BUILD_CAPI OR PSMRTS_BUILD_CAPI_APPS )
 
 # Export target configurations
 install(EXPORT psmrts_targets
@@ -194,13 +196,13 @@ write_basic_package_version_file(
 install(FILES 
          "${CMAKE_CURRENT_BINARY_DIR}/psmrts-config.cmake"
          "${CMAKE_CURRENT_BINARY_DIR}/psmrts-config-version.cmake"
-         "${CMAKE_SOURCE_DIR}/cmake/psmrts_dependency_standards.cmake"
+         "${CMAKE_CURRENT_SOURCE_DIR}/cmake/psmrts_dependency_standards.cmake"
         DESTINATION  ${CMAKE_INSTALL_LIBDIR}/cmake/psmrts )
 
 #-----------------------------------------------------------------------------
 # Optionally build unit tests and code coverage of PSMRTS classes
 #-----------------------------------------------------------------------------
-if( BUILD_TESTING )
+if( PSMRTS_BUILD_TESTS )
   configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/psmrts/core/tests/psmrts_test_config.h.in 
                   ${CMAKE_CURRENT_SOURCE_DIR}/psmrts/core/tests/psmrts_test_config.h @ONLY )
 
@@ -208,7 +210,7 @@ if( BUILD_TESTING )
 
   # Now check for code coverage. Note this must be done
   # before adding the subdirectories!
-  if(BUILD_COVERAGE)
+  if(PSMRTS_BUILD_COVERAGE)
     include(CodeCoverage)
     append_coverage_compiler_flags()
 
@@ -218,13 +220,9 @@ if( BUILD_TESTING )
     target_link_options(psmrts    INTERFACE -g0 --coverage)
 
 
-    # Exclude any instances of VCPKG
-    psmrts_register_code_coverage(EXCLUDES "${CMAKE_BINARY_DIR}/vcpkg_installed/*")
-    psmrts_register_code_coverage(EXCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg_installed/*")
-    psmrts_register_code_coverage(EXCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/*")
-    psmrts_register_code_coverage(EXCLUDES "/usr/include/*")
-    psmrts_register_code_coverage(EXCLUDES "deps/*")
-
+    # Exclude any instances of external files. lcov behaves
+    # differently than gcovr so try to exclude as much as we
+    # can.
     # Set code coverage dependencies and exclude properties 
     get_property(psmrts_cc_depends  GLOBAL PROPERTY PSMRTS_COVERAGE_DEPENDENCIES )
     get_property(psmrts_cc_excludes GLOBAL PROPERTY PSMRTS_COVERAGE_EXCLUDES )
@@ -232,35 +230,54 @@ if( BUILD_TESTING )
     if(CODE_COVERAGE_VERBOSE)
       message("CC_Dependencies: ${psmrts_cc_depends}")
       message("CC_Exclusions:   ${psmrts_cc_excludes}")
-      message("CC_BaseDir:      ${PSMRTS_SOURCE_DIR}/psmrts")
+      message("CC_BaseDir:      ${PSMRTS_SOURCE_DIR}")
     endif(CODE_COVERAGE_VERBOSE)
 
-    # Omit closing scope braces from counts
+    # The results of gcovr are perhaps slightly more accurate as it provides a
+    # parameter that omit closing scope braces from counts whereas lcov does
+    # not. Use the target "lcov_coverage" in the CI to automatically report the
+    # coverage results in text. 
     set(GCOVR_ADDITIONAL_ARGS --exclude-noncode-lines)
     setup_target_for_coverage_gcovr_html(
       NAME coverage
       EXECUTABLE ctest --schedule-random
       DEPENDENCIES   ${psmrts_cc_depends}
-      BASE_DIRECTORY "${PSMRTS_SOURCE_DIR}/psmrts"
+      BASE_DIRECTORY "${PSMRTS_SOURCE_DIR}"
       EXCLUDE        ${psmrts_cc_excludes}
     )
-  endif(BUILD_COVERAGE)
-endif( BUILD_TESTING )
+
+    # Set up for generation of coverage info using lcov. Some very specific
+    # excludes are needed for lcov that differ from gcovr to get similar, but
+    # not exact, coverage results.
+    set(psmrts_lcov_args --no-external --quiet --ignore-errors gcov,source,graph )
+    set(psmrts_genhtml_args --quiet --rc geninfo_unexecuted_blocks=1 )
+    set(psmrts_lcov_excludes "/*/vcpkg_installed/*")
+    setup_target_for_coverage_lcov(
+      NAME lcov_coverage
+      EXECUTABLE ctest --schedule-random
+      DEPENDENCIES   ${psmrts_cc_depends}
+      BASE_DIRECTORY "${PSMRTS_SOURCE_DIR}"
+      EXCLUDE        ${psmrts_cc_excludes} ${psmrts_lcov_excludes} 
+      LCOV_ARGS      ${psmrts_lcov_args} 
+      GENHTML_ARGS   ${psmrts_genhtml_args}
+    )
+  endif(PSMRTS_BUILD_COVERAGE)
+endif( PSMRTS_BUILD_TESTS )
 
 #-----------------------------------------------------------------------------
 # Build PSMRTS documentation
 #-----------------------------------------------------------------------------
-if(BUILD_DOCS)
+if(PSMRTS_BUILD_DOCS)
   find_package(Doxygen QUIET)
 
   if(DOXYGEN_FOUND)
     add_custom_target(docs
         COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/docs
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT "Generating Doxygen API Documentation.."
         VERBATIM
     )
   else ()
     message(WARNING "ERROR: Doxygen not found, unable to generate documentation.")
-  endif()
-endif(BUILD_DOCS)
+  endif(DOXYGEN_FOUND)
+endif(PSMRTS_BUILD_DOCS)

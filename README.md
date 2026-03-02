@@ -27,6 +27,8 @@ The `PSMRTS` system upon cloning from the repo is contained in the `./psmrts` di
 
 1. `cd psmrts`
 2. `./make_psmrts.sh`
+   - Add `-a` to build all `PSMRTS` main applications
+   - Add `-A` to turn of builds of all `PSMRTS` main applications
    - Add `-s` to build shared libraries (required for conda builds)
    - Add `-t` to enable testing
    - Add `-c` to enable code coverage
@@ -38,7 +40,14 @@ The `PSMRTS` system upon cloning from the repo is contained in the `./psmrts` di
    - Add `-C` to use the conda package manager to provide PSMRTS dependencies
    - Add `-j x` will use x threads to build PSMRTS (recommended)
 
-   You must use one of -V (vcpkg) or -C (conda) to provide the required PSMRTS dependencies or provide them by some other means. In some cases it may be useful to specify an alternative vcpkg triplet for certain platforms.
+   You must use one of -V (vcpkg) or -C (conda) to provide the required PSMRTS
+   dependencies or provide them by some other means. In some cases it may be
+   useful to specify an alternative vcpkg triplet for certain platforms.
+   
+   `PSMRTS` default CMake configuration only builds the C++ and C APIs with
+   static libraries. Using this script will include all `PSMRTS` main
+   applications so `-A` will be required to achieve the same results as running
+   _cmake_ directly with no additional options specified.
    
    When the build completes, the system can be installed with the following command:
  ```

@@ -48,7 +48,7 @@ PROJECT_NAME           = "Planetary Shape Model Ray Tracing System"
 # could be handy for archiving the generated documentation or if some version
 # control system is used.
 
-PROJECT_NUMBER         = "v0.5.1"
+PROJECT_NUMBER         = "v0.6.0"
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description
 # for a project that appears at the top of each page and should give viewer a
@@ -61,7 +61,7 @@ PROJECT_BRIEF          =
 # pixels and the maximum width should not exceed 200 pixels. Doxygen will copy
 # the logo to the output directory.
 
-PROJECT_LOGO           = images/psmrtsLogo.jpg
+PROJECT_LOGO           = docs/images/psmrtsLogo.jpg
 
 # With the PROJECT_ICON tag one can specify an icon that is included in the tabs
 # when the HTML document is shown. Doxygen will copy the logo to the output
@@ -74,7 +74,7 @@ PROJECT_ICON           =
 # entered, it will be relative to the location where doxygen was started. If
 # left blank the current directory will be used.
 
-OUTPUT_DIRECTORY       =
+OUTPUT_DIRECTORY       = docs
 
 # If the CREATE_SUBDIRS tag is set to YES then doxygen will create up to 4096
 # sub-directories (in 2 levels) under the output directory of each output format
@@ -190,7 +190,7 @@ FULL_PATH_NAMES        = YES
 # will be relative from the directory where doxygen is started.
 # This tag requires that the tag FULL_PATH_NAMES is set to YES.
 
-STRIP_FROM_PATH        =
+STRIP_FROM_PATH        = docs/
 
 # The STRIP_FROM_INC_PATH tag can be used to strip a user-defined part of the
 # path mentioned in the documentation of a class, which tells the reader which
@@ -948,12 +948,15 @@ WARN_LOGFILE           =
 # directories like /usr/src/myproject. Separate the files or directories with
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
-INPUT                  = ../psmrts \
-                         psmrts_intro.md psmrts_license.md psmrts_getstarted.md psmrts_developer_guide.md \
-                         Developers/ForDevelopers.md \
-                         Developers/DeveloperOnboarding.md \
-                         Developers/DeveloperInstall.md \
-                         Developers/DesignProductSpecifications.md \
+INPUT                  = ./psmrts \
+                         docs/psmrts_intro.md \
+                         docs/psmrts_developer_guide.md \
+                         docs/psmrts_license.md \
+                         docs/psmrts_getstarted.md \
+                         docs/Developers/ForDevelopers.md \
+                         docs/Developers/DeveloperOnboarding.md \
+                         docs/Developers/DeveloperInstall.md \
+                         docs/Developers/DesignProductSpecifications.md \
                          CHANGELOG.md
 
 # This tag can be used to specify the character encoding of the source files
@@ -1013,7 +1016,8 @@ RECURSIVE              = YES
 # Note that relative paths are relative to the directory from which doxygen is
 # run.
 
-EXCLUDE                = ../psmrts/shapes/ply/private/miniply
+EXCLUDE                = psmrts/shapes/ply/private/miniply \
+                         psmrts/shapes/obj/private/tinyobjloader
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
@@ -1063,7 +1067,7 @@ EXAMPLE_RECURSIVE      = NO
 # that contain images that are to be included in the documentation (see the
 # \image command).
 
-IMAGE_PATH             = images
+IMAGE_PATH             = docs/images
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should
 # invoke to filter for each input file. Doxygen will invoke the filter program
@@ -1325,7 +1329,7 @@ HTML_STYLESHEET        =
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
 #HTML_EXTRA_STYLESHEET        = 
-HTML_EXTRA_STYLESHEET  = doxygen-awesome.css
+HTML_EXTRA_STYLESHEET  = docs/doxygen-awesome.css
 
 # The HTML_EXTRA_FILES tag can be used to specify one or more extra images or
 # other source files which should be copied to the HTML output directory. Note

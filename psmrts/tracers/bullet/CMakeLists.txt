@@ -9,7 +9,7 @@ target_sources(psmrts PUBLIC
               
 add_subdirectory( private )    # May not need this
 
-# Add test directory if BUILD_TESTING and/or BUILD_COVERAGE is set
-if( BUILD_TESTING )
+# Add test directory if PSMRTS_BUILD_TESTS and/or PSMRTS_BUILD_COVERAGE is set
+if( PSMRTS_BUILD_TESTS )
   add_subdirectory(tests)
-endif( BUILD_TESTING )
+endif( PSMRTS_BUILD_TESTS )

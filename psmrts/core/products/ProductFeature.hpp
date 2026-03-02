@@ -426,7 +426,7 @@ namespace psmrts {
       
       inline bool validate_string( const ProductFeature &other ) const {
         if (other.contains(other.name())) {
-          std::vector<std::string> valid_wordlist = this->value(other.name(), valid_wordlist);
+          std::vector<std::string> valid_wordlist = this->valid_list();
           std::string target = psmrts_tolower(other.value(other.name(), std::string("")));
 
           for (const auto &vals : valid_wordlist) {

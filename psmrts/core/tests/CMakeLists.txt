@@ -36,7 +36,7 @@ include( Catch )
 catch_discover_tests( psmrts_test_suite WORKING_DIRECTORY ${CMAKE_BINARY_DIR} )
 
 # Update the test dependencies and excludes
-if(BUILD_COVERAGE)
+if(PSMRTS_BUILD_COVERAGE)
   get_target_property(psmrts_test_sources psmrts_test_suite SOURCES)
   list(TRANSFORM psmrts_test_sources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/" )
   psmrts_register_code_coverage(DEPENDENCY "psmrts_test_suite" EXCLUDES "${psmrts_test_sources}")
@@ -44,5 +44,5 @@ if(BUILD_COVERAGE)
   # Some additional sources in PSMRTS C API sources
   psmrts_register_code_coverage(EXCLUDES "core/tests/psmrts_catch2_environment.hpp")  
   
-endif(BUILD_COVERAGE)
+endif(PSMRTS_BUILD_COVERAGE)
 
