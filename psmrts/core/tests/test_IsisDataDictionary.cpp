@@ -39,6 +39,7 @@ TEST_CASE( "ISISDataDictionary Default Test", "[isis][data][dictionary][default]
     CHECK( dict.value("UserInterface", "GuiHeight").value()          == "600"       );
     CHECK( dict.value("UserInterface", "HistoryRecording").value()   == "On"        );
     CHECK( dict.value("UserInterface", "HistoryLength").value()      == "10"        );
+    CHECK( dict.value("UserInterface", "HistoryPath").value()        == "$HOME/.Isis/history");
 
     // ErrorFacility values
     CHECK( dict.value("ErrorFacility", "FileLine").value()   == "Off"      );
@@ -98,4 +99,103 @@ TEST_CASE( "ISISDataDictionary Default Test", "[isis][data][dictionary][default]
 
     // translations() is accessible and translate_path is callable without throwing
     CHECK_NOTHROW( dict.translations().translate_path("$ISISDATA/lro") );
+}
+
+TEST_CASE( "ISISDataDictionary to_string PVL Round-Trip", "[isis][data][dictionary][serialization][pvl]") {
+    psmrts::ISISDataDictionary dict("../psmrts/core/tests/data/IsisPreferences");
+
+    std::string pvl = dict.to_string();
+
+    // Output is non-empty
+    CHECK_FALSE( pvl.empty() );
+
+    // Every group name appears as a Group = Name header
+    CHECK( pvl.find("Group = UserInterface")    != std::string::npos );
+    CHECK( pvl.find("Group = DataDirectory")    != std::string::npos );
+    CHECK( pvl.find("Group = ErrorFacility")    != std::string::npos );
+    CHECK( pvl.find("Group = SessionLog")       != std::string::npos );
+    CHECK( pvl.find("Group = CubeCustomization")!= std::string::npos );
+    CHECK( pvl.find("Group = Performance")      != std::string::npos );
+    CHECK( pvl.find("Group = Plugins")          != std::string::npos );
+
+    // Every opened Group has a matching EndGroup
+    size_t group_count    = 0;
+    size_t endgroup_count = 0;
+    size_t pos = 0;
+    while ((pos = pvl.find("Group =", pos)) != std::string::npos) { ++group_count;    pos += 7; }
+    pos = 0;
+    while ((pos = pvl.find("EndGroup",  pos)) != std::string::npos) { ++endgroup_count; pos += 8; }
+    CHECK( group_count == endgroup_count );
+    CHECK( group_count == dict.size() );
+
+    // Key = Value pairs are present and indented
+    CHECK( pvl.find("  ProgressBar = On")        != std::string::npos );
+    CHECK( pvl.find("  FileAccess = Append")      != std::string::npos );
+    CHECK( pvl.find("  Lro = $ISISDATA/lro")      != std::string::npos );
+    CHECK( pvl.find("  CubeWriteThread = Optimized") != std::string::npos );
+
+    // Round-trip: re-parse the serialized string and compare to original
+    psmrts::ISISDataDictionary reparsed;
+    reparsed.parse_string(pvl);
+
+    CHECK( reparsed.size() == dict.size() );
+    CHECK( reparsed.has_group("UserInterface") );
+    CHECK( reparsed.has_group("DataDirectory") );
+
+    CHECK( reparsed.value("UserInterface", "ProgressBar").value()   == "On"            );
+    CHECK( reparsed.value("UserInterface", "GuiFontName").value()   == "helvetica"      );
+    CHECK( reparsed.value("SessionLog",    "FileAccess").value()    == "Append"         );
+    CHECK( reparsed.value("DataDirectory", "Lro").value()           == "$ISISDATA/lro"  );
+    CHECK( reparsed.value("DataDirectory", "Mro").value()           == "$ISISDATA/mro"  );
+    CHECK( reparsed.value("Performance",   "GlobalThreads").value() == "Optimized"      );
+
+    // block_type is preserved through round-trip
+    for (const auto& block : reparsed.all_blocks())
+        CHECK( block.block_type == "Group" );
+
+    CHECK_NOTHROW( dict.to_file("../psmrts/core/tests/data/output.prefs") );
+}
+
+TEST_CASE( "ISISDataDictionary to_string_flat", "[isis][data][dictionary][serialization][flat]") {
+    psmrts::ISISDataDictionary dict("../psmrts/core/tests/data/IsisPreferences");
+
+    std::string flat = dict.to_string_flat();
+
+    // Output is non-empty
+    CHECK_FALSE( flat.empty() );
+
+    // Each block appears as a comment header (no Group = / EndGroup wrappers)
+    CHECK( flat.find("# Group: UserInterface")     != std::string::npos );
+    CHECK( flat.find("# Group: DataDirectory")     != std::string::npos );
+    CHECK( flat.find("# Group: ErrorFacility")     != std::string::npos );
+    CHECK( flat.find("# Group: SessionLog")        != std::string::npos );
+    CHECK( flat.find("# Group: CubeCustomization") != std::string::npos );
+    CHECK( flat.find("# Group: Performance")       != std::string::npos );
+    CHECK( flat.find("# Group: Plugins")           != std::string::npos );
+
+    // No ISIS PVL wrapper keywords present
+    CHECK( flat.find("EndGroup")   == std::string::npos );
+    CHECK( flat.find("End_Object") == std::string::npos );
+
+    // Key = Value pairs are present without indentation
+    CHECK( flat.find("ProgressBar = On")         != std::string::npos );
+    CHECK( flat.find("FileAccess = Append")       != std::string::npos );
+    CHECK( flat.find("Lro = $ISISDATA/lro")       != std::string::npos );
+    CHECK( flat.find("GlobalThreads = Optimized") != std::string::npos );
+    CHECK( flat.find("FileLine = Off")            != std::string::npos );
+
+    // Flat output should NOT have leading spaces before keys (unlike PVL)
+    CHECK( flat.find("  ProgressBar") == std::string::npos );
+    CHECK( flat.find("  Lro")         == std::string::npos );
+
+    // Round-trip is NOT expected to work (flat format has no Group wrappers),
+    // but the content should be parseable as a flat key=value set
+    CHECK( flat.find("ISIS3DATA = $ISISDATA")          != std::string::npos );
+    CHECK( flat.find("HistoryPath = $HOME/.Isis/history") != std::string::npos );
+
+    // Comment count matches block count
+    size_t comment_count = 0;
+    size_t pos = 0;
+    while ((pos = flat.find("# Group:", pos)) != std::string::npos) { ++comment_count; pos += 8; }
+    CHECK( comment_count == dict.size() );
 }

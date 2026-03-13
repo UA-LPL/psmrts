@@ -25,3 +25,138 @@ TEST_CASE( "PsmrtsMetakernel Default Test", "[metakernel][default]") {
     CHECK( std::find(mk.getKernels().begin(), mk.getKernels().end(),
                      "$apophis/kernels/tspk/de440s.bsp") == mk.getKernels().end() );
 }
+
+TEST_CASE( "PsmrtsMetakernel to_string Round-Trip", "[metakernel][serialization][tostring]") {
+    psmrts::PsmrtsMetakernel mk("../psmrts/core/tests/data/orx_kernels.mk");
+
+    std::string tm = mk.to_string();
+
+    // Output is non-empty
+    CHECK_FALSE( tm.empty() );
+
+    // \begindata and \begintext delimiters are present
+    CHECK( tm.find("\\begindata")  != std::string::npos );
+    CHECK( tm.find("\\begintext")  != std::string::npos );
+
+    // \begindata appears before \begintext
+    CHECK( tm.find("\\begindata") < tm.find("\\begintext") );
+
+    // All three sections are present
+    CHECK( tm.find("PATH_VALUES")     != std::string::npos );
+    CHECK( tm.find("PATH_SYMBOLS")    != std::string::npos );
+    CHECK( tm.find("KERNELS_TO_LOAD") != std::string::npos );
+
+    // PATH_VALUES contains all three resolved paths
+    CHECK( tm.find("/opt/isis3/data")                   != std::string::npos );
+    CHECK( tm.find("/opt/isis3/data/osirisrex")         != std::string::npos );
+    CHECK( tm.find("/opt/isis3/data/osirisrex/apophis") != std::string::npos );
+
+    // PATH_SYMBOLS contains all three symbol names
+    CHECK( tm.find("'data'")      != std::string::npos );
+    CHECK( tm.find("'osirisrex'") != std::string::npos );
+    CHECK( tm.find("'apophis'")   != std::string::npos );
+
+    // All 9 kernels are present in KERNELS_TO_LOAD
+    CHECK( tm.find("$osirisrex/kernels/lsk/naif0012.tls")       != std::string::npos );
+    CHECK( tm.find("$osirisrex/kernels/spk/orx_struct_v04.bsp") != std::string::npos );
+    CHECK( tm.find("$osirisrex/kernels/fk/orx_v14.tf")          != std::string::npos );
+
+    // Commented-out kernel from original file is still absent
+    CHECK( tm.find("$apophis/kernels/tspk/de440s.bsp") == std::string::npos );
+
+    // Sections use opening '(' and closing ')'
+    size_t pv_open  = tm.find("PATH_VALUES");
+    size_t pv_close = tm.find(")", pv_open);
+    CHECK( pv_open  != std::string::npos );
+    CHECK( pv_close != std::string::npos );
+
+    // Count quoted entries within each section independently
+    size_t pv_start = tm.find("PATH_VALUES");
+    size_t pv_end   = tm.find(")", pv_start);
+    size_t ps_start = tm.find("PATH_SYMBOLS");
+    size_t ps_end   = tm.find(")", ps_start);
+    size_t kl_start = tm.find("KERNELS_TO_LOAD");
+    size_t kl_end   = tm.find(")", kl_start);
+
+    size_t path_value_count  = 0;
+    size_t path_symbol_count = 0;
+    size_t kernel_count      = 0;
+    size_t pos               = 0;
+
+    pos = pv_start;
+    while ((pos = tm.find("'", pos)) != std::string::npos && pos < pv_end)
+        { ++path_value_count; pos += 1; }
+
+    pos = ps_start;
+    while ((pos = tm.find("'", pos)) != std::string::npos && pos < ps_end)
+        { ++path_symbol_count; pos += 1; }
+
+    pos = kl_start;
+    while ((pos = tm.find("'", pos)) != std::string::npos && pos < kl_end)
+        { ++kernel_count; pos += 1; }
+
+    // Each entry is wrapped in two single-quotes, so count / 2 == entry count
+    CHECK( path_value_count  / 2 == mk.getPathMap().size() );
+    CHECK( path_symbol_count / 2 == mk.getPathMap().size() );
+    CHECK( kernel_count      / 2 == mk.getKernels().size() );
+
+    // Check file creation
+    CHECK_NOTHROW( mk.to_file("../psmrts/core/tests/data/output.tm") );
+
+    psmrts::PsmrtsMetakernel mk2("../psmrts/core/tests/data/orx_noola_2020_v06.tm");
+    CHECK_NOTHROW( mk2.to_file("../psmrts/core/tests/data/output2.tm") );
+}
+
+TEST_CASE( "PsmrtsMetakernel m_tags Storage", "[metakernel][tags]") {
+    psmrts::PsmrtsMetakernel mk("../psmrts/core/tests/data/orx_kernels.mk");
+
+    // Three tag pairs are registered
+    CHECK( mk.m_tags.size() == 3 );
+
+    // Verify each expected start tag is present
+    auto has_start = [&](const std::string& start) {
+        for (const auto& tag : mk.m_tags)
+            if (tag.first == start) return true;
+        return false;
+    };
+    CHECK( has_start("PATH_VALUES")     );
+    CHECK( has_start("PATH_SYMBOLS")    );
+    CHECK( has_start("KERNELS_TO_LOAD") );
+
+    // All three end tags are closing parentheses
+    for (const auto& tag : mk.m_tags)
+        CHECK( tag.second == ")" );
+
+    // Tags are PsmrtsTagSearch::Tag (pair<string,string>) — first and second are accessible
+    CHECK_FALSE( mk.m_tags[0].first.empty()  );
+    CHECK_FALSE( mk.m_tags[0].second.empty() );
+
+    // No duplicate start tags
+    std::vector<std::string> starts;
+    for (const auto& tag : mk.m_tags)
+        starts.push_back(tag.first);
+    std::sort(starts.begin(), starts.end());
+    CHECK( std::unique(starts.begin(), starts.end()) == starts.end() );
+}
+
+TEST_CASE( "PsmrtsMetakernel Output Reversal Test", "[metakernel][output][reversal]") {
+    psmrts::PsmrtsMetakernel mk("../psmrts/core/tests/data/output.tm");
+
+    // Counts
+    CHECK( mk.getPathMap().size() == 3 );
+    CHECK( mk.getKernels().size() == 9 );
+
+    // Path map — symbol → resolved path
+    CHECK( mk.getPathMap().at("data")      == "/opt/isis3/data"                   );
+    CHECK( mk.getPathMap().at("osirisrex") == "/opt/isis3/data/osirisrex"         );
+    CHECK( mk.getPathMap().at("apophis")   == "/opt/isis3/data/osirisrex/apophis" );
+
+    // Kernels — spot-check first, last, and a middle entry
+    CHECK( mk.getKernels().front() == "$osirisrex/kernels/lsk/naif0012.tls"        );
+    CHECK( mk.getKernels().back()  == "$osirisrex/kernels/spk/orx_struct_v04.bsp"  );
+    CHECK( mk.getKernels()[3]      == "$osirisrex/kernels/fk/orx_v14.tf"           );
+
+    // Confirm commented-out kernel is NOT in the list
+    CHECK( std::find(mk.getKernels().begin(), mk.getKernels().end(),
+                     "$apophis/kernels/tspk/de440s.bsp") == mk.getKernels().end() );
+}
