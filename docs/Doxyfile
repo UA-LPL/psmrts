@@ -950,14 +950,11 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 INPUT                  = ./psmrts \
                          docs/psmrts_intro.md \
-                         docs/psmrts_developer_guide.md \
                          docs/psmrts_license.md \
                          docs/psmrts_getstarted.md \
-                         docs/Developers/ForDevelopers.md \
-                         docs/Developers/DeveloperOnboarding.md \
-                         docs/Developers/DeveloperInstall.md \
-                         docs/Developers/DesignProductSpecifications.md \
-                         CHANGELOG.md
+                         docs/developersGuide/psmrts_developers_guide.md \
+                         docs/developersGuide/DesignProductSpecifications.md \
+                         CHANGELOG.md \
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
