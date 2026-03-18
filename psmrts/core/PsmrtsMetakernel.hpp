@@ -1,7 +1,22 @@
+/** This is free and unencumbered software released into the public domain.
+ 
+      OSIRIS-APEX (OSIRIS-APophis EXplorer) by University of Arizona 
+                        is marked with CC0 1.0
+      (https://creativecommons.org/publicdomain/zero/1.0/legalcode.en)
+ 
+The authors of PSMRTS do not claim copyright on the contents of this file.
+For more details about the LICENSE terms and the AUTHORS, you will
+find files of those names at the top level of this repository. **/
+ 
+/* SPDX-License-Identifier: CC0-1.0 */
+
 #ifndef PSMRTS_METAKERNEL_HPP
 #define PSMRTS_METAKERNEL_HPP
 
 #include "PsmrtsTagSearch.hpp"
+#include "PsmrtsUtilities.hpp"
+#include <chrono>
+#include <ctime>
 #include <fstream>
 #include <map>
 #include <sstream>
@@ -10,41 +25,43 @@
 #include <vector>
 #include <algorithm>
 
-// Parses a SPICE metakernel (.tm) file.
-//
-// Reads a single \begindata block up to EOF or \begintext and extracts:
-//   PATH_SYMBOLS  — short alias names  (e.g. GENS, LRO)
-//   PATH_VALUES   — corresponding paths (e.g. /kernels/gens)
-//   KERNELS_TO_LOAD — list of kernel paths, $SYMBOL references resolved
-//                     by substituting from the path map
-//
-// GENS is equal to /kernels/gens, etc.
-//
-// Quick-start:
-//
-//   PsmrtsMetakernel mk("my_mission.tm");
-//
-//   // Inspect the symbol→path map
-//   for (auto& [sym, path] : mk.getPathMap())
-//       std::cout << sym << " = " << path << "\n";
-//
-//   // Get all kernel paths
-//   for (auto& k : mk.getKernels())
-//       std::cout << k << "\n";
-//
-//   // Serialize back to metakernel format
-//   std::string tm = mk.to_string();
-//   mk.to_file("output.tm");
-
 namespace psmrts {
 
+  /**
+   * @brief PSMRTS Metakernel file extractor 
+   * 
+   * This class parses SPICE metakernel (.tm) type files and extracts values
+   * from PATH_VALUES, PATH_SYMBOLS, and KERNELS_TO_LOAD. It reads a single
+   * \begindata block up to EOF or \begintext. It is not designed to read
+   * more than one block, and files containing multiple will need to be split
+   * into separate files.
+   * 
+   * Note: This class was experimentally designed with AI assistance. For 
+   * more information, please refer to Anthropic's Claude AI model:
+   *                        https://claude.ai/
+   * 
+   * Quick-start:
+   *
+   * PsmrtsMetakernel mk("my_mission.tm");
+   *
+   * // Inspect the symbol→path map
+   * for (auto& [sym, path] : mk.getPathMap())
+   *     std::cout << sym << " = " << path << "\n";
+   *
+   * // Get all kernel paths
+   * for (auto& k : mk.getKernels())
+   *      std::cout << k << "\n";
+   *
+   * // Serialize back to metakernel format
+   * std::string tm = mk.to_string();
+   * mk.to_file("output.tm");
+   * 
+   * 
+   * @author Kyle Becker, University of Arizona
+   * @history 2026-03-14 Kyle Becker  Original Version
+   */
 class PsmrtsMetakernel {
 public:
-
-    // ---------------------------------------------------------------
-    // Tag storage
-    // ---------------------------------------------------------------
-
     /**
      * The PsmrtsTagSearch::Tag pairs used internally to locate each
      * valued section within the \begindata block.
@@ -59,20 +76,42 @@ public:
      */
     std::vector<PsmrtsTagSearch::Tag> m_tags;
 
-    // ---------------------------------------------------------------
-    // Constructor
-    // ---------------------------------------------------------------
-
-    PsmrtsMetakernel(const std::string& filename) {
-        // Register tag pairs and store them for later introspection/serialization
+    PsmrtsMetakernel() {
         m_tags = {
             { "PATH_VALUES",     ")" },
             { "PATH_SYMBOLS",    ")" },
             { "KERNELS_TO_LOAD", ")" }
         };
-        // Read the file and extract only the \begindata ... \begintext region
-        // before handing off to PsmrtsTagSearch, so that occurrences of tag
-        // keywords in the comment header (e.g. "PATH_VALUES keyword") are ignored.
+    }
+
+    PsmrtsMetakernel(const std::string& filename) {
+        m_tags = {
+            { "PATH_VALUES",     ")" },
+            { "PATH_SYMBOLS",    ")" },
+            { "KERNELS_TO_LOAD", ")" }
+        };
+        load_file(filename);
+    }
+
+    /**
+     * @brief Populates the PsmrtsMetakernel from a file.
+     * 
+     * Can be called on a default-constructed instance, or to reload
+     * an existing one. Clears any previously loaded data before parsing.
+     *
+     * Only a single \begindata ... \begintext section is supported.
+     * See above class description.
+     *
+     * @param filename  Path to the metakernel (.tm) file to parse.
+     * @throws std::runtime_error if the file cannot be opened, or if
+     *         multiple \begindata or \begintext sections are detected.
+     */
+    void load_file(const std::string& filename) {
+        // Clear any previously loaded state
+        m_pathMap.clear();
+        m_kernels.clear();
+        m_source.clear();
+
         std::ifstream ifs(filename);
         if (!ifs)
             throw std::runtime_error(
@@ -81,8 +120,23 @@ public:
         std::string content((std::istreambuf_iterator<char>(ifs)),
                             std::istreambuf_iterator<char>());
 
+        // Warn if multiple \begindata or \begintext sections are detected
+        size_t first_begin  = content.find("\\begindata");
+        size_t second_begin = content.find("\\begindata", first_begin + 1);
+        if (second_begin != std::string::npos)
+            throw std::runtime_error(
+                "PsmrtsMetakernel: multiple \\begindata sections detected in: "
+                + filename + ". Only a single \\begindata block is supported.");
+
+        size_t first_text  = content.find("\\begintext");
+        size_t second_text = content.find("\\begintext", first_text + 1);
+        if (second_text != std::string::npos)
+            throw std::runtime_error(
+                "PsmrtsMetakernel: multiple \\begintext sections detected in: "
+                + filename + ". Only a single \\begintext block is supported.");
+
         // Locate \begindata — everything before it is the comment header
-        size_t begin_pos = content.find("\\begindata");
+        size_t begin_pos = first_begin;
         if (begin_pos == std::string::npos)
             return;  // no \begindata block found, nothing to parse
         begin_pos += std::strlen("\\begindata");
@@ -106,45 +160,28 @@ public:
             m_pathMap[symbols[i]] = values[i];
 
         m_kernels = split_clean(parser.get_value("KERNELS_TO_LOAD"));
-        /** 
-        psmrts::PsmrtsTagSearch parser;
-        for (const auto& tag : m_tags)
-            parser.add_search_tag(tag.first, tag.second);
-
-        if (parser.parse_file(filename)) {
-            std::vector<std::string> symbols = split_clean(parser.get_value("PATH_SYMBOLS"));
-            std::vector<std::string> values  = split_clean(parser.get_value("PATH_VALUES"));
-
-            for (size_t i = 0; i < symbols.size() && i < values.size(); ++i)
-                m_pathMap[symbols[i]] = values[i];
-            /
-            // CONTENT-BASED MAPPING: ensure key is the LAST part of the path
-            for (const auto& symbol : symbols) {
-                for (const auto& path : values) {
-                    if (ends_with_component(path, symbol)) {
-                        m_pathMap[symbol] = path;
-                        break;
-                    }
-                }
-            }
-            
-            m_kernels = split_clean(parser.get_value("KERNELS_TO_LOAD"));
-            
-        }*/
+        m_source  = filename;
     }
 
-    // ---------------------------------------------------------------
-    // Result access
-    // ---------------------------------------------------------------
+    /** Return SYMBOL to VALUE map pairings */
+    const std::map<std::string, std::string>& getPathMap() const { 
+        return m_pathMap;
+    }
 
-    const std::map<std::string, std::string>& getPathMap() const { return m_pathMap; }
-    const std::vector<std::string>&           getKernels() const { return m_kernels; }
+    /** Return KERNELS list */
+    const std::vector<std::string>& getKernels() const { 
+        return m_kernels; 
+    }
 
-    // ---------------------------------------------------------------
-    // Serialization
-    // ---------------------------------------------------------------
+    /** Return source file / path */
+    const std::string& getSource() const { 
+        return m_source; 
+    }
+
 
     /**
+     * @brief String conversion
+     * 
      * Serialize the parsed metakernel data back to the original
      * SPICE metakernel (.tm) format:
      *
@@ -165,6 +202,8 @@ public:
      */
     std::string to_string() const {
         std::ostringstream oss;
+
+        oss << "KPL/MK\n\n";
         oss << "\\begindata\n\n";
 
         // PATH_VALUES
@@ -197,11 +236,21 @@ public:
         oss << "                    )\n\n";
 
         oss << "\\begintext\n";
+        // Add timestamp and source to text section
+        std::time_t now = std::chrono::system_clock::to_time_t( std::chrono::system_clock::now() );
+        char timebuf[64];
+        std::strftime( timebuf, sizeof(timebuf), "%Y-%m-%d %H:%M:%S", std::localtime(&now) );
+        oss << "Metakernel file generated by PSMRTS: \n";
+        oss << timebuf << "\n";
+        if (!m_source.empty()) {
+            oss << "Source: " << m_source << "\n";
+        }
+
         return oss.str();
     }
 
     /**
-     * Write the metakernel serialization to a file.
+     * @brief Write the metakernel serialization to a file.
      *
      * @param filename  Path to the output file (created or overwritten).
      * @throws std::runtime_error if the file cannot be opened for writing.
@@ -215,37 +264,14 @@ public:
     }
 
 private:
+    std::map<std::string, std::string> m_pathMap;  // symbol -> path (e.g. "GENS" → "/kernels/gens")
+    std::vector<std::string>           m_kernels;  // kernel paths in load order
+    std::string                        m_source;
 
-    // ---------------------------------------------------------------
-    // Data
-    // ---------------------------------------------------------------
-
-    std::map<std::string, std::string> m_pathMap;  ///< symbol → path (e.g. "GENS" → "/kernels/gens")
-    std::vector<std::string>           m_kernels;  ///< kernel paths in load order
-
-    // ---------------------------------------------------------------
-    // Helpers
-    // ---------------------------------------------------------------
 
     /**
-     * Check if the last path component of `path` matches `symbol`.
-     * Trailing slashes are stripped before comparison.
+     * @brief Trim function
      * 
-     * **May be unnecessary, instead need to use positional matching**
-     */
-    bool ends_with_component(std::string path, const std::string& symbol) {
-        if (!path.empty() && (path.back() == '/' || path.back() == '\\'))
-            path.pop_back();
-
-        size_t pos = path.find_last_of("/\\");
-        std::string lastComponent = (pos == std::string::npos)
-            ? path
-            : path.substr(pos + 1);
-
-        return lastComponent == symbol;
-    }
-
-    /**
      * Strip metakernel punctuation from a raw captured value string
      * and return the individual tokens.
      * Removes: ' " , ( ) =
@@ -269,96 +295,3 @@ private:
 
 #endif // PSMRTS_METAKERNEL_HPP
 
-/** 
-#ifndef PSMRTS_METAKERNEL_HPP
-#define PSMRTS_METAKERNEL_HPP
-
-#include "PsmrtsTagSearch.hpp"
-#include <map>
-#include <vector>
-#include <string>
-#include <sstream>
-#include <algorithm>
-
-
-// add a starttag: \begindata and endtag: EOF or begintext
-// Add documentation for only reading in a single begindata to EOF or begintext
-// GENS is equal to /kernels/gens, etc
-
-// 
-namespace psmrts {
-
-class PsmrtsMetakernel {
-public:
-    PsmrtsMetakernel(const std::string& filename) {
-        psmrts::PsmrtsTagSearch parser;
-
-        parser.add_search_tag("PATH_VALUES", ")");
-        parser.add_search_tag("PATH_SYMBOLS", ")");
-        parser.add_search_tag("KERNELS_TO_LOAD", ")");
-
-        if (parser.parse_file(filename)) {
-            std::vector<std::string> symbols = split_clean(parser.get_value("PATH_SYMBOLS"));
-            std::vector<std::string> values = split_clean(parser.get_value("PATH_VALUES"));
-
-            // CONTENT-BASED MAPPING: Ensure key is the LAST part of the path
-            for (const auto& symbol : symbols) {
-                for (const auto& path : values) {
-                    if (ends_with_component(path, symbol)) {
-                        m_pathMap[symbol] = path;
-                        break; 
-                    }
-                }
-            }
-
-            m_kernels = split_clean(parser.get_value("KERNELS_TO_LOAD"));
-        }
-    }
-
-    const std::map<std::string, std::string>& getPathMap() const { return m_pathMap; }
-    const std::vector<std::string>& getKernels() const { return m_kernels; }
-
-private:
-    std::map<std::string, std::string> m_pathMap;
-    std::vector<std::string> m_kernels;
-
-    // Helper to check if the path ends with the symbol (ignoring trailing slashes)
-    bool ends_with_component(std::string path, const std::string& symbol) {
-        // Remove trailing slash if it exists
-        if (!path.empty() && (path.back() == '/' || path.back() == '\\')) {
-            path.pop_back();
-        }
-
-        size_t pos = path.find_last_of("/\\");
-        std::string lastComponent;
-        
-        if (pos == std::string::npos) {
-            lastComponent = path;
-        } else {
-            lastComponent = path.substr(pos + 1);
-        }
-
-        return lastComponent == symbol;
-    }
-
-    std::vector<std::string> split_clean(std::string raw) {
-        std::vector<std::string> results;
-        for (char &c : raw) {
-            if (c == '\'' || c == '\"' || c == ',' || c == '(' || c == ')' || c == '=') {
-                c = ' ';
-            }
-        }
-
-        std::stringstream ss(raw);
-        std::string temp;
-        while (ss >> temp) {
-            results.push_back(temp);
-        }
-        return results;
-    }
-};
-
-} // namespace psmrts
-
-#endif
-*/
