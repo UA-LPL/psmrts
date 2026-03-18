@@ -66,7 +66,7 @@ Here the `-t` will build tests and `-x` will build extras. Building tests is nec
 
 For the Mac, it is recommended to install from source as it is a better long term solution. There is a universal binary install package for the Mac located here. Simply download the PKG file, click on the package and follow the install instructions.
 
-Building `PSMRTS` requires the `pkg-config` build utility which may not be available on your system. The MacOS does not ship with `pkg-config` and it must be installed. There are several ways to install `pkg-config` such as using [HomeBrew](https://formulae.brew.sh/formula/pkg-config), Anaconda/Miniconda (`conda install pkg-config`) or from [source](https://gitlab.freedesktop.org/pkg-config/pkg-config). The Conda solution will always require an active Python environment. Linux and Windows systems may provide this as a package install or other alternatives.
+Building `PSMRTS` requires the `pkg-config` build utility which may not be available on your system. The MacOS does not ship with `pkg-config` and it must be installed. There are several ways to install `pkg-config` such as using <a href="https://formulae.brew.sh/formula/pkgconf" target="_blank" rel="noopener">HomeBrew</a>, Anaconda/Miniconda (`conda install pkg-config`) or from <a href="https://gitlab.freedesktop.org/pkg-config" target="_blank" rel="noopener">source</a>. The Conda solution will always require an active Python environment. Linux and Windows systems may provide this as a package install or other alternatives.
 
 The `PSMRTS` system upon cloning from the repo is contained in the `./psmrts` directory. One command is used to completely build `PSMRTS`. The `make_psmrts.sh` script is provided to ease the `PSMRTS` build process. After cloning `PSMRTS`, here are the basic command options of `make_psmrts.sh` to build the C++ and C API libraries:
 
@@ -95,7 +95,7 @@ Below are details describing `PSMRTS` build environments in `conda` and `vcpkg`.
 
 @subsection devCondaBuild Using Conda
 
-To build using the `conda` environment, you must first install [Anancond](https://www.anaconda.com) or [Miniconda](https://www.anaconda.com/docs/getting-started/miniconda/main) (recommended) and install the minimum build packages into a chosen named conda environment (e.g.,`PSMRTS`). It must be activated before building `PSMRTS`. To install Miniconda, follow the basic [instructions](https://www.anaconda.com/docs/getting-started/miniconda/install). There are several YAML files provided in PSMRTS that can be used to create a development environment for `PSMRTS` depending upon what you want to do.
+To build using the `conda` environment, you must first install <a href="https://www.anaconda.com" target="_blank" rel="noopener">Anaconda</a> or <a href="https://www.anaconda.com/docs/getting-started/miniconda/main" target="_blank" rel="noopener">Miniconda</a>(recommended) and install the minimum build packages into a chosen named conda environment (e.g.,`PSMRTS`). It must be activated before building `PSMRTS`. To install Miniconda, follow these basic <a href="https://www.anaconda.com/docs/getting-started/miniconda/install" target="_blank" rel="noopener">instructions</a>. There are several YAML files provided in PSMRTS that can be used to create a development environment for `PSMRTS` depending upon what you want to do.
 
 To just build the `PSMRTS` system for installation, use the conda environment file `psmrts_conda_deps.yml`. This configuration installs the minimum `PSMRTS` The following instructions can be used to create the conda environment, build and install `PSMRTS`.
 ```
@@ -129,9 +129,9 @@ To build `PSMRTS` tests, code coverage and documentation, use the `psmrts_conda_
 
 @subsection devVcpkgBuild Using vcpkg
 
-As mentioned, `vcpkg` was used to develop `PSMRTS` due to its ease of setup/installation and the default state of dependency libraries being static archive (.a) libraries. In addition, instead of delivering prebuilt binaries, `vcpkg` builds all dependencies from source and caches them locally for efficient builds. `vcpkg` can also build `PSMRTS` with `classic` or `manifest` mode. The major difference between these modes are `classic` maintains a system wide installation of a `vcpkg` installation whereas `manifest` mode installs dependencies in a local directory, typcially in `./build/vcpkg_installed` - and at times dependencies can be installed from a system or user cache and not rebuilt from source. `PSMRTS` detects `classic` mode by checking for the existance of the environment variable called `VCPKG_ROOT`. If it is not set, it sets VCPKG_ROOT=$PWD/vcpkg, clones `vcpkg` in `./psmrts` and runs cmake. This is `manifest` mode. If `VCPKG_ROOT` is set prior to running `make_psmrts.sh` `PSMRTS` does not install `vcpkg` or install any of is dependencies and assumes they are installed in a system-wide `vcpkg` installation. This is `classic` mode.
+As mentioned, `vcpkg` was used to develop `PSMRTS` due to its ease of setup/installation and the default state of dependency libraries being static archive (.a) libraries. In addition, instead of delivering prebuilt binaries, `vcpkg` builds all dependencies from source and caches them locally for efficient builds. `vcpkg` can also build `PSMRTS` with `classic` or `manifest` mode. The major difference between these modes are `classic` maintains a system wide installation of a `vcpkg` installation whereas `manifest` mode installs dependencies in a local directory, typically in `./build/vcpkg_installed` - and at times dependencies can be installed from a system or user cache and not rebuilt from source. `PSMRTS` detects `classic` mode by checking for the existence of the environment variable called `VCPKG_ROOT`. If it is not set, it sets VCPKG_ROOT=$PWD/vcpkg, clones `vcpkg` in `./psmrts` and runs cmake. This is `manifest` mode. If `VCPKG_ROOT` is set prior to running `make_psmrts.sh` `PSMRTS` does not install `vcpkg` or install any of is dependencies and assumes they are installed in a system-wide `vcpkg` installation. This is `classic` mode.
 
-When building with `vcpkg`, you can build outside a `conda` environment with testing turned on (-t -d) and without code coverage and documentation (exlude -s -c -D). This also requires not preinstall as does when building with a full `conda` environment. The instructions to build in `manifest` mode:
+When building with `vcpkg`, you can build outside a `conda` environment with testing turned on (-t -d) and without code coverage and documentation (exclude -s -c -D). This also requires not preinstall as does when building with a full `conda` environment. The instructions to build in `manifest` mode:
 
 ```
 1. git clone https://github.com/UA-LPL/psmrts.git
@@ -168,17 +168,17 @@ experience:
 11. ctest --output-on-failure -j4              # Run the PSMRTS tests
 ```
 
-In some cases you may need to explicitly specify a `vcpkg` triplet. You may provide a specific triplet to build for other platforms should the `make_psmrts.sh` script fail to determine the proper triplet. See the `vcpkg` documentation describing [triplets](https://learn.microsoft.com/en-us/vcpkg/concepts/triplets) for additional details.
+In some cases you may need to explicitly specify a `vcpkg` triplet. You may provide a specific triplet to build for other platforms should the `make_psmrts.sh` script fail to determine the proper triplet. See the `vcpkg` documentation describing <a href="https://learn.microsoft.com/en-us/vcpkg/concepts/triplets" target="_blank" rel="noopener">triplets</a> for additional details.
 
 @subsection testing Testing
 
-`PSMRTS` uses the <a href="https://github.com/catchorg/Catch2" target="_blank" rel="noopener">Catch2</a> Testing Framework for unit and app testing in the C++ API. `PSMRTS` tests are organized by features in  `./tests` subdirectories. The `PSMRTS` C API is tested with the `cmocka` C testing framework. Each `./tests` directory configures its own testing environment including code coverage. Developers may use other testing frameworks by adding the package dependency in the `vcpkg.json` or `conda` YAML file and configure appropriately. Each `PSMRTS` feature should build its own test application and add it to the `ctest` system. See the cmake configuration [psmrts/core/tests](./psmrts/core/tests/CMakeLists.txt) directory for an example.
+`PSMRTS` uses the <a href="https://github.com/catchorg/Catch2" target="_blank" rel="noopener">Catch2</a> Testing Framework for unit and app testing in the C++ API. `PSMRTS` tests are organized by features in  `./tests` subdirectories. The `PSMRTS` C API is tested with the `cmocka` C testing framework. Each `./tests` directory configures its own testing environment including code coverage. Developers may use other testing frameworks by adding the package dependency in the `vcpkg.json` or `conda` YAML file and configure appropriately. Each `PSMRTS` feature should build its own test application and add it to the `ctest` system. See the cmake configuration [psmrts/core/tests](../../psmrts/core/tests/CMakeLists.txt) directory for an example.
 
 @subsection codeCoverage Code Coverage
 
-Code coverage can be run on `PSMRTS` code by providing the `-c` flag to the PSMRTS build scripts. `PSMRTS` uses a custom CMake code coverage script called [CodeCoverage.cmake](https://github.com/bilke/cmake-modules/blob/master/CodeCoverage.cmake). This file is included in the code repository in the `./cmake` directory.
+Code coverage can be run on `PSMRTS` code by providing the `-c` flag to the PSMRTS build scripts. `PSMRTS` uses a custom CMake code coverage script called <a href="https://github.com/bilke/cmake-modules/blob/master/CodeCoverage.cmake" target="_blank" rel="noopener">CodeCoverage.cmake</a>. This file is included in the code repository in the `./cmake` directory.
 
-Code coverage prerequisites are provided in the `PSMRTS` package manager configurations. The cmake configurations in each `./tests` subdirectories can customize what files are added in code coverage reports. The `PSMRTS` cmake configuration provides methods to include and exclude source files in the report. See the cmake file [psmrts_register_code_coverage.cmake](.cmake/psmrts_register_code_coverage.cmake) for details and refer to the tests subdirectories CMakeLists.txt files for examples.
+Code coverage prerequisites are provided in the `PSMRTS` package manager configurations. The cmake configurations in each `./tests` subdirectories can customize what files are added in code coverage reports. The `PSMRTS` cmake configuration provides methods to include and exclude source files in the report. See the cmake file [psmrts_register_code_coverage.cmake](../../cmake/psmrts_register_code_coverage.cmake) for details and refer to the tests subdirectories CMakeLists.txt files for examples.
 
 Using the configuration described in the `PSMRTS Documentation` section above, you can create a code coverage HTML report using the following additional commands: 
 
@@ -206,7 +206,7 @@ To begin an PSMRTS pull request, you must first create a PSMRTS issue.
 
 Once the PR is ready you visit your branch and choose the `Contribute` button and then `Open Pull Request`. This will launch a web GUI that needs to be filled out. Note that your original PSMRTS issue describing this PR update must be added in the **Related Issue** section of the PR request. I also tend to write what was committed in to the PR branch for merge into PSMRTS.
 
-Also, you must make an entry into the [CHANGELOG.md](http://orgit:7990/projects/ISIS/repos/psmrts/browse/CHANGELOG.md) file with a _single_ entry that includes a reference to the PR post.
+Also, you must make an entry into the <a href="http://orgit:7990/projects/ISIS/repos/psmrts/browse/CHANGELOG.md" target="_blank" rel="noopener">CHANGELOG.md</a> file with a _single_ entry that includes a reference to the PR post.
 
 This process is typically done by _publishing_ your PSMRTS working directory to a repo on your own GitHub account/site. The GitHub website can then be used to create a pull request (PR) for your contribution to the UA/PSMRTS repo `main` development branch. At that point, a UA/PSMRTS developer will conduct a review of your work and give feedback for changes that may need to made before the PR will be accepted and merged.
 
@@ -235,24 +235,24 @@ shapes specified by a filename. Each of the shape products contain a list of
 file suffixes that are used to uniquely and easily identify a supported format
 from which a mesh is read and processed.
 
-Each product contains a [ProductSpecification](../../../psmrts/core/products/ProductSpecification.hpp) definition that accepts a
-[ProductConfiguration](../psmrts/core/products/ProductConfiguration.hpp) that contains feature option keyword/value pairs that are
+Each product contains a [ProductSpecification](../../psmrts/core/products/ProductSpecification.hpp) definition that accepts a
+[ProductConfiguration](../../psmrts/core/products/ProductConfiguration.hpp) that contains feature option keyword/value pairs that are
 compared to its specifications. Each option is evaluated against features by
 name or _alias_. A feature _alias_ is simply another keyword that can be
 substituted for the real feature option name so that generic configurations can
 be used. All 
 
-The PSMRTS application, [psmrts_product_specs](../psmrts/apps/psmrts_product_specs.cpp) provides the
+The PSMRTS application, [psmrts_product_specs](../../psmrts/apps/psmrts_product_specs.cpp) provides the
 the product interface specifications of all shapes and tracers. The output is parseable JSON format.
 
 @subsection shapeProductConfigs PsmrtsShape Product Configurations
 
-The class [PsrmtsShape](../psmrts/shapes/PsmrtsShape.hpp) maintains a set of
+The class [PsmrtsShape](../../psmrts/shapes/PsmrtsShape.hpp) maintains a set of
 shape file readers. The supported shape formats are provided NAIF DSKs by
-[DskShape](../psmrts/shapes/dsk/DskShape.hpp), OBJ by
-[ObjShape](../psmrts/shapes/obj/ObjShape.hpp), PLY by
-[PlyShape](../psmrts/shapes/ply/PlyShape.hpp) and generic mesh in
-[MeshShape](../psmrts/shapes/mesh/MeshShape.hpp). 
+[DskShape](../../psmrts/shapes/dsk/DskShape.hpp), OBJ by
+[ObjShape](../../psmrts/shapes/obj/ObjShape.hpp), PLY by
+[PlyShape](../../psmrts/shapes/ply/PlyShape.hpp) and generic mesh in
+[MeshShape](../../psmrts/shapes/mesh/MeshShape.hpp). 
 
 To configure a shape, refer to the shape only product configuration as reported
 by by running the command `psmrts_product_specs --shapes` or with a specific
@@ -266,7 +266,7 @@ following configuration:
     "info": {
      "name": "obj",
      "product": "shape",
-     "description": "Reads Wavefront OBJ mesh files and creates a PMRTS mesh object"
+     "description": "Reads Wavefront OBJ mesh files and creates a PSMRTS mesh object"
     },
     "features": [
      {
@@ -335,8 +335,8 @@ following configuration:
 The minimum requirement to specify this shape is to provide a `obj_file` option
 naming a specific file name, such as
 `bennu_g_00880mm_alt_obj_0000n00000_v021.obj`, using the
-[ProductOption](../psmrts/core/products/ProductOption.hpp). To more
-fully specify the `obj` format directy, you can use the _product_ and _name_
+[ProductOption](../../psmrts/core/products/ProductOption.hpp). To more
+fully specify the `obj` format directly, you can use the _product_ and _name_
 options shown in the __info__ section of the above JSON structure. To configure
 this shape in PSMRTS, use the following code:
 ```
@@ -510,7 +510,7 @@ three dimensional (3D) vector system. In this system, there are two vectors that
 define a ray trace: a vector describing the position of the observer and a
 second unit vector that represents the direction from the observer to perform a
 trace. These two vectors combined is a PSMRTS ray trace and are stored in the
-[PsmrtsRayTrace](../psmrts/core/PsmrtsRayTrace.hpp) class.
+[PsmrtsRayTrace](../../psmrts/core/PsmrtsRayTrace.hpp) class.
 
 @subsubsection observerLookDirCoordSys Observer/Look Direction Coordinate System
 
@@ -519,7 +519,7 @@ position of the observer is a ray that extends from the center of the planet
 body to a point in 3D space. The look vector is a unit vector where the origin
 is from the observer position presumably toward the planet/body surface. These
 two vectors are parameters to constructors provided in the
-[PsmrtsRayTrace](../psmrts/core/PsmrtsRayTrace.hpp) class. This class is the
+[PsmrtsRayTrace](../../psmrts/core/PsmrtsRayTrace.hpp) class. This class is the
 fundamental basis for a system of extended classes that perform different types
 and varieties of traces. However, the result of every trace in the PSMRTS
 system is retained in a PsmrtsRayTrace object after the PSMRTS tracer calculates
@@ -546,7 +546,7 @@ computed from the observer/look direction vector.
 PSMRTS provides a _process request_ system of classes, called `PRQ`, that
 extends ray tracing capabilities. These classes compute one or more ray trace
 computations. These classes are defined in the file
-[PsmrtsRequest](../psmrts/core/PsmrtsRequest.hpp). These classes are special
+[PsmrtsRequest](../../psmrts/core/PsmrtsRequest.hpp). These classes are special
 processing class that inherit `PsmrtsRequest` as a base class that tracks errors
 and performance metrics. The primary purpose of these classes are to provide
 conditional execution of PRQ request class processing operations. 
@@ -568,7 +568,7 @@ implement any of the tracer process() methods. This minimizes the burden of
 writing dummy methods and minimizes code maintenance.
 
 Here is a list and brief description of all the PRQ classes contained in the
-[PsrmtsRequest](../psmrts/core/PsmrtsRequest.hpp) file:
+[PsrmtsRequest](../../psmrts/core/PsmrtsRequest.hpp) file:
 
 - __PQRRayTrace__ contains a single ray trace and is the fundamental class for all
   ray tracers. It is primarily for precision tracking of ray trace operations.
@@ -576,7 +576,7 @@ Here is a list and brief description of all the PRQ classes contained in the
   sequence (or in threads).
 - __PRQPhotometricTrace__ contains two traces, one for observer look direction
   and a second for sun/surface intercept tracing. The sun look direction vector
-  is computed from a succesful observer/look direction surface intercept.
+  is computed from a successful observer/look direction surface intercept.
 - __PRQPhotometricTraceArray__ contains an array of photometric trace instances
   containing a vector photometric ray traces.
 - __PRQFacet__ Retrieves the mesh facet datum from the tracer of intercept if it
@@ -598,17 +598,17 @@ to be added at the bottom of the ray tracer classes to trap all unimplemented
 In previous discussion of PSMRTS product creation, the products created are
 unique instances of shapes and tracers. One of the most critical properties of
 PSMRTS is the sharing of products to minimize use and manage memory resources.
-The [PsrmtsFactory](../psmrts/core/PsmrtsFactory.hpp) class maintains a
+The [PsmrtsFactory](../../psmrts/core/PsmrtsFactory.hpp) class maintains a
 system-wide inventory of shapes, tracers and priority tracers primarily for reuse
 purposes. The fundamental storage mechanism is the
-[PsrmtsInventory](../psmrts/core/PsmrtsInventory.hpp) database. It consists of
+[PsmrtsInventory](../../psmrts/core/PsmrtsInventory.hpp) database. It consists of
 product storage containers of PSMRTS shapes, tracers, priority tracers and file
 path translators. 
 
 @subsection filePathTranslations File Path Translations
 
 File path translators, called
-[PsmrtsTranslations](../psmrts/core/PsmrtsTranslations.hpp) contain OS shell
+[PsmrtsTranslations](../../psmrts/core/PsmrtsTranslations.hpp) contain OS shell
 environment variables and ISIS DataDirectory-like parameters that are primarily used
 to substitute instances of file path elements containing tags that start with a
 "$". The file path substitution algorithm performs a parameterized count of
@@ -619,16 +619,16 @@ expanded paths are stored in configuration _metadata_ containers.
 
 @subsection psmrtsInvoice Resource Management Strategies
 
-The [PsmrtsInvoice](../psmrts/core/PsmrtsInvoice.hpp) class is the primary
+The [PsmrtsInvoice](../../psmrts/core/PsmrtsInvoice.hpp) class is the primary
 resource management system that should be used to take full advantage of all
 PSMRTS capabilities. It contains a local PsmrtsInventory of all shapes, tracers,
 priority tracers and translators for maximum efficiency. It also integrates use
 of the system-wide PSMRTS factory system for centralized and coordinated
 resource management. See
-[ProductProcessing](../psmrts/core/products/ProductProcessing.hpp) for
+[ProductProcessing](../../psmrts/core/products/ProductProcessing.hpp) for
 additional details.
 
-PsmrtsInvoice applies a factory/invoicing model to create priorty tracers from
+PsmrtsInvoice applies a factory/invoicing model to create priority tracers from
 all existing resources. Here is an example of how to utilize this resource to
 create the ultimate tracing system of multiple resources and tracing conditions.
 
@@ -683,11 +683,11 @@ order of tracers in a priority tracer.
 
 @subsection capi C API
 
-This framework lays the foundation for the PSMRTS C/C++ and user interface. It is not lost that some configurations can be quite complex in conveying parameterization for each product requested by a user - particularly when using text strings only. The configurations the `ellisoid`, `spheroid` and `sphere` products are the most basic types. The string configurations expected from the user and applied in the `PSMRTS` C api has the following form:
+This framework lays the foundation for the PSMRTS C/C++ and user interface. It is not lost that some configurations can be quite complex in conveying parameterization for each product requested by a user - particularly when using text strings only. Configurations using `ellisoid`, `spheroid` or `sphere` products are the most basic types. The string configurations expected from the user and applied in the `PSMRTS` C api has the following form:
 
 ```
 const char *ellipsoid_s = "tracer=ellipsoid;radii=[0.283065,0.271215,0.249720]"; /* or ellipsoid_radii=... */
-const char *spheriod_s  = "tracer=spheroid;radii=[0.283065,0.249720]"; /* or spheroid_radii=[0.283065,0.249720] */
+const char *spheroid_s  = "tracer=spheroid;radii=[0.283065,0.249720]"; /* or spheroid_radii=[0.283065,0.249720] */
 const char *sphere_s    = "tracer=sphere;radii=250.0";  /* or sphere_radius=250 */
 ```
 These examples are consistent with configuration strings specified by users that are absorbed and processed by `PSMRTS` that results in a tracer object that either exists in the `PSMRTS` cache (for efficient sharing of resources) or is created anew and added to `PSMRTS`'s internal caching system for efficient reuse. (__OPTION__: Should users be able to opt out of caching their product and return an unshared product at create time?)
@@ -776,9 +776,9 @@ Note that this style of a C API tends to play nicely with C++, particularly memo
 ```
 std::unique_ptr<PSMRTS_Factory> factory( psmrts_get_factory(), psmrts_shutdown_factory );
 std::shared_ptr<PSMRTS_Tracer>  ellipsoid( psmrts_create_tracer_from_string( p_factory, ellipsoid_s ), psmrts_free_tracer );
-std::shared_ptr<PSMRTS_RayTrace>     ray( psmrts_ray_trace( ellisoid, observer, lookdir ), psmrts_free_ray );
+std::shared_ptr<PSMRTS_RayTrace>     ray( psmrts_ray_trace( ellipsoid, observer, lookdir ), psmrts_free_ray );
 ```
-This form works really well to ensure your applications are neatly memory manageable.
+This form works well to ensure your applications are neatly memory manageable.
 
 @subsubsection vector3d PSMRTS_Vector3d C Structure
 
@@ -803,7 +803,7 @@ typedef union {
   double data[3];
 } PSMRTS_Vector3d;
 ```
-You can see an similar approach as this [PROJ_COORD](https://proj.org/en/stable/development/reference/datatypes.html#c.PJ_COORD) structure in the PROJ system. We may need to have formal types for some of the structs just as PROJ has. Note, just to be sure, we must add a Catch2 REQUIRES test to confirm the structure is properly handled by compilers.
+You can see a similar approach in this <a href="https://proj.org/en/stable/development/reference/datatypes.html#c.PJ_COORD" target="_blank" rel="noopener">PJ_COORD</a> structure in the PROJ system. We may need to have formal types for some of the structs just as PROJ has. Note, just to be sure, we must add a Catch2 REQUIRES test to confirm the structure is properly handled by compilers.
 ```
 REQUIRE( sizeof(PSMRTS_Vector3d) == (3 * sizeof(double)) );
 ```
