@@ -61,10 +61,13 @@ namespace psmrts {
       PsmrtsTranslations(  ) {
         this->init( "translations" );
       }
-      PsmrtsTranslations( const std::string &name  ) {
+      PsmrtsTranslations( const std::string &name, bool load_env = false  ) {
         this->init( name );
+        if (load_env) {
+          this->load_and_merge_environment( );
+        }
       }      
-      virtual ~PsmrtsTranslations() { }
+      virtual ~PsmrtsTranslations() = default;
 
       static PsmrtsTranslations create( const std::string &name = "translations" ) {
         PsmrtsTranslations trans_t ( name );
@@ -266,7 +269,7 @@ namespace psmrts {
             
       /** Load all the environment variables */
       static inline EnvironmentInventory get_environment_variables( const std::string &name_p = "environment" ) {
-          EnvironmentInventory env_t = create_case_sensitive_inventory<std::string>( name_p ) ;;
+          EnvironmentInventory env_t = create_case_sensitive_inventory<std::string>( name_p ) ;
 
 #if defined(WIN32) || defined(_MSC_VER) || defined(__CYGWIN__)
           // **** Windows implementation *****/
