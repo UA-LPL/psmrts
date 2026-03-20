@@ -3,31 +3,32 @@
 #include <psmrts/core/ISISDataDictionary.hpp>
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsTagSearch.hpp>
+#include <psmrts/core/tests/TemporaryDirectoryFixture.hpp>
 
 TEST_CASE( "ISISDataDictionary Default Test", "[isis][data][dictionary][default]") {
-    psmrts::ISISDataDictionary dict("../psmrts/core/tests/data/IsisPreferences");
+    psmrts::ISISDataDictionary dict( psmrts_core_path("tests/data/IsisPreferences") );
 
     // Block count
     CHECK( dict.size() == 8 );
 
     // has_group
-    CHECK( dict.has_group("UserInterface") );
-    CHECK( dict.has_group("DataDirectory") );
-    CHECK( dict.has_group("ErrorFacility") );
-    CHECK( dict.has_group("SessionLog") );
+    CHECK( dict.has_group("UserInterface")     );
+    CHECK( dict.has_group("DataDirectory")     );
+    CHECK( dict.has_group("ErrorFacility")     );
+    CHECK( dict.has_group("SessionLog")        );
     CHECK( dict.has_group("CubeCustomization") );
-    CHECK( dict.has_group("Performance") );
-    CHECK( dict.has_group("Plugins") );
-    CHECK_FALSE( dict.has_group("ShapeModel") );   // commented-out in file
+    CHECK( dict.has_group("Performance")       );
+    CHECK( dict.has_group("Plugins")           );
+    CHECK_FALSE( dict.has_group("ShapeModel")  );   // commented-out in file
 
     // group() map sizes
-    CHECK( dict.group("DataDirectory").size() == 38 );
-    CHECK( dict.group("UserInterface").size()  == 10  );
-    CHECK( dict.group("ErrorFacility").size()  == 3  );
-    CHECK( dict.group("SessionLog").size()     == 4  );
-    CHECK( dict.group("CubeCustomization").size() == 4 );
-    CHECK( dict.group("Performance").size()    == 2  );
-    CHECK( dict.group("Plugins").size()        == 1  );
+    CHECK( dict.group("DataDirectory").size()     == 38 );
+    CHECK( dict.group("UserInterface").size()     == 10 );
+    CHECK( dict.group("ErrorFacility").size()     == 3  );
+    CHECK( dict.group("SessionLog").size()        == 4  );
+    CHECK( dict.group("CubeCustomization").size() == 4  );
+    CHECK( dict.group("Performance").size()       == 2  );
+    CHECK( dict.group("Plugins").size()           == 1  );
 
     // UserInterface values
     CHECK( dict.value("UserInterface", "ProgressBarPercent").value() == "1"         );
@@ -63,12 +64,12 @@ TEST_CASE( "ISISDataDictionary Default Test", "[isis][data][dictionary][default]
     CHECK( dict.value("Performance", "GlobalThreads").value()   == "Optimized" );
 
     // DataDirectory — spot-check several missions
-    CHECK( dict.value("DataDirectory", "ISIS3DATA").value()  == "$ISISDATA"                     );
+    CHECK( dict.value("DataDirectory", "ISIS3DATA").value()  == "$ISISDATA"                      );
     CHECK( dict.value("DataDirectory", "Apollo15").value()   == "$ISISDATA/apollo15"             );
     CHECK( dict.value("DataDirectory", "Base").value()       == "$ISISDATA/base"                 );
     CHECK( dict.value("DataDirectory", "Lro").value()        == "$ISISDATA/lro"                  );
     CHECK( dict.value("DataDirectory", "Mro").value()        == "$ISISDATA/mro"                  );
-    CHECK( dict.value("DataDirectory", "Clipper").value()    == "$ISISDATA/../datalocal/clipper"  );
+    CHECK( dict.value("DataDirectory", "Clipper").value()    == "$ISISDATA/../datalocal/clipper" );
     CHECK( dict.value("DataDirectory", "Temporary").value()  == "."                              );
 
     // Case-insensitive group and key lookups
@@ -89,7 +90,8 @@ TEST_CASE( "ISISDataDictionary Default Test", "[isis][data][dictionary][default]
     CHECK( dict.group("Bogus").empty() );
 
     // Multi-line continuation (CSMDirectory) is collapsed into one value
-    CHECK( dict.value("Plugins", "CSMDirectory")->find("csmplugins") != std::string::npos );   CHECK( dict.value("Plugins", "CSMDirectory")->find("csm3.0.3")   != std::string::npos );
+    CHECK( dict.value("Plugins", "CSMDirectory")->find("csmplugins") != std::string::npos );  
+    CHECK( dict.value("Plugins", "CSMDirectory")->find("csm3.0.3")   != std::string::npos );
 
     // operator[] — first block in file order is UserInterface
     CHECK( dict[0].group_name == "UserInterface" );
@@ -102,7 +104,7 @@ TEST_CASE( "ISISDataDictionary Default Test", "[isis][data][dictionary][default]
 }
 
 TEST_CASE( "ISISDataDictionary to_string PVL Round-Trip", "[isis][data][dictionary][serialization][pvl]") {
-    psmrts::ISISDataDictionary dict("../psmrts/core/tests/data/IsisPreferences");
+    psmrts::ISISDataDictionary dict( psmrts_core_path("tests/data/IsisPreferences") );
 
     std::string pvl = dict.to_string();
 
@@ -142,7 +144,7 @@ TEST_CASE( "ISISDataDictionary to_string PVL Round-Trip", "[isis][data][dictiona
     CHECK( reparsed.has_group("UserInterface") );
     CHECK( reparsed.has_group("DataDirectory") );
 
-    CHECK( reparsed.value("UserInterface", "ProgressBar").value()   == "On"            );
+    CHECK( reparsed.value("UserInterface", "ProgressBar").value()   == "On"             );
     CHECK( reparsed.value("UserInterface", "GuiFontName").value()   == "helvetica"      );
     CHECK( reparsed.value("SessionLog",    "FileAccess").value()    == "Append"         );
     CHECK( reparsed.value("DataDirectory", "Lro").value()           == "$ISISDATA/lro"  );
@@ -153,11 +155,14 @@ TEST_CASE( "ISISDataDictionary to_string PVL Round-Trip", "[isis][data][dictiona
     for (const auto& block : reparsed.all_blocks())
         CHECK( block.block_type == "Group" );
 
-    CHECK_NOTHROW( dict.to_file("../psmrts/core/tests/data/output.prefs") );
+    TemporaryDirectoryFixture t_path;
+    auto path = t_path.tmppath("output.prefs");
+    CHECK_NOTHROW( dict.to_file( path ) );
+
 }
 
 TEST_CASE( "ISISDataDictionary to_string_flat", "[isis][data][dictionary][serialization][flat]") {
-    psmrts::ISISDataDictionary dict("../psmrts/core/tests/data/IsisPreferences");
+    psmrts::ISISDataDictionary dict( psmrts_core_path("tests/data/IsisPreferences") );
 
     std::string flat = dict.to_string_flat();
 
@@ -178,7 +183,7 @@ TEST_CASE( "ISISDataDictionary to_string_flat", "[isis][data][dictionary][serial
     CHECK( flat.find("End_Object") == std::string::npos );
 
     // Key = Value pairs are present without indentation
-    CHECK( flat.find("ProgressBar = On")         != std::string::npos );
+    CHECK( flat.find("ProgressBar = On")          != std::string::npos );
     CHECK( flat.find("FileAccess = Append")       != std::string::npos );
     CHECK( flat.find("Lro = $ISISDATA/lro")       != std::string::npos );
     CHECK( flat.find("GlobalThreads = Optimized") != std::string::npos );
@@ -190,7 +195,7 @@ TEST_CASE( "ISISDataDictionary to_string_flat", "[isis][data][dictionary][serial
 
     // Round-trip is NOT expected to work (flat format has no Group wrappers),
     // but the content should be parseable as a flat key=value set
-    CHECK( flat.find("ISIS3DATA = $ISISDATA")          != std::string::npos );
+    CHECK( flat.find("ISIS3DATA = $ISISDATA")             != std::string::npos );
     CHECK( flat.find("HistoryPath = $HOME/.Isis/history") != std::string::npos );
 
     // Comment count matches block count
@@ -202,7 +207,7 @@ TEST_CASE( "ISISDataDictionary to_string_flat", "[isis][data][dictionary][serial
 
 TEST_CASE( "ISISDataDictionary Translations Integration", "[isis][translations]" ) {
     // ingest() calls add_parameter() for each key/value found in parsing
-    psmrts::ISISDataDictionary dict("../psmrts/core/tests/data/IsisPreferences");
+    psmrts::ISISDataDictionary dict( psmrts_core_path("tests/data/IsisPreferences") );
  
     // Parsed keys are mirrored into the parameter set
     // Every key that appears in the parsed blocks must be findable as a
@@ -262,7 +267,7 @@ TEST_CASE( "ISISDataDictionary Translations Integration", "[isis][translations]"
     pre_trans.add_parameter( "ISISDATA", "/pre/seeded/isis" );
     pre_trans.add_parameter( "CUSTOM",   "/custom/path"     );
 
-    psmrts::ISISDataDictionary seeded_dict("../psmrts/core/tests/data/IsisPreferences", std::move( pre_trans ) );
+    psmrts::ISISDataDictionary seeded_dict( psmrts_core_path("tests/data/IsisPreferences"), std::move( pre_trans ) );
 
     // Pre-seeded variables must survive alongside the parsed ones.
     CHECK( seeded_dict.translations().parameters().contains( "ISISDATA" ) );
@@ -278,9 +283,9 @@ TEST_CASE( "ISISDataDictionary Translations Integration", "[isis][translations]"
     CHECK( seeded_dict.translations().translate_path(
            seeded_dict.value("DataDirectory", "Lro").value() ) == "/pre/seeded/isis/lro" );
 
- 
+
     // Real shell environment loaded via PsmrtsTranslations::create()
-    psmrts::ISISDataDictionary env_dict( "../psmrts/core/tests/data/IsisPreferences", 
+    psmrts::ISISDataDictionary env_dict( psmrts_core_path("tests/data/IsisPreferences"), 
                                          psmrts::PsmrtsTranslations::create() );
 
     const std::string raw = env_dict.value("UserInterface", "HistoryPath").value();
@@ -331,7 +336,7 @@ TEST_CASE( "ISISDataDictionary Translations Integration", "[isis][translations]"
  
     // Parameter lookup and translate_path are case-insensitive
     // Re-parse to restore a populated dictionary.
-    dict.parse_file("../psmrts/core/tests/data/IsisPreferences");
+    dict.parse_file( psmrts_core_path("tests/data/IsisPreferences") );
     dict.translations().add_parameter( "ISISDATA", "/isis/data" );
  
     const psmrts::PsmrtsTranslations& trans2 = dict.translations();

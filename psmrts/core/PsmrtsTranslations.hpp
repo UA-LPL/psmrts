@@ -61,7 +61,7 @@ namespace psmrts {
       PsmrtsTranslations(  ) {
         this->init( "translations" );
       }
-      PsmrtsTranslations( const std::string &name, bool load_env = false  ) {
+      PsmrtsTranslations( const std::string &name, const bool load_env = false  ) {
         this->init( name );
         if (load_env) {
           this->load_and_merge_environment( );

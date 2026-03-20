@@ -9,7 +9,7 @@ TEST_CASE("PsmrtsTagSearch Default Values", "[tag][search][default]") {
     parser.add_search_tag("PATH_VALUES",    ")");
     parser.add_search_tag("PATH_SYMBOLS",   ")");
     parser.add_search_tag("KERNELS_TO_LOAD", ")");
-    parser.parse_file("../psmrts/core/tests/data/orx_kernels.mk");
+    parser.parse_file( psmrts_core_path("/tests/data/orx_kernels.mk") );
 
     // size
     CHECK( parser.size() == 3 );
@@ -42,7 +42,7 @@ TEST_CASE("PsmrtsTagSearch Default Values", "[tag][search][default]") {
     // --- IsisPreferences: extract DataDirectory block ---
     psmrts::PsmrtsTagSearch parser2;
     parser2.add_search_tag("DataDirectory", "EndGroup");
-    parser2.parse_file("../psmrts/core/tests/data/IsisPreferences");
+    parser2.parse_file( psmrts_core_path("/tests/data/IsisPreferences") );
 
     CHECK( parser2.size()                        == 1 );
     CHECK( parser2.contains("DataDirectory")     );
