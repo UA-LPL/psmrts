@@ -123,7 +123,7 @@ TEST_CASE( "PsmrtsMetakernel to_string Round-Trip", "[metakernel][serialization]
     CHECK( kernel_count      / 2 == mk.getKernels().size() );
 
     // Check file creation
-    TemporaryDirectoryFixture t_path;
+    TemporaryDirectoryFixture t_path("psmrts_metakernel");
     auto path = t_path.tmppath("output.tm");
     CHECK_NOTHROW( mk.to_file( path ) );
 

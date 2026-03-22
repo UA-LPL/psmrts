@@ -155,7 +155,7 @@ TEST_CASE( "ISISDataDictionary to_string PVL Round-Trip", "[isis][data][dictiona
     for (const auto& block : reparsed.all_blocks())
         CHECK( block.block_type == "Group" );
 
-    TemporaryDirectoryFixture t_path;
+    TemporaryDirectoryFixture t_path( "psmrts_isisdatadictionary" );
     auto path = t_path.tmppath("output.prefs");
     CHECK_NOTHROW( dict.to_file( path ) );
 
