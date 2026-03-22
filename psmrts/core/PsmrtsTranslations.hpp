@@ -23,7 +23,7 @@ find files of those names at the top level of this repository. **/
 #define NOMINMAX
 #include <windows.h>
 #else
-  extern char **environ;
+  extern "C" char **environ;
 #endif
 #include <algorithm>
 
