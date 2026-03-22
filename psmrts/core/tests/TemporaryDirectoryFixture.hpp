@@ -13,35 +13,31 @@ find files of those names at the top level of this repository. **/
 #ifndef TemporaryDirectoryFixture_hpp
 #define TemporaryDirectoryFixture_hpp
 
-// #define  _POSIX_C_SOURCE 200809L
-// #define  _XOPEN_SOURCE 500L
-
 #include <exception>
-
+#include <cstdint>
+#include <filesystem>
 #include <iostream>
-#include <cstdio>
-#include <cstdlib>
-#include <unistd.h>
-#include <cerrno>
-
-#include <ftw.h>
 #include <string>
 
+namespace fs = std::filesystem;
+
 /**
- * @brief Provide a temporary directory sustem for Catch2 testing
+ * @brief Provide a temporary directory system for Catch2 testing
  * 
- * See https://stackoverflow.com/a/18792526.
+ * This class creates and maintains a directory in the system temp directory for
+ * isolated file creation and usage.
  * 
  */
 class TemporaryDirectoryFixture {
   public:
-    TemporaryDirectoryFixture( ) : m_dirname( nullptr),
+    TemporaryDirectoryFixture( ) : m_dirname( ),
                                    m_keep( false ) {
-      m_dirname = make_tmp_directory( );
+      m_dirname = TemporaryDirectoryFixture::sys_tmp_dir();
+      m_keep = true;
     }
 
     TemporaryDirectoryFixture( const std::string &dirbase ) :
-                               m_dirname( nullptr ),
+                               m_dirname( ),
                                m_keep( false ) {
       m_dirname = make_tmp_directory( dirbase );
     }
@@ -50,22 +46,24 @@ class TemporaryDirectoryFixture {
       teardown();
     }
 
+    static inline std::string sys_tmp_dir() {
+      return ( fs::temp_directory_path().u8string() );
+    }
 
     /** Return the temporary directory name */
-    std::string tmpdir() const {
-      if ( !m_dirname ) return ( std::string() );
-      return ( std::string( m_dirname ) );
+    inline std::string tmpdir() const {
+      return (  m_dirname.u8string() );
     }
 
     /** Construct a full file path in the temporary directory */
-    std::string tmppath( const std::string &filename ) const {
-      return ( std::string ( tmpdir() + "/" + filename ) );
+    inline std::string tmppath( const std::string &filename ) const {
+      return ( ( m_dirname / fs::path{filename} ).u8string() );
     }
 
     protected:
 
       /** Set keep state of directory for debugging purposes - use cautiously! */
-      bool setKeeptmpdir( const bool keepem = false ) {
+      inline bool setKeeptmpdir( const bool keepem = false ) {
         bool old_keep = m_keep;
         m_keep = keepem;
         return ( old_keep );
@@ -73,29 +71,23 @@ class TemporaryDirectoryFixture {
 
 
     private:
-    // The template for mkdtemp() needs to persist!
-      char   m_template_d[L_tmpnam];
-      char  *m_dirname;
-      bool   m_keep;
+      static inline unsigned long m_dir_id = 0;  // Unique dir id
+      fs::path m_dirname;
+      bool     m_keep;
 
       /** Remove the directory as needed */
-      void teardown() {
-        if ( m_dirname != nullptr ) {
+      inline void teardown() {
+        // Only remove if it exists
+        if ( fs::exists( m_dirname ) ) {
 
           // Only remove if not being expressly being saved
-          if ( !m_keep ) {
-            int status_d = nftw( m_dirname, remove_callback, FOPEN_MAX, ( FTW_DEPTH | FTW_MOUNT | FTW_PHYS ) );
-            if ( status_d != 0 ) {
-              throw std::runtime_error( "TemporaryDirectoryFixture::teardown::Error: " + std::string( std::strerror( errno ) ) );
-            }
+          if ( !m_keep  && ( m_dirname != fs::temp_directory_path() ) ) {
+            // std::cout << "Removing dir: " << m_dirname  << std::endl;
+            (void) fs::remove_all( m_dirname );
           }
         }
-
-         m_template_d[0] = '\0';
-         m_dirname = nullptr;
          return;
       }
-
 
       /**
        * @brief Create a temporary directory for testing purposes
@@ -103,28 +95,16 @@ class TemporaryDirectoryFixture {
        * @param d_tmproot Base directory name of temporary directory
        * @return char*    Returns full path to created temporary directory
        */
-      char *make_tmp_directory( const std::string d_tmproot  = "psmrts_tmpdir" ) {
-
-        std::string template_s( "/tmp/" + d_tmproot + "_XXXXXX");
-        std::strcpy( m_template_d, template_s.c_str() );
-        char *tmpdir_d = mkdtemp( m_template_d );
-
-        if ( !tmpdir_d ) {
-          throw std::runtime_error( "TemporaryDirectoryFixture::make_tmp_directory::Error: " + std::string( std::strerror( errno ) ) );
+      inline fs::path make_tmp_directory( const std::string &d_tmproot  = "psmrts_tmpdir" ) const {
+        fs::path sys_dir_t = fs::temp_directory_path();
+        fs::path tmpdir_t = sys_dir_t / ( d_tmproot + "_" + std::to_string( m_dir_id++ ) );
+        if ( !fs::create_directory( tmpdir_t ) ) {
+          throw std::runtime_error( "TemporaryDirectoryFixture::make_tmp_directory::Error directory not created: " + tmpdir_t.u8string() );
         }
 
-        return ( tmpdir_d );
+        return ( tmpdir_t );
       }
 
-      /** Static callback function to actually remove the file */
-      static int remove_callback( const char *fpath,
-                                  __attribute__((unused)) const struct stat *sbuf,
-                                  __attribute__((unused)) int type,
-                                  __attribute__((unused)) struct FTW *ftwb) {
-
-        if ( fpath == nullptr ) return ( 0 );
-        return ( std::remove ( fpath ) );
-      }
   };
 
 #endif
