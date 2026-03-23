@@ -35,6 +35,17 @@ release.
 ## TODO
 - See [TODO](TODO.md)
 
+## [0.6.1] 2026-03-20
+- Add preliminary PsmrtsTagSearch, PsmrtsMetakernel, and IsisDataDictionary
+  classes for file parsing support.
+- Add related tests, and input/output test files.
+- Adjusted PsmrtsTranslations named constructor to load / merge environment
+  through parameter.
+- Slight clean up of PsmrtsTranslations.
+- Update version to v0.6.1
+- Update CHANGELOG.
+
+
 ## [0.6.0] 2026-02-21
 - Changes to documentation.
 - Fix CMake system for import and use in other projects.
