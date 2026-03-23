@@ -14,6 +14,7 @@ find files of those names at the top level of this repository. **/
 #define TemporaryDirectoryFixture_hpp
 
 #include <exception>
+#include <mutex>
 #include <cstdint>
 #include <filesystem>
 #include <iostream>
@@ -93,6 +94,7 @@ class TemporaryDirectoryFixture {
     private:
       static inline unsigned long m_dir_id = 0;  // Unique directory id
       static inline const size_t MaxDirectories = 20;  // Maximum number tries
+      static inline std::mutex  m_mutex{};  // Lock directory creation 
       fs::path m_dirname;
       bool     m_keep;
 
@@ -118,6 +120,8 @@ class TemporaryDirectoryFixture {
        */
       inline fs::path make_tmp_directory( const std::string &d_tmproot  = "psmrts_tmpdir" ) {
         fs::path sys_dir_t = fs::temp_directory_path();
+        std::scoped_lock mylocker( m_mutex );
+
         for ( size_t ndirs = 0 ; ndirs < MaxDirectories ; ndirs++ ) {
           fs::path tmpdir_t = sys_dir_t / ( d_tmproot + "_" + std::to_string( m_dir_id++ ) );
           if ( true == fs::create_directory( tmpdir_t ) ) {
