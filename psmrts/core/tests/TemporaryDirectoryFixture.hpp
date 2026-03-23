@@ -39,8 +39,7 @@ class TemporaryDirectoryFixture {
   public:
     TemporaryDirectoryFixture( ) : m_dirname( ),
                                    m_keep( false ) {
-      m_dirname = fs::temp_directory_path();
-      m_keep = true;
+      m_dirname = make_tmp_directory( );
     }
 
     /**
