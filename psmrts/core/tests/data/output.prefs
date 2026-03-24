@@ -1,0 +1,87 @@
+Group = UserInterface
+  GuiFontName = helvetica
+  GuiFontSize = 10
+  GuiHeight = 600
+  GuiHelpBrowser = open
+  GuiWidth = 460
+  HistoryLength = 10
+  HistoryPath = $HOME/.Isis/history
+  HistoryRecording = On
+  ProgressBar = On
+  ProgressBarPercent = 1
+EndGroup
+
+Group = ErrorFacility
+  FileLine = Off
+  Format = Standard
+  StackTrace = Off
+EndGroup
+
+Group = SessionLog
+  FileAccess = Append
+  FileName = print.prt
+  FileOutput = On
+  TerminalOutput = Off
+EndGroup
+
+Group = CubeCustomization
+  Format = Attached
+  History = On
+  MaximumSize = 200
+  Overwrite = Allow
+EndGroup
+
+Group = FileCustomization
+  Overwrite = Allow
+EndGroup
+
+Group = Performance
+  CubeWriteThread = Optimized
+  GlobalThreads = Optimized
+EndGroup
+
+Group = Plugins
+  CSMDirectory = ("$ISISROOT/lib/csmplugins/", "$ISISROOT/lib/isis/csm3.0.3/", "$ISISROOT/csmlibs/3.0.3/", "$HOME/.Isis/csm3.0.3/")
+EndGroup
+
+Group = DataDirectory
+  Apollo15 = $ISISDATA/apollo15
+  Apollo16 = $ISISDATA/apollo16
+  Apollo17 = $ISISDATA/apollo17
+  Base = $ISISDATA/base
+  Cassini = $ISISDATA/cassini
+  Chan1 = $ISISDATA/chan1
+  Chandrayaan1 = $ISISDATA/chandrayaan1
+  Clementine1 = $ISISDATA/clementine1
+  Clipper = $ISISDATA/../datalocal/clipper
+  Control = $ISISDATA/control
+  Dawn = $ISISDATA/dawn
+  Galileo = $ISISDATA/galileo
+  Hayabusa = $ISISDATA/hayabusa
+  Hayabusa2 = $ISISDATA/hayabusa2
+  ISIS3DATA = $ISISDATA
+  Juno = $ISISDATA/juno
+  Kaguya = $ISISDATA/kaguya
+  Lo = $ISISDATA/lo
+  Lro = $ISISDATA/lro
+  Mariner10 = $ISISDATA/mariner10
+  Mer = $ISISDATA/mer
+  Messenger = $ISISDATA/messenger
+  Mex = $ISISDATA/mex
+  Mgs = $ISISDATA/mgs
+  Mro = $ISISDATA/mro
+  Near = $ISISDATA/near
+  NewHorizons = $ISISDATA/newhorizons
+  Odyssey = $ISISDATA/odyssey
+  OsirisRex = $ISISDATA/osirisrex
+  Rolo = $ISISDATA/rolo
+  Rosetta = $ISISDATA/rosetta
+  Smart1 = $ISISDATA/smart1
+  Temporary = .
+  Tgo = $ISISDATA/tgo
+  Viking1 = $ISISDATA/viking1
+  Viking2 = $ISISDATA/viking2
+  Voyager1 = $ISISDATA/voyager1
+  Voyager2 = $ISISDATA/voyager2
+EndGroup
+
