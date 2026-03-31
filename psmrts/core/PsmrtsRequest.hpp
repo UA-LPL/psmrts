@@ -360,7 +360,7 @@ namespace psmrts {
 
       /** Reset the tracer with new observer and lookdir */
       inline PRQRayTrace &set_trace( const Eigen::Vector3d &observer, 
-                                 const Eigen::Vector3d &lookdir ) {
+                                     const Eigen::Vector3d &lookdir ) {
         this->reset();
          m_sc_to_surface.reset( observer, lookdir );
          return ( *this );

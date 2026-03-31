@@ -346,7 +346,7 @@ PSMRTS_Vector3d psmrts_vector3d( const double v1,
                                  const double v2,
                                  const double v3 ) {
 
-  PSMRTS_Vector3d v3d = { v1, v2, v3 };
+  PSMRTS_Vector3d v3d = { { v1, v2, v3 } };
   return ( v3d );
 }
 

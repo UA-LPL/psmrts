@@ -74,7 +74,7 @@ set( PSMRTS_PROJECT_DIR  ${CMAKE_SOURCE_DIR} )
 set( PSMRTS_DIR          ${CMAKE_SOURCE_DIR}/psmrts )
 set( PSMRTS_SOURCE_DIR   ${CMAKE_SOURCE_DIR}/psmrts )
 set( PSMRTS_TEST_DIR     ${CMAKE_SOURCE_DIR}/psmrts )
-set( PSMRTS_DATA_DIR     ${CMAKE_SOURCE_DIR}core/data )
+set( PSMRTS_DATA_DIR     ${CMAKE_SOURCE_DIR}/core/data )
 set( PSMRTS_TRACERS_DIR  ${CMAKE_SOURCE_DIR}/tracers )
 set( PSMRTS_SHAPES_DIR   ${CMAKE_SOURCE_DIR}/shapes )
 
