@@ -128,6 +128,55 @@ namespace psmrts {
         return ( true );
       }
 
+      /**
+       * @brief Add a PSMRTS tracer to the inventory and tracer list
+       * 
+       * This allows users to add a PSMRTS tracer directly to the inventory for
+       * use in the system while also optionally adding to the configuration
+       * list for generation in the priority tracer.
+       * 
+       * @param tracer Tracer to add to the inventory/priority tracer system
+       * @return true  If the tracer is valid and the config is validated for use
+       * @return false If the tracer was not added to the system
+       */
+      inline bool add_tracer( const PsmrtsTracer &tracer,
+                              const bool add_to_priority = true ) {
+
+        bool isgood = tracer.isValid();
+        if ( tracer.isValid() ) {
+          isgood = this->add_product( tracer.config() );
+          if ( isgood && add_to_priority ){
+            m_inventory.tracers().add_product ( tracer );
+            PsmrtsFactory().add_product( tracer );
+          }
+        }
+
+        return ( isgood );
+      }
+
+      /**
+       * @brief Add a PSMRTS shape to the inventory
+       * 
+       * This allows users to add a PSMRST shape directly to the inventory for
+       * use in the system creating a tracer in the priority tracer.
+       * 
+       * @param tracer Shape to add to the inventory/priority inventory system
+       * @return true  If the shape is valid and added to the inventory system
+       * @return false If the shape was not added to the system
+       */
+      inline bool add_shape( const PsmrtsShape &shape ) {
+
+        bool isgood = shape.isValid();
+        if ( shape.isValid() ) {
+          if ( isgood ){
+            m_inventory.shapes().add_product ( shape );
+            PsmrtsFactory().add_product( shape );
+          }
+        }
+
+        return ( isgood );
+      }      
+
       /** Get a list of all the orders in this invoice */
       inline const ProductOrderList &orders( ) const {
         return ( m_orders );
