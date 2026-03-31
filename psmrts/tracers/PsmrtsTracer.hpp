@@ -153,6 +153,27 @@ namespace psmrts {
         return ( this->config().matches( conf ) );
       }
 
+      inline double maximum_radius() const {
+        const auto visitor = overload{            
+                  [](auto &&tracer ) ->double {
+                       return ( tracer.maximum_radius() ); 
+                  }
+        };
+       
+        return ( std::visit(visitor, m_product ) ); 
+      }
+      
+      inline double minimum_radius() const {
+        const auto visitor = overload{            
+                  [](auto &&tracer ) ->double {
+                       return ( tracer.minimum_radius() ); 
+                  }
+        };
+       
+        return ( std::visit(visitor, m_product ) ); 
+      }
+
+        
   };
 
 } // namespace psmrts

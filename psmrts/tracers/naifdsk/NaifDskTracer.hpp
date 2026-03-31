@@ -340,7 +340,13 @@ namespace psmrts  {
           return;     
       }
 
+      inline double maximum_radius() const {
+        return ( m_model.maximum_radius() );
+      }
 
+      inline double minimum_radius() const {
+        return ( m_model.minimum_radius() );
+      }
 
     private:
       naif::DskKernelModel m_model;

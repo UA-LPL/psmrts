@@ -77,7 +77,13 @@ namespace psmrts {
         return ( false );
       }
 
+      inline double maximum_radius() const {
+        return ( psmrts::null() );
+      }
 
+      inline double minimum_radius() const {
+        return ( psmrts::null() );
+      }
       
     private:
       std::string          m_type;

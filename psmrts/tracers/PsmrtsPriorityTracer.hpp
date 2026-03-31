@@ -230,6 +230,35 @@ namespace psmrts {
        
         return ( prioritize( reverse_tracers ) );
       }
+
+      /** Find the maximum radius from all tracers */
+      inline double maximum_radius() const {
+        double max_r ( psmrts::null() );
+
+        if ( m_tracers.size() > 0 ) {
+          max_r = m_inventory_t.find( m_tracers[0] ).maximum_radius();
+          for ( size_t ith = 1 ; ith < m_tracers.size() ; ith++ ) {
+            double radius_t = m_inventory_t.find( m_tracers[ith] ).maximum_radius();
+            if ( radius_t > max_r ) max_r = radius_t;
+          }
+        }
+        return ( max_r ); 
+      }
+      
+      /** Find the minimum radius from all tracers */
+      inline double minimum_radius() const {
+        double min_r ( psmrts::null() );
+
+        if ( m_tracers.size() > 0 ) {
+          min_r = m_inventory_t.find( m_tracers[0] ).maximum_radius();
+          for ( size_t ith = 1 ; ith < m_tracers.size() ; ith++ ) {
+            double radius_t = m_inventory_t.find( m_tracers[ith] ).minimum_radius();
+            if ( radius_t < min_r ) min_r = radius_t;
+          }
+        }
+        return ( min_r );
+      }
+
       
     private:
       TracerList      m_tracers;
