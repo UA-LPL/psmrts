@@ -103,7 +103,7 @@ namespace psmrts {
 
 
       /**
-       * @brief Add a product, tracer or shape, to the invoicing ssytem
+       * @brief Add a product, tracer or shape, to the invoicing system
        * 
        * This method configures and adds a PSMRTS product to the trace invoicing
        * system. it can be either a tracer and/or a shape product. Note that
@@ -216,7 +216,7 @@ namespace psmrts {
               options_t.push_back( ProductOption( "file", string_tokenizer( parts_t[1], "," ) ) );
             }
             else {
-              options_t.push_back( ProductOption( "file", psmrts_trim( parts_t[1] ) );
+              options_t.push_back( ProductOption( "file", psmrts_trim( parts_t[1] ) ) );
             }
               
             // Check for formatting issues
@@ -261,7 +261,7 @@ namespace psmrts {
         ProductOption rads( "radii", radii );
         ProductConfiguration ellipsoid( "name", { pid, tracer, rads } );
         ProductMaker<PsmrtsTracer> maker_t( name );
-        bool status = maker_t.process_config( ellipsoid );
+        bool status = maker_t.process_config( ellipsoid, m_invoice.translations() ); 
         m_ellipsoid_r = maker_t.product();
         return ( status );
       }
@@ -425,19 +425,21 @@ namespace psmrts {
                                           const {
 
         PRQRayTrace ray_t( Eigen::Vector3d( observer_km.data() ), 
-                                   Eigen::Vector3d( lookdir_km.data() ) );
+                           Eigen::Vector3d( lookdir_km.data() ) );
         (void) this->ellipsoid_trace( ray_t );
         return ( ray_t );
       }
 
 
       /** Returns a ray trace from observer and look direction vectors */
-      inline PRQRayTrace shape_trace( Eigen::Vector3d &observer_km,
-                                      Eigen::Vector3d &lookdir_km ) 
-                                      const {
+      inline PRQRayTrace ellipsoid_trace( Eigen::Vector3d &observer_km, 
+                                          Eigen::Vector3d &lookdir_km ) 
+                                          const {
 
         PRQRayTrace ray_t( observer_km, lookdir_km );
-        return ( this->ellipsoid_trace( ray_t ) );
+
+        m_ellipsoid_r.process( ray_t );
+        return ( ray_t );
       }  
 
 
@@ -451,7 +453,7 @@ namespace psmrts {
        */
       template <typename T>
        inline bool process( T &ray ) const {
-        return ( this->shape_trace().process( ray_t ) );
+        return ( m_tracer_p.process( ray ) ); 
       }  
 
 
@@ -612,7 +614,7 @@ namespace psmrts {
       }
 
       inline const PsmrtsTranslations &translations() const { 
-        return ( invoice().translations) );
+        return ( invoice().translations() );
       }
 
     private:
