@@ -11,7 +11,65 @@
 #include <cctype>
 
 namespace psmrts {
-
+/**
+ * @brief Searches strings or files for tagged regions delimited by
+ *        start/end token pairs, capturing the content between them.
+ *
+ * Internally maintains a list of start/end Tag pairs and scans input
+ * line-by-line, accumulating text between each matched pair into a
+ * ResultSet of (Tag, captured_content) tuples.
+ *
+ * Blank lines and comment lines beginning with '#' are ignored during
+ * parsing. Matching is case-insensitive. Multiple tag pairs can be
+ * registered and searched simultaneously; the earliest match on any
+ * given line wins. A newline ("\n") may be used as an end tag to
+ * capture single-line values.
+ *
+ * Note: This class was experimentally designed with AI assistance. For
+ * more information, please refer to Anthropic's Claude AI model:
+ *                        https://claude.ai/
+ *
+ * Quick-start:
+ *
+ *   // Construct with tag pairs up front
+ *   PsmrtsTagSearch searcher({ {"Group", "EndGroup"}, {"Object", "End_Object"} });
+ *
+ *   // Or add tags incrementally
+ *   PsmrtsTagSearch searcher;
+ *   searcher.add_search_tag("Group",  "EndGroup");
+ *   searcher.add_search_tag("Object", "End_Object");
+ *
+ *   // Parse a file or a string
+ *   searcher.parse_file("IsisPreferences");
+ *   searcher.parse_string("Group = Foo\n  Key = Value\nEndGroup");
+ *
+ *   // How many regions were captured?
+ *   size_t n = searcher.size();
+ *
+ *   // Access a result by index — returns a (Tag, content) tuple
+ *   const auto& result = searcher(0);
+ *   std::string content = std::get<1>(result);
+ *
+ *   // Get all results that share a specific start tag
+ *   auto groups = searcher.get_by_start_tag("Group");
+ *   for (const auto& r : groups)
+ *       std::cout << std::get<1>(r) << "\n";
+ *
+ *   // Check whether any result with a given start tag exists
+ *   if (searcher.contains("Object"))
+ *       std::cout << "Found at least one Object block\n";
+ *
+ *   // Retrieve the captured content of the first match for a start tag
+ *   std::string body = searcher.get_value("Group");
+ *
+ *   // Use newline as end tag to capture single-line values
+ *   searcher.add_search_tag("KeyName", "\n");
+ *   searcher.parse_string("KeyName = SomeValue");
+ *   std::string val = searcher.get_value("KeyName"); // "= SomeValue"
+ *
+ * @author  Kyle Becker, University of Arizona
+ * @history 2026-03-14 Kyle Becker  Original Version
+ */
 class PsmrtsTagSearch {
 public:
     using Tag = std::pair<std::string, std::string>;
