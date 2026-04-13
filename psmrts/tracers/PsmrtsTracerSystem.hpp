@@ -182,7 +182,8 @@ namespace psmrts {
        * @param shapes List of psmrts shape file specifications
        * @return size_t Number of shapes added to the system
        */
-      inline size_t process_shape_list( const std::vector<std::string> &shapes ) {
+      inline size_t process_shape_list( const std::vector<std::string> &shapes,
+                                        const std::string &name = "psmrtstracersystem" ) {
         std::vector<std::string> shape_file_list;
         for ( const std::string &file_s : shapes ) {
           std::string file_t = m_invoice.translations().translate_path( file_s );
@@ -238,8 +239,13 @@ namespace psmrts {
           }
         }
 
-        // Check for errors and toss'em if there are some
+        // Check for errors in tracer creation process and toss'em if they occur
         if ( nerrs > 0 ) m_invoice.throw_errors();
+
+        // Now set the priority tracer up anc check for addtional errors
+        (void) create_priority_tracer( name );
+        if ( nerrs > 0 ) m_invoice.throw_errors();
+
         return ( n_shapes_added );
       }
 
@@ -273,8 +279,9 @@ namespace psmrts {
        * 
        * @param ellipsoid An ellipsoid tracer
        */
-      inline void set_reference_ellipsoid( const PsmrtsTracer &ellipsoid ) {
+      inline bool set_reference_ellipsoid( const PsmrtsTracer &ellipsoid ) {
         m_ellipsoid_r = ellipsoid;
+        return ( m_ellipsoid_r.isValid() );
       }
 
       /**
@@ -291,18 +298,18 @@ namespace psmrts {
        *                               tracer created by this method.
        */
       inline PsmrtsPriorityTracer create_priority_tracer( const std::string &name = "" ) {
-        auto tracer_p =  m_invoice.get_priority_tracer( name );
+        m_tracer_p =  m_invoice.get_priority_tracer( name );
 
         // Check to ensure there is a reference ellipsoid for the system on
         // first instance of priority tracer. Users can reset this if desired.
         if ( !m_ellipsoid_r.isValid() ) {
-          EllipsoidTracer e_t( tracer_p.minimum_radius(), 
-                               tracer_p.maximum_radius(),
-                               tracer_p.name() );
+          EllipsoidTracer e_t( m_tracer_p.minimum_radius(), 
+                               m_tracer_p.maximum_radius(),
+                               m_tracer_p.name() );
           this->set_reference_ellipsoid( PsmrtsTracer( e_t ) );
         }
 
-        return ( tracer_p );
+        return ( m_tracer_p );
       }
 
       /** Returns reference to the priority shape tracer  */
