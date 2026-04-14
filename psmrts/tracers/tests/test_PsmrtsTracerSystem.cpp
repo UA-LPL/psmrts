@@ -54,7 +54,7 @@ TEST_CASE("PsmrtsTracerSytem Values Test", "[tracer][system][values]") {
     CHECK( e_ray.trace().normal().norm() > 0.0 );
 
     std::string file = psmrts_tracers_path("dsk/data/bennu_20facets.bds");
-    CHECK(sys1.add_product("dsk", file) == true );
+    CHECK(sys1.add_product("dsk_file", file) == true );
 
     std::vector<double> sunpos = { 0.0, 1000.0, 0.0 };
     psmrts::PRQPhotometricTrace p_ray = sys1.ellipsoid_photometric_trace(obs, lkdr, sunpos);
@@ -75,9 +75,11 @@ TEST_CASE("PsmrtsTracerSystem Priority Tracer Test", "[tracer][system][priority]
     psmrts::PsmrtsTracerSystem sys("p_tracers");
 
     std::string file = psmrts_tracers_path("naifdsk/data/bennu_20facets.bds");
-    bool added = sys.add_product("dsk", file);
+    bool added = sys.add_product("dsk_file", file);
     //CHECK( file == "" );
-    REQUIRE( added == true ); // this is failing, 
+    CHECK( sys.invoice().error_count()  == 0 );
+    if ( sys.invoice().error_count() > 0 ) sys.invoice().throw_errors();
+    CHECK( added == true ); // this is failing, 
 
     psmrts::PsmrtsPriorityTracer pt = sys.create_priority_tracer();
     CHECK( pt.isValid() == true );
