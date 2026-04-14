@@ -54,7 +54,7 @@ TEST_CASE("PsmrtsTracerSytem Values Test", "[tracer][system][values]") {
     CHECK( e_ray.trace().normal().norm() > 0.0 );
 
     std::string file = psmrts_tracers_path("dsk/data/bennu_20facets.bds");
-    CHECK(sys1.add_product("dsk_file", file) == true );
+    CHECK(sys1.add_product("dsk_file", file, "bullet") == true );
 
     std::vector<double> sunpos = { 0.0, 1000.0, 0.0 };
     psmrts::PRQPhotometricTrace p_ray = sys1.ellipsoid_photometric_trace(obs, lkdr, sunpos);
