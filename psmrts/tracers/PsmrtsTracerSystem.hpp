@@ -101,6 +101,10 @@ namespace psmrts {
       // Destructor
       inline ~PsmrtsTracerSystem() = default;
 
+      /** Return the name of the system */
+      inline const std::string &name() const {
+        return ( m_invoice.name() );
+      }
 
       /**
        * @brief Add a product, tracer or shape, to the invoicing system
@@ -478,7 +482,6 @@ namespace psmrts {
       inline bool ellipsoid_trace( PRQRayTrace &ray ) const {      
         return ( m_ellipsoid_r.process( ray ) );
       }
-
 
 
       /**
