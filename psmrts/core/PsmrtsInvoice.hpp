@@ -131,9 +131,11 @@ namespace psmrts {
       /**
        * @brief Add a PSMRTS tracer to the inventory and tracer list
        * 
-       * This allows users to add a PSMRTS tracer directly to the inventory for
-       * use in the system while also optionally adding to the configuration
-       * list for generation in the priority tracer.
+       * Use this method to directly add a existing PSMRTS tracer to the
+       * tracing system. It will be added to the configuration of the priority
+       * tracer and to the inventory. If the tracer already exists in the
+       * system, it will not replace its instance in the inventory, but will be
+       * added to the priority tracer configuration for future use.
        * 
        * @param tracer Tracer to add to the inventory/priority tracer system
        * @return true  If the tracer is valid and the config is validated for use
@@ -157,8 +159,10 @@ namespace psmrts {
       /**
        * @brief Add a PSMRTS shape to the inventory
        * 
-       * This allows users to add a PSMRST shape directly to the inventory for
-       * use in the system creating a tracer in the priority tracer.
+       * Use this method to directly add a existing PSMRTS shape to the
+       * inventory system. If the shape already exists in the system, it will
+       * not replace its instance in the inventory, but will be made available
+       * for use in tracer configurations.
        * 
        * @param tracer Shape to add to the inventory/priority inventory system
        * @return true  If the shape is valid and added to the inventory system
