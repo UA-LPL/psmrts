@@ -118,7 +118,11 @@ namespace psmrts {
   class PsmrtsFactory {
     public:
       inline static const std::string psmrts_inventory{ "psmrts" };
-      using UIDType         = PsmrtsUID::UIDType;
+      using UIDType                 = PsmrtsUID::UIDType;
+      using TracerInventory         = PsmrtsInventory::TracerInventory;
+      using ShapeInventory          = PsmrtsInventory::ShapeInventory;
+      using PriorityTracerInventory = PsmrtsInventory::PriorityTracerInventory;
+      using ParameterInventory      = PsmrtsInventory::ParameterInventory;
 
       PsmrtsFactory( )  {  }
       virtual ~PsmrtsFactory() { }
@@ -143,11 +147,25 @@ namespace psmrts {
       }
 
       /** Looking for an inventory by name */
-      inline const PsmrtsInventory &find( const std::string &name  = "psmrts" ) const {
+      inline const PsmrtsInventory &find( const std::string &name  = psmrts_inventory ) const {
         std::scoped_lock mylocker( m_mutex );
         return ( PsmrtsFactory::inventory().find( name ) );
       }
 
+      /** Return the shape inventory from the named container */
+      inline const ShapeInventory &shapes( const std::string &name  = psmrts_inventory) const  {
+        return ( this->find( name ).shapes() );
+      }
+
+      /** Return the tracer inventory from the named container */
+      inline const TracerInventory &tracers( const std::string &name  = psmrts_inventory ) const  {
+        return ( this->find( name ).tracers() );
+      }
+
+      /** Return the priority tracer inventory from the named container */
+      inline const PriorityTracerInventory &prioritytracers( const std::string &name  = psmrts_inventory ) const  {
+        return ( this->find( name ).prioritytracers() );
+      }
 
       /**
        * @brief Add PsmrtsShape object into a named inventory
