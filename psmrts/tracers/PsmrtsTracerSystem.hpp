@@ -79,32 +79,34 @@ namespace psmrts {
    * @author 2026-03-05 Kris J. Becker
    * @history 2026-03-05 - Kris J. Becker - Original Version
    */
-  class PsmrtsTracerSystem {
+  class PsmrtsTracerSystem : public PsmrtsInvoice {
     public:
       using UIDType = PsmrtsUID::UIDType;
 
       // Constructors
-      PsmrtsTracerSystem() { 
-        initialize();
+      PsmrtsTracerSystem() : PsmrtsInvoice( ), 
+                             m_tracer_p( ), 
+                             m_ellipsoid_r( ) { 
       }
       PsmrtsTracerSystem( const std::string &name,
-                          const PsmrtsTranslations &trans_t = PsmrtsTranslations::create( ) ) {
-        initialize( name, trans_t );
+                          const PsmrtsTranslations &trans_t = PsmrtsTranslations::create( ) ) :
+                          PsmrtsInvoice( name, trans_t ), 
+                          m_tracer_p( ), 
+                          m_ellipsoid_r( ) {
       }
       PsmrtsTracerSystem( const std::string &name,
                           const std::vector<std::string> &shapes, 
-                          const PsmrtsTranslations &trans_t = PsmrtsTranslations::create( ) ) {
-        initialize( name, trans_t );
+                          const PsmrtsTranslations &trans_t = PsmrtsTranslations::create( ) ) :
+                          PsmrtsInvoice( name, trans_t ), 
+                          m_tracer_p( ), 
+                          m_ellipsoid_r( ){
         process_shape_list( shapes );
       }      
 
       // Destructor
       inline ~PsmrtsTracerSystem() = default;
 
-      /** Return the name of the system */
-      inline const std::string &name() const {
-        return ( m_invoice.name() );
-      }
+      using PsmrtsInvoice::add_product;
 
       /**
        * @brief Add a product, tracer or shape, to the invoicing system
@@ -144,41 +146,9 @@ namespace psmrts {
           product_t.add( ProductOption( var_name, filename) );
         }
 
-        return ( m_invoice.add_product( product_t ) );
+        return ( this->add_product( product_t ) );
       }
 
-      /**
-       * @brief Add a specific PSRMTS tracer to the system priority tracer
-       * 
-       * Use this method to directly add a existing PSMRTS tracer to the
-       * tracing system. It will be added to the configuration of the priority
-       * tracer and to the inventory. If the tracer already exists in the
-       * system, it will not replace its instance in the inventory, but will be
-       * added to the priority tracer configuration for future use.
-       * 
-       * @param tracer Valid tracer to to be added to the tracing system
-       * @return true  If successfully added to the system
-       * @return false If an error occurs or invalid tracer is detected
-       */
-      inline bool add_tracer( const PsmrtsTracer &tracer ) { 
-        return ( m_invoice.add_tracer( tracer ) );
-      }
-
-      /**
-       * @brief Add a specific PSRMTS shape to the system inventory
-       * 
-       * Use this method to directly add a existing PSMRTS shape to the
-       * inventory system. If the shape already exists in the system, it will
-       * not replace its instance in the inventory, but will be made available
-       * for use in tracer configurations.
-       * 
-       * @param tracer Valid shape to to be added to the inventory system
-       * @return true  If successfully added to the inventory
-       * @return false If an error occurs or invalid shape is detected
-       */
-      inline bool add_tracer( const PsmrtsShape &shape ) { 
-        return ( m_invoice.add_shape( shape ) );
-      }
 
       /**
        * @brief Expand the list of a shape files/parmeters
@@ -190,7 +160,7 @@ namespace psmrts {
                                         const std::string &name = "psmrtstracersystem" ) {
         std::vector<std::string> shape_file_list;
         for ( const std::string &file_s : shapes ) {
-          std::string file_t = m_invoice.translations().translate_path( file_s );
+          std::string file_t = this->translations().translate_path( file_s );
           std::string suffix_t = psmrts_tolower( psmrts_file_extension( file_t ) );
 
           if ( ( "txt" == suffix_t ) || ( "lis" == suffix_t )  ) {
@@ -235,7 +205,7 @@ namespace psmrts {
 
           // Create the product and add it to the invoice system
           ProductConfiguration tracer_c( parts_t.back(), options_t );
-          if ( !m_invoice.add_product ( tracer_c ) ) {
+          if ( !this->add_product ( tracer_c ) ) {
             nerrs++;
           }
           else {
@@ -244,11 +214,11 @@ namespace psmrts {
         }
 
         // Check for errors in tracer creation process and toss'em if they occur
-        if ( nerrs > 0 ) m_invoice.throw_errors();
+        if ( nerrs > 0 ) this->throw_errors();
 
         // Now set the priority tracer up anc check for addtional errors
         (void) create_priority_tracer( name );
-        if ( nerrs > 0 ) m_invoice.throw_errors();
+        if ( nerrs > 0 ) this->throw_errors();
 
         return ( n_shapes_added );
       }
@@ -271,7 +241,7 @@ namespace psmrts {
         ProductOption rads( "radii", radii );
         ProductConfiguration ellipsoid( "name", { pid, tracer, rads } );
         ProductMaker<PsmrtsTracer> maker_t( name );
-        bool status = maker_t.process_config( ellipsoid, m_invoice.translations() ); 
+        bool status = maker_t.process_config( ellipsoid, this->translations() ); 
         m_ellipsoid_r = maker_t.product();
         return ( status );
       }
@@ -302,7 +272,7 @@ namespace psmrts {
        *                               tracer created by this method.
        */
       inline PsmrtsPriorityTracer create_priority_tracer( const std::string &name = "" ) {
-        m_tracer_p =  m_invoice.get_priority_tracer( name );
+        m_tracer_p =  this->get_priority_tracer( name );
 
         // Check to ensure there is a reference ellipsoid for the system on
         // first instance of priority tracer. Users can reset this if desired.
@@ -618,28 +588,9 @@ namespace psmrts {
       }
 
 
-      /** Returns a reference to the PSMRTS invoicing system  */
-      inline const PsmrtsInvoice &invoice() const {
-        return ( m_invoice );
-      }
-
-      inline const PsmrtsTranslations &translations() const { 
-        return ( invoice().translations() );
-      }
-
     private:
-      PsmrtsInvoice        m_invoice;
       PsmrtsPriorityTracer m_tracer_p;
       PsmrtsTracer         m_ellipsoid_r;
-
-      inline void initialize( const std::string &name = "IsisTracerSystem",
-                              const PsmrtsTranslations &trans = PsmrtsTranslations() ) {
-        
-        m_invoice     = PsmrtsInvoice( name, trans );
-        m_tracer_p    = PsmrtsPriorityTracer();
-        m_ellipsoid_r = PsmrtsTracer();
-      
-      }
 
   };
 }

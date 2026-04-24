@@ -19,7 +19,7 @@ TEST_CASE("PsmrtsTracerSystem Default Test", "[tracer][system][default]") {
     CHECK( sys1.get_shape_tracer().size()        == 0 );
 
     psmrts::PsmrtsTracerSystem sys2("test");
-    CHECK( sys2.invoice().name() == "test" );
+    CHECK( sys2.name() == "test" );
     CHECK( sys2.get_ellipsoid_tracer().isValid() == false ); 
     CHECK( sys2.get_shape_tracer().isValid()     == false ); 
     CHECK( sys2.get_shape_tracer().size()        == 0 );
@@ -81,7 +81,7 @@ TEST_CASE("PsmrtsTracerSytem Values Test", "[tracer][system][values]") {
     bool naif_check = false;
     bool bullet_check = false;
     
-    for (const auto &[uid, tracer] : sys1.invoice().inventory().tracers().cache() ) {
+    for (const auto &[uid, tracer] : sys1.inventory().tracers().cache() ) {
         if (tracer.config().contains("tracer") ) {
             std::string type = tracer.config().find("tracer").to_string();
             if (type == "naifdsk") {
@@ -96,7 +96,7 @@ TEST_CASE("PsmrtsTracerSytem Values Test", "[tracer][system][values]") {
     CHECK( naif_check == true ); 
     CHECK( bullet_check == false );
 
-    for (const auto &[uid, tracer] : sys2.invoice().inventory().tracers().cache() ) {
+    for (const auto &[uid, tracer] : sys2.inventory().tracers().cache() ) {
         if (tracer.config().contains("tracer") ) {
             std::string type = tracer.config().find("tracer").to_string();
             if (type == "bullet") {
@@ -108,10 +108,10 @@ TEST_CASE("PsmrtsTracerSytem Values Test", "[tracer][system][values]") {
 
     psmrts::PsmrtsShape obj_shape( objfile );
     CHECK( obj_shape.isValid() == true );
-    CHECK( sys1.add_tracer( obj_shape ) == true );
+    CHECK( sys1.add_shape( obj_shape ) == true );
 
     bool obj_check = false;
-    for (const auto &[uid, shape] : sys1.invoice().inventory().shapes().cache()) {
+    for (const auto &[uid, shape] : sys1.inventory().shapes().cache()) {
         if ( shape.config().contains("shape") ) {
             if ( shape.config().find("shape").to_string() == "obj" ) {
                 obj_check = true;
@@ -128,8 +128,8 @@ TEST_CASE("PsmrtsTracerSystem Priority Tracer Test", "[tracer][system][priority]
     std::string file = psmrts_tracers_path("naifdsk/data/bennu_20facets.bds");
     bool added = sys.add_product("dsk_file", file);
     
-    CHECK( sys.invoice().error_count()  == 0 );
-    if ( sys.invoice().error_count() > 0 ) sys.invoice().throw_errors();
+    CHECK( sys.error_count()  == 0 );
+    if ( sys.error_count() > 0 ) sys.throw_errors();
     CHECK( added == true ); 
 
     psmrts::PsmrtsPriorityTracer pt = sys.create_priority_tracer();
