@@ -181,9 +181,9 @@ namespace psmrts {
         // automatically selected. 
         size_t nerrs = 0;
         size_t n_shapes_added = 0;
-        for ( const std::string shape_t : shape_file_list ) {
+        for ( const std::string &shape_t : shape_file_list ) {
           std::vector<ProductOption> options_t;
-          std:string name_t;
+          std::string name_t;
           auto parts_t = psmrts::string_tokenizer( shape_t, "::" );
           if ( parts_t.size() > 1 ) {
             std::string tracer_t = psmrts_tolower( psmrts_trim( parts_t[0] ) );
