@@ -99,7 +99,7 @@ namespace psmrts {
                           const PsmrtsTranslations &trans_t = PsmrtsTranslations::create( ) ) :
                           PsmrtsInvoice( name, trans_t ), 
                           m_tracer_p( ), 
-                          m_ellipsoid_r( ){
+                          m_ellipsoid_r( ) {
         process_shape_list( shapes );
       }      
 
@@ -143,7 +143,7 @@ namespace psmrts {
         }
 
         if ( shape_type.length() > 0 ) {
-          product_t.add( ProductOption( var_name, filename) );
+          product_t.add( ProductOption( "shape", shape_type ) );
         }
 
         return ( this->add_product( product_t ) );
@@ -183,15 +183,18 @@ namespace psmrts {
         size_t n_shapes_added = 0;
         for ( const std::string shape_t : shape_file_list ) {
           std::vector<ProductOption> options_t;
+          std:string name_t;
           auto parts_t = psmrts::string_tokenizer( shape_t, "::" );
           if ( parts_t.size() > 1 ) {
             std::string tracer_t = psmrts_tolower( psmrts_trim( parts_t[0] ) );
             options_t.push_back( ProductOption( "tracer", tracer_t ) );
             if ( "ellipsoid" == tracer_t ) {
               options_t.push_back( ProductOption( "file", string_tokenizer( parts_t[1], "," ) ) );
+              name_t = "ellipsoid";
             }
             else {
               options_t.push_back( ProductOption( "file", psmrts_trim( parts_t[1] ) ) );
+              name_t = parts_t[1];
             }
               
             // Check for formatting issues
@@ -201,10 +204,11 @@ namespace psmrts {
           }
           else {
             options_t.push_back( ProductOption( "file", parts_t[0] ) );
+              name_t = parts_t[1];
           }
 
           // Create the product and add it to the invoice system
-          ProductConfiguration tracer_c( parts_t.back(), options_t );
+          ProductConfiguration tracer_c( name_t, options_t );
           if ( !this->add_product ( tracer_c ) ) {
             nerrs++;
           }
@@ -589,8 +593,8 @@ namespace psmrts {
 
 
     private:
-      PsmrtsPriorityTracer m_tracer_p;
-      PsmrtsTracer         m_ellipsoid_r;
+      PsmrtsPriorityTracer     m_tracer_p;
+      PsmrtsTracer             m_ellipsoid_r;
 
   };
 }
