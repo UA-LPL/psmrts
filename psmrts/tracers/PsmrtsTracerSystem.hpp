@@ -379,8 +379,8 @@ namespace psmrts {
       }
 
       /** Returns a ray trace from observer and look direction vectors */
-      inline PRQRayTrace shape_trace( Eigen::Vector3d &observer_km,
-                                      Eigen::Vector3d &lookdir_km ) 
+      inline PRQRayTrace shape_trace( const Eigen::Vector3d &observer_km,
+                                      const Eigen::Vector3d &lookdir_km ) 
                                       const {
 
         PRQRayTrace ray_t( observer_km, lookdir_km );
@@ -417,8 +417,8 @@ namespace psmrts {
 
 
       /** Returns a ray trace from observer and look direction vectors */
-      inline PRQRayTrace ellipsoid_trace( Eigen::Vector3d &observer_km, 
-                                          Eigen::Vector3d &lookdir_km ) 
+      inline PRQRayTrace ellipsoid_trace( const Eigen::Vector3d &observer_km, 
+                                          const Eigen::Vector3d &lookdir_km ) 
                                           const {
 
         PRQRayTrace ray_t( observer_km, lookdir_km );
