@@ -172,6 +172,7 @@ namespace psmrts {
                                 model_d.load_facet_vectors( &segment_d ) );
     m_config = create_segment_config( segment_d, dskfile_source );
     m_config.merge( dsk_config );
+    std::cout << "\nDskShape::create(cart).finished: " << m_config.to_json().dump(-1) << std::endl;
 
   }
 
