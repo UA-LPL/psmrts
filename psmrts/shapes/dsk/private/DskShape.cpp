@@ -93,6 +93,7 @@ namespace psmrts {
 
     std::string dskfile_source;
     std::string dskfile;
+    std::cout << "\nDskShape::create(cart) config: " << v_conf.to_json().dump(-1) << std::endl;
     if ( v_conf.contains( "dsk_file" ) ) {
       dskfile_source  = v_conf.find( "dsk_file" ).to_string();
       dsk_config.add( v_conf.find( "dsk_file" ) );
