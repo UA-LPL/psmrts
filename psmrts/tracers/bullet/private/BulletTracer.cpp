@@ -132,7 +132,7 @@ namespace psmrts {
   }
 
   void BulletTracer::create(const ProductCart &cart ) {
-    std::cout << "BulletTracer::create(cart)..." << std::endl;
+    std::cout << "\nBulletTracer::create(cart)..." << std::endl;
     PsmrtsTranslations trans_t = PsmrtsTranslations::create();
 
     // Check for valid shape type
@@ -168,10 +168,10 @@ namespace psmrts {
       }
     }
     else {
-       std::cout << "BulletTracer::create(cart).shape_not_present!" << std::endl;
       // Parse out and validate the shape config
       ProductMaker<PsmrtsShape> shape_m( "shape" );
       ProductConfiguration shape_c( "shape", cart.residual_config() );
+       std::cout << "\nBulletTracer::create(cart).shape_not_present.config" << shape_c.to_json().dump(-1) << std::endl;
 
       (void) shape_m.process_config( shape_c,  trans_t );
       ProductCart cart_s = shape_m.cart();
