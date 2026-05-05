@@ -132,7 +132,7 @@ namespace psmrts {
   }
 
   void BulletTracer::create(const ProductCart &cart ) {
-
+    std::cout << "BulletTracer::create(cart)..." << std::endl;
     PsmrtsTranslations trans_t = PsmrtsTranslations::create();
 
     // Check for valid shape type
@@ -157,20 +157,26 @@ namespace psmrts {
     // currently only possible because this is a .cpp file.
     std::optional<PsmrtsShape> shape_t( std::nullopt );
     ProductCart::UIDType shape_uid = cart.get_shape_uid();
+    std::cout << "BulletTracer::create(cart).shape_uid: " << shape_uid << std::endl;
     if ( PsmrtsUID::is_valid_uid( shape_uid ) ) {
+      std::cout << "BulletTracer::create(cart) valid shape uid!" << std::endl;
       // See if its in the default factory and use it!
       const PsmrtsInventory &inventory = PsmrtsFactory().find();
       if ( inventory.shapes().contains( shape_uid )  ) {
         shape_t.emplace( inventory.shapes().find( shape_uid ) );
+        std::cout << "BulletTracer::create(cart) Got it: " << shape_t.value().name() << std::endl;
       }
     }
     else {
+       std::cout << "BulletTracer::create(cart).shape_not_present!" << std::endl;
       // Parse out and validate the shape config
       ProductMaker<PsmrtsShape> shape_m( "shape" );
       ProductConfiguration shape_c( "shape", cart.residual_config() );
 
       (void) shape_m.process_config( shape_c,  trans_t );
       ProductCart cart_s = shape_m.cart();
+      std::cout << "BulletTracer::create(cart).shape_cart: " << cart_s.to_json().dump(-1) << std::endl;
+
       if ( cart_s.error_count() > 0 ) {
         std::string mess = "BulletTracer::create(" + cart_s.name() + 
                           ") errors constructing shape with config: \n" +
