@@ -250,7 +250,7 @@ namespace psmrts {
         double min_r ( psmrts::null() );
 
         if ( m_tracers.size() > 0 ) {
-          min_r = m_inventory_t.find( m_tracers[0] ).maximum_radius();
+          min_r = m_inventory_t.find( m_tracers[0] ).minimum_radius();
           for ( size_t ith = 1 ; ith < m_tracers.size() ; ith++ ) {
             double radius_t = m_inventory_t.find( m_tracers[ith] ).minimum_radius();
             if ( radius_t < min_r ) min_r = radius_t;
