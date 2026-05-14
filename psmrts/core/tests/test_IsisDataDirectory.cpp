@@ -1,12 +1,12 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
-#include <psmrts/core/ISISDataDictionary.hpp>
+#include <psmrts/core/ISISDataDirectory.hpp>
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsTagSearch.hpp>
 #include <psmrts/core/tests/TemporaryDirectoryFixture.hpp>
 
-TEST_CASE( "ISISDataDictionary Default Test", "[isis][data][dictionary][default]") {
-    psmrts::ISISDataDictionary dict( psmrts_core_path("tests/data/IsisPreferences") );
+TEST_CASE( "ISISDataDirectory Default Test", "[isis][data][directory][default]") {
+    psmrts::ISISDataDirectory dict( psmrts_core_path("tests/data/IsisPreferences") );
 
     // Block count
     CHECK( dict.size() == 8 );
@@ -103,8 +103,8 @@ TEST_CASE( "ISISDataDictionary Default Test", "[isis][data][dictionary][default]
     CHECK_NOTHROW( dict.translations().translate_path("$ISISDATA/lro") );
 }
 
-TEST_CASE( "ISISDataDictionary to_string PVL Round-Trip", "[isis][data][dictionary][serialization][pvl]") {
-    psmrts::ISISDataDictionary dict( psmrts_core_path("tests/data/IsisPreferences") );
+TEST_CASE( "ISISDataDirectory to_string PVL Round-Trip", "[isis][data][directory][serialization][pvl]") {
+    psmrts::ISISDataDirectory dict( psmrts_core_path("tests/data/IsisPreferences") );
 
     std::string pvl = dict.to_string();
 
@@ -137,7 +137,7 @@ TEST_CASE( "ISISDataDictionary to_string PVL Round-Trip", "[isis][data][dictiona
     CHECK( pvl.find("  CubeWriteThread = Optimized") != std::string::npos );
 
     // Round-trip: re-parse the serialized string and compare to original
-    psmrts::ISISDataDictionary reparsed;
+    psmrts::ISISDataDirectory reparsed;
     reparsed.parse_string(pvl);
 
     CHECK( reparsed.size() == dict.size() );
@@ -155,14 +155,14 @@ TEST_CASE( "ISISDataDictionary to_string PVL Round-Trip", "[isis][data][dictiona
     for (const auto& block : reparsed.all_blocks())
         CHECK( block.block_type == "Group" );
 
-    TemporaryDirectoryFixture t_path( "psmrts_isisdatadictionary" );
+    TemporaryDirectoryFixture t_path( "psmrts_ISISDataDirectory" );
     auto path = t_path.tmppath("output.prefs");
     CHECK_NOTHROW( dict.to_file( path ) );
 
 }
 
-TEST_CASE( "ISISDataDictionary to_string_flat", "[isis][data][dictionary][serialization][flat]") {
-    psmrts::ISISDataDictionary dict( psmrts_core_path("tests/data/IsisPreferences") );
+TEST_CASE( "ISISDataDirectory to_string_flat", "[isis][data][directory][serialization][flat]") {
+    psmrts::ISISDataDirectory dict( psmrts_core_path("tests/data/IsisPreferences") );
 
     std::string flat = dict.to_string_flat();
 
@@ -205,9 +205,9 @@ TEST_CASE( "ISISDataDictionary to_string_flat", "[isis][data][dictionary][serial
     CHECK( comment_count == dict.size() );
 }
 
-TEST_CASE( "ISISDataDictionary Translations Integration", "[isis][translations]" ) {
+TEST_CASE( "ISISDataDirectory Translations Integration", "[isis][translations]" ) {
     // ingest() calls add_parameter() for each key/value found in parsing
-    psmrts::ISISDataDictionary dict( psmrts_core_path("tests/data/IsisPreferences") );
+    psmrts::ISISDataDirectory dict( psmrts_core_path("tests/data/IsisPreferences") );
  
     // Parsed keys are mirrored into the parameter set
     // Every key that appears in the parsed blocks must be findable as a
@@ -267,7 +267,7 @@ TEST_CASE( "ISISDataDictionary Translations Integration", "[isis][translations]"
     pre_trans.add_parameter( "ISISDATA", "/pre/seeded/isis" );
     pre_trans.add_parameter( "CUSTOM",   "/custom/path"     );
 
-    psmrts::ISISDataDictionary seeded_dict( psmrts_core_path("tests/data/IsisPreferences"), std::move( pre_trans ) );
+    psmrts::ISISDataDirectory seeded_dict( psmrts_core_path("tests/data/IsisPreferences"), std::move( pre_trans ) );
 
     // Pre-seeded variables must survive alongside the parsed ones.
     CHECK( seeded_dict.translations().parameters().contains( "ISISDATA" ) );
@@ -285,7 +285,7 @@ TEST_CASE( "ISISDataDictionary Translations Integration", "[isis][translations]"
 
 
     // Real shell environment loaded via PsmrtsTranslations::create()
-    psmrts::ISISDataDictionary env_dict( psmrts_core_path("tests/data/IsisPreferences"), 
+    psmrts::ISISDataDirectory env_dict( psmrts_core_path("tests/data/IsisPreferences"), 
                                          psmrts::PsmrtsTranslations::create() );
 
     const std::string raw = env_dict.value("UserInterface", "HistoryPath").value();
