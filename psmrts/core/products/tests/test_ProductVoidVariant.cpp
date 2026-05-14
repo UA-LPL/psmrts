@@ -11,7 +11,9 @@ TEST_CASE( "ProductVoidVariant Default Test", "[product][void][variant][default]
 
     CHECK( v_var.product_specifications().size() == 0 );
     CHECK( v_var.config().size() == 0 );
-    CHECK( v_var.type() == "variant" );
+    CHECK( v_var.name() == "void" );
+    CHECK( v_var.type() == "void" );
+    CHECK( v_var.model() == "void" );
     
     psmrts::ProductConfiguration config;
 

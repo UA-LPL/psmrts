@@ -30,7 +30,7 @@ namespace psmrts {
       using ProductInfo     = ProductSpecification::ProductInfo;
       using ProductFeatures = ProductSpecification::ProductFeatures;
 
-      DskShape( ) : PsmrtsProduct("none", "dsk"), 
+      DskShape( ) : PsmrtsProduct( "null", "tracer", "dsk" ), 
                     m_mesh(), m_config( { ProductConfiguration("dsk") } )  { }
       DskShape( const std::string &dsk_file, const int segnum = 0 );
       DskShape( const ProductCart &processed_cart );

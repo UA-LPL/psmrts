@@ -16,15 +16,15 @@ find files of those names at the top level of this repository. **/
 #include "PsmrtsPLYFormat.hpp"
 
 namespace psmrts {
-  PlyShape::PlyShape( const std::string &ply_file ) : PsmrtsProduct( ply_file, "ply"){
+  PlyShape::PlyShape( const std::string &ply_file ) : 
+                      PsmrtsProduct( ply_file, "shape", "ply") {
     PsmrtsPLYFormat m_model( ply_file );
     m_config = m_model.get_metadata(); // check if can rename to config
     m_mesh = m_model.get_mesh();
   }
 
-  PlyShape::PlyShape( const ProductCart &processed_cart ) {
-    this->set_name( processed_cart.name() );
-    this->set_type( "ply" );
+  PlyShape::PlyShape( const ProductCart &processed_cart ) :
+                      PsmrtsProduct( processed_cart.name(), "shape", "ply" ) {
     this->create( processed_cart );
   }     
   

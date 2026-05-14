@@ -31,13 +31,13 @@ namespace psmrts {
    */
   class BulletTracer::BulletTracerImpl : public PsmrtsProduct {
     public:
-      BulletTracerImpl( ) : PsmrtsProduct( "bullet", "bullet" ),
+      BulletTracerImpl( ) : PsmrtsProduct( "none", "tracer", "bullet" ),
                             m_shape(), 
                             m_bullet_model() { }
       BulletTracerImpl( const PsmrtsShape &shape,
                         const bool useCompression = true,
                         const bool buildBvh = true   ) : 
-                        PsmrtsProduct( shape.name(), "bullet" ),
+                        PsmrtsProduct( shape.name(), "tracer", "bullet" ),
                         m_shape( shape ),
                         m_bullet_model( bullet::PsmrtsBulletMeshMap( shape.get_mesh(), 
                                                                      shape.name(), 0), 
@@ -83,12 +83,12 @@ namespace psmrts {
    * 
    * 
    */
-  BulletTracer::BulletTracer( ) : PsmrtsProduct( "bullet", "bullet" ),
+  BulletTracer::BulletTracer( ) : PsmrtsProduct( "bullet", "tracer", "bullet" ),
                                   m_model( std::make_shared<BulletTracerImpl>() ),
                                   m_config("bullet") {  }
 
   BulletTracer::BulletTracer( const PsmrtsShape &shape ) : 
-                              PsmrtsProduct( shape.config().name(), "bullet"),
+                              PsmrtsProduct( shape.config().name(), "tracer", "bullet"),
                               m_config("bullet") {
     m_model = std::make_shared<BulletTracerImpl> ( shape );
     m_config.merge( shape.config() );
@@ -98,9 +98,8 @@ namespace psmrts {
     m_config.add_metadata( ProductOption( "bullet_thread_safety", m_model->useThreadSafety() ) );
   }
   
-  BulletTracer::BulletTracer( const ProductCart &processed_cart ) {
-    this->set_name( processed_cart.name() );
-    this->set_type( "bullet" );    
+  BulletTracer::BulletTracer( const ProductCart &processed_cart ) :
+                              PsmrtsProduct( processed_cart.name(), "tracer", "bullet") {
     this->create( processed_cart );
   }     
   

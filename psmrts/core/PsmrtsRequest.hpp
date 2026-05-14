@@ -19,6 +19,7 @@ find files of those names at the top level of this repository. **/
 #include <exception>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 
 namespace psmrts { 
@@ -33,15 +34,17 @@ namespace psmrts {
    * 
    * @see PsmrtsTracer.hpp for an example of this technique.
    */
-  class MissingProcessRequestHandler {
+  class MissingProcessRequestHandler : public PsmrtsProduct {
     public:
-      MissingProcessRequestHandler() : m_name( "Product" ) { }
+      MissingProcessRequestHandler() : PsmrtsProduct() { }
       MissingProcessRequestHandler( const std::string &name ) : 
-                                   m_name ( name ) { }
+                                    PsmrtsProduct() {
+       this->set_name( name ) ;
+     }
       virtual ~MissingProcessRequestHandler() = default;
 
       inline const std::string &name() const {
-        return ( m_name );
+        return ( this->product().name() );
       }
 
       template <class PRQ>
@@ -55,7 +58,6 @@ namespace psmrts {
         }
 
     private:
-      std::string m_name;
   };
 
   /**

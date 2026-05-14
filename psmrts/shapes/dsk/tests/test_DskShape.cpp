@@ -32,7 +32,8 @@ TEST_CASE( "PSMRTS Product DSK Specification Test", "[product][type][mesh][dsk]"
     std::string dskfile = psmrts_shapes_path( "dsk/data/bennu_20facets.bds" );
     psmrts::DskShape dsk_m( dskfile );
     CHECK( dsk_m.name() == dskfile );
-    CHECK( dsk_m.type() == "dsk" );
+    CHECK( dsk_m.type() == "shape" );
+    CHECK( dsk_m.model() == "dsk" );
     CHECK( psmrts::PsmrtsUID::is_valid_uid( dsk_m.uid() ) );
     
     psmrts::PsmrtsMeshData mesh_d = dsk_m.get_mesh( );
@@ -89,9 +90,10 @@ TEST_CASE( "PSMRTS Product DSK Specification Test", "[product][type][mesh][dsk]"
     psmrts::PsmrtsTranslations tln;
     psmrts::ProductSpecification spec_d = psmrts::DskShape::product_specifications();
     psmrts::ProductCart cart_d = psmrts::ProductCart( spec_d, config_data );
-    psmrts::DskShape shape2( cart_d);
+    psmrts::DskShape shape2( cart_d );
 
     CHECK( shape2.name() == "dsk" );
+    CHECK( shape2.type() == dsk_m.type() );
     CHECK( shape2.type() == dsk_m.type() );
     CHECK( psmrts::PsmrtsUID::is_valid_uid( shape2.uid() ) );
 

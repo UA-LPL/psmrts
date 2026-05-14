@@ -26,7 +26,8 @@ TEST_CASE( "PSMRTS Product OBJ Specification Test", "[product][type][mesh][obj]"
   psmrts::ObjShape obj_m( objfile );
   
   CHECK( obj_m.name() == objfile );
-  CHECK( obj_m.type() == "obj" );
+  CHECK( obj_m.type() == "shape" );
+  CHECK( obj_m.model() == "obj" );
   CHECK( psmrts::PsmrtsUID::is_valid_uid( obj_m.uid() ) );
     
   psmrts::PsmrtsMeshData mesh_d = obj_m.get_mesh( );

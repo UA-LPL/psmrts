@@ -39,23 +39,22 @@ namespace psmrts  {
       using ProductInfo     = ProductSpecification::ProductInfo;
       using ProductFeatures = ProductSpecification::ProductFeatures;
 
-      NaifDskTracer( ) : PsmrtsProduct( "naifdsktracer", "tracer" ), 
+      NaifDskTracer( ) : PsmrtsProduct( "none", "tracer", "naifdsk" ), 
                          m_model() {
         m_config = init_naifdsk( "naifdsk" );
       }
       NaifDskTracer( const naif::DskKernelModel &dsktracer ) : 
-                     PsmrtsProduct( dsktracer.shapefile(), "tracer" ),
+                     PsmrtsProduct( dsktracer.shapefile(), "tracer", "naifdsk" ),
                      m_model( dsktracer ) { 
         m_config = init_naifdsk( dsktracer, dsktracer.shapefile() );
       }
       NaifDskTracer( const std::string &dsk ) : 
-                     PsmrtsProduct( dsk, "tracer" ),
+                     PsmrtsProduct( dsk, "tracer", "naifdsk" ),
                      m_model( dsk ) {
         m_config = init_naifdsk( m_model, dsk );
       }
-      NaifDskTracer( const ProductCart &processed_cart ) {
-        this->set_name( processed_cart.name() );
-        this->set_type( "naifdsk" );           
+      NaifDskTracer( const ProductCart &processed_cart ) :
+                     PsmrtsProduct( processed_cart.name(), "tracer", "naifdsk" ) {
         this->create( processed_cart );
       }        
       virtual ~NaifDskTracer() { }

@@ -26,7 +26,7 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/products/ProductOption.hpp>
 #include <psmrts/core/products/ProductConfiguration.hpp>
 #include <psmrts/core/products/ProductSpecification.hpp>
-#include <psmrts/core/products/ProductProcessDispatch.hpp>
+#include <psmrts/core/products/ProductModelDispatch.hpp>
 #include <psmrts/core/products/ProductVoidVariant.hpp>
 #include <psmrts/shapes/dsk/DskShape.hpp>
 #include <psmrts/shapes/obj/ObjShape.hpp>
@@ -36,52 +36,70 @@ find files of those names at the top level of this repository. **/
 
 namespace psmrts {
 
-  class PsmrtsShape : public ProductProcessDispatch< ProductVoidVariant, 
+  class PsmrtsShape : public ProductModelDispatch< ProductVoidVariant, 
                                                      DskShape, 
                                                      ObjShape, 
                                                      PlyShape,
                                                      MeshShape> {
     public:
-      using Shape    = ProductProcessDispatch::ProductType;
+      using Shape    = ProductModelDispatch::Model;
       using Variants = Shape;  // Standardization for ProductMaker
       using UIDType = PsmrtsUID::UIDType;
 
-      PsmrtsShape( ) {  }
-      PsmrtsShape( const std::string &filename ) {  
+      PsmrtsShape( ) : ProductModelDispatch ( ProductVoidVariant( "void" ) ) {
+        init_product();
+      }
+
+      PsmrtsShape( const std::string &filename ) : 
+                    ProductModelDispatch ( ProductVoidVariant( filename ) ) { 
+
         std::string fext_t = psmrts_tolower( psmrts_file_extension( filename ) );
         if ( "obj" == fext_t ) {
-          m_product = ObjShape( filename );
+          this->set_model( ObjShape( filename ) );
         }
         else if ( "ply" == fext_t ) {
-          m_product = PlyShape( filename );
+          this->set_model( PlyShape( filename ) );
         }
         else if ( "bds" == fext_t ) {
-          m_product = DskShape( filename );
+          this->set_model( DskShape( filename ) );
         }
         else {
           std::string badfile = "Shape(" + fext_t + ") format is not supported!";
           throw std::runtime_error( badfile );
         }
+        init_product();
       }
-      PsmrtsShape( const Shape &shape ) :
-                   ProductProcessDispatch( shape ) {  }
+
+      PsmrtsShape( const Shape &shape ) : ProductModelDispatch( shape ) { 
+        init_product();                    
+      }
+
       virtual ~PsmrtsShape() { }
 
       inline bool isValid() const {
-        return ( !std::holds_alternative<ProductVoidVariant>( m_product ) );
+        return ( !std::holds_alternative<ProductVoidVariant>( m_model ) );
       }
 
-      inline UIDType uid() const {
-        const auto visitor = overload{            
-                  [](auto &&shape ) -> UIDType {
-                       return ( shape.uid() ); 
-                  }
-        };
-       
-        return ( std::visit(visitor, m_product ) ); 
+      inline const PsmrtsProduct &product() const {
+        return ( m_product ); 
       }
 
-    
+      inline const std::string &name() const {
+        return ( this->product().name() ); 
+      }  
+
+      inline const std::string &type() const {
+        return ( this->product().type() ); 
+      } 
+
+      inline const std::string &model() const {
+        return ( this->product().model() ); 
+      }  
+
+      inline const UIDType &uid() const {
+        return ( this->product().uid() ); 
+      }      
+
       inline const PsmrtsMeshData &get_mesh() const {
         static const PsmrtsMeshData empty_mesh{};
         const auto visitor = overload{
@@ -91,17 +109,17 @@ namespace psmrts {
           [](const MeshShape &mesh) -> const PsmrtsMeshData& { return ( mesh.get_mesh() ); },            
           [](auto &&args) -> const PsmrtsMeshData& { return ( empty_mesh ); } // Default lambda for all other types
         };
-        return std::visit(visitor, m_product);
+        return std::visit(visitor, m_model );
       }
 
       inline ProductSpecification specs() const {
-        const auto visitor = overload{            
-                  [](auto &&shape ) -> ProductSpecification {
+        const auto visitor = overload {            
+                  []( auto &&shape ) -> ProductSpecification {
                        return ( shape.product_specifications() ); 
                   }
         };
        
-        return ( std::visit(visitor, m_product ) ); 
+        return ( std::visit(visitor, m_model ) ); 
       } 
 
       inline const ProductConfiguration &config() const {
@@ -111,7 +129,7 @@ namespace psmrts {
                   }
         };
        
-        return ( std::visit(visitor, m_product ) ); 
+        return ( std::visit(visitor, m_model) ); 
       }        
 
        inline bool matches( const ProductConfiguration &conf ) const {
@@ -126,6 +144,19 @@ namespace psmrts {
         return this->get_mesh().maximum_radius();
       }
 
+    private:
+      PsmrtsProduct m_product;
+
+      inline void init_product() {
+        const auto visitor = overload{            
+          [](auto &&shape ) ->PsmrtsProduct {
+              return ( shape.product() ); 
+          }
+        };
+        
+        m_product = std::visit(visitor, m_model );
+      }
+              
   };
 } // namespace psmrts
 

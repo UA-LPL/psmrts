@@ -41,11 +41,11 @@ TEST_CASE( "PsmrtsInvoice Priority Tracer Test 1", "[product][invoice][priorityt
   CHECK( invoice_t.add_product( naifdsk_t ) == true );
 
   psmrts::ProductConfiguration ellipsoid_t("ellipsoidkmaker");
-  // ellipsoid_t.add( psmrts::ProductOption( "tracer", "ellipsoid" ) );
-  // ellipsoid_t.add( psmrts::ProductOption( "radii", { 0.283065, 0.271215, 0.249720 } ) );
-  ellipsoid_t.add( psmrts::ProductOption( "tracer", "spheroid" ) );
-  ellipsoid_t.add( psmrts::ProductOption( "radii", { 0.283065, 0.249720 } ) );  
-  ellipsoid_t.add( psmrts::ProductOption( "name", "myspheroid" ) );  
+  ellipsoid_t.add( psmrts::ProductOption( "tracer", "ellipsoid" ) );
+  ellipsoid_t.add( psmrts::ProductOption( "radii", { 0.283065, 0.271215, 0.249720 } ) );
+  // ellipsoid_t.add( psmrts::ProductOption( "tracer", "spheroid" ) );
+  // ellipsoid_t.add( psmrts::ProductOption( "radii", { 0.283065, 0.249720 } ) );  
+  // ellipsoid_t.add( psmrts::ProductOption( "name", "myspheroid" ) );  
   // ellipsoid_t.add( psmrts::ProductOption( "tracer", "sphere" ) );
   // ellipsoid_t.add( psmrts::ProductOption( "radii", 0.283065 )  ); 
 
@@ -54,6 +54,7 @@ TEST_CASE( "PsmrtsInvoice Priority Tracer Test 1", "[product][invoice][priorityt
   CHECK( invoice_t.size() == 3);
 
   psmrts::PsmrtsPriorityTracer priority_t = invoice_t.get_priority_tracer( "priority_tracer1" );
+  CHECK( invoice_t.error_count()                == 0 );
   CHECK( priority_t.size()                      == 3 );
   CHECK( invoice_t.inventory().size()           == 5 );
   CHECK( invoice_t.inventory().tracers().size() == 3 );

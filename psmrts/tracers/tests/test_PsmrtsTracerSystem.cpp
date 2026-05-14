@@ -1,6 +1,7 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsUID.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 
 #include <psmrts/tracers/PsmrtsTracer.hpp>
@@ -123,6 +124,9 @@ TEST_CASE("PsmrtsTracerSytem Values Test", "[tracer][system][values]") {
 }
 
 TEST_CASE("PsmrtsTracerSystem Priority Tracer Test", "[tracer][system][priority]") {
+    using KeyList    = std::vector<std::string>;
+    using TracerList = psmrts::PsmrtsPriorityTracer::TracerList;
+
     psmrts::PsmrtsTracerSystem sys("p_tracers");
 
     std::string file = psmrts_tracers_path("naifdsk/data/bennu_20facets.bds");
@@ -131,9 +135,15 @@ TEST_CASE("PsmrtsTracerSystem Priority Tracer Test", "[tracer][system][priority]
     CHECK( sys.error_count()  == 0 );
     if ( sys.error_count() > 0 ) sys.throw_errors();
     CHECK( added == true ); 
+    CHECK( sys.size()  == 1 );
 
     psmrts::PsmrtsPriorityTracer pt = sys.create_priority_tracer();
     CHECK( pt.isValid() == true );
+    CHECK( pt.size() == 1 );
+    CHECK( sys.get_priority_tracer_list() == KeyList( { "p_tracers" } ) );
+
+    TracerList tracers = pt.tracers();
+    REQUIRE( tracers.size() == 1 );
 
     CHECK( sys.get_ellipsoid_tracer().isValid() == true );
 
@@ -144,8 +154,12 @@ TEST_CASE("PsmrtsTracerSystem Priority Tracer Test", "[tracer][system][priority]
     CHECK( ray.hasHit() == true );
     CHECK( ray.trace().radius() > 0.0 );
     CHECK( ray.trace().normal().norm() > 0.0 );
+    CHECK( psmrts::PsmrtsUID::is_valid_uid( ray.trace().get_tracer_id() ) == true  );
 
     psmrts::PsmrtsTracer hit_tracer = sys.get_tracer_from_intercept( ray );
+    CHECK( hit_tracer.name()    == "naifdsk" );
+    CHECK( hit_tracer.type()    == "tracer" );
+    CHECK( hit_tracer.model()   == "naifdsk" );
     CHECK( hit_tracer.isValid() == true );
 
     std::vector<double> sunpos = { 0.0, 100.0, 0.0 };

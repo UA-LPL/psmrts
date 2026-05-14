@@ -33,16 +33,15 @@ namespace psmrts {
         using ProductInfo     = ProductSpecification::ProductInfo;
         using ProductFeatures = ProductSpecification::ProductFeatures; 
 
-        MeshShape() : PsmrtsProduct( "mesh", "mesh"),
+        MeshShape() : PsmrtsProduct( "mesh", "shape", "mesh"),
                       m_mesh( ), m_config( init_mesh( "mesh") )  { }
         MeshShape( const PsmrtsMeshData &mesh, 
                    const std::string &name = "mesh") : 
-                   PsmrtsProduct( name, "mesh" ),
+                   PsmrtsProduct( name, "shape", "mesh" ),
                    m_mesh( mesh ),
                    m_config( mesh.config() ) { }
-        MeshShape( const ProductCart &processed_cart ) {
-          this->set_name( processed_cart.name() );
-          this->set_type( "mesh" );          
+        MeshShape( const ProductCart &processed_cart ) :
+                   PsmrtsProduct( processed_cart.name(), "shape", "mesh" ) {
           this->create( processed_cart );
         }                      
         virtual ~MeshShape() = default;

@@ -47,7 +47,8 @@ namespace psmrts {
                       const int segnum) : PsmrtsProduct( dsk_file, "dsk") {
 
     this->set_name( dsk_file );
-    this->set_type( "dsk" );
+    this->set_type( "shape" );
+    this->set_model( "dsk" );
 
     PsmrtsTranslations trans = PsmrtsTranslations::create();
     std::string dsk_expanded = trans.translate_path( dsk_file );
@@ -63,9 +64,8 @@ namespace psmrts {
   }
 
 
-  DskShape::DskShape( const ProductCart &processed_cart ) {
-    this->set_name( processed_cart.name() );
-    this->set_type( "dsk" );
+  DskShape::DskShape( const ProductCart &processed_cart ) :
+                      PsmrtsProduct( processed_cart.name(), "shape", "dsk" ) {
     this->create( processed_cart );
   }
 

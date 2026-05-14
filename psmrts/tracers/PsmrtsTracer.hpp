@@ -24,7 +24,7 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/PsmrtsTranslations.hpp>
-#include <psmrts/core/products/ProductProcessDispatch.hpp>
+#include <psmrts/core/products/ProductModelDispatch.hpp>
 #include <psmrts/core/products/ProductVoidVariant.hpp>
 #include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/tracers/bullet/BulletTracer.hpp>
@@ -42,7 +42,7 @@ namespace psmrts {
    * to execute the requested operation.
    * 
    * Any one of the supported tracers can be passed to the constructor. Its
-   * instance is copied into the ProductProcessDispatch class. Each tracer
+   * instance is copied into the ProductModelDispatch class. Each tracer
    * implements all the process( T ) method it supports. The design of the
    * process dispatcher actually accepts any call made to this object, where
    * non-existant process( T ) methods are trapped and an error is recorded in
@@ -66,21 +66,27 @@ namespace psmrts {
    *   }
    * @endcode
    * 
-   * See PsmrtsRequest.hpp and ProductProcessDispatch.hpp for details.
+   * See PsmrtsRequest.hpp and ProductModelDispatch.hpp for details.
    */
-  class PsmrtsTracer : public ProductProcessDispatch< ProductVoidVariant,
+  class PsmrtsTracer : public ProductModelDispatch< ProductVoidVariant,
                                                       EllipsoidTracer, 
                                                       BulletTracer, 
                                                       NaifDskTracer> {
     public:
-      using Tracer   = ProductProcessDispatch::ProductType;
+      using Tracer   = ProductModelDispatch::Model;
       using Variants = Tracer;  // Standardization for ProductMaker
       using UIDType = PsmrtsUID::UIDType;
 
-      PsmrtsTracer( ) : ProductProcessDispatch ( ProductVoidVariant( "void" ) ) {  }
+      PsmrtsTracer( ) : ProductModelDispatch ( ProductVoidVariant( "void" ) ) {
+        init_product();
+      }
       PsmrtsTracer( const std::string &name ) : 
-                    ProductProcessDispatch ( ProductVoidVariant( name ) ) {  }
-      PsmrtsTracer( const Tracer &tracer ) : ProductProcessDispatch( tracer ) {  }
+                    ProductModelDispatch ( ProductVoidVariant( name ) ) { 
+        init_product();
+      }
+      PsmrtsTracer( const Tracer &tracer ) : ProductModelDispatch( tracer ) { 
+        init_product();
+       }
       virtual ~PsmrtsTracer() { }
 
       inline static PsmrtsTracer sphere( const double radius_km, 
@@ -116,18 +122,28 @@ namespace psmrts {
       }
 
       inline bool isValid() const {
-        return ( !std::holds_alternative<ProductVoidVariant>( m_product ) );
+        return ( !std::holds_alternative<ProductVoidVariant>( m_model ) );
       }
 
-      inline UIDType uid() const {
-        const auto visitor = overload{            
-                  [](auto &&tracer ) -> UIDType {
-                       return ( tracer.uid() ); 
-                  }
-        };
-       
-        return ( std::visit(visitor, m_product ) ); 
+      inline const PsmrtsProduct &product() const {
+        return ( m_product ); 
+      }
+
+      inline const std::string &name() const {
+        return ( this->product().name() ); 
+      }  
+
+      inline const std::string &type() const {
+        return ( this->product().type() ); 
       } 
+
+      inline const std::string &model() const {
+        return ( this->product().model() ); 
+      }  
+
+      inline const UIDType &uid() const {
+        return ( this->product().uid() ); 
+      }      
 
       inline ProductSpecification specs() const {
         const auto visitor = overload{            
@@ -136,7 +152,7 @@ namespace psmrts {
                   }
         };
        
-        return ( std::visit(visitor, m_product ) ); 
+        return ( std::visit(visitor, m_model ) ); 
       } 
 
       inline const ProductConfiguration &config() const {
@@ -146,7 +162,7 @@ namespace psmrts {
                   }
         };
        
-        return ( std::visit(visitor, m_product ) ); 
+        return ( std::visit(visitor, m_model ) ); 
       }        
 
       inline bool matches( const ProductConfiguration &conf ) const {
@@ -160,7 +176,7 @@ namespace psmrts {
                   }
         };
        
-        return ( std::visit(visitor, m_product ) ); 
+        return ( std::visit(visitor, m_model ) ); 
       }
       
       inline double minimum_radius() const {
@@ -170,9 +186,21 @@ namespace psmrts {
                   }
         };
        
-        return ( std::visit(visitor, m_product ) ); 
+        return ( std::visit(visitor, m_model ) ); 
       }
 
+    private:
+      PsmrtsProduct m_product;
+
+      inline void init_product() {
+        const auto visitor = overload{            
+          [](auto &&tracer ) ->PsmrtsProduct {
+              return ( tracer.product() ); 
+          }
+        };
+        
+        m_product = std::visit(visitor, m_model );
+      }
         
   };
 

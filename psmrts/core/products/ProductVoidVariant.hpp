@@ -37,34 +37,20 @@ namespace psmrts {
   class ProductVoidVariant : public MissingProcessRequestHandler {
     public:
       ProductVoidVariant() : MissingProcessRequestHandler( "void" ),
-                             m_type( "variant" ),
                              m_config( "void" ),
                              m_specs( "void", "variant" ) { }
       ProductVoidVariant( const std::string &name ):
                           MissingProcessRequestHandler( "void" ),
-                          m_type( "variant" ),
                           m_config( name ),
                           m_specs( name, "variant" ) { }
       ProductVoidVariant( const ProductCart &processed_cart ) :
                           MissingProcessRequestHandler( "void" ),
-                          m_type( "variant" ),
                           m_config( processed_cart.name() ),
                           m_specs( processed_cart.name(), "variant" ) {
         this->create( processed_cart );
       }
       virtual ~ProductVoidVariant() = default;
       
-      using MissingProcessRequestHandler::name;    
-
-      inline const std::string &type() const {
-        return ( m_type );
-      }
-
-      /** Returns a null (invalid) product ID */
-      inline const PsmrtsUID::UIDType &uid() const {
-        return ( PsmrtsUID::null_uid() );
-      }
-
       static inline ProductSpecification product_specifications() {
         return ( ProductSpecification( "void", "variant" ) );
       }
@@ -86,7 +72,6 @@ namespace psmrts {
       }
       
     private:
-      std::string          m_type;
       ProductConfiguration m_config;
       ProductSpecification m_specs;
 

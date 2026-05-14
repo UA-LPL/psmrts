@@ -36,25 +36,24 @@ namespace psmrts  {
       using ProductInfo     = ProductSpecification::ProductInfo;
       using ProductFeatures = ProductSpecification::ProductFeatures;
 
-      ObjShape( ) : PsmrtsProduct( "none", "obj" ), 
+      ObjShape( ) : PsmrtsProduct( "none", "shape", "obj" ), 
                     m_model(), m_mesh(), m_config("obj" ) { }
       ObjShape( const psmrts::PsmrtsOBJFormat &obj_t ) :
-                PsmrtsProduct( obj_t.obj_source(), "obj" ), 
+                PsmrtsProduct( obj_t.obj_source(), "shape", "obj" ), 
                 m_model( obj_t ), m_mesh( obj_t.get_mesh() ),
                 m_config( obj_t.get_config()) { 
         m_config.add_metadata( ProductOption( "minimum_radius", m_mesh.minimum_radius() ) );
         m_config.add_metadata( ProductOption( "maximum_radius", m_mesh.maximum_radius() ) );
       }
       ObjShape( const std::string &obj_file ) :
-                PsmrtsProduct( obj_file, "obj" ), 
+                PsmrtsProduct( obj_file, "shape", "obj" ), 
                 m_model( obj_file ), m_mesh( m_model.get_mesh() ),
                 m_config( m_model.get_config() ) { 
         m_config.add_metadata( ProductOption( "minimum_radius", m_mesh.minimum_radius() ) );
         m_config.add_metadata( ProductOption( "maximum_radius", m_mesh.maximum_radius() ) );
       }
-      ObjShape( const ProductCart &processed_cart ) {
-        this->set_name( processed_cart.name() );
-        this->set_type( "obj" );        
+      ObjShape( const ProductCart &processed_cart ) : 
+                PsmrtsProduct( processed_cart.name(), "shape", "obj" ) {
         this->create( processed_cart );
       }      
       virtual ~ObjShape() { }

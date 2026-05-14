@@ -26,7 +26,8 @@ TEST_CASE( "PSMRTS Product PLY Specification Test", "[product][type][mesh][ply]"
     psmrts::PlyShape ply_m( plyfile );
   
     CHECK( ply_m.name() == plyfile );
-    CHECK( ply_m.type() == "ply" );
+    CHECK( ply_m.type() == "shape" );
+    CHECK( ply_m.model() == "ply" );
     CHECK( psmrts::PsmrtsUID::is_valid_uid( ply_m.uid() ) );
     
     psmrts::PsmrtsMeshData mesh_d = ply_m.get_mesh( );
