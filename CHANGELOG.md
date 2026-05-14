@@ -35,6 +35,12 @@ release.
 ## TODO
 - See [TODO](TODO.md)
 
+## [0.6.2] 2026-05-14
+- Change ISISDataDictionary to ISISDataDirectory.
+- Update CMakesLists, test files.
+- Update version to v0.6.2.
+- Update CHANGELOG.
+
 ## [0.6.1] 2026-03-20
 - Add preliminary PsmrtsTagSearch, PsmrtsMetakernel, and IsisDataDictionary
   classes for file parsing support.
@@ -42,7 +48,7 @@ release.
 - Adjusted PsmrtsTranslations named constructor to load / merge environment
   through parameter.
 - Slight clean up of PsmrtsTranslations.
-- Update version to v0.6.1
+- Update version to v0.6.1.
 - Update CHANGELOG.
 
 
