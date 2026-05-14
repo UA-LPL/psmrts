@@ -834,48 +834,6 @@ namespace psmrts {
         }
     };
 
-    /**
-     * @brief Provide a system-wide unique identifer 
-     * 
-     * This class provides a PSRMTS-wide (and beyond) procedure
-     * for acquiring a unique integer based identifier. All
-     * PSMRTS products constructed should have one of these
-     * for caching purposes.
-     * 
-     * Use of PsmrtsUID::UID_Reserved is for products
-     * that are not intended to be cached. However, this is not
-     * directly enforced. If they are cached, then
-     * they will only ever occupy one space in the map 
-     * and promptly be replaced.
-     * 
-     * Inherent use of std::atomic makes this class thread-safe.
-     * 
-     */
-    class PsmrtsUID {
-      public:
-        using UIDType = unsigned long long;
-
-        inline static const  UIDType &null_uid() {
-          return ( UID_Reserved );
-        }
-
-        /** Return a unique ID which should never assumed to be negative */
-        inline static UIDType get_uid() {
-          return ( ++m_uid );  // This reserves ID <= UID_Reserved!
-        }
-
-        /** Checks for a valid ID */
-        inline static bool is_valid_uid( const UIDType uid ) {
-          return ( uid > null_uid() );
-        }
-
-      private:
-        PsmrtsUID()  = default;
-        ~PsmrtsUID() = default;
-
-        inline static const UIDType UID_Reserved{0};
-        inline static std::atomic<UIDType> m_uid{UID_Reserved};
-    };
 
 } // namespace psmrts
 
