@@ -1,7 +1,9 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
-#include <psmrts/core/products/ProductProcessDispatch.hpp>
+#include <psmrts/core/PsmrtsUID.hpp>
+#include <psmrts/core/PsmrtsProduct.hpp>
+#include <psmrts/core/products/ProductModelDispatch.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 #include <psmrts/shapes/obj/ObjShape.hpp>
@@ -10,7 +12,7 @@
 #include <psmrts/shapes/PsmrtsShape.hpp>
 
 
-TEST_CASE( "ProductProcessDispatch Default / MissingProcessRequestHandler", "[ProductProcessDispatch][Default]") {
+TEST_CASE( "ProductModelDispatch Default / MissingProcessRequestHandler", "[ProductModelDispatch][Default]") {
     struct BadProduct {
         using UIDType = psmrts::PsmrtsUID::UIDType;
         bool process(psmrts::PRQVersion &request) const {
@@ -33,7 +35,7 @@ TEST_CASE( "ProductProcessDispatch Default / MissingProcessRequestHandler", "[Pr
     };
 
     BadProduct prod;
-    psmrts::ProductProcessDispatch<BadProduct> dispatch2( prod );
+    psmrts::ProductModelDispatch<BadProduct> dispatch2( prod );
     psmrts::PRQVersion request;
 
     CHECK( dispatch2.process(request) == false );
