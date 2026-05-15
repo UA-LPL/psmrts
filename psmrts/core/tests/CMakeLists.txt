@@ -5,7 +5,7 @@ find_package( Catch2 CONFIG REQUIRED )
 
 # Build all-in-one renderer test application
 add_executable( psmrts_test_suite psmrts_catch2_main.cpp
-                                  test_IsisDataDictionary.cpp
+                                  test_IsisDataDirectory.cpp
                                   test_PsmrtsBuffer.cpp
                                   test_PsmrtsBufferData.cpp
                                   test_PsmrtsCache.cpp

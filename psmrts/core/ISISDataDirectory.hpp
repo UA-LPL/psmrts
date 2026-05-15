@@ -45,7 +45,7 @@ namespace psmrts {
   *
   * Quick-start:
   *
-  *   ISISDataDictionary dict("IsisPreferences");
+  *   ISISDataDirectory dict("IsisPreferences");
   *
   *   // Iterate every DataDirectory entry
   *   for (auto& [k, v] : dict.group("DataDirectory"))
@@ -69,7 +69,7 @@ namespace psmrts {
   * @author Kyle Becker, University of Arizona
   * @history 2026-03-14 Kyle Becker  Original Version
   */
-class ISISDataDictionary {
+class ISISDataDirectory {
 public:
     /**
      * Case-insensitive map of key → value for one parsed block.
@@ -100,7 +100,7 @@ public:
      * variables loaded) is created internally. Call parse_file() or
      * parse_string() to populate it.
      */
-    ISISDataDictionary() : m_translations("ISISDataDictionary") {}
+    ISISDataDirectory() : m_translations("ISISDataDirectory") {}
 
     /**
      * Construct with an existing PsmrtsTranslations (e.g. one that already
@@ -108,12 +108,12 @@ public:
      * Parsed key/value pairs are merged INTO that translations object so
      * existing $-variable definitions are available immediately.
      */
-    explicit ISISDataDictionary(PsmrtsTranslations translations)
+    explicit ISISDataDirectory(PsmrtsTranslations translations)
         : m_translations(std::move(translations)) {}
 
     /** Parse a file immediately on construction. */
-    explicit ISISDataDictionary(const std::string& filename)
-        : m_translations("ISISDataDictionary") {
+    explicit ISISDataDirectory(const std::string& filename)
+        : m_translations("ISISDataDirectory") {
         parse_file(filename);
     }
 
@@ -122,7 +122,7 @@ public:
      * Useful when you want environment variables pre-loaded before
      * any $-references in the file are encountered.
      */
-    ISISDataDictionary(const std::string& filename,
+    ISISDataDirectory(const std::string& filename,
                        PsmrtsTranslations translations)
         : m_translations(std::move(translations)) {
         parse_file(filename);
@@ -142,7 +142,7 @@ public:
         PsmrtsTagSearch ts( build_tags() );
         if (!ts.parse_file(filename))
             throw std::runtime_error(
-                "ISISDataDictionary: cannot open file: " + filename);
+                "ISISDataDirectory: cannot open file: " + filename);
         return ingest(ts);
     }
 
@@ -258,7 +258,7 @@ public:
     /** Clear all parsed blocks. The translation table is also cleared. */
     void clear() {
         m_blocks.clear();
-        m_translations = PsmrtsTranslations("ISISDataDictionary");
+        m_translations = PsmrtsTranslations("ISISDataDirectory");
     }
 
     /**
@@ -327,7 +327,7 @@ public:
         std::ofstream ofs(filename);
         if (!ofs)
             throw std::runtime_error(
-                "ISISDataDictionary::to_file: cannot open for writing: " + filename);
+                "ISISDataDirectory::to_file: cannot open for writing: " + filename);
         ofs << to_string(); // Add an overload that includes a parameter with default = "End"
         // to ensure file has correct terminator
     }
@@ -342,7 +342,7 @@ public:
         std::ofstream ofs(filename);
         if (!ofs)
             throw std::runtime_error(
-                "ISISDataDictionary::to_file_flat: cannot open for writing: " + filename);
+                "ISISDataDirectory::to_file_flat: cannot open for writing: " + filename);
         ofs << to_string_flat();
     }
 
