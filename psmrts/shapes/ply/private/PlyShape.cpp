@@ -76,6 +76,8 @@ namespace psmrts {
     }
 
     m_config = model_p.get_metadata();
+    m_config.add_metadata( ProductOption( "shape_uid", PsmrtsUID::to_string( this->uid() ) ) );
+
   }
 
 

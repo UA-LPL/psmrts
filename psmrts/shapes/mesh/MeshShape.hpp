@@ -158,6 +158,8 @@ namespace psmrts {
               m_mesh = PsmrtsMeshData( PsmrtsVector3i(), PsmrtsVector3d()  );
             }
 
+            m_config.add_metadata( ProductOption( "shape_uid", PsmrtsUID::to_string( this->uid() ) ) );
+
             return;
           }          
     };  

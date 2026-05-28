@@ -233,6 +233,7 @@ namespace psmrts  {
         m_config = v_conf;
         m_config.add_metadata( ProductOption( "minimum_radius", m_mesh.minimum_radius() ) );
         m_config.add_metadata( ProductOption( "maximum_radius", m_mesh.maximum_radius() ) );           
+        m_config.add_metadata( ProductOption( "shape_uid", PsmrtsUID::to_string( this->uid() ) ) );
 
         return;
       }

@@ -546,16 +546,16 @@ namespace naif {
           maxradius.push_back( segment.maximum_radius() );
         }
 
-        config.add( psmrts::ProductOption( "dsk_segment_index",         segnum ) );
-        config.add( psmrts::ProductOption( "dsk_surface_id",            surfid ) );
-        config.add_metadata( psmrts::ProductOption( "dsk_frame_id",     frameid ) );
-        config.add_metadata( psmrts::ProductOption( "dsk_body_id",      bodyid) );
-        config.add_metadata( psmrts::ProductOption( "dsk_segment_type", segtype ) );
-        config.add_metadata( psmrts::ProductOption( "dsk_class_type",   classtype ) );
-        config.add_metadata( psmrts::ProductOption( "n_vertices",       nvertices) );
-        config.add_metadata( psmrts::ProductOption( "n_facets",         nfacets ) );
-        config.add_metadata( psmrts::ProductOption( "maximum_radius",   maxradius ) );
-        config.add_metadata( psmrts::ProductOption( "minimum_radius",   minradius ) );
+        config.add_metadata( psmrts::ProductOption( "dsk_segment_index", segnum ) );
+        config.add_metadata( psmrts::ProductOption( "dsk_surface_id",    surfid ) );
+        config.add_metadata( psmrts::ProductOption( "dsk_frame_id",      frameid ) );
+        config.add_metadata( psmrts::ProductOption( "dsk_body_id",       bodyid) );
+        config.add_metadata( psmrts::ProductOption( "dsk_segment_type",  segtype ) );
+        config.add_metadata( psmrts::ProductOption( "dsk_class_type",    classtype ) );
+        config.add_metadata( psmrts::ProductOption( "n_vertices",        nvertices) );
+        config.add_metadata( psmrts::ProductOption( "n_facets",          nfacets ) );
+        config.add_metadata( psmrts::ProductOption( "maximum_radius",    maxradius ) );
+        config.add_metadata( psmrts::ProductOption( "minimum_radius",    minradius ) );
 
         return ( config );
 

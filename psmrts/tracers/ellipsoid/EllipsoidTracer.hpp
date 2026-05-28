@@ -328,6 +328,7 @@ namespace psmrts  {
         config.add( ProductOption( "tracer", model ) );
         config.add( ProductOption( "radii",  radii ) );
         config.add( ProductOption( "name",   name ) );
+        config.add_metadata( ProductOption( "tracer_uid", PsmrtsUID::to_string( this->uid() ) ) );
 
         return ( config );
       }

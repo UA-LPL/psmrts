@@ -273,14 +273,14 @@ namespace psmrts  {
 
         // Check for valid shape type
         if ( cart.error_count() > 0 ) {
-          std::string mess = "EllipsoidTracer::create(" + cart.name() + 
+          std::string mess = "NaifDskTracer::create(" + cart.name() + 
                             ") has config/spec processing errors: \n" +
                               cart.errors_to_string();
           throw std::runtime_error( mess );          
         }
 
         if ( !cart.isvalid() ) {
-          std::string mess = "EllipsoidTracer::create(" + cart.name() + 
+          std::string mess = "NaifDskTracer::create(" + cart.name() + 
                             ") is invalid with " + 
                             std::to_string( cart.configuration().size() ) +
                             " config options and " +
@@ -296,7 +296,7 @@ namespace psmrts  {
           throw std::runtime_error( mess );    
         }
 
-        // Get the sk file and open it
+        // Get the dsk file and open it
         std::string dskfile;
         if ( v_conf.metadata().contains( "dsk_file_expanded" ) ) {
           dskfile = v_conf.metadata().find("dsk_file_expanded").to_string();
@@ -336,6 +336,8 @@ namespace psmrts  {
           m_config = ProductConfiguration( "naifdsk" );
           m_config.add( ProductOption( "tracer", "naifdsk" ) );
           m_config.merge( m_model.config( m_model.segments() ) );
+          m_config.add_metadata( ProductOption( "tracer_uid", PsmrtsUID::to_string( this->uid() ) ) );
+
           return;     
       }
 
@@ -353,7 +355,7 @@ namespace psmrts  {
 
       inline ProductConfiguration init_naifdsk( const std::string &source ) {
         auto config = ProductConfiguration( source, { ProductOption( "tracer", "naifdsk" ),
-                                                      ProductOption( "file", source ) } );
+                                                      ProductOption( "dsk_file", source ) } );
         return ( config );
       }
 

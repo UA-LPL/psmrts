@@ -29,7 +29,7 @@ namespace psmrts {
     dsk_config.add( ProductOption( "data_type", "double" ) );
     dsk_config.add_metadata( ProductOption( "dsk_segments", 1 ) );
     dsk_config.add_metadata( ProductOption( "dsk_segment_number", segment.segment_number() ) );
-    dsk_config.add_metadata( ProductOption( "dsk_surface_id", segment.id() ) );
+    dsk_config.add_metadata( ProductOption( "dsk_segment_id", segment.id() ) );
     dsk_config.add_metadata( ProductOption( "n_vertices", segment.n_vertices() ) );
     dsk_config.add_metadata( ProductOption( "n_facets", segment.n_plates() ) );
     dsk_config.add_metadata( ProductOption( "dsk_reference_id", segment.bodyid() ) );
@@ -93,14 +93,13 @@ namespace psmrts {
 
     std::string dskfile_source;
     std::string dskfile;
-    std::cout << "\nDskShape::create(cart) config: " << v_conf.to_json().dump(-1) << std::endl;
     if ( v_conf.contains( "dsk_file" ) ) {
       dskfile_source  = v_conf.find( "dsk_file" ).to_string();
       dsk_config.add( v_conf.find( "dsk_file" ) );
 
       if ( v_conf.metadata().contains( "dsk_file_expanded" ) ) {
         dskfile =  v_conf.metadata().find( "dsk_file_expanded" ).to_string();
-        dsk_config.add( ProductOption( "dsk_file_expanded", dskfile ) );
+        dsk_config.add_metadata( ProductOption( "dsk_file_expanded", dskfile ) );
       }
       else {
         dskfile = dskfile_source;
@@ -172,7 +171,7 @@ namespace psmrts {
                                 model_d.load_facet_vectors( &segment_d ) );
     m_config = create_segment_config( segment_d, dskfile_source );
     m_config.merge( dsk_config );
-    std::cout << "\nDskShape::create(cart).finished: " << m_config.to_json().dump(-1) << std::endl;
+    m_config.add_metadata( ProductOption( "shape_uid", PsmrtsUID::to_string( this->uid() ) ) );
 
   }
 
