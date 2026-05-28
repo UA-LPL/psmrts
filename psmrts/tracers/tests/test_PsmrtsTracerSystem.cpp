@@ -10,6 +10,7 @@
 #include <psmrts/tracers/ellipsoid/EllipsoidTracer.hpp>
 #include <psmrts/tracers/naifdsk/NaifDskTracer.hpp>
 #include <psmrts/shapes/obj/ObjShape.hpp>
+#include <psmrts/core/ISISDataDirectory.hpp>
 
 #include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
 
@@ -26,11 +27,11 @@ TEST_CASE("PsmrtsTracerSystem Default Test", "[tracer][system][default]") {
     CHECK( sys2.get_shape_tracer().size()        == 0 );
 
     std::vector<std::string> bad_list{"bad/path"};
-    CHECK_THROWS( psmrts::PsmrtsTracerSystem("test2", bad_list) );
+    CHECK_THROWS( psmrts::PsmrtsTracerSystem("test2", bad_list).throw_errors() );
 }   
 
 
-TEST_CASE("PsmrtsTracerSytem Values Test", "[tracer][system][values]") {
+TEST_CASE("PsmrtsTracerSystem Values Test", "[tracer][system][values]") {
     psmrts::PsmrtsTracerSystem sys1("test");
 
     std::vector<double> radii = { 1.0, 2.0, 3.0 };
@@ -266,3 +267,34 @@ TEST_CASE("PsmrtsTracerSystem Shapes Test", "[tracer][system][shapes]") {
     CHECK( trans.translate_path( plain ) == plain );
 }
 
+
+TEST_CASE("PsmrtsTracerSystem ISIS Interface Test", "[tracer][system][isislike]") {
+
+  // Set up translation system
+  psmrts::PsmrtsTranslations trans_t( "ISISTest" );
+  trans_t.add_environment( "ISISDATA", psmrts_rootpath() );
+  trans_t.add_parameter( "osirisrex", "$ISISDATA/psmrts/shapes" );
+
+  // Set up shapes
+  std::string obj_file        = "$osirisrex/obj/data/bennu_20facets.obj";
+  std::string dsk_file        = "$osirisrex/dsk/data/bennu_20facets.bds";
+  std::string naif_dsk_file   = "naifdsk::$osirisrex/dsk/data/bennu_20facets.bds";
+  std::string bullet_dsk_file = "bullet::$osirisrex/dsk/data/bennu_20facets.bds";
+  std::string ellipsoid       = "ellipsoid::0.28306,0.24972";
+
+  std::vector<std::string> shapes = { obj_file, dsk_file, naif_dsk_file, 
+                                      bullet_dsk_file, ellipsoid };
+
+  psmrts::PsmrtsTracerSystem system_t( "mycube", trans_t );
+
+  size_t n_shapes = system_t.process_shape_list( shapes, "mycube_shapes" );
+
+  CHECK( system_t.error_count()                == 0 );
+  CHECK( system_t.errors_to_string()           == "" );
+  CHECK( system_t.inventory().shapes().size()  == 2 );
+  CHECK( system_t.inventory().tracers().size() == 4 );
+
+  psmrts::PsmrtsPriorityTracer tracer_p = system_t.get_priority_tracer();
+  CHECK( tracer_p.isValid()          == true );
+  CHECK( tracer_p.inventory().size() == 4 );
+}

@@ -101,4 +101,11 @@ TEST_CASE("Comparator Doubles Test", "[comparators][doubles]") {
   CHECK( SizetsComparator::compare( i_arr, s_arr )     == true );
   CHECK( SizetsComparator::compare( s_arr, st_arr )     == true );
 
+  psmrts::ProductOption default_s1( "tracer", "naifdsk" );
+  psmrts::ProductOption default_s2( "default", "naifdsk" );
+  CHECK( StringsComparator::compare( default_s1, default_s2 )   == true );
+
+  psmrts::ProductOption segment_s1( "dsk_segment_index", { 0 } );
+  psmrts::ProductOption segment_s2( "default", "0" );
+  CHECK( StringsComparator::compare( segment_s1, segment_s2 )   == true );  
 }
