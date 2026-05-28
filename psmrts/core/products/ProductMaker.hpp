@@ -58,19 +58,23 @@ namespace psmrts {
                       m_product( std::nullopt ) { }                        
         virtual ~ProductMaker() { }
     
+        /** Determine validity of the maker (a constructed product exists) */
         inline bool isvalid() const {
           return ( ( this->error_count() == 0 ) && m_product.has_value() );
         }
 
+        /** Returns the specfication of the constructed product */
         inline const ProductSpecsList &specifications() const {
           return ( m_specs );
         }
 
+        /** Returns the constructed product if valid otherwise a default product */
         inline Product product() const {
           if ( this->isvalid() ) return ( m_product.value() );
           return ( Product() );  // This returns an non-value variant
         }
 
+        /** Returns the product cart used to construct the product */
         inline const ProductCart cart() const {
           return ( m_cart );
         }
@@ -141,6 +145,23 @@ namespace psmrts {
           return ( m_product.has_value() );
         }
 
+        /**
+         * @brief Process a product cart containing a product configuration
+         * 
+         * This method uses contents of a product cart to create a new product.
+         * The cart contains a specifcation and a configuration that has been
+         * preprocessed to be compatible with the product specification. 
+         * 
+         * This method searches the available variants for the compatible
+         * config/specs and calls the cart constructor to create the product.
+         * 
+         * This method does not search any inventory for a compatible product.
+         * This should be done prior to calling the maker.
+         * 
+         * @param cart    The config/spec data used to construct the product
+         * @return true   If the product was successfully created
+         * @return false  If the product could not nbe created
+         */
         inline bool process_cart( const ProductCart &cart ) {
 
           m_specs.clear();
@@ -169,6 +190,29 @@ namespace psmrts {
         }
 
 
+        /**
+         * @brief Create a new product with a cart and one additional argument
+         * 
+         * This method is specialized to create a new product using a product
+         * cart and an additional argument. It is designed specifically for
+         * tracer variants that require a shape argument but may be useful for
+         * other products as well.
+         * 
+         * The cart must contain a specific specification that is present in the
+         * class template Product parameter. It searches through all the
+         * variants to find the variant of the same name and then determines if
+         * the variant has the approipriate Shape type. Shape can be anything
+         * but this method is typically useful to construct a Bullet tracer with
+         * a Shape = PsmrtsShape.
+         * 
+         * @tparam Shape Template type used as an additional argumemt in a constructor
+         * @param cart   Product cart containing a config and specification
+         *                 associated with a variant specification. It is
+         *                 assumed to have a compatible constructor for the arguments.
+         * @param shape  The Shape type argument passed into the variant constructor
+         * @return true  If the product is successfully constructed
+         * @return false If the product could not be constructed
+         */
         template <typename Shape> 
           inline bool process_cart( const ProductCart &cart,
                                     const Shape &shape ) {
