@@ -48,16 +48,18 @@ namespace psmrts {
    */
   class ProductOption {
     public:
+      using BoolsExtractor    = optvis::Extractor<ProductOption, optvis::BoolsVisitor>;
+      using IntegersExtractor = optvis::Extractor<ProductOption, optvis::IntegersVisitor>;
+      using SizetsExtractor   = optvis::Extractor<ProductOption, optvis::SizetsVisitor>;
       using DoublesExtractor  = optvis::Extractor<ProductOption, optvis::DoublesVisitor>;
       using StringsExtractor  = optvis::Extractor<ProductOption, optvis::StringsVisitor>;
-      using SizetsExtractor   = optvis::Extractor<ProductOption, optvis::SizetsVisitor>;
-      using IntegersExtractor = optvis::Extractor<ProductOption, optvis::IntegersVisitor>;
-      using BoolsExtractor    = optvis::Extractor<ProductOption, optvis::BoolsVisitor>;
-      // using JsonExtractor    = optvis::Extractor<ProductOption, optvis::JsonVisitor>;
       
-      using StringsComparator = optvis::Comparator<ProductOption, optvis::StringsVisitor>;
+      using BoolsComparator    = optvis::Comparator<ProductOption, optvis::BoolsVisitor>;
+      using IntegersComparator = optvis::Comparator<ProductOption, optvis::IntegersVisitor>;
+      using SizetsComparator   = optvis::Comparator<ProductOption, optvis::SizetsVisitor>;
+      using DoublesComparator  = optvis::Comparator<ProductOption, optvis::DoublesVisitor>;
+      using StringsComparator  = optvis::Comparator<ProductOption, optvis::StringsVisitor>;
 
-      
       using DataTypes = std::variant< bool,
                                       int, 
                                       size_t, 
