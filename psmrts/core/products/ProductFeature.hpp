@@ -198,6 +198,12 @@ namespace psmrts {
         return ( this->value( "type", p_type ) );
       }      
 
+      inline bool is_path_type( ) const {
+        if ( this->type() == "file" ) return ( true );
+        if ( this->type() == "directory" ) return ( true );
+        return ( false );
+      }
+
       inline std::string description() const {
         std::string p_descr("feature");
         return ( this->value( "description", p_descr ) );

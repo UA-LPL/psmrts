@@ -223,6 +223,7 @@ namespace psmrts {
         return ( mess );
       }
 
+      /** Throw iff any errors actually exist */
       inline void throw_errors() const {
         if ( this->error_count() > 0 ) {
           throw std::runtime_error( this->errors_to_string() );

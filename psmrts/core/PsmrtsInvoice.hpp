@@ -61,8 +61,6 @@ namespace psmrts {
       using ProductOrderList     = PsmrtsContainer<ProductSet>;
       using PriorityTracerList   = ProductInventory<std::string, UIDType>;
 
-
-
       PsmrtsInvoice( ) : PsmrtsProduct( "PsmrtsInvoice" ),
                          PsmrtsRequest( "invoice_errors" ),
                          m_orders(  ),
@@ -114,18 +112,13 @@ namespace psmrts {
       }
 
       inline bool add_product( const ProductConfiguration &config ) {
-        ProductSet product_s = m_processor.process_configuration( config );
-        if ( !m_processor.is_valid_product( product_s ) ) {
-          std::string mess = "PsmrtsInvoice::add_product(" + config.name() +
-                              ") errors occured during validation: " +
-                              m_processor.product_error_string( product_s );
-          this->add_error( mess );
-          return ( false );
-        }
-      
-        // Add it to the invoice but don't generate products yet
-        m_orders.add( product_s );
-        return ( true );
+        return ( this->add_product( this->processor().process_configuration( config ) ) );
+      }
+
+
+      inline bool add_product( const ProductSet &product_set ) {
+        m_orders.add( product_set );
+        return (true );
       }
 
       /**
@@ -146,11 +139,8 @@ namespace psmrts {
 
         bool isgood = tracer.isValid();
         if ( tracer.isValid() ) {
-          isgood = this->add_product( tracer.config() );
-          if ( isgood && add_to_priority ){
-            m_inventory.tracers().add_product ( tracer );
-            PsmrtsFactory().add_product( tracer );
-          }
+          m_inventory.tracers().add_product ( tracer );
+          PsmrtsFactory().add_product( tracer );
         }
 
         return ( isgood );

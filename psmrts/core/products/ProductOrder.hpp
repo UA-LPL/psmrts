@@ -75,10 +75,23 @@ namespace psmrts {
                     m_cart( product ),
                     m_translations( trans ),
                     m_dependencies( depends ) { }
+      ProductOrder( const ProductConfiguration &submitted,
+                    const ProductCart &product,
+                    const PsmrtsTranslations &trans = PsmrtsTranslations(), 
+                    const std::vector<std::string> &depends = {} ) : 
+                    PsmrtsRequest( submitted.name() ),
+                    m_submitted( submitted ),
+                    m_cart( product ),
+                    m_translations( trans ),
+                    m_dependencies( depends ) { }                    
       virtual ~ProductOrder() = default;
 
       inline size_t size() const {
         return ( m_cart.size() );
+      }
+
+      inline bool isempty() const {
+        return ( m_cart.isempty() );
       }
 
       inline bool isvalid() const {
@@ -94,12 +107,22 @@ namespace psmrts {
         return ( m_cart );
       }
 
+      inline ProductCart &cart() {
+        return ( m_cart );
+      }
+
+      inline ProductOrder &set_cart( const ProductCart &cart ) {
+        m_cart = cart;
+        return ( *this );
+      }
+
       inline const PsmrtsTranslations &translations() const {
         return ( m_translations );
       }
 
-      inline void set_translations( const PsmrtsTranslations &translations ) {
+      inline ProductOrder &set_translations( const PsmrtsTranslations &translations ) {
         m_translations = translations;
+        return ( *this );
       }
 
       inline const ProductConfiguration &config() const {
@@ -128,8 +151,9 @@ namespace psmrts {
         m_cart.add_metadata( option );
       }
 
-      inline void set_config( const ProductConfiguration &config ) {
+      inline ProductOrder &set_config( const ProductConfiguration &config ) {
         m_cart.set_configuration( config );
+        return ( *this );
       }
 
       inline size_t residual_size() const {
@@ -146,7 +170,11 @@ namespace psmrts {
 
       inline void add_residual( const ProductOption &option ) {
         m_cart.add_residual( option );
-      }      
+      }    
+      
+      inline void clear_residuals() {
+        m_cart.clear_residuals();
+      }
       
       inline std::string translate_path( const std::string &filepath ) const {
         return ( m_translations.translate_path( filepath ) );

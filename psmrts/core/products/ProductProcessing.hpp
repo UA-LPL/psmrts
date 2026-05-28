@@ -57,13 +57,42 @@ namespace psmrts {
       using ProductFeatures  = PsmrtsContainer<ProductFeature>;
       using UIDType          = PsmrtsProduct::UIDType;
 
-      using ProductSet       = struct product_set { ProductConfiguration config; 
-                                                    ProductOrder   tracer;
-                                                    ProductOrder   shape;
+      using ShapeInventory   = PsmrtsInventory::ShapeInventory;
+      using TracerInventory  = PsmrtsInventory::TracerInventory;      
+      using ResidualList     = ProductSpecification::ResidualList;      
+
+      using ProductSet       = struct product_set { 
+                                                    ProductConfiguration config; 
+                                                    ProductOrder         tracer;
+                                                    ProductOrder         shape;
+                                                    std::optional<PsmrtsTracer> tracer_p;
+                                                    std::optional<PsmrtsShape>  shape_p;
                                                     UIDType        tracer_uid;
                                                     UIDType        shape_uid;
+
+                                                    product_set( ) : config(), tracer(), shape( ),
+                                                                    tracer_p( std::nullopt ), 
+                                                                    shape_p( std::nullopt ),
+                                                                    tracer_uid( PsmrtsUID::null_uid() ),
+                                                                    shape_uid( PsmrtsUID::null_uid() ) { }
+                                                    ~product_set() = default;
+
                                                     inline const std::string &name() const { 
                                                       return ( config.name() ); 
+                                                    }
+                                                    inline void set_tracer_uid( const UIDType &uid ) {
+                                                      tracer.cart().set_tracer_uid( uid );
+                                                      tracer_uid = uid;
+                                                    }
+                                                    inline void set_shape_uid( const UIDType &uid ) {
+                                                      shape.cart().set_shape_uid( uid );
+                                                      shape_uid = uid;
+                                                    }                                                    
+                                                    inline bool has_tracer() const {
+                                                      return ( tracer_p.has_value() );
+                                                    }                                                    
+                                                    inline bool has_shape() const {
+                                                      return ( shape_p.has_value() );
                                                     }
                                                   };
 
@@ -82,46 +111,43 @@ namespace psmrts {
          m_translator  = trans;
       }
 
-      /**
-       * @brief Template search of product inventories for an existing prouduct id
-       * 
-       * @tparam Inventory  Type of product inventory such as PsmrtsTracer or
-       *                     PsmrtsShape. It could be a local or the factory
-       *                     inventory. 
-       * @tparam Product    An std::optional<T> where T is PsrmtsTracer or
-       *                     PsmrtsShape
-       * @param uid_t       Assumed to be the valid id of an existing product
-       * @param order       The product order, asummed to be from a ProductOrder
-       *                      that has been processed or correctness.
-       * @param inventory   The appropriate product type inventory such as
-       *                      tracers() or shapes()
-       * @param product     The std::optional<T> that will return the product 
-       * @return true       If the product was successfully found.
-       * @return false      If it was not found.
-       */
-      template<typename Inventory, typename Product>
-        inline bool search_inventory( const UIDType uid_t, 
-                                      const ProductOrder &order,
-                                      const Inventory &inventory, 
-                                      Product &product ) const {
-          
-          // Don't test invalid uids
-          if ( PsmrtsUID::is_valid_uid( uid_t ) && inventory.contains( uid_t ) ) {
-            product.emplace( inventory.find( uid_t ) );
+      inline std::string translate_path( const std::string &filepath ) const {
+        return ( this->translator().translate_path ( filepath ) );
+      }
+
+
+      inline ProductOrder search_shape_inventory( const ProductConfiguration &config, 
+                                                  const ShapeInventory &inventory,
+                                                  std::optional<PsmrtsShape> &shape ) 
+                                                  const {
+
+        for ( const auto &[ uid, p ] : inventory.cache() ) {
+          ProductOrder order = this->compare_product_config( config, ProductCart( p.specs(), p.config() ).set_shape_uid( uid) );
+          if ( order.error_count() == 0  ) {
+            shape.emplace( p );
+            return ( order );
           }
-          else {
-            // search using configs
-            // std::cout << "ConfigCacheCompare for " << order.name() << ", size = " << inventory.size() << std::endl;
-            for ( const auto &[ uid, p ] : inventory.cache() ) {
-              // std::cout << "\nConfigMatching:\nFirst: " << order.config().to_json().dump(1) << "\n\nSecond: " << p.config().to_json().dump(1) << std::endl;
-              if ( order.config().matches( p.config() ) ) {
-                product.emplace( p );
-                break;
-              }
-            }
+        }                                              
+
+        return ( ProductOrder( config, this->translator() ) );
+      }
+
+      inline ProductOrder search_tracer_inventory( const ProductConfiguration &config, 
+                                                   const TracerInventory &inventory,
+                                                   std::optional<PsmrtsTracer> &tracer )
+                                                   const {
+
+        for ( const auto &[ uid, p ] : inventory.cache() ) {
+          ProductOrder order = this->compare_product_config( config, ProductCart( p.specs(), p.config() ).set_tracer_uid( uid) );
+          if ( order.error_count() == 0  ) {
+            tracer.emplace( p );
+            return ( order );
           }
-          return ( product.has_value() );
-        }
+        }                                              
+
+        return ( ProductOrder( config, this->translator() ) );
+      }
+
 
       /**
        * @brief Comprehensive shape maker complete with search of existing resources
@@ -141,36 +167,43 @@ namespace psmrts {
        *                     product order 
        */
       inline bool make_shape( ProductSet &product_s,
-                              PsmrtsInventory &inventory,
-                              std::optional<PsmrtsShape> &shape_p ) const {
+                              PsmrtsInventory &inventory ) const {
+
+        // Shapes may not be required!
+        if ( product_s.shape.isempty() ) return ( false );
 
         // Refuse to process an invalid product
         if ( !this->is_valid_order( product_s.shape ) ) return ( false );
-        UIDType shape_uid = product_s.shape_uid;
 
 
         // Let first check to see if we have a shape in the current factory
-        bool has_shape = search_inventory( shape_uid, product_s.shape, inventory.shapes(), shape_p );
+        ProductOrder order_s = search_shape_inventory( product_s.shape.config(), 
+                                                       inventory.shapes(), 
+                                                       product_s.shape_p );
         
         // If its not in the current inventory, check the factory
-        if ( !has_shape ) {
-          has_shape = search_inventory( shape_uid, product_s.shape, PsmrtsFactory().find().shapes(), shape_p );
+        if ( !product_s.shape_p.has_value() ) {
+          order_s  = search_shape_inventory( product_s.shape.config(), 
+                                             PsmrtsFactory().find().shapes(), 
+                                             product_s.shape_p );
 
           // Add to local inventory
-          if ( has_shape) {
-            inventory.shapes().add_product( shape_p.value() );
+          if ( product_s.shape_p.has_value() ) {
+            inventory.shapes().add_product( product_s.shape_p.value() );
           }            
         }
 
         // Check to see if don't have a shape and search using configs
         // ok, we have to make one now
-        if ( !shape_p.has_value() ) {
+        if ( !product_s.shape_p.has_value() ) {
+
           ProductMaker<PsmrtsShape> maker_t( product_s.shape.name() );
-          if ( maker_t.process_config( product_s.shape.config(), this->translator() ) ) {
-            shape_p.emplace( maker_t.product() );
-            inventory.shapes().add_product( shape_p.value() );
-            PsmrtsFactory().add_product( shape_p.value() );
-            product_s.shape_uid = shape_p.value().uid();
+          maker_t.process_cart( product_s.shape.cart() );
+          if ( maker_t.isvalid() ) {
+            product_s.shape_p.emplace( maker_t.product() );
+            inventory.shapes().add_product( product_s.shape_p.value() );
+            PsmrtsFactory().add_product( product_s.shape_p.value() );
+            product_s.shape_uid = product_s.shape_p.value().uid();
           }
           else {
             if (maker_t.error_count() > 0 ) {
@@ -179,7 +212,7 @@ namespace psmrts {
           }          
         }
                   
-        return ( shape_p.has_value() );
+        return ( product_s.shape_p.has_value() );
       }
 
       /**
@@ -200,36 +233,49 @@ namespace psmrts {
        *                     product order 
        */      
       inline bool make_tracer( ProductSet &product_s,
-                              PsmrtsInventory &inventory,
-                              std::optional<PsmrtsTracer> &tracer_p ) const {
+                               PsmrtsInventory &inventory ) const {
 
-        // Refuse to process an invalid product
+        // Check to see if we have a processed shape
+
+        // Refuse to process an invalid empty product
         if ( !this->is_valid_order( product_s.tracer ) ) return ( false );
-        UIDType tracer_uid = product_s.tracer_uid;
 
 
         // Let first check to see if we have a shape in the current factory
-        bool has_tracer = search_inventory( tracer_uid, product_s.tracer, inventory.tracers(), tracer_p );
+        ProductOrder order_t = search_tracer_inventory( product_s.tracer.config(),
+                                                        inventory.tracers(), 
+                                                        product_s.tracer_p );
         
         // If its not in the current inventory, check the factory
-        if ( !has_tracer ) {
-          has_tracer = search_inventory( tracer_uid, product_s.tracer, PsmrtsFactory().find().tracers(), tracer_p );
+        if ( !product_s.tracer_p.has_value() ) {
+          ProductOrder order_t = search_tracer_inventory( product_s.tracer.config(), 
+                                                          PsmrtsFactory().find().tracers(), 
+                                                          product_s.tracer_p );
 
           // Add to local inventory
-          if ( has_tracer ) {
-            inventory.tracers().add_product( tracer_p.value() );
+          if ( product_s.tracer_p.has_value()) {
+            inventory.tracers().add_product( product_s.tracer_p.value() );
           }
         }
 
         // Check to see if don't have a shape and search using configs
         // ok, we have to make one now
-        if ( !tracer_p.has_value() ) {
+        if ( !product_s.tracer_p.has_value() ) {
           ProductMaker<PsmrtsTracer> maker_t( product_s.tracer.name() );
-          if ( maker_t.process_config( product_s.tracer.config(), this->translator() ) ) {
-            tracer_p.emplace( maker_t.product() );
-            inventory.tracers().add_product( tracer_p.value() );
-            PsmrtsFactory().add_product( tracer_p.value() );
-            product_s.tracer_uid = tracer_p.value().uid();
+
+          if ( product_s.has_shape() ) {
+            maker_t.process_cart( product_s.tracer.cart(), product_s.shape_p.value() );
+          }
+          else {
+            maker_t.process_cart( product_s.tracer.cart() );
+          }
+        
+          // Check for a valid product 
+          if (  maker_t.isvalid() ) {
+            product_s.tracer_p.emplace( maker_t.product() );
+            inventory.tracers().add_product( product_s.tracer_p.value() );
+            PsmrtsFactory().add_product( product_s.tracer_p.value() );
+            product_s.tracer_uid = product_s.tracer_p.value().uid();
           }
           else {
             if (maker_t.error_count() > 0 ) {
@@ -238,7 +284,7 @@ namespace psmrts {
           }
         }
                   
-        return ( tracer_p.has_value() );
+        return (product_s.tracer_p.has_value() );
       }
 
       /**
@@ -260,11 +306,8 @@ namespace psmrts {
                                        PsmrtsInventory &inventory ) const {
 
         // Process each product type
-        std::optional<PsmrtsShape>  shape_p( std::nullopt );
-        bool status_p = make_shape( product, inventory, shape_p );
-
-        std::optional<PsmrtsTracer> tracer_p( std::nullopt );
-        bool status_t = make_tracer(product, inventory, tracer_p );
+        bool status_p = make_shape( product, inventory );
+        bool status_t = make_tracer(product, inventory );
 
         return ( status_p || status_t );
       }
@@ -283,7 +326,8 @@ namespace psmrts {
        * @return ProductSet   A product set that contains configurations for a
        *                        tracer and or a shape if specified.
        */
-      inline ProductSet process_configuration( const ProductConfiguration &config ) { 
+      inline ProductSet process_configuration( const ProductConfiguration &config ) 
+                                               const { 
         ProductSet products_t = init_product_set( config );
         if ( config.size() == 0 ) {
           products_t.shape.add_error( "process_configuration() - Invalid configuration - has no options"  );
@@ -294,7 +338,7 @@ namespace psmrts {
         auto tracer_specs_v = ProductMaker<PsmrtsTracer>().get_product_specs();
         for ( const auto &tracer_s : tracer_specs_v ) {
           products_t.tracer = this->process_cart( ProductCart( tracer_s, config) );
-          // products_t.tracer.add_dependency( tracer_s.name() );
+          products_t.tracer.add_dependency( tracer_s.name() );
 
           // If this parse is successful, we are done and its a standalone tracer.
           if ( products_t.tracer.isvalid() ) {
@@ -314,7 +358,8 @@ namespace psmrts {
         // If we have no errors but its not valid, assume a shape is required
         // and copy the residual config and process shape.
         ProductConfiguration config_t( config.name()  );
-        if ( ( products_t.tracer.error_count() > 0 ) || ( products_t.tracer.size() == 0 )) {
+        if ( ( products_t.tracer.error_count() > 0 ) || 
+             ( products_t.tracer.size() == 0 )) {
           // Process as shape only, start over
           config_t = config;
           products_t.tracer.set_specification();        
@@ -328,16 +373,100 @@ namespace psmrts {
         auto shape_specs_v  = ProductMaker<PsmrtsShape>().get_product_specs();
         for ( const auto &shape_s : shape_specs_v ) {
           products_t.shape = this->process_cart( ProductCart( shape_s, config_t ) );
-          if ( products_t.shape.isvalid() ) break;
+          if ( products_t.shape.isvalid() ) {
+            products_t.tracer.clear_residuals();
+            break;
+          }
         }
 
         // Check for errors 
-        if ( ( products_t.shape.error_count() > 0 ) || ( products_t.shape.size() == 0 ) ) {
+        if ( ( products_t.shape.error_count() > 0 ) || 
+             ( products_t.shape.size() == 0 ) ) {
           products_t.shape.set_specification();
         }
 
         return ( products_t );
       }
+
+      /**
+       * @brief Expedites a search comparison of an existing product with a config
+       * 
+       * This method is intended to compare a new config with an existing
+       * product that has a processed configuration and a specification. This
+       * actually performs a check on an inventory search condition. The cart
+       * contains the specs and config that has been extracted from an existing
+       * tracer or shape product. It is used to compare against the contents of
+       * the config parameter to determine if they match. 
+       * 
+       * If the contents of the config do not match, an error is added to the
+       * returned ProductOrder indicating a failed match of the config and the
+       * product cart.
+       * 
+       * If no errors are encountered, the order contains the orginal cart, and
+       * the order configuration where its configuration contains the product
+       * UID for useage.
+       * 
+       * @param config        Configuration to compare with the product_cart
+       * @param product_cart  Cart containing the spec and config of the product
+       *                      to compare.
+       * @return ProductOrder Returns the order containing the original product
+       *                      cart and a potentially updated config
+       */
+      inline ProductOrder compare_product_config( const ProductConfiguration &config,
+                                                  const ProductCart &product_cart ) const { 
+        
+        // Prepare the cart for comparisons of the product configuration
+        ProductConfiguration config_new( config.name() );
+        ProductOrder order_t( config, product_cart, this->translator() );
+
+        const ProductSpecification &specs = product_cart.specification();
+        for ( const ProductOption &option : config.options() ) {
+          std::string name_t = option.name();
+          std::string f_name = specs.get_alias_feature_name( name_t, name_t );
+
+          config_new.add_option( ProductOption( f_name, option ) );
+
+          if ( specs.contains( name_t ) || specs.contains( f_name ) ) {
+            if ( f_name.empty() ) f_name = name_t;
+
+            const ProductFeature &feature = specs.find( f_name );
+
+            if ( feature.is_path_type() ) {
+              std::string f_extended = f_name + "_extended";
+              if ( config.metadata().contains( name_t+"_extended" ) ) {
+                config_new.add_metadata( ProductOption( f_extended, 
+                                                        config.metadata().find( name_t+"_extended" ) ) );
+              }
+              else {
+                config_new.add_metadata( ProductOption( f_extended, 
+                                                        order_t.translate_path( option.to_string() ) ) );
+              }
+            }
+          }
+          else {
+            order_t.add_error( name_t + " is not found in specs for " + specs.name() );
+          }
+        }
+
+        // Now check for required keywords
+        for ( const std::string &key_r : specs.required() ) {
+          if ( !config_new.contains( key_r ) ) {
+            order_t.add_error( "Required key " + key_r + " not found in config " + config.name() );
+          }
+        }
+
+        // Reverse check of product keys to determine keys exist there that are
+        // not in the requested config. If they don't exist, see if they are the
+        // default.
+        for ( const ProductOption &option_c : product_cart.configuration().options() ) {
+          if ( !config_new.contains( option_c.name() ) ) {
+            specs.validate_option_default( option_c, order_t );
+          }
+        }
+
+        return ( order_t );
+      }
+
 
       /**
        * @brief Process/compare a product configuration with a feature specification
@@ -420,7 +549,6 @@ namespace psmrts {
           }
           else {
             // This may or may not be an error so callers must check conditions
-            // std::cout << "SpecResidual: " << option.name() << std::endl;
             order.add_residual( option );
           }
         }
@@ -481,7 +609,6 @@ namespace psmrts {
         }
         else {
           // Its not compatible with this one
-          // std::cout << "FileOption File Invalid: " << option.name() << std::endl;
           std::string mess = "*** ProductProcessing::process_order() - "
                               "Invalid filename/extension in option(" 
                               + option.name() + ") = " + option.to_string();
@@ -793,8 +920,6 @@ namespace psmrts {
       inline ProductSet init_product_set( const ProductConfiguration &config = ProductConfiguration() ) const {
         ProductSet products;
         products.config = config;
-        products.tracer_uid = PsmrtsUID::null_uid();
-        products.shape_uid  = PsmrtsUID::null_uid();
         return ( products );
       }      
 
@@ -839,7 +964,7 @@ namespace psmrts {
           }
         }
 
-        return ( ( ( error_s.length() > 0 ) ? error_s : "None found!" ) );
+        return ( error_s );
       }
 
       

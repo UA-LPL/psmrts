@@ -7,7 +7,6 @@ For more details about the LICENSE terms and the AUTHORS, you will
 find files of those names at the top level of this repository. **/
 
 /* SPDX-License-Identifier: CC0-1.0 */
-// #include "ShapeModel.h"
 
 #include <vector>
 #include <string>
@@ -146,7 +145,22 @@ namespace psmrts {
           product_t.add( ProductOption( "shape", shape_type ) );
         }
 
-        return ( this->add_product( product_t ) );
+        return ( this->make_product( product_t ) );
+      }
+
+      inline bool make_product( const ProductConfiguration &config ) {
+        ProductSet product_s = this->processor().process_configuration( config );
+        if ( !this->processor().is_valid_product( product_s ) ) {
+          std::string mess = "PsmrtsInvoice::add_product(" + config.name() +
+                              ") errors occured during validation: " +
+                              this->processor().product_error_string( product_s );
+          this->add_error( mess );
+          return ( false );
+        }
+      
+        // Add it to the invoice but don't generate products yet
+        this->add_product( product_s );
+        return ( true );
       }
 
 
@@ -160,6 +174,7 @@ namespace psmrts {
                                         const std::string &name = "psmrtstracersystem" ) {
         std::vector<std::string> shape_file_list;
         for ( const std::string &file_s : shapes ) {
+
           std::string file_t = this->translations().translate_path( file_s );
           std::string suffix_t = psmrts_tolower( psmrts_file_extension( file_t ) );
 
@@ -170,6 +185,13 @@ namespace psmrts {
             shape_file_list.push_back( psmrts_trim( file_s ) );
           }
         }
+
+        //***** Lambda to add expanded file name to config ***** 
+        auto add_expanded_path = [&] ( const std::string &file_t, 
+                                       const std::string &path_t ) -> ProductOption {
+          return ( ProductOption( file_t+"_expanded", 
+                                  this->translations().translate_path( path_t ) ) );          
+        };
 
         // Now process each file in the list. Files can have a preferred tracer
         // preceedig each file delineated with "::". The form of this file is
@@ -182,34 +204,42 @@ namespace psmrts {
         size_t nerrs = 0;
         size_t n_shapes_added = 0;
         for ( const std::string &shape_t : shape_file_list ) {
-          std::vector<ProductOption> options_t;
+                    
+          // Create the product and add it to the invoice system
+          ProductConfiguration tracer_c( shape_t );
+
           std::string name_t;
           auto parts_t = psmrts::string_tokenizer( shape_t, "::" );
           if ( parts_t.size() > 1 ) {
             std::string tracer_t = psmrts_tolower( psmrts_trim( parts_t[0] ) );
-            options_t.push_back( ProductOption( "tracer", tracer_t ) );
+            tracer_c.add_option( ProductOption( "tracer", tracer_t ) );
             if ( "ellipsoid" == tracer_t ) {
-              options_t.push_back( ProductOption( "file", string_tokenizer( parts_t[1], "," ) ) );
               name_t = "ellipsoid";
+              tracer_c.add_option( ProductOption( "radii", string_tokenizer( parts_t[1], "," ) ) );
             }
             else {
-              options_t.push_back( ProductOption( "file", psmrts_trim( parts_t[1] ) ) );
-              name_t = parts_t[1];
+              name_t = psmrts_trim( parts_t[1] );
+              tracer_c.add_option( ProductOption( "file", psmrts_trim( parts_t[1] ) ) );
+              tracer_c.add_metadata( add_expanded_path( "file", name_t ) );
             }
               
             // Check for formatting issues
             if ( parts_t.size() > 2 ) {
-              std::cout << "*** Warning - process_shape_list: Invalid format in element: " << shape_t << std::endl;
+              std::string mess = "Invalid format for file string (" + shape_t + ")";
+              this->add_error( mess );
             }
           }
           else {
-            options_t.push_back( ProductOption( "file", parts_t[0] ) );
-              name_t = parts_t[1];
+            name_t = parts_t[0];
+            tracer_c.add_option( ProductOption( "file", name_t ) );
+            tracer_c.add_metadata( add_expanded_path( "file", name_t ) );
           }
 
-          // Create the product and add it to the invoice system
-          ProductConfiguration tracer_c( name_t, options_t );
-          if ( !this->add_product ( tracer_c ) ) {
+          if ( !tracer_c.contains( "tracer" ) ) {
+            tracer_c.add( ProductOption( "tracer", "bullet") );
+          }
+
+          if ( !this->make_product ( tracer_c ) ) {
             nerrs++;
           }
           else {
@@ -220,7 +250,7 @@ namespace psmrts {
         // Check for errors in tracer creation process and toss'em if they occur
         if ( nerrs > 0 ) this->throw_errors();
 
-        // Now set the priority tracer up anc check for addtional errors
+        // Now set the priority tracer up and check for addtional errors
         (void) create_priority_tracer( name );
         if ( nerrs > 0 ) this->throw_errors();
 
