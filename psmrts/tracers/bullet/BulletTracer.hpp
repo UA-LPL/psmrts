@@ -44,6 +44,8 @@ namespace psmrts  {
       BulletTracer( );
       BulletTracer( const PsmrtsShape &shape );
       BulletTracer( const ProductCart &processed_cart  );      
+      BulletTracer( const ProductCart &processed_cart,
+                    const PsmrtsShape &shape  );      
       virtual ~BulletTracer();
 
       double maximum_radius() const;
@@ -219,7 +221,14 @@ namespace psmrts  {
                                                              "obj_file", "obj_mesh", "obj_string",
                                                              "ply_file", "ply_mesh", 
                                                              "dsk_file", "dsk_mesh", 
-                                                             "mesh_file", "source" } ) } );
+                                                             "mesh_file", "source",
+                                                            "shape_uid", "mesh_uid", "uid" } ) } );
+        ProductFeature shapeuid( "shape_uid", {
+                                 ProductOption( "name", "shape_uid" ),
+                                 ProductOption( "type", "string" ),
+                                 ProductOption( "status", "optional" ),
+                                 ProductOption( "description", "Specifies a shape PSMRTS UID" ),
+                                 ProductOption( "aliases", { "mesh_uid", "uid" } ) } );                                                             
         ProductFeature bvh( "bullet_optimize_bvh", {
                                  FeatureOption( "name", "bullet_optimize_bvh" ),
                                  FeatureOption( "type", "bool" ),
@@ -236,7 +245,7 @@ namespace psmrts  {
                                  FeatureOption( "valid", { "true", "1", "yes", "false", "0", "no" } ) } );
 
         // This validates the JSON structure and provides product info to callers
-        return ( ProductSpecification( info, { product, shapefile, bvh, cmp } ) );
+        return ( ProductSpecification( info, { product, shapefile, shapeuid, bvh, cmp } ) );
       }
 
       /** Return reference to PsmrtsShape used in this instance */
@@ -264,7 +273,8 @@ namespace psmrts  {
       std::shared_ptr<BulletTracerImpl> m_model;
       ProductConfiguration              m_config;
 
-      void create( const ProductCart &cart  );
+      void create( const ProductCart &cart, 
+                   const PsmrtsShape &shape = PsmrtsShape() );
 
   };
 
