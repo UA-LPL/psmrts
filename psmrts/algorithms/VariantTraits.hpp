@@ -19,9 +19,9 @@ namespace psmrts::algorithm::variants {
    * automatically register all variants within a class that has common API
    * methods such as registrations.
    * 
-   * See PsmrtsTracer and PsmrtsShape for usage.
+   * See ProductMaker for usage context.
    * 
-   * Sources are credited as shown as applicable.
+   * Sources are credited as shown when applicable.
    */
 
     // Source - https://stackoverflow.com/a/57642181
@@ -54,6 +54,17 @@ namespace psmrts::algorithm::variants {
       return tuple_foreach( indexes, std::forward<T>(tup), std::forward<F>(f) );
     }
 
+    /** Executes a constructor if it is compatible with arguments */
+    template <typename T, typename... Args>
+      T construct_compatible_product( Args&&... args) {
+        if constexpr ( std::is_constructible_v<T, Args...> ) {
+          return ( T( std::forward<Args>( args )...) ); 
+        }
+        else {
+          std::runtime_error( "Product does not have compatible constructor!" );
+          return ( T() );
+        }
+      }
 
 } // namespace psmrts::algorithms::variants
 

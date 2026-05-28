@@ -30,7 +30,13 @@ namespace psmrts {
   namespace traits_v = psmrts::algorithm::variants;
 
   /** 
-   * @brief PSMRTS product order 
+   * @brief PSMRTS product maker class that creates all products 
+   * 
+   * This class provides support of all product variant types. It can extract
+   * all the class variant specifications for a particular product class. These
+   * specifications are used to verify user-based configurations and create a
+   * variant from the configuration. This variant class is then instantiated
+   * within the product and retained in this object for subsequent use.
    * 
    * @author Kris J. Becker, University of Arizona
    * @history 2026-01-31 Kris J. Becker  Original Version
@@ -53,7 +59,7 @@ namespace psmrts {
         virtual ~ProductMaker() { }
     
         inline bool isvalid() const {
-          return ( m_product.has_value() );
+          return ( ( this->error_count() == 0 ) && m_product.has_value() );
         }
 
         inline const ProductSpecsList &specifications() const {
@@ -119,9 +125,15 @@ namespace psmrts {
               m_cart = ProductCart::extract_config( conf, s );
 
               if ( m_cart.isvalid() ) { 
-                m_specs.add( s );
-                m_product.emplace( Product( V( m_cart )) );
-                return;
+                try {
+                  m_product.emplace( Product( V( m_cart )) );
+                  m_specs.add( s );
+                  return;                
+
+                }
+                catch ( const std::runtime_error &re ) {
+                  this->add_error( re );
+                }
               }
             }
           } );
@@ -129,6 +141,60 @@ namespace psmrts {
           return ( m_product.has_value() );
         }
 
+        inline bool process_cart( const ProductCart &cart ) {
+
+          m_specs.clear();
+          m_product.reset();
+          m_cart = cart;      
+
+          auto v_indexes = traits_v::indexing_tuple<std::variant_size_v<Variants>>;
+          traits_v::tuple_foreach( v_indexes, [&](auto I) { // Compile time index of variant
+            if ( m_product.has_value() ) return;  // Check if product has been created
+
+            using V = std::variant_alternative_t<I, Variants>;
+            ProductSpecification s = V().product_specifications();  // Should be able to get w/o instantiation!
+            if ( s.name() == cart.specification().name() ) {
+              try {
+                m_product.emplace( Product( V( m_cart )) );
+                m_specs.add( s );
+                return;
+              }
+              catch ( const std::runtime_error &re ) {
+                this->add_error( re );
+              }
+            }
+          } );           
+          
+          return ( m_product.has_value() );
+        }
+
+
+        template <typename Shape> 
+          inline bool process_cart( const ProductCart &cart,
+                                    const Shape &shape ) {
+          m_specs.clear();
+          m_product.reset();
+          m_cart = cart;           
+          auto v_indexes = traits_v::indexing_tuple<std::variant_size_v<Variants>>;
+          traits_v::tuple_foreach( v_indexes, [&](auto I) { // Compile time index of variant
+            if ( m_product.has_value() ) return;  // Check if product has been created
+            using V = std::variant_alternative_t<I, Variants>;
+            ProductSpecification s = V().product_specifications();  // Should be able to get w/o instantiation!
+            if ( s.name() == cart.specification().name() ) {
+              try {
+                m_product.emplace( Product( traits_v::construct_compatible_product<V>( m_cart, shape ) ) );
+                m_specs.add( s );
+                return;
+              }
+              catch ( const std::runtime_error &re ) {
+                this->add_error( re );
+                this->add_error( "PsmrtsMaker::process_cart( cart, Args...) cannot be created for " + s.name() );
+              }
+            }
+          } );           
+          
+          return ( m_product.has_value() );
+        }
 
       private:
         ProductCart            m_cart;
