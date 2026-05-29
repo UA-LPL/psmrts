@@ -62,8 +62,8 @@ TEST_CASE("PsmrtsTracerSystem Values Test", "[tracer][system][values]") {
     psmrts::PRQPhotometricTrace p_ray = sys1.ellipsoid_photometric_trace(obs, lkdr, sunpos);
     CHECK( p_ray.observer_trace().hasHit() == true );
 
-    psmrts::PsmrtsTracer naifdsk_t ( psmrts::PsmrtsTracer::naifdsk( file ) );
-    bool naif_add = sys1.add_tracer( naifdsk_t ); 
+    // psmrts::PsmrtsTracer naifdsk_t ( psmrts::PsmrtsTracer::naifdsk( file ) );
+    bool naif_add = sys1.add_product( "dsk_file", file, "naifdsk" ); 
     CHECK( naif_add == true );                    
 
     sys1.create_priority_tracer("test1");
@@ -83,7 +83,7 @@ TEST_CASE("PsmrtsTracerSystem Values Test", "[tracer][system][values]") {
     bool naif_check = false;
     bool bullet_check = false;
     
-    for (const auto &[uid, tracer] : sys1.inventory().tracers().cache() ) {
+    for (const auto &[uid, tracer] : sys1.invoice().inventory().tracers().cache() ) {
         if (tracer.config().contains("tracer") ) {
             std::string type = tracer.config().find("tracer").to_string();
             if (type == "naifdsk") {
@@ -98,7 +98,7 @@ TEST_CASE("PsmrtsTracerSystem Values Test", "[tracer][system][values]") {
     CHECK( naif_check == true ); 
     CHECK( bullet_check == false );
 
-    for (const auto &[uid, tracer] : sys2.inventory().tracers().cache() ) {
+    for (const auto &[uid, tracer] : sys2.invoice().inventory().tracers().cache() ) {
         if (tracer.config().contains("tracer") ) {
             std::string type = tracer.config().find("tracer").to_string();
             if (type == "bullet") {
@@ -113,7 +113,7 @@ TEST_CASE("PsmrtsTracerSystem Values Test", "[tracer][system][values]") {
     CHECK( sys1.add_shape( obj_shape ) == true );
 
     bool obj_check = false;
-    for (const auto &[uid, shape] : sys1.inventory().shapes().cache()) {
+    for (const auto &[uid, shape] : sys1.invoice().inventory().shapes().cache()) {
         if ( shape.config().contains("shape") ) {
             if ( shape.config().find("shape").to_string() == "obj" ) {
                 obj_check = true;
@@ -131,7 +131,7 @@ TEST_CASE("PsmrtsTracerSystem Priority Tracer Test", "[tracer][system][priority]
     psmrts::PsmrtsTracerSystem sys("p_tracers");
 
     std::string file = psmrts_tracers_path("naifdsk/data/bennu_20facets.bds");
-    bool added = sys.add_product("dsk_file", file);
+    bool added = sys.add_product("dsk_file", file, "naifdsk");
     
     CHECK( sys.error_count()  == 0 );
     if ( sys.error_count() > 0 ) sys.throw_errors();
@@ -141,7 +141,7 @@ TEST_CASE("PsmrtsTracerSystem Priority Tracer Test", "[tracer][system][priority]
     psmrts::PsmrtsPriorityTracer pt = sys.create_priority_tracer();
     CHECK( pt.isValid() == true );
     CHECK( pt.size() == 1 );
-    CHECK( sys.get_priority_tracer_list() == KeyList( { "p_tracers" } ) );
+    CHECK( sys.invoice().get_priority_tracer_list() == KeyList( { "p_tracers" } ) );
 
     TracerList tracers = pt.tracers();
     REQUIRE( tracers.size() == 1 );
@@ -180,21 +180,6 @@ TEST_CASE("PsmrtsTracerSystem Shapes Test", "[tracer][system][shapes]") {
     Eigen::Vector3d e_obs      = { 100.0, 0.0, 0.0 };
     Eigen::Vector3d e_lkdr     = {  -1.0, 0.0, 0.0 };
     Eigen::Vector3d e_sunpos   = {   0.0, 100.0, 0.0 };
-
- 
-    // process_shape_list() - valid list and :: syntax
-    /** 
-    psmrts::PsmrtsTracerSystem sys_shapelist("test_shapelist", 
-                                              std::vector<std::string>{ objfile });
-    CHECK( sys_shapelist.get_shape_tracer().isValid() == true );
-    CHECK( sys_shapelist.get_shape_tracer().size()    == 1 );
-
-    psmrts::PsmrtsTracerSystem sys_bullet_syntax("test_bullet_syntax", 
-                                                  std::vector<std::string>{ "bullet::" + objfile });
-    CHECK( sys_bullet_syntax.get_shape_tracer().isValid() == true );
-    CHECK( sys_bullet_syntax.get_shape_tracer().size()    == 1 );
-    */
-
 
     // Shared bullet system for shape_trace, photometric, process,
     // and get_tracer_from_intercept tests
@@ -289,12 +274,12 @@ TEST_CASE("PsmrtsTracerSystem ISIS Interface Test", "[tracer][system][isislike]"
 
   size_t n_shapes = system_t.process_shape_list( shapes, "mycube_shapes" );
 
-  CHECK( system_t.error_count()                == 0 );
-  CHECK( system_t.errors_to_string()           == "" );
-  CHECK( system_t.inventory().shapes().size()  == 2 );
-  CHECK( system_t.inventory().tracers().size() == 4 );
+  CHECK( system_t.invoice().error_count()                == 0 );
+  CHECK( system_t.invoice().errors_to_string()           == "" );
+  CHECK( system_t.invoice().inventory().shapes().size()  == 2 );
+  CHECK( system_t.invoice().inventory().tracers().size() == 4 );
 
-  psmrts::PsmrtsPriorityTracer tracer_p = system_t.get_priority_tracer();
+  psmrts::PsmrtsPriorityTracer tracer_p = system_t.create_priority_tracer();
   CHECK( tracer_p.isValid()          == true );
   CHECK( tracer_p.inventory().size() == 4 );
 }

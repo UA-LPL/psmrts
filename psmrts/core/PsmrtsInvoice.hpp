@@ -98,7 +98,7 @@ namespace psmrts {
         return ( m_inventory );
       }
 
-      inline bool has_priority_tracer( const std::string & name ) {
+      inline bool has_priority_tracer( const std::string & name ) const {
         if ( !m_priorities_t.contains( name) ) return ( false );
         return ( m_inventory.prioritytracers().contains(m_priorities_t.find( name) ) );
       }
@@ -107,7 +107,7 @@ namespace psmrts {
         return ( m_inventory.prioritytracers().find( m_priorities_t.find( name) ));
       }
 
-      inline std::vector<std::string> get_priority_tracer_list(  ) {
+      inline std::vector<std::string> get_priority_tracer_list() const {
         return ( m_priorities_t.keys() );
       }
 
