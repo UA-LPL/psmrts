@@ -1657,9 +1657,6 @@ TEST_CASE( "C API Invoice & Translations Shape Test", "[capi][c++][invoice][tran
   // create priority tracer
   PSMRTS_PriorityTracer *ptracer = psmrts_generate_priority_tracer( plyinvoice, nullptr );
 
-  // test psmrts_generate_products
-  CHECK( psmrts_generate_products( plyinvoice ) == PSMRTS_TRUE );
-
   // free memory
   psmrts_free_translations( trans_t );
   psmrts_free_product_config( shape_config );
@@ -1722,9 +1719,6 @@ TEST_CASE( "C API Invoice & Translations Tracer Test", "[capi][c++][invoice][tra
 
   // create priority tracer
   PSMRTS_PriorityTracer *ptracer = psmrts_generate_priority_tracer( bulletinvoice, nullptr );
-
-  // test psmrts_generate_products
-  CHECK( psmrts_generate_products( bulletinvoice ) == PSMRTS_TRUE );
 
   // free memory
   psmrts_free_translations( trans_t );

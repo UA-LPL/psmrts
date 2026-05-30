@@ -177,7 +177,11 @@ namespace psmrts {
 
 
       /**
-       * @brief Add shape product to the inventory
+       * @brief Add shape product to the invoice inventory
+       * 
+       * This method adds the shape to the product inventory for use in config
+       * processing operations. It is used in inventory searches to resolve
+       * configuration matches.
        * 
        * @param shape  Shape product to add to inventory
        * @return true  If the shape was successfully added
@@ -187,6 +191,17 @@ namespace psmrts {
         return ( m_invoice.add_shape( shape ) );
       }
 
+      /**
+       * @brief Add tracer product to the invlice inventory
+       * 
+       * This method adds the tracer to the product inventory for use in config
+       * processing operations. It does not add it to the priority tracer but is
+       * used in inventory searches to resolve configuration matches.
+       * 
+       * @param tracer  Tracer product to add to inventory
+       * @return true   If the tracer is valid its added
+       * @return false  If its not a valid tracer
+       */
       inline bool add_tracer( const PsmrtsTracer &tracer ) {
         return ( m_invoice.add_tracer( tracer ) );
       }
@@ -204,15 +219,23 @@ namespace psmrts {
        * @return false If product creation fails
        */
       inline bool make_product( const ProductConfiguration &config ) {
-        ProductSet product_s = m_invoice.processor().process_configuration( config );
+
+        ProductSet product_s = m_invoice.process_product( config );
         if ( !m_invoice.processor().is_valid_product( product_s ) ) {
-          std::string mess = "PsmrtsInvoice::add_product(" + config.name() +
-                              ") errors occured during validation: " +
+          std::string mess = "PsmrtsTracerSystem::make_product(" + config.name() +
+                              ") errors occured during validation: \n" +
                               m_invoice.processor().product_error_string( product_s );
           m_invoice.add_error( mess );
           return ( false );
         }
-      
+
+        if ( !m_invoice.processor().has_valid_tracer( product_s ) ) {
+          std::string mess = "PsmrtsTracerSystem::make_product(" + config.name() +
+                              ") does not contain a valid tracer";
+          m_invoice.add_error( mess );
+          return ( false );          
+        }
+
         // Add the product to the tracer
         m_invoice.add_product( product_s );
         return ( true );
@@ -436,7 +459,6 @@ namespace psmrts {
         return ( m_tracer_p.process( ray ) );
       }
 
-      
       /**
        * @brief Execute a ray trace using the shape tracer
        * 

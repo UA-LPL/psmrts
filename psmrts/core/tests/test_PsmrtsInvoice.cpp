@@ -32,13 +32,13 @@ TEST_CASE( "PsmrtsInvoice Priority Tracer Test 1", "[product][invoice][priorityt
   CHECK( bullet_t.contains( "obj_file" ) == true );
   CHECK( bullet_t.contains( "tracer" ) == true );
 
-  CHECK( invoice_t.add_product( bullet_t ) == true );
+  CHECK( invoice_t.create_product( bullet_t ) == true );
 
   psmrts::ProductConfiguration naifdsk_t("naifdskmaker");
   naifdsk_t.add( psmrts::ProductOption( "tracer", "naifdsk" ) );
   naifdsk_t.add( psmrts::ProductOption( "dsk_file", psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds")  ) );
 
-  CHECK( invoice_t.add_product( naifdsk_t ) == true );
+  CHECK( invoice_t.create_product( naifdsk_t ) == true );
 
   psmrts::ProductConfiguration ellipsoid_t("ellipsoidkmaker");
   ellipsoid_t.add( psmrts::ProductOption( "tracer", "ellipsoid" ) );
@@ -49,7 +49,7 @@ TEST_CASE( "PsmrtsInvoice Priority Tracer Test 1", "[product][invoice][priorityt
   // ellipsoid_t.add( psmrts::ProductOption( "tracer", "sphere" ) );
   // ellipsoid_t.add( psmrts::ProductOption( "radii", 0.283065 )  ); 
 
-  CHECK( invoice_t.add_product( ellipsoid_t ) == true );
+  CHECK( invoice_t.create_product( ellipsoid_t ) == true );
 
   CHECK( invoice_t.size() == 3);
 
@@ -74,12 +74,8 @@ TEST_CASE( "PsmrtsInvoice Priority Tracer Test 1", "[product][invoice][priorityt
   bullet_t2.add( psmrts::ProductOption( "tracer", "bullet" ) );
   bullet_t2.add( psmrts::ProductOption( "bullet_compression", false ) );
 
-  CHECK( invoice_t.add_product( bullet_t2 ) == true );
+  CHECK( invoice_t.create_product( bullet_t2 ) == true );
   CHECK( invoice_t.size() == 4);
-
-  CHECK( invoice_t.generate_products() == true );
-  // CHECK( invoice_t.inventory().shapes().keys()  == std::vector<UIDType>( { 1 } ) );
-  // CHECK( invoice_t.inventory().tracers().keys() == std::vector<UIDType>( { 1, 2, 3, 5 } ) );
 
   psmrts::PsmrtsPriorityTracer priority_t2 = invoice_t.get_priority_tracer( "priority_tracer2" );
   CHECK( priority_t2.isValid() == true );

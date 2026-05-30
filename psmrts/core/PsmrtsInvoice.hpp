@@ -111,14 +111,79 @@ namespace psmrts {
         return ( m_priorities_t.keys() );
       }
 
-      inline bool add_product( const ProductConfiguration &config ) {
-        return ( this->add_product( this->processor().process_configuration( config ) ) );
+      /**
+       * @brief Process a product configuration, create product set (shape, tracer)
+       * 
+       * This method processes a product configuration and creates a product set
+       * that may contain a shape and/or a tracer. 
+       * 
+       * @param config      Product configuration
+       * @return ProductSet A product containing a shape/tracer
+       */
+      inline ProductSet process_product( const ProductConfiguration &config ) {
+
+        // Reset processor errors stack
+        m_processor.clear_errors();
+
+        // Parse/evalute the configuration
+        ProductSet product_s = m_processor.process_configuration( config );
+        if ( !m_processor.is_valid_product( product_s ) ) {
+          std::string mess = "PsmsrtsInvoice::process_product() - " + 
+                              config.name() +
+                              ") config validation errors: " +
+                              m_processor.product_error_string( product_s );
+          this->add_error( mess );
+          return ( product_s );
+        }
+
+        // Process the product set
+        if ( !m_processor.process_product_set( product_s, m_inventory ) ) {
+          std::string mess = "PsmrtsInvoice::process_product() - " + 
+                             config.name() +
+                              ") product creation errors: " +
+                              m_processor.product_error_string( product_s );
+          this->add_error( mess );
+          return ( product_s );          
+        }
+        
+        // User can evaluate product set status
+        return ( product_s );
       }
 
 
+      /**
+       * @brief Adds a product set to the internal container
+       * 
+       * This method adds a processed product set to the internal product set
+       * array. The product set typically should be error free and contain at
+       * least a shape and/or a tracer. It will not be added if the these
+       * conditions are not met.
+       * 
+       * @param product_set A processed product set containing a valid product
+       * @return true  If the product set is valid 
+       * @return false If the product set does not contain a valid product
+       */
       inline bool add_product( const ProductSet &product_set ) {
+
+        // Must have at least one valid product - shape or tracer
+        if ( !m_processor.has_valid_product( product_set ) ) {
+          return ( false );
+        }
+        
+        // Add the valid product
         m_orders.add( product_set );
         return (true );
+      }
+
+      /**
+       * @brief Creates and adds a product to the invoice from a config
+       * 
+       * @param config Product configuration to create valid product
+       * @return true  If creation was successfull
+       * @return false If product could not be created
+       */
+      inline bool create_product( const ProductConfiguration &config ) {
+        return ( add_product( process_product( config ) ) );
       }
 
       /**
@@ -177,34 +242,6 @@ namespace psmrts {
       }
 
       /**
-       * @brief Generate products from the orders contained in this invoice
-       * 
-       * If there is no inventory allocated (see has_inventory()) then one is
-       * created and the orders are processed. Part of the processing is to use
-       * the local inventory and factory inventory to find products to reuse.
-       * If tracers or shapes are not found, then new ones are created from 
-       * the configurations and added to the local cache added to the factory
-       * cache. 
-       * 
-       * The local PsmrtsRequest error tracking mechanism is used to report any
-       * issues that occur when creating products.
-       * 
-       * @return true  If all products are created successfully
-       * @return false If product creation fails
-       */
-      inline bool generate_products(  ) {
-        // Reset the errors and regenerate the inventory
-        m_processor.clear_errors();
-
-        // Process the fdata inplace
-        for ( auto &products : m_orders.data() ) {
-          m_processor.process_product_set( products, m_inventory );
-        }
-
-        return ( m_processor.error_count() == 0  );
-      }
-
-      /**
        * @brief Get the priority tracer object generated from the product configs
        * 
        * This method will create a priority tracer from the results of the
@@ -226,21 +263,11 @@ namespace psmrts {
           return ( this->find_priority_tracer( name_t )  );
         }
 
-        // Check to see if we have any products. If not we assume
-        // generate_products() has not been called so do it here.
-        if ( m_inventory.size() == 0 ) {
-          if ( !this->generate_products() ) {
-            std::string mess = "PsmrtsInvoice::get_priority_tracer(" + name_t +
-                              ") got errors generating products: " +
-                              m_processor.errors_to_string( );
-            this->add_error( mess );
-            return ( PsmrtsPriorityTracer( "none" ));            
-          }
-        }
-
         PsmrtsPriorityTracer tracer_p( name_t );
-        for ( const auto &tracer : m_inventory.tracers().cache() ) {
-          tracer_p.add_tracer( tracer.second );
+        for ( const auto &product : this->orders() ) {
+          if ( product.has_tracer() ) {
+            tracer_p.add_tracer( product.tracer_p.value() );
+          }
         }
 
         // Add to inventories and return the current tracer

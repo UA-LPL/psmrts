@@ -284,7 +284,7 @@ namespace psmrts {
           }
         }
                   
-        return (product_s.tracer_p.has_value() );
+        return ( product_s.tracer_p.has_value() );
       }
 
       /**
@@ -306,10 +306,9 @@ namespace psmrts {
                                        PsmrtsInventory &inventory ) const {
 
         // Process each product type
-        bool status_p = make_shape( product, inventory );
-        bool status_t = make_tracer(product, inventory );
-
-        return ( status_p || status_t );
+        make_shape( product, inventory );
+        make_tracer(product, inventory );
+        return ( this->has_valid_product( product ) );
       }
 
 
@@ -932,13 +931,40 @@ namespace psmrts {
         return ( true );
       }
 
-
-      /** Determine if any of the products are valid */
+     /** Determine if any of the products are valid */
       inline bool is_valid_product( const ProductSet &products ) const {
         if ( is_valid_order( products.tracer ) || 
              is_valid_order( products.shape  ) ) {
           return ( true );
         }
+        return ( false );
+      }
+
+      /** Determine if product contains a valid shape */
+      inline bool has_valid_shape( const ProductSet &products ) const {
+        if ( is_valid_order( products.shape ) &&  products.has_shape() ) {
+          return ( true );
+        }
+
+        return ( false );
+      }
+
+      /** Determine if product has a valid tracer */
+      inline bool has_valid_tracer( const ProductSet &products ) const {
+        if ( is_valid_order( products.tracer ) && products.has_tracer() ) {
+          return ( true );
+        }
+
+        return ( false );
+      }
+
+      /** Determine if product has a valid tracer */
+      inline bool has_valid_product( const ProductSet &products ) const {
+        if ( is_valid_product( products ) && 
+             ( has_valid_shape( products) || has_valid_tracer( products ) ) ) {
+          return ( true );
+        }
+
         return ( false );
       }
 

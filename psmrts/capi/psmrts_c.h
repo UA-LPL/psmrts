@@ -307,7 +307,6 @@ PSMRTS_C_EXPORT PSMRTS_Invoice *psmrts_create_invoice( const char* name,
                                                        PSMRTS_Translations* translation );
 PSMRTS_C_EXPORT PSMRTS_BOOL psmrts_add_config_invoice( PSMRTS_ProductConfiguration *config,
                                                        PSMRTS_Invoice *invoice );
-PSMRTS_C_EXPORT PSMRTS_BOOL psmrts_generate_products( PSMRTS_Invoice *invoice );
 PSMRTS_C_EXPORT PSMRTS_String *psmrts_invoice_error_string( const PSMRTS_Invoice *invoice,
                                                             PSMRTS_String *string );
 PSMRTS_C_EXPORT PSMRTS_PriorityTracer
