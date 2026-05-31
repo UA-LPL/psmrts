@@ -119,7 +119,7 @@ namespace psmrts {
         return ( m_invoice.error_count() );
       }
 
-      inline std::string errror_string( ) const {
+      inline std::string error_string( ) const {
         return ( m_invoice.errors_to_string() );
       }
 
