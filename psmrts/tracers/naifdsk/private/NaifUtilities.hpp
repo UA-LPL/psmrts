@@ -48,7 +48,6 @@ namespace naif {
   }
 
   inline void clearKernelSystem() {
-    std::cout << "PSMRTS clearing kernel pool!" << std::endl;
     kclear_c();
     return;
   }
