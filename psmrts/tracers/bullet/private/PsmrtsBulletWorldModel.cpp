@@ -120,8 +120,12 @@ namespace psmrts::bullet {
       bool PsmrtsBulletWorldModel::extract_ray_trace_results( const PsmrtsBulletClosestRayCallback &results,
                                                                PsmrtsRayTrace &ray ) const {
 
-        ray.reset( PsmrtsBulletClosestRayCallback::toStdVector( results.observer() ),
-                   PsmrtsBulletClosestRayCallback::toStdVector( results.lookdir()  ) );
+        // Convert to Eigen vectors and compute the unit lookdir
+        Eigen::Vector3d observer_v = PsmrtsBulletClosestRayCallback::toStdVector( results.observer() );                                                            
+        Eigen::Vector3d lookdir_v  = PsmrtsBulletClosestRayCallback::toStdVector( results.lookdir() );
+        Eigen::Vector3d lookdir_u = ( lookdir_v - observer_v ).normalized();
+
+        ray.reset( observer_v, lookdir_u );
 
         ray.datum().m_hit = results.hasHit();
         ray.datum().m_xyz = PsmrtsBulletClosestRayCallback::toStdVector( results.xyz() );
