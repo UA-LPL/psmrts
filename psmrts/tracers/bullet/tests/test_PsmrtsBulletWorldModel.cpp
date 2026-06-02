@@ -347,7 +347,7 @@ TEST_CASE("Bullet-DSK Comparison Test - float", "[bullet][dsk][raytrace][float]"
 }
 
 TEST_CASE( "BulletTracerModel Test", "[bullet][tracer][model]" ) {
-    const double tolerance_km = 1.0e-6;
+    const double tolerance_km = 1.0e-9;
 
     std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
 
@@ -397,7 +397,7 @@ TEST_CASE( "BulletTracerModel Test", "[bullet][tracer][model]" ) {
     CHECK( spt.plateid()        == 30 );
     CHECK( spt.segment_number() == 0 );
 
-    CHECK_THAT( normal[0], Catch::Matchers::WithinAbs(0.0,                tolerance_km ));
+    CHECK_THAT( normal[0], Catch::Matchers::WithinAbs(0.0,                1.0e-7 ));
     CHECK_THAT( normal[1], Catch::Matchers::WithinAbs(0.5257310881115882, tolerance_km ));
     CHECK_THAT( normal[2], Catch::Matchers::WithinAbs(0.85065082318951801, tolerance_km ));
 

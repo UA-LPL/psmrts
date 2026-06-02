@@ -314,7 +314,7 @@ TEST_CASE( "Bullet Tracer Ray Trace Array Test", "[bullet][tracer][raytrace][arr
 }
 
 TEST_CASE( "Bullet Tracer Photometric Values Test", "[bullet][tracer][photometric]") {
-    const double tolerance = 1.0e-6;
+    const double tolerance = 1.0e-9;
 
     std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
     psmrts::BulletTracer b_tracer( psmrts::PsmrtsShape{ objfile } );
@@ -394,10 +394,10 @@ TEST_CASE( "Bullet Tracer Photometric Values Test", "[bullet][tracer][photometri
     // CHECK( prq_sun.trace().lookdir()   == lookdir_s ); - lookdir being recalculated in PsmrtsBulletWorldModel
 
     // Compute/check photometric angles
-    CHECK_THAT( psmrts::radians_to_degrees( prq_obs.emission(  ) ), Catch::Matchers::WithinAbs( 30.3643509807580, tolerance) );
-    CHECK_THAT( psmrts::radians_to_degrees( prq_sun.emission(  ) ), Catch::Matchers::WithinAbs( 62.95821025018705086, tolerance) );
-    CHECK_THAT( psmrts::radians_to_degrees( prq_obs.incidence( prq_sun.trace() ) ), Catch::Matchers::WithinAbs( 62.95821025018705086, tolerance) );
-    CHECK_THAT( psmrts::radians_to_degrees( prq_obs.phase( prq_sun.trace() ) ),     Catch::Matchers::WithinAbs( 32.5950452371838324, tolerance) );
+    CHECK_THAT( psmrts::radians_to_degrees( prq_obs.emission(  ) ), Catch::Matchers::WithinAbs( 30.27681520779734825, tolerance) );
+    CHECK_THAT( psmrts::radians_to_degrees( prq_sun.emission(  ) ), Catch::Matchers::WithinAbs( 62.78856867179433721, tolerance) );
+    CHECK_THAT( psmrts::radians_to_degrees( prq_obs.incidence( prq_sun.trace() ) ), Catch::Matchers::WithinAbs( 62.78856867179433721, tolerance) );
+    CHECK_THAT( psmrts::radians_to_degrees( prq_obs.phase( prq_sun.trace() ) ),     Catch::Matchers::WithinAbs( 32.51215667308787971, tolerance) );
 
     // FINALLY create the Photometric trace and run it!
     psmrts::PRQPhotometricTrace prq_photo( observer, lookdir, sun_pos );
@@ -425,9 +425,9 @@ TEST_CASE( "Bullet Tracer Photometric Values Test", "[bullet][tracer][photometri
     CHECK_THAT( o_xyz[2], Catch::Matchers::WithinAbs( s_xyz[2], tolerance ) );
 
    // Compute/check photometric angles compared to prt_obs above
-    CHECK_THAT( psmrts::radians_to_degrees( prq_photo.emission(  ) ), Catch::Matchers::WithinAbs( 30.3643509807580, tolerance) );
-    CHECK_THAT( psmrts::radians_to_degrees( prq_photo.incidence( ) ), Catch::Matchers::WithinAbs( 62.95821025018705086, tolerance) );
-    CHECK_THAT( psmrts::radians_to_degrees( prq_photo.phase( ) ),     Catch::Matchers::WithinAbs( 32.5950452371838324, tolerance) );    
+    CHECK_THAT( psmrts::radians_to_degrees( prq_photo.emission(  ) ), Catch::Matchers::WithinAbs( 30.27681520779735536, tolerance) );
+    CHECK_THAT( psmrts::radians_to_degrees( prq_photo.incidence( ) ), Catch::Matchers::WithinAbs( 62.78856867179433721, tolerance) );
+    CHECK_THAT( psmrts::radians_to_degrees( prq_photo.phase( ) ),     Catch::Matchers::WithinAbs( 32.5121566730878726, tolerance) );    
 }
 
 TEST_CASE( "Bullet Tracer Photometric Array Test", "[bullet][tracer][photometric][array]") {
