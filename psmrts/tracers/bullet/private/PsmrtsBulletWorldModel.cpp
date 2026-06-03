@@ -125,14 +125,16 @@ namespace psmrts::bullet {
         Eigen::Vector3d lookdir_v  = PsmrtsBulletClosestRayCallback::toStdVector( results.lookdir() );
         Eigen::Vector3d lookdir_u = ( lookdir_v - observer_v ).normalized();
 
-        ray.reset( observer_v, lookdir_u );
+        // ray.reset( observer_v, lookdir_u );
 
         ray.datum().m_hit = results.hasHit();
-        ray.datum().m_xyz = PsmrtsBulletClosestRayCallback::toStdVector( results.xyz() );
-        ray.datum().m_normal = PsmrtsBulletClosestRayCallback::toStdVector( results.normal() );
+        if ( ray.hasHit() ) {
+          ray.datum().m_xyz = PsmrtsBulletClosestRayCallback::toStdVector( results.xyz() );
+          ray.datum().m_normal = PsmrtsBulletClosestRayCallback::toStdVector( results.normal() );
 
-        ray.datum().m_plateid = results.triangleIndex();
-        ray.datum().m_segment = results.partId();
+          ray.datum().m_plateid = results.triangleIndex();
+          ray.datum().m_segment = results.partId();
+        }
 
         return ( ray.hasHit() );
       }
