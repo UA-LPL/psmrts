@@ -121,9 +121,9 @@ namespace psmrts::bullet {
                                                                PsmrtsRayTrace &ray ) const {
 
         // Convert to Eigen vectors and compute the unit lookdir
-        Eigen::Vector3d observer_v = PsmrtsBulletClosestRayCallback::toStdVector( results.observer() );                                                            
-        Eigen::Vector3d lookdir_v  = PsmrtsBulletClosestRayCallback::toStdVector( results.lookdir() );
-        Eigen::Vector3d lookdir_u = ( lookdir_v - observer_v ).normalized();
+        // Eigen::Vector3d observer_v = PsmrtsBulletClosestRayCallback::toStdVector( results.observer() );                                                            
+        // Eigen::Vector3d lookdir_v  = PsmrtsBulletClosestRayCallback::toStdVector( results.lookdir() );
+        // Eigen::Vector3d lookdir_u = ( lookdir_v - observer_v ).normalized();
 
         // ray.reset( observer_v, lookdir_u );
 

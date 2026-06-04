@@ -65,15 +65,17 @@ namespace psmrts {
 
 
   DskShape::DskShape( const ProductCart &processed_cart ) :
-                      PsmrtsProduct( processed_cart.name(), "shape", "dsk" ) {
+                      PsmrtsProduct( processed_cart.configuration().name(), "shape", "dsk" ) {
     this->create( processed_cart );
   }
 
   void DskShape::create( const ProductCart &cart ) {
 
+    std::string name_t = cart.configuration().name();
+
     // Check for valid shape type
     if (cart.error_count() > 0 ) {
-      std::string mess = "DskShape::create(" + cart.name() + 
+      std::string mess = "DskShape::create(" + name_t + 
                          ") has config/spec processing errors: \n" +
                           cart.errors_to_string();
       throw std::runtime_error( mess );          
@@ -91,10 +93,11 @@ namespace psmrts {
       dsk_config.add( v_conf.find( "shape" ) );
     }
 
-    std::string dskfile_source;
+    std::string dskfile_source = name_t;
     std::string dskfile;
     if ( v_conf.contains( "dsk_file" ) ) {
       dskfile_source  = v_conf.find( "dsk_file" ).to_string();
+      name_t = dskfile_source;
       dsk_config.add( v_conf.find( "dsk_file" ) );
 
       if ( v_conf.metadata().contains( "dsk_file_expanded" ) ) {
@@ -111,6 +114,7 @@ namespace psmrts {
     }
 
     // Open the DSK file
+    this->set_name( name_t );
     naif::DskKernelModel  model_d( dskfile );
     int segnum = 0;
     int dskbodyid = 0;

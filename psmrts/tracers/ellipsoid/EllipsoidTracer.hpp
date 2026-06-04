@@ -80,7 +80,7 @@ namespace psmrts  {
                        m_radii{ radii[0], radii[1],radii[2] },
                        m_config( init_config( name, { radii[0], radii[1], radii[2] }, "ellipsoid" ) ) { }
       EllipsoidTracer( const ProductCart &processed_cart ) :
-                       PsmrtsProduct( processed_cart.name(), "tracer", "ellipsoid" ) {
+                       PsmrtsProduct( processed_cart.configuration().name(), "tracer", "ellipsoid" ) {
         this->create( processed_cart );
       }                         
       virtual ~EllipsoidTracer() = default;

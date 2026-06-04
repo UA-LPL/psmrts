@@ -122,9 +122,11 @@ namespace psmrts {
 
         inline void create( const ProductCart &cart ) {
 
+            std::string name_t = cart.configuration().name();
+
             // Check for valid shape type
             if (cart.error_count() > 0 ) {
-              std::string mess = "MeshShape::create(" + cart.name() + 
+              std::string mess = "MeshShape::create(" + name_t + 
                                 ") has config/spec processing errors: \n" +
                                   cart.errors_to_string();
               throw std::runtime_error( mess );          
@@ -132,7 +134,7 @@ namespace psmrts {
 
             ProductConfiguration v_conf = cart.configuration();
             if (cart.error_count() > 0 ) {
-              std::string mess = "MeshShape::create(" + cart.name() + ") has errors: " +
+              std::string mess = "MeshShape::create(" + name_t + ") has errors: " +
                                   cart.errors_to_string();
               throw std::runtime_error( mess );          
             }

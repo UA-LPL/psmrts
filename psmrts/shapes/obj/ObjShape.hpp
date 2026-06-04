@@ -53,7 +53,7 @@ namespace psmrts  {
         m_config.add_metadata( ProductOption( "maximum_radius", m_mesh.maximum_radius() ) );
       }
       ObjShape( const ProductCart &processed_cart ) : 
-                PsmrtsProduct( processed_cart.name(), "shape", "obj" ) {
+                PsmrtsProduct( processed_cart.configuration().name(), "shape", "obj" ) {
         this->create( processed_cart );
       }      
       virtual ~ObjShape() { }

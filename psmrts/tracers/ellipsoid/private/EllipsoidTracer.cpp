@@ -59,16 +59,19 @@ namespace psmrts  {
 
   void EllipsoidTracer::create( const ProductCart &cart ) {
 
+      std::string name_t = cart.configuration().name();
+
+
       // Check for valid shape type
       if ( cart.error_count() > 0 ) {
-        std::string mess = "EllipsoidTracer::create(" + cart.name() + 
+        std::string mess = "EllipsoidTracer::create(" + name_t + 
                           ") has config/spec processing errors: \n" +
                             cart.errors_to_string();
         throw std::runtime_error( mess );          
       }
 
       if ( !cart.isvalid() ) {
-        std::string mess = "EllipsoidTracer::create(" + cart.name() + 
+        std::string mess = "EllipsoidTracer::create(" + name_t + 
                           ") is invalid with " + 
                           std::to_string( cart.configuration().size() ) +
                           " config options and " +
@@ -98,7 +101,7 @@ namespace psmrts  {
         throw std::runtime_error( mess );
       }
 
-      std::string name = model;
+      std::string name = name_t;
       if ( v_conf.contains( "name" ) ) {
         name = v_conf.find( "name" ).to_string();
       }

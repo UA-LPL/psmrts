@@ -100,13 +100,13 @@ namespace psmrts {
   }
   
   BulletTracer::BulletTracer( const ProductCart &processed_cart ) :
-                              PsmrtsProduct( processed_cart.name(), "tracer", "bullet") {
+                              PsmrtsProduct( processed_cart.configuration().name(), "tracer", "bullet") {
     this->create( processed_cart );
   }
   
   BulletTracer::BulletTracer( const ProductCart &processed_cart,
                               const PsmrtsShape &shape ) :
-                              PsmrtsProduct( processed_cart.name(), "tracer", "bullet") {
+                              PsmrtsProduct( processed_cart.configuration().name(), "tracer", "bullet") {
     this->create( processed_cart, shape );
   }    
   
@@ -163,6 +163,7 @@ namespace psmrts {
     // currently only possible because this is a .cpp file.
     std::optional<PsmrtsShape> shape_t( std::nullopt );
     ProductCart::UIDType shape_uid = cart.get_shape_uid();
+    std::string name_t = cart.configuration().name();
     if ( shape.isValid() ) {
       shape_t.emplace( shape );
     }
@@ -175,8 +176,8 @@ namespace psmrts {
     }
     else {
       // Parse out and validate the shape config
-      ProductMaker<PsmrtsShape> shape_m( "shape" );
-      ProductConfiguration shape_c( "shape", cart.residual_config() );
+      ProductMaker<PsmrtsShape> shape_m( name_t );
+      ProductConfiguration shape_c( name_t, cart.residual_config() );
 
       (void) shape_m.process_config( shape_c,  trans_t );
       ProductCart cart_s = shape_m.cart();

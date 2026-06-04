@@ -297,14 +297,13 @@ namespace psmrts  {
         }
 
         // Get the dsk file and open it
-        std::string dskfile;
+        std::string dskfile = v_conf.find("dsk_file").to_string();
+        std::string dskfile_expanded = dskfile;
         if ( v_conf.metadata().contains( "dsk_file_expanded" ) ) {
-          dskfile = v_conf.metadata().find("dsk_file_expanded").to_string();
+          dskfile_expanded = v_conf.metadata().find("dsk_file_expanded").to_string();
         }
-        else {
-          dskfile = v_conf.find("dsk_file").to_string();
-        }
-        m_model = naif::DskKernelModel( dskfile );
+        m_model = naif::DskKernelModel( dskfile_expanded );
+        this->set_name( dskfile );
 
         // Check for segment indexes
         if ( v_conf.contains( "dsk_segment_index" ) ) {
@@ -333,9 +332,10 @@ namespace psmrts  {
           m_model = naif::DskKernelModel( m_model, segments );
         }
 
-          m_config = ProductConfiguration( "naifdsk" );
+          m_config = ProductConfiguration( dskfile );
           m_config.add( ProductOption( "tracer", "naifdsk" ) );
           m_config.merge( m_model.config( m_model.segments() ) );
+          m_config.add_metadata( ProductOption( "dsk_file_expanded", dskfile_expanded ) );
           m_config.add_metadata( ProductOption( "tracer_uid", PsmrtsUID::to_string( this->uid() ) ) );
 
           return;     
@@ -361,7 +361,7 @@ namespace psmrts  {
 
       inline ProductConfiguration init_naifdsk( const naif::DskKernelModel &model, const std::string &source ) {
         auto config = ProductConfiguration( source, { ProductOption( "tracer", "naifdsk" ),
-                                                      ProductOption( "file", source ),
+                                                      ProductOption( "dsk_file", source ),
                                                       ProductOption( "plates", std::to_string(model.plate_count())),
                                                       ProductOption( "segments", std::to_string(model.n_dsk_segments())) } );
         return ( config );
