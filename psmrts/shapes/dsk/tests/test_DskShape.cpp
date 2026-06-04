@@ -65,7 +65,7 @@ TEST_CASE( "PSMRTS Product DSK Specification Test", "[product][type][mesh][dsk]"
     auto config_meta = config_data.metadata(); 
 
     CHECK( config_data.isvalid() > 0 );
-    CHECK( config_data.name()    == "dsk" );
+    CHECK( config_data.name()    == dskfile );
     CHECK( config_data.size()    == 3 ); 
     CHECK( psmrts::psmrts_filename(  config_list.find("dsk_file").to_string() )  == "bennu_20facets.bds" );
     CHECK( config_list.contains("shape") );
@@ -92,7 +92,7 @@ TEST_CASE( "PSMRTS Product DSK Specification Test", "[product][type][mesh][dsk]"
     psmrts::ProductCart cart_d = psmrts::ProductCart( spec_d, config_data );
     psmrts::DskShape shape2( cart_d );
 
-    CHECK( shape2.name() == "dsk" );
+    CHECK( shape2.name() == dskfile );
     CHECK( shape2.type() == dsk_m.type() );
     CHECK( shape2.type() == dsk_m.type() );
     CHECK( psmrts::PsmrtsUID::is_valid_uid( shape2.uid() ) );
