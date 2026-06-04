@@ -542,10 +542,17 @@ TEST_CASE( "Bullet Tracer Photometric Array Test", "[bullet][tracer][photometric
     latrec_c( radius, sun_lon3, sun_lat3, sun_pos3.data());
     sun_pos3 = sun_pos3 * 50.0;
 
-    Eigen::Vector3d lookdir_s3 = prq_ray3.trace().xyz() - sun_pos3;
+    // Even though the prq_ray3 failed, this should still succeed as xyz == 0
+    // (This trace computes the subsolar lat/lon)
+    Eigen::Vector3d lookdir_s3 = prq_ray3.trace().xyz() - sun_pos3; 
     psmrts::PRQRayTrace prq_sun3(sun_pos3, lookdir_s3 );
-    CHECK( b_tracer.process( prq_sun3 ) == false);
-    CHECK( prq_sun3.trace().hasHit()    == false );
+    CHECK( b_tracer.process( prq_sun3 ) == true );
+    CHECK( prq_sun3.trace().hasHit()    == true );
+
+    Eigen::Vector3d sunllr = psmrts::xyz_to_lonlatrad_d(prq_sun3.trace().xyz());
+    CHECK_THAT( sunllr[0], Catch::Matchers::WithinAbs( 20.0, tolerance ));
+    CHECK_THAT( sunllr[1], Catch::Matchers::WithinAbs( 20.0, tolerance ));
+
 
     psmrts::PRQPhotometricTrace prq_photo3( observer3, lookdir3, sun_pos3 );
     CHECK( b_tracer.process( prq_photo3 )         == false );
