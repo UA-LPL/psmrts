@@ -123,3 +123,8 @@ jobs:
         #lcov --directory . --capture --output-file coverage.info
         #lcov --summary coverage.info
         cmake --build build --target lcov_coverage
+
+on:
+
+  workflow_dispatch:
+  
