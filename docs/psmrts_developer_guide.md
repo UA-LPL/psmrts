@@ -12,7 +12,7 @@ of file formats. Current support formats are PLY, OBJ and NAIF DSK files. From
 each of these files, a mesh is read and convert to a set of mesh vertices and
 facet indexes. Once read, ray tracing systems will use these to create tracers.
 Tracers use meshes or may be mathematical models, such as spheres, spheroids or
-triaxial ellipsoids. PSMRTS tracer products are Bullet, NaifDslk and Ellipsoids
+triaxial ellipsoids. PSMRTS tracer products are Bullet, NaifDsk and Ellipsoids
 (spheres and spheroids are just special cases of the ellispsoid). 
 
 ## Product Specifications and Configurations
@@ -33,7 +33,7 @@ Each product contains a [ProductSpecification](../psmrts/core/products/ProductSp
 compared to its specifications. Each option is evaluated against features by
 name or _alias_. A feature _alias_ is simply another keyword that can be
 substituded for the real feature option name so that generic configurations can
-be used. All 
+be used.
 
 The PSMRTS application,
 [psmrts_product_specs](../psmrts/apps/psmrts_product_specs.cpp) provides the

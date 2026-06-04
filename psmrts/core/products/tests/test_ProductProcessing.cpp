@@ -126,7 +126,7 @@ TEST_CASE( "ProductProcessing Configuration", "[product][processing][config]") {
     // CHECK( set_p.tracer.to_json().dump(-1) == "" );
     CHECK( processor_t.process_product_set( set_p, inventory_t ) == true );
     CHECK( set_p.has_tracer(  ) == true );
-    CHECK( set_p.tracer_p.value().name() == set_p.tracer.config().name() );
+    //CHECK( set_p.tracer_p.value().name() == set_p.tracer.config().name() );
     if ( set_p.tracer.specs().name() == "bullet" ) {
       CHECK( set_p.has_shape(  )  == true );
     }

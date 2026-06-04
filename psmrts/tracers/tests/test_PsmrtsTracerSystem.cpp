@@ -158,7 +158,7 @@ TEST_CASE("PsmrtsTracerSystem Priority Tracer Test", "[tracer][system][priority]
     CHECK( psmrts::PsmrtsUID::is_valid_uid( ray.trace().get_tracer_id() ) == true  );
 
     psmrts::PsmrtsTracer hit_tracer = sys.get_tracer_from_intercept( ray );
-    CHECK( hit_tracer.name()    == "naifdsk" );
+    CHECK( hit_tracer.name()    == file );
     CHECK( hit_tracer.type()    == "tracer" );
     CHECK( hit_tracer.model()   == "naifdsk" );
     CHECK( hit_tracer.isValid() == true );
