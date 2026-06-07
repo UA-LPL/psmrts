@@ -220,6 +220,7 @@ namespace psmrts {
     }
 
     // Add the tracer UID to the metadata
+    m_config.add_metadata( ProductOption( "shape_uid", PsmrtsUID::to_string( shape_t.value().uid() ) ) );
     m_config.add_metadata( ProductOption( "tracer_uid", PsmrtsUID::to_string( this->uid() ) ) );
 
     // Get defaults from specs
