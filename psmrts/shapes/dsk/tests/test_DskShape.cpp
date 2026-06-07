@@ -66,12 +66,12 @@ TEST_CASE( "PSMRTS Product DSK Specification Test", "[product][type][mesh][dsk]"
 
     CHECK( config_data.isvalid() > 0 );
     CHECK( config_data.name()    == dskfile );
-    CHECK( config_data.size()    == 3 ); 
+    CHECK( config_data.size()    == 2 ); 
     CHECK( psmrts::psmrts_filename(  config_list.find("dsk_file").to_string() )  == "bennu_20facets.bds" );
     CHECK( config_list.contains("shape") );
     CHECK( config_list.find("shape").to_string()     == "dsk" );
-    CHECK( config_list.find("data_type").to_string() == "double" );
 
+    CHECK( config_meta.find("dsk_data_type").to_string() == "double" );
     CHECK( config_meta.find("dsk_segments").to_string()       == "1" );
     CHECK( config_meta.find("dsk_segment_number").to_string() == "0" );
     CHECK( config_meta.find("dsk_surface_id").to_string()     == "2101955" );

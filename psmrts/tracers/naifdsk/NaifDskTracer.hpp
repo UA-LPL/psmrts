@@ -55,7 +55,11 @@ namespace psmrts  {
       }
       NaifDskTracer( const ProductCart &processed_cart ) :
                      PsmrtsProduct( processed_cart.name(), "tracer", "naifdsk" ) {
-        this->create( processed_cart );
+
+        m_model = naif::DskKernelModel( processed_cart, m_config );
+        this->set_name( m_model.name() );
+        m_config.add( ProductOption( "tracer", "naifdsk" ) );
+        m_config.add_metadata( ProductOption( "tracer_uid", PsmrtsUID::to_string( this->uid() ) ) );
       }        
       virtual ~NaifDskTracer() { }
 
@@ -230,7 +234,7 @@ namespace psmrts  {
                                  ProductOption( "type", "file" ),
                                  ProductOption( "description", "Name of DSK kernel" ),
                                  ProductOption( "status", "required" ),
-                                 ProductOption( "aliases", { "file", "filename" } ),
+                                 ProductOption( "aliases", { "file", "filename", "shapefile" } ),
                                  ProductOption( "file_suffixes", { "bds", "BDS" } ) } );
         ProductFeature bodyid( "dsk_body_id", {
                                  ProductOption( "name", "dsk_surface_id" ),
@@ -267,78 +271,6 @@ namespace psmrts  {
       
       inline bool matches( const ProductConfiguration &conf ) const {
         return ( this->config().matches( conf ) );
-      }
-
-      inline void create( const ProductCart &cart ) {
-
-        // Check for valid shape type
-        if ( cart.error_count() > 0 ) {
-          std::string mess = "NaifDskTracer::create(" + cart.name() + 
-                            ") has config/spec processing errors: \n" +
-                              cart.errors_to_string();
-          throw std::runtime_error( mess );          
-        }
-
-        if ( !cart.isvalid() ) {
-          std::string mess = "NaifDskTracer::create(" + cart.name() + 
-                            ") is invalid with " + 
-                            std::to_string( cart.configuration().size() ) +
-                            " config options and " +
-                            std::to_string( cart.residual().size() ) +
-                            " residual options";
-          throw std::runtime_error( mess );          
-        }
-
-        ProductConfiguration v_conf = cart.configuration();
-        if ( v_conf.contains( "dsk_segment_index" ) && ( v_conf.contains( "dsk_body_id" ) ) ) {
-          std::string mess = "NaifDskTracer::create(" + cart.name() + 
-                            ") cannot have both dsk_segment_index and dsk_surface_id";
-          throw std::runtime_error( mess );    
-        }
-
-        // Get the dsk file and open it
-        std::string dskfile = v_conf.find("dsk_file").to_string();
-        std::string dskfile_expanded = dskfile;
-        if ( v_conf.metadata().contains( "dsk_file_expanded" ) ) {
-          dskfile_expanded = v_conf.metadata().find("dsk_file_expanded").to_string();
-        }
-        m_model = naif::DskKernelModel( dskfile_expanded );
-        this->set_name( dskfile );
-
-        // Check for segment indexes
-        if ( v_conf.contains( "dsk_segment_index" ) ) {
-          std::vector<int> segnums = OptionIntegersExtractor( v_conf.find( "dsk_segment_index" ) ).get_all();
-          std::vector<naif::DskSegment> segments;
-          for ( const auto &segnum : segnums ) {
-            segments.push_back( m_model.segment( segnum ) );
-          }
-
-          m_model = naif::DskKernelModel( m_model, segments );
-        }
-
-        // Check for surface id requests
-        if ( v_conf.contains( "dsk_surface_id" ) ) {
-          std::vector<int> surfids = OptionIntegersExtractor( v_conf.find( "dsk_surface_id" ) ).get_all();
-          std::vector<naif::DskSegment> segments;
-          for ( const auto &sid : surfids ) {
-            const naif::DskSegment *segment = m_model.get_segment_with_id( sid );
-            if ( nullptr == segment ) {
-              std::string mess = "Cannot find segment with (surface) id " + 
-                                  std::to_string( sid ) + " to create new model";
-              throw std::runtime_error( mess );
-            }
-            segments.push_back( *segment );
-          }
-          m_model = naif::DskKernelModel( m_model, segments );
-        }
-
-          m_config = ProductConfiguration( dskfile );
-          m_config.add( ProductOption( "tracer", "naifdsk" ) );
-          m_config.merge( m_model.config( m_model.segments() ) );
-          m_config.add_metadata( ProductOption( "dsk_file_expanded", dskfile_expanded ) );
-          m_config.add_metadata( ProductOption( "tracer_uid", PsmrtsUID::to_string( this->uid() ) ) );
-
-          return;     
       }
 
       inline double maximum_radius() const {

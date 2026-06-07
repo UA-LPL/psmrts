@@ -19,30 +19,6 @@ find files of those names at the top level of this repository. **/
 
 namespace psmrts {
 
-
-  inline ProductConfiguration create_segment_config( const naif::DskSegment &segment,
-                                                     const std::string &dskfile  ) {
-
-    ProductConfiguration dsk_config ( dskfile );
-    dsk_config.add( ProductOption( "shape", "dsk" ) );
-    dsk_config.add( ProductOption( "dsk_file", dskfile ) );
-    dsk_config.add( ProductOption( "data_type", "double" ) );
-    dsk_config.add_metadata( ProductOption( "dsk_segments", 1 ) );
-    dsk_config.add_metadata( ProductOption( "dsk_segment_number", segment.segment_number() ) );
-    dsk_config.add_metadata( ProductOption( "dsk_segment_id", segment.id() ) );
-    dsk_config.add_metadata( ProductOption( "n_vertices", segment.n_vertices() ) );
-    dsk_config.add_metadata( ProductOption( "n_facets", segment.n_plates() ) );
-    dsk_config.add_metadata( ProductOption( "dsk_reference_id", segment.bodyid() ) );
-    dsk_config.add_metadata( ProductOption( "dsk_body_id", segment.bodyid() ) );
-    dsk_config.add_metadata( ProductOption( "dsk_surface_id", segment.surfaceid() ) );
-    dsk_config.add_metadata( ProductOption( "dsk_frame_id", segment.frameid() ) );
-    dsk_config.add_metadata( ProductOption( "dsk_type", segment.dtype() ) );
-    dsk_config.add_metadata( ProductOption( "dsk_class", segment.dclass() ) );
-    dsk_config.add_metadata( ProductOption( "minimum_radius", segment.minimum_radius() ) );
-    dsk_config.add_metadata( ProductOption( "maximum_radius", segment.maximum_radius() ) );
-    return ( dsk_config );
-  }
-
   DskShape::DskShape( const std::string &dsk_file,
                       const int segnum) : PsmrtsProduct( dsk_file, "dsk") {
 
@@ -56,7 +32,8 @@ namespace psmrts {
     naif::DskKernelModel  model_d( dsk_expanded );
     naif::DskSegment segment_d = model_d.segment( segnum );
 
-    m_config = create_segment_config( segment_d, dsk_file );
+    m_config = model_d.create_segment_config( segment_d, dsk_file );
+    m_config.add( ProductOption( "shape", "dsk" ) );
     m_config.add_metadata( ProductOption( "dsk_file_expanded", dsk_expanded ) );
 
     m_mesh   = PsmrtsMeshData( model_d.load_facet_indexes( &segment_d), 
@@ -66,117 +43,15 @@ namespace psmrts {
 
   DskShape::DskShape( const ProductCart &processed_cart ) :
                       PsmrtsProduct( processed_cart.configuration().name(), "shape", "dsk" ) {
-    this->create( processed_cart );
-  }
 
-  void DskShape::create( const ProductCart &cart ) {
-
-    std::string name_t = cart.configuration().name();
-
-    // Check for valid shape type
-    if (cart.error_count() > 0 ) {
-      std::string mess = "DskShape::create(" + name_t + 
-                         ") has config/spec processing errors: \n" +
-                          cart.errors_to_string();
-      throw std::runtime_error( mess );          
-    }
-
-    ProductConfiguration v_conf = cart.configuration();
-    ProductConfiguration dsk_config( "dsk" );
-
-    if ( v_conf.contains( "shape" ) ) {
-      if ( v_conf.find( "shape" ).to_string() != "dsk" ) {
-        std::string mess = "DskShape::create() - shape type must be \"dsk\""
-                            " but found " + v_conf.find("shape").to_string();
-        throw std::runtime_error( mess );
-      }
-      dsk_config.add( v_conf.find( "shape" ) );
-    }
-
-    std::string dskfile          = name_t;
-    std::string dskfile_expanded = name_t;
-    if ( v_conf.contains( "dsk_file" ) ) {
-      dskfile = v_conf.find( "dsk_file" ).to_string();
-      name_t  = dskfile;
-      dsk_config.add( ProductOption( "dsk_file", dskfile ) );
-
-      if ( v_conf.metadata().contains( "dsk_file_expanded" ) ) {
-        dskfile_expanded =  v_conf.metadata().find( "dsk_file_expanded" ).to_string();
-        dsk_config.add_metadata( ProductOption( "dsk_file_expanded", dskfile_expanded ) );
-      }
-      else {
-        dskfile_expanded = dskfile;
-      }
-    }
-    else {
-      std::string mess = "DskShape - dsk_file not found in config";
-      throw std::runtime_error( mess );
-    }
-
-    // Open the DSK file
-    this->set_name( name_t );
-    naif::DskKernelModel  model_d( dskfile_expanded );
-    int segnum = 0;
-    int dskbodyid = 0;
-    naif::DskSegment segment_d = model_d.segment( 0 );
-
-    // Add DSK file based info to metadata
-    dsk_config.add_metadata( ProductOption( "dsk_segments", model_d.n_dsk_segments() ) );
-    dsk_config.add_metadata( ProductOption( "total_verticies", model_d.n_total_vertices() ) );
-    dsk_config.add_metadata( ProductOption( "total_facets", model_d.n_total_plates() ) );
-
-    // Check for a specific segment request
-    if ( v_conf.contains( "dsk_segment_number" ) ) {
-      ProductOption dsk_seg_num = v_conf.find( "dsk_segment_number" );
-      std::vector<int> v_segnums = OptionIntegersExtractor( dsk_seg_num ).get_all();
-      if ( v_segnums.size() != 1 ) {
-        std::string mess = "DskShape::create() - dsk_segment_number must select "
-                           "one segment number but got" +
-                           std::to_string( v_segnums.size() );
-        throw std::runtime_error( mess );
-      }
-      
-      segnum = v_segnums[0];
-      if ( segnum < 1 || segnum >= model_d.n_dsk_segments() ) {
-        std::string mess = "DskShape::create() - dsk_segment_number (" +
-                           std::to_string(segnum ) + ") is invalid, "
-                           " must be 0 to " + std::to_string( v_segnums.size() - 1 );
-        throw std::runtime_error( mess );        
-      }
-      segment_d = model_d.segment( segnum );
-      dsk_config.add( dsk_seg_num );
-    }
-
-    // Check for a body id request
-    if ( v_conf.contains( "dsk_body_id" ) ) {
-      ProductOption dsk_body_opt = v_conf.find( "dsk_body_id" );
-      std::vector<int> v_bodids = OptionIntegersExtractor( dsk_body_opt ).get_all();
-      if ( v_bodids.size() != 1 ) {
-        std::string mess = "DskShape::create() - dsk_body_id must select "
-                           "one id number but got" +
-                           std::to_string( v_bodids.size() );
-        throw std::runtime_error( mess );
-      }
-      
-      dskbodyid = v_bodids[0];
-      const naif::DskSegment *segment_p = model_d.get_segment_with_id( dskbodyid );
-      if ( !segment_p ) {
-        std::string mess = "DskShape::create() - specified dsk_body_id (" +
-                           std::to_string( dskbodyid ) +") is invalid or does"
-                           " not exist in " + dskfile;      
-        throw std::runtime_error( mess );        
-      }
-      segment_d = *segment_p;
-      dsk_config.add( dsk_body_opt );
-    }
+    naif::DskKernelModel model_d( processed_cart, m_config );
+    m_config.add( ProductOption( "shape", "dsk" ) ); 
+    this->set_name( model_d.name() );
 
     // Load the requested segment and generate the config
+    naif::DskSegment segment_d = model_d.segment();
     m_mesh   =  PsmrtsMeshData( model_d.load_facet_indexes( &segment_d ), 
-                                model_d.load_facet_vectors( &segment_d ) );
-    m_config = create_segment_config( segment_d, dskfile );
-    m_config.merge( dsk_config );
-    m_config.add_metadata( ProductOption( "shape_uid", PsmrtsUID::to_string( this->uid() ) ) );
-
+                                model_d.load_facet_vectors( &segment_d ) );    
   }
 
 
