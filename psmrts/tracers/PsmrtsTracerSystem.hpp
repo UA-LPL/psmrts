@@ -119,6 +119,11 @@ namespace psmrts {
         return ( m_invoice.error_count() );
       }
 
+      inline size_t has_errors() const {
+        return ( m_invoice.error_count() > 0 );
+      }
+
+
       inline std::string error_string( ) const {
         return ( m_invoice.errors_to_string() );
       }
@@ -384,7 +389,7 @@ namespace psmrts {
        *                               tracer created by this method.
        */
       inline PsmrtsPriorityTracer create_priority_tracer( const std::string &name = "" ) {
-        m_tracer_p =  m_invoice.get_priority_tracer( name );
+        m_tracer_p =  m_invoice.make_priority_tracer( name );
 
         // Check to ensure there is a reference ellipsoid for the system on
         // first instance of priority tracer. Users can reset this if desired.
