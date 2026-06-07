@@ -94,8 +94,8 @@ namespace psmrts {
     m_config.merge( shape.config() );
     m_config.add( ProductOption( "tracer", "bullet" ) );
     m_config.add_metadata( ProductOption( "tracer_uid", PsmrtsUID::to_string( this->uid() ) ) );
-    m_config.add_metadata( ProductOption( "bullet_optimize_bvh", m_model->useBuildBvh() ) );
-    m_config.add_metadata( ProductOption( "bullet_compressed",  m_model->useCompression() ) );
+    m_config.add( ProductOption( "bullet_optimize_bvh", m_model->useBuildBvh() ) );
+    m_config.add( ProductOption( "bullet_compressed",  m_model->useCompression() ) );
     m_config.add_metadata( ProductOption( "bullet_thread_safety", m_model->useThreadSafety() ) );
   }
   

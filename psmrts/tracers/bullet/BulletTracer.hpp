@@ -170,6 +170,11 @@ namespace psmrts  {
         return ( true );
       }
 
+      inline bool process( PRQShape &shaper ) const {
+        shaper.set_shape( this->shape() );
+        return ( true );
+      }
+
       /**
        * @brief Bullet Ray Trace Method
        * 
