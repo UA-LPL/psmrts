@@ -234,7 +234,6 @@ namespace psmrts {
 
       inline bool validate_option_default( const ProductOption &option,
                                            PsmrtsRequest &validator ) const {
-
         bool is_good = true;
         const std::string name_t = option.name();
         const std::string alias_name = this->get_alias_feature_name( name_t, name_t );
@@ -250,7 +249,7 @@ namespace psmrts {
             }
 
             // Compare the options
-            if ( ProductOption::StringsComparator::compare( option_a, default_t) == false ) {
+            if ( ProductOption::StringsComparator::compare( option_a,  default_t) == false ) {
               validator.add_error( name_t + " (" + alias_name + ") does not compare with feature default." );
               is_good = false;
             }
@@ -265,7 +264,7 @@ namespace psmrts {
           validator.add_error( name_t + " (" + alias_name + ") feature does not exist in specs." );
           is_good = false;
         }
-
+              
         return ( is_good );
       }
     

@@ -75,7 +75,7 @@ namespace psmrts {
         }
 
         /** Returns the product cart used to construct the product */
-        inline const ProductCart cart() const {
+        inline const ProductCart &cart() const {
           return ( m_cart );
         }
 

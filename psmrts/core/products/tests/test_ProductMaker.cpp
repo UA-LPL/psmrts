@@ -113,6 +113,7 @@ TEST_CASE( "ProductMaker NaifDsk Tracer Test", "[product][maker][tracer][naifdsk
   CHECK( maker_t.process_config( order_t.config, trans_t ) == true );
   CHECK( maker_t.isvalid() == true );
   psmrts::PsmrtsTracer naifdsk_m = maker_t.product();
+
   CHECK( naifdsk_m.isValid() == true );
 }
 
@@ -156,7 +157,6 @@ TEST_CASE( "ProductMaker Ellipsoid Tracer Test", "[product][maker][tracer][ellip
       CHECK( ellipsoid_m.isValid() == true );
     }
   }
-
 }
 
 

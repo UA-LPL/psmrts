@@ -107,5 +107,9 @@ TEST_CASE("Comparator Doubles Test", "[comparators][doubles]") {
 
   psmrts::ProductOption segment_s1( "dsk_segment_index", { 0 } );
   psmrts::ProductOption segment_s2( "default", "0" );
-  CHECK( StringsComparator::compare( segment_s1, segment_s2 )   == true );  
+  CHECK( StringsComparator::compare( segment_s1, segment_s2 )   == true ); 
+  
+  psmrts::ProductOption bool1( "bool1", false );
+  psmrts::ProductOption bool2( "bool2", true );
+  CHECK( StringsComparator::compare( bool1, bool2 )   == false ); 
 }

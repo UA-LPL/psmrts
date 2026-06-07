@@ -4,6 +4,7 @@
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
+#include <psmrts/core/PsmrtsFactory.hpp>
 
 #include <psmrts/tracers/naifdsk/private/NaifUtilities.hpp>
 #include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
@@ -14,6 +15,7 @@
 #include <psmrts/tracers/PsmrtsPriorityTracer.hpp>
 
 TEST_CASE("PsmrtsPriorityTracer Default Test", "[priority][tracer][default]") {
+  psmrts::PsmrtsFactory().liquidate();
 
   psmrts::PsmrtsPriorityTracer test_tracer;
   std::vector<std::string> myString;
@@ -23,10 +25,13 @@ TEST_CASE("PsmrtsPriorityTracer Default Test", "[priority][tracer][default]") {
   
   CHECK( test_tracer.isValid()                == false );
   CHECK( test_tracer.size()                   == 0 );
+  psmrts::PsmrtsFactory().liquidate();
+
 }
 
 // Test Default constructor for DskKernelModel
 TEST_CASE ( "NAIF DSK Priority Tracer Test", "[naif][shape][priority][tracer]") {
+  psmrts::PsmrtsFactory().liquidate();
 
   std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
   
@@ -50,12 +55,14 @@ TEST_CASE ( "NAIF DSK Priority Tracer Test", "[naif][shape][priority][tracer]") 
   Eigen::Vector3d lkdr = surf - obs;
   psmrts::PRQRayTrace ray(obs, lkdr);
   CHECK( p_tracer.process( ray ) == true );
+  psmrts::PsmrtsFactory().liquidate();
 
 }
 
 
 TEST_CASE( "Naif Priority Tracer Default Test", "[priority][tracer][naif]") {
   const double tolerance = 1.0e-6;
+  psmrts::PsmrtsFactory().liquidate();
 
   psmrts::EllipsoidTracer s_ellipse( 1.0, 2.0, 3.0, "small" );
   psmrts::EllipsoidTracer l_ellipse( 10.0, 20.0, 30.0, "large" );
@@ -89,9 +96,14 @@ TEST_CASE( "Naif Priority Tracer Default Test", "[priority][tracer][naif]") {
 
   test_tracers.clear();
   REQUIRE( test_tracers.size() == 0 );
+
+  psmrts::PsmrtsFactory().liquidate();
 }
 
 TEST_CASE( "Priority Tracer Ray Trace Test", "[priority][tracer][dsk][naif]") {
+
+  psmrts::PsmrtsFactory().liquidate();
+
   // Objects added to Tracer
   psmrts::EllipsoidTracer small_ellipsoid( 0.1 ); //Small body radius: 0.1 KM
 
@@ -181,4 +193,5 @@ TEST_CASE( "Priority Tracer Ray Trace Test", "[priority][tracer][dsk][naif]") {
       CHECK( raytrace.isValid() == false);
   }
   
+  psmrts::PsmrtsFactory().liquidate();
 }

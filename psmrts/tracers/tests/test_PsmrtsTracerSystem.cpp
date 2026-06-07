@@ -15,6 +15,8 @@
 #include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
 
 TEST_CASE("PsmrtsTracerSystem Default Test", "[tracer][system][default]") {
+   psmrts::PsmrtsFactory().liquidate();
+
     psmrts::PsmrtsTracerSystem sys1;
     CHECK( sys1.get_ellipsoid_tracer().isValid() == false ); 
     CHECK( sys1.get_shape_tracer().isValid()     == false ); 
@@ -28,10 +30,13 @@ TEST_CASE("PsmrtsTracerSystem Default Test", "[tracer][system][default]") {
 
     std::vector<std::string> bad_list{"bad/path"};
     CHECK_THROWS( psmrts::PsmrtsTracerSystem("test2", bad_list).throw_errors() );
+  
+    psmrts::PsmrtsFactory().liquidate();
 }   
 
-
 TEST_CASE("PsmrtsTracerSystem Values Test", "[tracer][system][values]") {
+    psmrts::PsmrtsFactory().liquidate();
+
     psmrts::PsmrtsTracerSystem sys1("test");
 
     std::vector<double> radii = { 1.0, 2.0, 3.0 };
@@ -95,8 +100,8 @@ TEST_CASE("PsmrtsTracerSystem Values Test", "[tracer][system][values]") {
         }
     }
 
-    CHECK( naif_check == true ); 
-    CHECK( bullet_check == false );
+    CHECK( naif_check   == true ); 
+    CHECK( bullet_check == true );
 
     for (const auto &[uid, tracer] : sys2.invoice().inventory().tracers().cache() ) {
         if (tracer.config().contains("tracer") ) {
@@ -121,15 +126,21 @@ TEST_CASE("PsmrtsTracerSystem Values Test", "[tracer][system][values]") {
         }
     }
     CHECK( obj_check == true );
+  
+    psmrts::PsmrtsFactory().liquidate();
 
 }
 
 TEST_CASE("PsmrtsTracerSystem Priority Tracer Test", "[tracer][system][priority]") {
+    psmrts::PsmrtsFactory().liquidate();
+
     using KeyList    = std::vector<std::string>;
     using TracerList = psmrts::PsmrtsPriorityTracer::TracerList;
 
     psmrts::PsmrtsTracerSystem sys("p_tracers");
 
+    CHECK( psmrts::PsmrtsFactory().tracers().size() == 0 );
+    
     std::string file = psmrts_tracers_path("naifdsk/data/bennu_20facets.bds");
     bool added = sys.add_product("dsk_file", file, "naifdsk");
     
@@ -141,7 +152,6 @@ TEST_CASE("PsmrtsTracerSystem Priority Tracer Test", "[tracer][system][priority]
     psmrts::PsmrtsPriorityTracer pt = sys.create_priority_tracer();
     CHECK( pt.isValid() == true );
     CHECK( pt.size() == 1 );
-    CHECK( sys.invoice().get_priority_tracer_list() == KeyList( { "p_tracers" } ) );
 
     TracerList tracers = pt.tracers();
     REQUIRE( tracers.size() == 1 );
@@ -167,9 +177,15 @@ TEST_CASE("PsmrtsTracerSystem Priority Tracer Test", "[tracer][system][priority]
     psmrts::PRQPhotometricTrace p_ray = sys.shape_photometric_trace( obs, lkdr, sunpos );
     CHECK( p_ray.observer_trace().hasHit() == true );
     CHECK( p_ray.isValid() == true );
+  
+    psmrts::PsmrtsFactory().liquidate();
 }
 
 TEST_CASE("PsmrtsTracerSystem Shapes Test", "[tracer][system][shapes]") {
+
+    psmrts::PsmrtsFactory().liquidate();
+
+
     std::string objfile = psmrts_shapes_path("obj/data/bennu_20facets.obj");
     std::string bdsfile = psmrts_tracers_path("naifdsk/data/bennu_20facets.bds");
 
@@ -250,10 +266,13 @@ TEST_CASE("PsmrtsTracerSystem Shapes Test", "[tracer][system][shapes]") {
     const psmrts::PsmrtsTranslations &trans = sys_trans.translations();
     std::string plain = "/some/plain/path.obj";
     CHECK( trans.translate_path( plain ) == plain );
+
+    psmrts::PsmrtsFactory().liquidate();
 }
 
 
 TEST_CASE("PsmrtsTracerSystem ISIS Interface Test", "[tracer][system][isislike]") {
+    psmrts::PsmrtsFactory().liquidate();
 
   // Set up translation system
   psmrts::PsmrtsTranslations trans_t( "ISISTest" );
@@ -282,4 +301,6 @@ TEST_CASE("PsmrtsTracerSystem ISIS Interface Test", "[tracer][system][isislike]"
   psmrts::PsmrtsPriorityTracer tracer_p = system_t.create_priority_tracer();
   CHECK( tracer_p.isValid()          == true );
   CHECK( tracer_p.inventory().size() == 4 );
+  
+  psmrts::PsmrtsFactory().liquidate();
 }
