@@ -59,22 +59,18 @@ namespace psmrts {
       using UIDType              = PsmrtsProduct::UIDType;
       using ProductSet           = ProductProcessing::ProductSet;
       using ProductOrderList     = PsmrtsContainer<ProductSet>;
-      using PriorityTracerList   = ProductInventory<std::string, UIDType>;
+      using PriorityTracerList   = PsmrtsFactory::PriorityTracerInventory;
 
       PsmrtsInvoice( ) : PsmrtsProduct( "PsmrtsInvoice" ),
                          PsmrtsRequest( "invoice_errors" ),
                          m_orders(  ),
-                         m_processor( ),
-                         m_inventory( "inventory" ),
-                         m_priorities_t( create_case_sensitive_inventory<UIDType>("prioritytracers") ) { }
+                         m_processor( ) { }
       PsmrtsInvoice( const std::string &name,
                      const PsmrtsTranslations &trans = PsmrtsTranslations() ) : 
                      PsmrtsProduct( name ),
                      PsmrtsRequest( "InvoiceErrors" ),                     
                      m_orders( ),
-                     m_processor( trans ),
-                     m_inventory( name ),
-                     m_priorities_t( create_case_sensitive_inventory<UIDType>("prioritytracers") ) { }                        
+                     m_processor( trans ) { }                        
       virtual ~PsmrtsInvoice() { }
   
 
@@ -95,20 +91,7 @@ namespace psmrts {
       }
 
       inline const PsmrtsInventory &inventory() const {
-        return ( m_inventory );
-      }
-
-      inline bool has_priority_tracer( const std::string & name ) const {
-        if ( !m_priorities_t.contains( name) ) return ( false );
-        return ( m_inventory.prioritytracers().contains(m_priorities_t.find( name) ) );
-      }
-      
-      inline PsmrtsPriorityTracer find_priority_tracer( const std::string & name = "" ) {
-        return ( m_inventory.prioritytracers().find( m_priorities_t.find( name) ));
-      }
-
-      inline std::vector<std::string> get_priority_tracer_list() const {
-        return ( m_priorities_t.keys() );
+        return ( this->processor().inventory() );
       }
 
       /**
@@ -137,7 +120,7 @@ namespace psmrts {
         }
 
         // Process the product set
-        if ( !m_processor.process_product_set( product_s, m_inventory ) ) {
+        if ( !m_processor.process_product_set( product_s ) ) {
           std::string mess = "PsmrtsInvoice::process_product() - " + 
                              config.name() +
                               ") product creation errors: " +
@@ -159,6 +142,9 @@ namespace psmrts {
        * least a shape and/or a tracer. It will not be added if the these
        * conditions are not met.
        * 
+       * It is assumed the tracer and/or shape has already been added to the
+       * cache as if processed.
+       * 
        * @param product_set A processed product set containing a valid product
        * @return true  If the product set is valid 
        * @return false If the product set does not contain a valid product
@@ -169,7 +155,7 @@ namespace psmrts {
         if ( !m_processor.has_valid_product( product_set ) ) {
           return ( false );
         }
-        
+
         // Add the valid product
         m_orders.add( product_set );
         return (true );
@@ -199,16 +185,40 @@ namespace psmrts {
        * @return true  If the tracer is valid and the config is validated for use
        * @return false If the tracer was not added to the system
        */
-      inline bool add_tracer( const PsmrtsTracer &tracer,
-                              const bool add_to_priority = true ) {
+      inline bool add_tracer( const PsmrtsTracer &tracer ) {
 
-        bool isgood = tracer.isValid();
         if ( tracer.isValid() ) {
-          m_inventory.tracers().add_product ( tracer );
-          PsmrtsFactory().add_product( tracer );
+
+          ProductConfiguration config_t = tracer.config();
+          m_processor.cache_tracer( tracer );
+
+          // Check for shape
+          PRQShape shaper;
+          if ( tracer.process( shaper ) ) {
+            config_t.merge( shaper.shape().config() );
+            m_processor.cache_shape( shaper.shape() );
+          }
+
+          // Configure tracer
+          ProductSet set_p( config_t );
+          set_p.tracer = ProductOrder( ProductCart( tracer.specs(), 
+                                                    tracer.config() ), 
+                                       this->translations() );
+          set_p.tracer_p.emplace( tracer );
+          set_p.set_tracer_uid( tracer.uid() );
+
+          if (shaper.isValid() ) {
+            set_p.shape = ProductOrder( ProductCart( shaper.shape().specs(), 
+                                                     shaper.shape().config() ), 
+                                        this->translations() );
+            set_p.shape_p.emplace( shaper.shape() );
+            set_p.set_shape_uid( shaper.shape().uid() );              
+          }
+
+          m_orders.add( set_p );
         }
 
-        return ( isgood );
+        return (tracer.isValid() );
       }
 
       /**
@@ -228,8 +238,7 @@ namespace psmrts {
         bool isgood = shape.isValid();
         if ( shape.isValid() ) {
           if ( isgood ){
-            m_inventory.shapes().add_product ( shape );
-            PsmrtsFactory().add_product( shape );
+            m_processor.cache_shape( shape );
           }
         }
 
@@ -245,43 +254,33 @@ namespace psmrts {
        * @brief Get the priority tracer object generated from the product configs
        * 
        * This method will create a priority tracer from the results of the
-       * configs contained in this invoice. Its possible the products have not
-       * been generated yet so the generate_products() method should have been
-       * called prior to calling this routine - it is renentrant.
+       * configs contained in this invoice. It will generate a priority tracer
+       * from the contents of the order ProductSet and can be called any number
+       * of times - even after adding new products.
        * 
-       * If one is not found or products have not been generated yet.
-       * 
-       * @param name 
-       * @return PsmrtsPriorityTracer 
+       * @param name  Name of the priority tracer to create.
+       * @return PsmrtsPriorityTracer A priority tracer from the order set
        */
-      inline PsmrtsPriorityTracer get_priority_tracer( const std::string &name = "" ) {
-
+      inline PsmrtsPriorityTracer make_priority_tracer( const std::string &name = "" ) 
+                                                           const {
         std::string name_t = ( name.length() > 0 ) ? name : this->name();
 
-        // First search the local inventory if one exists
-        if ( this->has_priority_tracer( name_t ) ) {
-          return ( this->find_priority_tracer( name_t )  );
-        }
-
         PsmrtsPriorityTracer tracer_p( name_t );
-        for ( const auto &product : this->orders() ) {
-          if ( product.has_tracer() ) {
-            tracer_p.add_tracer( product.tracer_p.value() );
+
+        for ( const auto &order : this->orders() ) {
+          if ( order.has_tracer() ) {
+            tracer_p.add_tracer( order.tracer_p.value() );
           }
         }
-
-        // Add to inventories and return the current tracer
-        m_inventory.prioritytracers().add_product( tracer_p );
-        m_priorities_t.add( name_t, tracer_p.uid() );
 
         return ( tracer_p );
       }
 
     private:
-      ProductOrderList   m_orders;
-      ProductProcessing  m_processor;
-      PsmrtsInventory    m_inventory;
-      PriorityTracerList m_priorities_t; 
+      ProductOrderList     m_orders;
+      ProductProcessing    m_processor;
+
+
 
   };
 
