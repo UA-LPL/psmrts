@@ -276,7 +276,7 @@ namespace psmrts {
 
       /** Add a value to the cache - overwrites existing data */
       inline size_t add( const PsmrtsInventory &inventory, 
-                       const std::string &cache_name = psmrts_inventory) {
+                         const std::string &cache_name = psmrts_inventory) {
         return ( this->merge( inventory, cache_name ) );
       }
 
@@ -310,6 +310,18 @@ namespace psmrts {
         return ( this->merge( inventory, psmrts_inventory ) );
       }
 
+      /** Create a new inventory if it doesn't exist */
+      inline bool create( const std::string &name_inv ) {
+        if ( name_inv.length() > 0 ) {
+          if ( !this->contains( name_inv ) ) {
+            PsmrtsFactory::inventory().add( name_inv, PsmrtsInventory( name_inv ) );
+          }
+          return ( true );
+        }
+        return ( false );
+      }
+
+
       /** Remove a system inventory from the factory! */
       inline void remove( const std::string &invname ) {
         std::scoped_lock mylocker( m_mutex );
@@ -322,7 +334,7 @@ namespace psmrts {
         PsmrtsFactory::PsmrtsFactory::inventory().clear();
         
         // Be sure to set up the default "psmrts" inventory
-        PsmrtsFactory::PsmrtsFactory::inventory().add( "psmrts", PsmrtsInventory("psmrts") );
+        PsmrtsFactory::PsmrtsFactory::inventory().add( psmrts_inventory, PsmrtsInventory( psmrts_inventory ) );
         return;
       }
 
@@ -338,8 +350,8 @@ namespace psmrts {
       static inline FactoryInventory &inventory()  {
         static FactoryInventory m_inventory;
          std::call_once( psmrts_inventory_init, [&]( ){ 
-            m_inventory = create_case_insensitive_inventory<PsmrtsInventory>( "psmrts" );
-            m_inventory.add( "psmrts", PsmrtsInventory("psmrts") ); 
+            m_inventory = create_case_insensitive_inventory<PsmrtsInventory>( psmrts_inventory );
+            m_inventory.add( psmrts_inventory, PsmrtsInventory( psmrts_inventory ) ); 
           } ); // set up default product inventory cache on first call
 
         return ( m_inventory );

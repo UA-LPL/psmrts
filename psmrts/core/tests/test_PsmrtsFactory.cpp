@@ -21,6 +21,7 @@ TEST_CASE( "PSMRTS Factory System", "[factory][default]") {
   factory.liquidate();
   CHECK( factory.size()               == 1 );
   CHECK( factory.contains( "psmrts" ) == true );
+  psmrts::PsmrtsFactory().liquidate();
 
 }
 
@@ -121,4 +122,6 @@ TEST_CASE( "PSMRTS Factory Docs Example", "[factory][docs][example]") {
    factory1.liquidate();
    CHECK( factory1.size()   == 1 );
    CHECK( factory2.size()   == 1 );
+  psmrts::PsmrtsFactory().liquidate();
+
 }
