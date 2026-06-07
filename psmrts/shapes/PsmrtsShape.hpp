@@ -15,6 +15,7 @@ find files of those names at the top level of this repository. **/
 
 #include <string>
 #include <variant>
+#include <optional>
 
 #include <Eigen/Geometry>
 
@@ -158,6 +159,49 @@ namespace psmrts {
       }
               
   };
+
+  /**
+   * @brief Shape getter PRQ for tracers that have one
+   * 
+   * This class is a PRQ request functor that is intended to return the
+   * PsmrtsShape contained in a PsrmtsTracer. Only tracer variants that have a
+   * shape need implement a process( PRQShape& ) method that will call the
+   * set_shape() method to return the active shape within the tracer.
+   * 
+   */
+  class PRQShape : public PsmrtsRequest {
+    public:
+
+      PRQShape() : PsmrtsRequest( "PRQShape" ),
+                   m_shape( std::nullopt ) { }
+      virtual ~PRQShape() { }
+ 
+      using PsmrtsRequest::name;
+      using PsmrtsRequest::run_count;
+      using PsmrtsRequest::was_invoked;
+      using PsmrtsRequest::error_count;
+      using PsmrtsRequest::errors;
+
+      inline bool isValid() const {
+        return ( m_shape.has_value() );
+      }
+
+      inline void set_shape( const PsmrtsShape &shape ) {
+        m_shape.emplace( shape );
+      }
+
+      inline PsmrtsShape shape() const {
+        if ( m_shape.has_value() ) {
+          return ( m_shape.value() );
+        }
+        // If no shape is present
+        return ( PsmrtsShape() );
+      }
+
+    private:
+      std::optional<PsmrtsShape> m_shape;
+  };
+
 } // namespace psmrts
 
 #endif
