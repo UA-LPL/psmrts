@@ -1805,7 +1805,7 @@ PSMRTS_PriorityTracer *psmrts_generate_priority_tracer( PSMRTS_Invoice *invoice,
     tracer_t = new PSMRTS_PriorityTracer();
   }
 
-  *tracer_t = invoice->get_priority_tracer();
+  *tracer_t = invoice->make_priority_tracer();
 
   return tracer_t;
 }
