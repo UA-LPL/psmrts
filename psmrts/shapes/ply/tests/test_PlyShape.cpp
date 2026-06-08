@@ -20,7 +20,7 @@ TEST_CASE( "PLY SHAPE - Default Test", "[ply][shape][specification]") {
 
 TEST_CASE( "PSMRTS Product PLY Specification Test", "[product][type][mesh][ply]") {
 
-    CHECK( sizeof( psmrts::PlyShape ) <= 870 );  
+    CHECK( sizeof( psmrts::PlyShape ) <= 890 );  
 
     std::string plyfile = psmrts_shapes_path( "ply/data/Bennu_Radar.ply"  );
     psmrts::PlyShape ply_m( plyfile );

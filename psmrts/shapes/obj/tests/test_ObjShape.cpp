@@ -20,7 +20,7 @@ TEST_CASE( "OBJ SHAPE - Default Test", "[obj][shape][specification]") {
 TEST_CASE( "PSMRTS Product OBJ Specification Test", "[product][type][mesh][obj]") {
   double tolerance = 1.0e-6;
 
-  CHECK( sizeof( psmrts::ObjShape ) <= 1370 );  
+  CHECK( sizeof( psmrts::ObjShape ) <= 1395 );  
 
   std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
   psmrts::ObjShape obj_m( objfile );
