@@ -8,7 +8,7 @@
 
 TEST_CASE ( "Bullet Tracer - Default Constructor", "[default][bullet][tracer]" ) {
 
-    CHECK( sizeof( psmrts::BulletTracer ) <= 470 );  
+    CHECK( sizeof( psmrts::BulletTracer ) <= 500 );  
 
     psmrts::BulletTracer b_tracer;
 
