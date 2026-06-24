@@ -132,6 +132,10 @@ namespace psmrts {
         return ( m_invoice.throw_errors() );
       }
 
+      inline void clear_errors( ) {
+        return ( m_invoice.clear_errors() );
+      }
+
       /**
        * @brief Add a product, tracer or shape, to the invoicing system
        * 

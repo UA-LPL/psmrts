@@ -32,6 +32,7 @@ namespace psmrts {
     public:
       using UIDType         = PsmrtsUID::UIDType;
       using TracerList      = std::vector<PsmrtsTracer>;
+      using TracerUIDList   = std::vector<UIDType>;
       using TracerInventory = ProductInventory<UIDType, PsmrtsTracer>;
       using PriorityFunc    = std::function<TracerList(const TracerList &current,
                                                        const TracerInventory &inventory)>;
@@ -60,11 +61,14 @@ namespace psmrts {
         return ( tracers().size() );
       }
 
-      /** Adds a tracer to Priority Tracer list */
+      /** Adds a valid tracer to Priority Tracer list */
       inline void add_tracer( const PsmrtsTracer &tracer ) {
-        m_tracers.push_back( tracer );
-        if ( !m_inventory_t.contains( tracer.uid() ) ) {
-          m_inventory_t.add_product( tracer );
+        if ( PsmrtsUID::is_valid_uid( tracer.uid() ) ) {
+          m_uids_t.push_back( tracer.uid() );
+          m_tracers.push_back( tracer );
+          if ( !m_inventory_t.contains( tracer.uid() ) ) {
+            m_inventory_t.add_product( tracer );
+          }
         }
       }
       
@@ -155,6 +159,11 @@ namespace psmrts {
           }
         }
         return ( ray.isValid() );
+      }
+
+      /** Return list of tracer uids contained in the inventory */
+      inline const TracerUIDList &tracer_uids() const {
+        return ( m_uids_t );
       }
 
       /** Return list of tracers in this object */
@@ -262,10 +271,12 @@ namespace psmrts {
 
       
     private:
+      TracerUIDList   m_uids_t;
       TracerList      m_tracers;
       TracerInventory m_inventory_t;
 
       inline void init( ) {
+        m_uids_t.clear();
         m_tracers.clear();
         m_inventory_t.clear();
       }
