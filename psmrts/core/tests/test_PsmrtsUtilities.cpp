@@ -5,6 +5,7 @@
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 #include <thread>
 #include <chrono>
+#include <cmath>
 
 
 TEST_CASE( "PSMRTS Clock Time Tests", "[utilities][time]" ) {
@@ -169,8 +170,8 @@ TEST_CASE( "PSMRTS Latitudinal to Rectangular Coordinate Conversion Test", "[uti
 
   Eigen::Vector3d llr_d; // lon, lon in degrees; radius in km
 
-  // Generate latitude every 15 degrees from -120 to 120 (if outside -90 - +90, clamped, see above)
-  // Generate longitude every 30 degrees from -360 to 3600
+  // Generate latitude every 15 degrees from -90 to 90 (if outside -90 - +90, clamped, see above)
+  // Generate longitude every 30 degrees from -180 to 180
   // GENERATE will evaluate all 13 (lat) * 13 (lon) = 169 combinations
   auto lat = GENERATE( range( -90.0, 90.1, 15.0 ) );
   auto lon = GENERATE( range( -180.0, 180.1, 30.0 ) );

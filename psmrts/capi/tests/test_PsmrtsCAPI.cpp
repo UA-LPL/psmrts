@@ -2,6 +2,7 @@
 #include <psmrts/capi/psmrts_c.h>
 
 #include <cstring>
+#include <cmath>
 #include <string>
 
 /**
@@ -935,7 +936,7 @@ TEST_CASE ( "PSMRTS C API - Photometric Array", "[capi][c++][photometric][array]
  *                                            psmrts_xyz_to_lonlatrad_d.
  * 
  * Latitude coordinates are generated every 15 deg from -90 to +90.
- * Longitude coordinates are generated every30 deg from -180 to +180.
+ * Longitude coordinates are generated every 30 deg from -180 to +180.
  * Radius is held constant at 1.0.
  * 
  * xyz coordinates are computed via psmrts_lonlatrad_to_xyz_d for every lon, lat, radius combination.
@@ -954,8 +955,8 @@ TEST_CASE( "PSMRTS C API - Latitudinal to Rectangular Coordinate Conversion", "[
   const double tolerance = 1.0e-9;
   PSMRTS_Vector3d llr_d; // lon, lat in degrees; radius in km
 
-  // Generate latitude every 15 degrees from -120 to 120 (if outside -90 - +90, clamped, see above)
-  // Generate longitude every 30 degrees from -360 to 3600
+  // Generate latitude every 15 degrees from -90 to 90 (if outside -90 - +90, clamped, see above)
+  // Generate longitude every 30 degrees from -180 to +180
   // GENERATE will evaluate all 13 (lat) * 13 (lon) = 169 combinations
   auto lat = GENERATE( range( -90.0, 90.1, 15.0 ) );
   auto lon = GENERATE( range( -180.0, 180.1, 30.0 ) );
