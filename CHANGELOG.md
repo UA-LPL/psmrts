@@ -35,6 +35,59 @@ release.
 ## TODO
 - See [TODO](TODO.md)
 
+## [0.7.0] 2026-06-29
+**This PR addresses mainly ISIS support but is generally applicable to a tracing
+  process that includes complex combinations of prioritized shape models and
+  ellipsoid traces to mimic the ISIS ShapeModel system.**
+- Add min/max radius methods to tracers
+- Add utility functions to read file lists from text files
+- PsmrtsInvoice: Add tracer and shape methods to include these products in the
+  tracer system
+- Added new class PsmrtsTracerSystem with tests that provides most all the ISIS
+  support needs
+- Updated documentation for PsmrtsTagSearch
+- Added accessor/convenience methods to PsmrtsFactory
+- Improved product identification/tracking/management techniques
+- Improved consistency across all tracer and shape products
+- Update/improve tests
+- Renamed IsisDataDictionary to IsisDataDirectory to be consistent with ISIS
+  terminology
+-  Add product UIDs to product metadata
+- Updated Bullet tracer to utilize and track UIDs
+- Added flexible constructor mechanism to ProductMaker class
+- Add complete extractor/comparator definitions to ProductOption class
+- Fix product processing and search comparison operations
+- Changed PsmrtsTracerSystem inheritance of PsmrtsInvoice to composition to
+  ensure proper/complete operations on adding tracer configurations.
+- Clean/simplify product management in tracer system enforcing invoice inventory
+  tracking and creating/adding tracers to priority tracer as they are added to
+  the tracer system
+- Do not automatically clear the NAIF kernel pool upon initialization in the
+  iniKernelSystem() method
+- Fix lookdir to normlized unit vector and preservation of ray trace object state
+  in PsmrtsBulletWorldModel
+- Add workflow action to run on any branch, not only when a PR is submitted,
+  using a drop-down menu
+- Address/fix product naming in shapes and tracer classes for consistency
+-  Fix DskShape config issues, update tests
+- Improve searches, use PsmrtsFactory for primary cache in tracer system to
+  reduce system resource overhead, consolidates caching of tracers and shapes
+  into one code source, and minimizes complexity
+- Simplity/limit product caching and scope in PsmrtsInvoice
+- Consolidate NAIF DSK creation, config management in ProductCart file creation
+  and ProductConfiguration with consolidation into DskKernelModel for shapes and
+  tracer
+- Fix configuration management in Bullet tracer
+- Create a PRQ request class, PRQShape, to aid tracer searches
+- Add explicit PsmrtsFactory::create() method for custom inventory management
+- Update tests by adding PsmrtsFactory liquidation calls to ensure subsequest
+  tests won’t encounter lingering products in the system cache
+- Change PsmrtsPriortyTrace to store PsrmtsTracers rather than tracer UID
+  lookups for efficiency
+- Remove PsmrtsTracerModel from system
+- Update version to 0.7.0
+- Update CHANGELOG
+
 ## [0.6.2] 2026-05-14
 - Change ISISDataDictionary to ISISDataDirectory.
 - Update CMakesLists, test files.
