@@ -45,11 +45,6 @@ TEST_CASE( "PsmrtsInvoice Priority Tracer Test 1", "[product][invoice][priorityt
   psmrts::ProductConfiguration ellipsoid_t("ellipsoidmaker0");
   ellipsoid_t.add( psmrts::ProductOption( "tracer", "ellipsoid" ) );
   ellipsoid_t.add( psmrts::ProductOption( "radii", { 0.283065, 0.271215, 0.249720 } ) );
-  // ellipsoid_t.add( psmrts::ProductOption( "tracer", "spheroid" ) );
-  // ellipsoid_t.add( psmrts::ProductOption( "radii", { 0.283065, 0.249720 } ) );  
-  // ellipsoid_t.add( psmrts::ProductOption( "name", "myspheroid" ) );  
-  // ellipsoid_t.add( psmrts::ProductOption( "tracer", "sphere" ) );
-  // ellipsoid_t.add( psmrts::ProductOption( "radii", 0.283065 )  ); 
 
   CHECK( invoice_t.create_product( ellipsoid_t ) == true );
 
@@ -99,15 +94,10 @@ TEST_CASE( "PsmrtsInvoice Priority Tracer Test 1", "[product][invoice][priorityt
   CHECK( invoice_t.processor().has_valid_tracer( set_b3 ) == true );
   CHECK( invoice_t.processor().has_valid_shape( set_b3 ) == true );
 
-  // CHECK( set_b3.tracer.to_json().dump(-1) == "" );
-  // CHECK( set_b3.shape.to_json().dump(-1) == "" );
   CHECK( set_b3.has_tracer() == true );
   CHECK( set_b3.has_shape()  == true );
 
   psmrts::ProductProcessing::ProductSet set_b1 = invoice_t.orders().find("bulletmaker1");
-  // CHECK( set_b1.tracer.to_json().dump(-1) == "" );
-  // CHECK( set_b1.shape.to_json().dump(-1) == "" );
-
   CHECK( invoice_t.create_product( bullet_t3 )  == true );
   CHECK( invoice_t.size()                       == 5);
   CHECK( invoice_t.inventory().tracers().size() == 4 );

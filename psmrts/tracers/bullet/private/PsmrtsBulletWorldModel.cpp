@@ -37,11 +37,12 @@ namespace psmrts::bullet {
         initWorld( );
       }
 
-      /** Construct an array of values */
+      /** Construct a named bullet world */
       PsmrtsBulletWorldModel::PsmrtsBulletWorldModel( const std::string &name ) {
         initWorld( name );
       }
 
+      /** Construct a Bullet world with the given mesh */
       PsmrtsBulletWorldModel::PsmrtsBulletWorldModel( const PsmrtsBulletMeshMap &mesh, 
                                                       const std::string &name,
                                                       const bool useCompression,
@@ -119,13 +120,6 @@ namespace psmrts::bullet {
       /** Returns true if ray trace result contains a hit, directing the trace data into the ray parameter */
       bool PsmrtsBulletWorldModel::extract_ray_trace_results( const PsmrtsBulletClosestRayCallback &results,
                                                                PsmrtsRayTrace &ray ) const {
-
-        // Convert to Eigen vectors and compute the unit lookdir
-        // Eigen::Vector3d observer_v = PsmrtsBulletClosestRayCallback::toStdVector( results.observer() );                                                            
-        // Eigen::Vector3d lookdir_v  = PsmrtsBulletClosestRayCallback::toStdVector( results.lookdir() );
-        // Eigen::Vector3d lookdir_u = ( lookdir_v - observer_v ).normalized();
-
-        // ray.reset( observer_v, lookdir_u );
 
         ray.datum().m_hit = results.hasHit();
         if ( ray.hasHit() ) {
@@ -230,10 +224,12 @@ namespace psmrts::bullet {
       }
 
 
+      /** Return the elapsed time of this object */
       double PsmrtsBulletWorldModel::elapsed_life_time_s() const {
         return ( m_tracker.runtime_s() );
       }
 
+      /** Return the nunmber of tracked ray traces */
       size_t PsmrtsBulletWorldModel::track_count() const {
         return ( m_tracker.count() );
       }

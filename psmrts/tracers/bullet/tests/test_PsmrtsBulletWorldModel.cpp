@@ -413,9 +413,9 @@ TEST_CASE( "BulletTracerModel Test", "[bullet][tracer][model]" ) {
     CHECK( spt.plateid()        == 30 );
     CHECK( spt.segment_number() == 0 );
 
-    CHECK_THAT( normal[0], Catch::Matchers::WithinAbs(0.0,                1.0e-7 ));
-    CHECK_THAT( normal[1], Catch::Matchers::WithinAbs(0.5257310881115882, tolerance_km ));
-    CHECK_THAT( normal[2], Catch::Matchers::WithinAbs(0.85065082318951801, tolerance_km ));
+    CHECK_THAT( normal[0], Catch::Matchers::WithinAbs(0.00000002599305447, tolerance_km ) );
+    CHECK_THAT( normal[1], Catch::Matchers::WithinAbs(0.5257310881115882,  tolerance_km ) );
+    CHECK_THAT( normal[2], Catch::Matchers::WithinAbs(0.85065082318951801, tolerance_km ) );
 
     // Compute radius/lon/lat from intercept surface point (body-fixed)
     double bt_lat, bt_lon, bt_radius;

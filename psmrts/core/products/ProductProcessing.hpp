@@ -61,6 +61,14 @@ namespace psmrts {
       using TracerInventory  = PsmrtsInventory::TracerInventory;      
       using ResidualList     = ProductSpecification::ResidualList;      
 
+    /**
+     * @brief Class to store a composite tracer/shape product config/spec
+     * 
+     * This class is used to contain a full product configuration that is
+     * processed using a tracer and or shape specification. The contents of the
+     * processed configuration and be used to search the PSMRTS inventories to
+     * reusing existing compatible instances of them, or to create new products.
+     */
       class ProductSet { 
         public:
           ProductConfiguration config; 
@@ -103,11 +111,14 @@ namespace psmrts {
           }
       };
 
+      /** Default constructor for product processing */
       ProductProcessing( ) : PsmrtsRequest( "processor" ), 
                              m_translator( ),
                              m_name_inv( PsmrtsFactory::psmrts_inventory ) { 
         this->create_inventory( m_name_inv );
       }
+
+      /** Constructor with customized path translator */
       ProductProcessing( const PsmrtsTranslations &trans ) : 
                          PsmrtsRequest( "processor" ),
                          m_translator( trans ),
@@ -117,19 +128,36 @@ namespace psmrts {
       virtual ~ProductProcessing() = default;
 
 
+      /** Returns the file path translator */
       inline const PsmrtsTranslations &translator() const {
         return ( m_translator );
       }
 
+      /** Sets a new file path translator replacing the existing instance */
       inline void set_translator( const PsmrtsTranslations &trans ) {
          m_translator  = trans;
       }
 
+      /** Translate a file path using the path translator */
       inline std::string translate_path( const std::string &filepath ) const {
         return ( this->translator().translate_path ( filepath ) );
       }
 
 
+      /**
+       * @brief Search a shape inventory that matches the validate product config
+       * 
+       * Applies a search algorithm to find an exising shape product in the
+       * given shape inventory. The parameter config is expected to be a
+       * processed configuration validate with a specific product specification.
+       * 
+       * @param config    Processed/validated product configuration
+       * @param inventory Shape inventory of active shape products
+       * @param shape     An optional parameter that will contain a compatible
+       *                   shape product if found in the search
+       * @return ProductOrder Returns the order that should be checked for
+       *                        errors to determine validity of search
+       */
       inline ProductOrder search_shape_inventory( const ProductConfiguration &config, 
                                                   const ShapeInventory &inventory,
                                                   std::optional<PsmrtsShape> &shape ) 
@@ -147,6 +175,20 @@ namespace psmrts {
         return ( ProductOrder( config, this->translator() ) );
       }
 
+      /**
+       * @brief Search a tracer inventory that matches the validate product config
+       * 
+       * Applies a search algorithm to find an exising tracer product in the
+       * given tracer inventory. The parameter config is expected to be a
+       * processed configuration validate with a specific product specification.
+       * 
+       * @param config    Processed/validated product configuration
+       * @param inventory Tracer inventory of active tracer products
+       * @param tracer    An optional parameter that will contain a compatible
+       *                   tracer product if found in the search
+       * @return ProductOrder Returns the order that should be checked for
+       *                        errors to determine validity of search
+       */
       inline ProductOrder search_tracer_inventory( const ProductConfiguration &config, 
                                                    const TracerInventory &inventory,
                                                    std::optional<PsmrtsTracer> &tracer )
@@ -167,10 +209,10 @@ namespace psmrts {
       /**
        * @brief Search inventory for a product that satisifies the configuration
        * 
-       * @param set_p 
-       * @param inventory 
-       * @return true 
-       * @return false 
+       * @param set_p      Prodoct set containing configurations and specs
+       * @param inventory  PSMRTS inventory to search for products
+       * @return true      If the product set was fully resolved in the search
+       * @return false     If the search failed
        */
       inline bool search_inventory( ProductSet &set_p, 
                                     const PsmrtsInventory &inventory ) 
