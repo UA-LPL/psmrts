@@ -936,7 +936,7 @@ TEST_CASE ( "PSMRTS C API - Photometric Array", "[capi][c++][photometric][array]
  *                                            psmrts_xyz_to_lonlatrad_d.
  * 
  * Latitude coordinates are generated every 15 deg from -90 to +90.
- * Longitude coordinates are generated every 30 deg from -180 to +180.
+ * Longitude coordinates are generated every 30 deg from -360 to +360.
  * Radius is held constant at 1.0.
  * 
  * xyz coordinates are computed via psmrts_lonlatrad_to_xyz_d for every lon, lat, radius combination.
@@ -952,11 +952,11 @@ TEST_CASE ( "PSMRTS C API - Photometric Array", "[capi][c++][photometric][array]
  *       address those conditions in a separate test immediately after this.
  */
 TEST_CASE( "PSMRTS C API - Latitudinal to Rectangular Coordinate Conversion", "[capi][c++][utilities][lat2rect][conversion]" ) {
-  const double tolerance = 1.0e-9;
+  const double tolerance = 1.0e-13;
   PSMRTS_Vector3d llr_d; // lon, lat in degrees; radius in km
 
   // Generate latitude every 15 degrees from -90 to 90
-  // Generate longitude every 30 degrees from -180 to +180
+  // Generate longitude every 30 degrees from -360 to +360
   // GENERATE will evaluate all 13 (lat) * 25 (lon) = 325 combinations
   auto lon = GENERATE( range( -360.0, 360.1, 30.0 ) );
   auto lat = GENERATE( range( -90.0, 90.1, 15.0 ) );
@@ -1017,7 +1017,7 @@ TEST_CASE( "PSMRTS C API - Latitudinal to Rectangular Coordinate Conversion", "[
  *                                            psmrts_xyz_to_lonlatrad_d
  * when the latitude coordinate is outside of the range -90 to +90.
  * 
- * Two coordinates are tested with latitudes of -100 and + 100 degrees.
+ * Two coordinates are tested with latitudes of -100 and +100 degrees.
  * 
  * xyz coordinates are computed via psmrts_lonlatrad_to_xyz_d for each point.
  * Validations are
@@ -1027,7 +1027,7 @@ TEST_CASE( "PSMRTS C API - Latitudinal to Rectangular Coordinate Conversion", "[
  *
  */
 TEST_CASE( "PSMRTS C API - Latitudinal to Rectangular Clamped Coordinate Conversion", "[capi][c++][utilities][lat2rect][clamp][conversion]" ) {
-  const double tolerance = 1.0e-9;
+  const double tolerance = 1.0e-13;
 
   // point with latitude less than -90
   PSMRTS_Vector3d llr_d1; // lon, lat in degrees; radius in km

@@ -149,7 +149,7 @@ TEST_CASE( "PSMRTS Longitude Domain Test - 180 to 360", "[utilities][longitude][
  *                                      psmrt::xyz_to_lonlatrad_d.
  * 
  * Latitude coordinates are generated every 15 deg from -90 to +90.
- * Longitude coordinates are generated every30 deg from -180 to +180.
+ * Longitude coordinates are generated every30 deg from -360 to +360.
  * Radius is held constant at 1.0.
  * 
  * xyz coordinates are computed via psmrts::lonlatrad_to_xyz_d for every lon, lat, radius combination.
@@ -165,12 +165,12 @@ TEST_CASE( "PSMRTS Longitude Domain Test - 180 to 360", "[utilities][longitude][
  *       address those conditions in a separate test immediately after this.
  */
 TEST_CASE( "PSMRTS Latitudinal to Rectangular Coordinate Conversion Test", "[utilities][lat2rect][conversion]") {
-  const double tolerance = 1.0e-9;
+  const double tolerance = 1.0e-13;
 
   Eigen::Vector3d llr_d; // lon, lon in degrees; radius in km
 
   // Generate latitude every 15 degrees from -90 to 90 (if outside -90 - +90, clamped, see above)
-  // Generate longitude every 30 degrees from -180 to 180
+  // Generate longitude every 30 degrees from -360 to 360
   // GENERATE will evaluate all 13 (lat) * 25 (lon) = 325 combinations
   auto lon = GENERATE( range( -360.0, 360.1, 30.0 ) );
   auto lat = GENERATE( range( -90.0, 90.1, 15.0 ) );
@@ -213,10 +213,10 @@ TEST_CASE( "PSMRTS Latitudinal to Rectangular Coordinate Conversion Test", "[uti
 
     // Verify Longitude (accounting for 180/-180 meridian wrap-around)
     // e.g. 180 deg == -180 deg mathematically for spherical orientation
-    double lonDiff = std::fmod( std::abs( llr_out_d[2] - llr_d[2] ), 360.0 );
-    // if ( lonDiff > 180.0 ) {
-    //   lonDiff = 360.0 - lonDiff;
-    // }
+    double lonDiff = std::fmod( std::abs( llr_out_d[0] - llr_d[0] ), 360.0 );
+    if ( lonDiff > 180.0 ) {
+      lonDiff = 360.0 - lonDiff;
+    }
     REQUIRE( lonDiff == Catch::Approx( 0.0 ).margin( tolerance ) );
  }
 }
@@ -240,8 +240,8 @@ TEST_CASE( "PSMRTS Latitudinal to Rectangular Coordinate Conversion Test", "[uti
  *   3) confirm no nan/infinity output
  *
  */
-TEST_CASE( "PSMRTS Latitudinal to Rectangular Clamped Coordinate Conversion", "[capi][c++][utilities][lat2rect][clamp][conversion]" ) {
-  const double tolerance = 1.0e-9;
+TEST_CASE( "PSMRTS Latitudinal to Rectangular Clamped Coordinate Conversion", "[c++][utilities][lat2rect][clamp][conversion]" ) {
+  const double tolerance = 1.0e-13;
 
   // point with latitude less than -90
   Eigen::Vector3d llr_d1; // lon, lat in degrees; radius in km
