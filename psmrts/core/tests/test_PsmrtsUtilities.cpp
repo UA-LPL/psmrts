@@ -4,6 +4,7 @@
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 #include <thread>
+#include <cmath>
 #include <chrono>
 
 TEST_CASE( "PSMRTS Clock Time Tests", "[utilities][time]" ) {

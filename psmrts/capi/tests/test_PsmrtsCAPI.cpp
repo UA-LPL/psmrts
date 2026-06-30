@@ -1,6 +1,7 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 #include <psmrts/capi/psmrts_c.h>
 
+#include <cmath>
 #include <cstring>
 #include <string>
 
