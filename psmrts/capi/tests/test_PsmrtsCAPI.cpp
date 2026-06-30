@@ -955,18 +955,18 @@ TEST_CASE( "PSMRTS C API - Latitudinal to Rectangular Coordinate Conversion", "[
   const double tolerance = 1.0e-9;
   PSMRTS_Vector3d llr_d; // lon, lat in degrees; radius in km
 
-  // Generate latitude every 15 degrees from -90 to 90 (if outside -90 - +90, clamped, see above)
+  // Generate latitude every 15 degrees from -90 to 90
   // Generate longitude every 30 degrees from -180 to +180
-  // GENERATE will evaluate all 13 (lat) * 13 (lon) = 169 combinations
+  // GENERATE will evaluate all 13 (lat) * 25 (lon) = 325 combinations
+  auto lon = GENERATE( range( -360.0, 360.1, 30.0 ) );
   auto lat = GENERATE( range( -90.0, 90.1, 15.0 ) );
-  auto lon = GENERATE( range( -180.0, 180.1, 30.0 ) );
         
   llr_d.longitude = lon;
   llr_d.latitude  = lat;
   llr_d.radius    = 1.0;
 
   SECTION("XYZ coordinates mathematically map correctly") {
-    auto xyz = psmrts_lonlatrad_to_xyz_d( &llr_d );
+    auto xyz = psmrts_lonlatrad_to_xyz_d( &llr_d ); // converts to 360 domain if necessary
 
     // Verify radius squared computed from xyz remains constant at 1
     double R2 = xyz.x * xyz.x + xyz.y * xyz.y + xyz.z * xyz.z;
@@ -975,17 +975,17 @@ TEST_CASE( "PSMRTS C API - Latitudinal to Rectangular Coordinate Conversion", "[
 
     // Verify latitude bounds
     // if latitude is very nearly at the N or S pole, xyz coordinates should be (0, 0, ±R)
-    if ( lat == Catch::Approx( 90.0 ).margin(tolerance) ||
+    if ( lat == Catch::Approx( 90.0 ).margin( tolerance ) ||
          lat == Catch::Approx( -90.0 ).margin( tolerance ) ) {
-      REQUIRE( abs( xyz.x ) < tolerance );
-      REQUIRE( abs( xyz.y ) < tolerance );
-      REQUIRE( abs( abs( xyz.z ) - llr_d.radius ) < tolerance );
+      REQUIRE( std::abs( xyz.x ) < tolerance );
+      REQUIRE( std::abs( xyz.y ) < tolerance );
+      REQUIRE( std::abs( std::abs( xyz.z ) - llr_d.radius ) < tolerance );
     }
 
     // Ensure no nan/infinity output
-    REQUIRE( std::isfinite(xyz.x) );
-    REQUIRE( std::isfinite(xyz.y) );
-    REQUIRE( std::isfinite(xyz.z) );
+    REQUIRE( std::isfinite( xyz.x ) );
+    REQUIRE( std::isfinite( xyz.y ) );
+    REQUIRE( std::isfinite( xyz.z ) );
 
     // convert output xyz back to lon, lat, radius
     // and confirm it's equal to the input lon, lat, radius 
@@ -999,7 +999,7 @@ TEST_CASE( "PSMRTS C API - Latitudinal to Rectangular Coordinate Conversion", "[
 
     // Verify Longitude (accounting for 180/-180 meridian wrap-around)
     // e.g. 180 deg == -180 deg mathematically for spherical orientation
-    double lonDiff = fmod( abs( llr_out_d.longitude - llr_d.longitude ), 360.0 );
+    double lonDiff = std::fmod( std::abs( llr_out_d.longitude - llr_d.longitude ), 360.0 );
     if ( lonDiff > 180.0 ) {
       lonDiff = 360.0 - lonDiff;
     }
@@ -1032,9 +1032,9 @@ TEST_CASE( "PSMRTS C API - Latitudinal to Rectangular Clamped Coordinate Convers
   // point with latitude less than -90
   PSMRTS_Vector3d llr_d1; // lon, lat in degrees; radius in km
         
-  llr_d1.longitude = 45.0;
+  llr_d1.longitude =   45.0;
   llr_d1.latitude  = -100.0;
-  llr_d1.radius    = 1.0;
+  llr_d1.radius    =    1.0;
 
   auto xyz1 = psmrts_lonlatrad_to_xyz_d( &llr_d1 );
 
@@ -1045,40 +1045,40 @@ TEST_CASE( "PSMRTS C API - Latitudinal to Rectangular Clamped Coordinate Convers
 
   // Verify latitude bounds
   // if latitude is very nearly at the N or S pole, xyz coordinates should be (0, 0, ±R)
-  if ( llr_d1.latitude == Catch::Approx( 90.0 ).margin(tolerance) ||
-        llr_d1.latitude == Catch::Approx( -90.0 ).margin( tolerance ) ) {
-    REQUIRE( abs( xyz1.x ) < tolerance );
-    REQUIRE( abs( xyz1.y ) < tolerance );
-    REQUIRE( abs( abs( xyz1.z ) - llr_d1.radius ) < tolerance );
+  if ( llr_d1.latitude == Catch::Approx( 90.0 ).margin( tolerance ) ||
+       llr_d1.latitude == Catch::Approx( -90.0 ).margin( tolerance ) ) {
+    REQUIRE( std::abs( xyz1.x ) < tolerance );
+    REQUIRE( std::abs( xyz1.y ) < tolerance );
+    REQUIRE( std::abs( std::abs( xyz1.z ) - llr_d1.radius ) < tolerance );
   }
 
   // Ensure no nan/infinity output
-  REQUIRE( std::isfinite(xyz1.x) );
-  REQUIRE( std::isfinite(xyz1.y) );
-  REQUIRE( std::isfinite(xyz1.z) );
+  REQUIRE( std::isfinite( xyz1.x ) );
+  REQUIRE( std::isfinite( xyz1.y ) );
+  REQUIRE( std::isfinite( xyz1.z ) );
 
   // point with latitude greater than +90
   PSMRTS_Vector3d llr_d2;
     
-  llr_d2.longitude = 45.0;
+  llr_d2.longitude =  45.0;
   llr_d2.latitude  = 100.0;
-  llr_d2.radius    = 1.0;
+  llr_d2.radius    =   1.0;
 
   auto xyz2 = psmrts_lonlatrad_to_xyz_d( &llr_d2 );
 
   // Verify latitude bounds
   // if latitude is very nearly at the N or S pole, xyz coordinates should be (0, 0, ±R)
-  if ( llr_d2.latitude == Catch::Approx( 90.0 ).margin(tolerance) ||
+  if ( llr_d2.latitude == Catch::Approx( 90.0 ).margin( tolerance ) ||
        llr_d2.latitude == Catch::Approx( -90.0 ).margin( tolerance ) ) {
-    REQUIRE( abs( xyz2.x ) < tolerance );
-    REQUIRE( abs( xyz2.y ) < tolerance );
-    REQUIRE( abs( abs( xyz2.z ) - llr_d2.radius ) < tolerance );
+    REQUIRE( std::abs( xyz2.x ) < tolerance );
+    REQUIRE( std::abs( xyz2.y ) < tolerance );
+    REQUIRE( std::abs( std::abs( xyz2.z ) - llr_d2.radius ) < tolerance );
   }
 
   // Ensure no nan/infinity output
-  REQUIRE( std::isfinite(xyz2.x) );
-  REQUIRE( std::isfinite(xyz2.y) );
-  REQUIRE( std::isfinite(xyz2.z) );
+  REQUIRE( std::isfinite( xyz2.x ) );
+  REQUIRE( std::isfinite( xyz2.y ) );
+  REQUIRE( std::isfinite( xyz2.z ) );
 }
 
 /**
