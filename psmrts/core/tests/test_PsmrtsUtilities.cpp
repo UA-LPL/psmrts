@@ -5,8 +5,6 @@
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 #include <thread>
 #include <chrono>
-#include <cmath>
-
 
 TEST_CASE( "PSMRTS Clock Time Tests", "[utilities][time]" ) {
 
@@ -198,9 +196,9 @@ TEST_CASE( "PSMRTS Latitudinal to Rectangular Coordinate Conversion Test", "[uti
     }
 
     // Ensure no nan/infinity output
-    REQUIRE( isfinite(xyz[0]) );
-    REQUIRE( isfinite(xyz[1]) );
-    REQUIRE( isfinite(xyz[2]) );
+    REQUIRE( std::isfinite(xyz[0]) );
+    REQUIRE( std::isfinite(xyz[1]) );
+    REQUIRE( std::isfinite(xyz[2]) );
 
     // convert output xyz back to lon, lat, radius
     // and confirm it's equal to the input lon, lat, radius 

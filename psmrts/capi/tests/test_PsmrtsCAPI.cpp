@@ -2,7 +2,6 @@
 #include <psmrts/capi/psmrts_c.h>
 
 #include <cstring>
-#include <cmath>
 #include <string>
 
 /**
@@ -983,9 +982,9 @@ TEST_CASE( "PSMRTS C API - Latitudinal to Rectangular Coordinate Conversion", "[
     }
 
     // Ensure no nan/infinity output
-    REQUIRE( isfinite(xyz.x) );
-    REQUIRE( isfinite(xyz.y) );
-    REQUIRE( isfinite(xyz.z) );
+    REQUIRE( std::isfinite(xyz.x) );
+    REQUIRE( std::isfinite(xyz.y) );
+    REQUIRE( std::isfinite(xyz.z) );
 
     // convert output xyz back to lon, lat, radius
     // and confirm it's equal to the input lon, lat, radius 
