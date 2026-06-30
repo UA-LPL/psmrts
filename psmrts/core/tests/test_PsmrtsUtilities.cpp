@@ -267,9 +267,9 @@ TEST_CASE( "PSMRTS Latitudinal to Rectangular Clamped Coordinate Conversion", "[
   }
 
   // Ensure no nan/infinity output
-  REQUIRE( isfinite(xyz1[0]) );
-  REQUIRE( isfinite(xyz1[1]) );
-  REQUIRE( isfinite(xyz1[2]) );
+  REQUIRE( std::isfinite(xyz1[0]) );
+  REQUIRE( std::isfinite(xyz1[1]) );
+  REQUIRE( std::isfinite(xyz1[2]) );
 
   // point with latitude greater than +90
   Eigen::Vector3d llr_d2;
@@ -290,9 +290,9 @@ TEST_CASE( "PSMRTS Latitudinal to Rectangular Clamped Coordinate Conversion", "[
   }
 
   // Ensure no nan/infinity output
-  REQUIRE( isfinite(xyz2[0]) );
-  REQUIRE( isfinite(xyz2[1]) );
-  REQUIRE( isfinite(xyz2[2]) );
+  REQUIRE( std::isfinite(xyz2[0]) );
+  REQUIRE( std::isfinite(xyz2[1]) );
+  REQUIRE( std::isfinite(xyz2[2]) );
 }
 
  /**

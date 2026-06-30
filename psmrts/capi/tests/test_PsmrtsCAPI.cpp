@@ -1053,9 +1053,9 @@ TEST_CASE( "PSMRTS C API - Latitudinal to Rectangular Clamped Coordinate Convers
   }
 
   // Ensure no nan/infinity output
-  REQUIRE( isfinite(xyz1.x) );
-  REQUIRE( isfinite(xyz1.y) );
-  REQUIRE( isfinite(xyz1.z) );
+  REQUIRE( std::isfinite(xyz1.x) );
+  REQUIRE( std::isfinite(xyz1.y) );
+  REQUIRE( std::isfinite(xyz1.z) );
 
   // point with latitude greater than +90
   PSMRTS_Vector3d llr_d2;
@@ -1076,9 +1076,9 @@ TEST_CASE( "PSMRTS C API - Latitudinal to Rectangular Clamped Coordinate Convers
   }
 
   // Ensure no nan/infinity output
-  REQUIRE( isfinite(xyz2.x) );
-  REQUIRE( isfinite(xyz2.y) );
-  REQUIRE( isfinite(xyz2.z) );
+  REQUIRE( std::isfinite(xyz2.x) );
+  REQUIRE( std::isfinite(xyz2.y) );
+  REQUIRE( std::isfinite(xyz2.z) );
 }
 
 /**
