@@ -245,7 +245,7 @@ namespace psmrts {
 
       /** Determines if two surface intercept points are sufficiently near (km) one another */
       inline bool isNear( const PsmrtsRayTrace &other,
-                          const double tolerance_km = 1.0e-3 ) const {
+                          const double tolerance_km = 1.0e-6) const {
         if ( !hasHit() )       { return ( false );  }
         if ( !other.hasHit() ) { return ( false );  }
 

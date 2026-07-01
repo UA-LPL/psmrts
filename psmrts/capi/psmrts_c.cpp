@@ -346,7 +346,7 @@ PSMRTS_Vector3d psmrts_vector3d( const double v1,
                                  const double v2,
                                  const double v3 ) {
 
-  PSMRTS_Vector3d v3d = { v1, v2, v3 };
+  PSMRTS_Vector3d v3d = { { v1, v2, v3 } };
   return ( v3d );
 }
 
@@ -1756,19 +1756,7 @@ PSMRTS_Invoice *psmrts_create_invoice( const char* name,
 PSMRTS_BOOL psmrts_add_config_invoice( PSMRTS_ProductConfiguration *config,
                                        PSMRTS_Invoice *invoice ) {
 
-  return ( invoice->add_product( *config ) );
-}
-
-/**
- * @brief psmrts_generate_products - Generates products from given PSMRTS_Invoice.
- *
- * Generates products from given PSMRTS_Invoice.
- *
- * @param invoice PSMRTS_Invoice*.
- * @return PSMRTS_BOOL.
- */
-PSMRTS_BOOL psmrts_generate_products( PSMRTS_Invoice *invoice ) {
-  return ( invoice->generate_products() );
+  return ( invoice->create_product( *config ) );
 }
 
 /**
@@ -1817,7 +1805,7 @@ PSMRTS_PriorityTracer *psmrts_generate_priority_tracer( PSMRTS_Invoice *invoice,
     tracer_t = new PSMRTS_PriorityTracer();
   }
 
-  *tracer_t = invoice->get_priority_tracer();
+  *tracer_t = invoice->make_priority_tracer();
 
   return tracer_t;
 }

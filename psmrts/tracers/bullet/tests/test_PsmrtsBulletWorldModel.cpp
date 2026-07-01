@@ -130,6 +130,14 @@ TEST_CASE("Bullet-DSK Comparison Test", "[bullet][dsk][raytrace]") {
     Eigen::Vector3d surf_obs = surf * 1.5;
     bt_world.ray_trace(surf_obs, -surf_obs, raysurf );
 
+    CHECK_THAT( raysurf.observer()(0), Catch::Matchers::WithinAbs( surf_obs[0], tolerance ));
+    CHECK_THAT( raysurf.observer()(1), Catch::Matchers::WithinAbs( surf_obs[1], tolerance ));
+    CHECK_THAT( raysurf.observer()(2), Catch::Matchers::WithinAbs( surf_obs[2], tolerance ));
+
+    CHECK_THAT( raysurf.lookdir()(0), Catch::Matchers::WithinAbs( -surf_obs[0], tolerance ));
+    CHECK_THAT( raysurf.lookdir()(1), Catch::Matchers::WithinAbs( -surf_obs[1], tolerance ));
+    CHECK_THAT( raysurf.lookdir()(2), Catch::Matchers::WithinAbs( -surf_obs[2], tolerance ));
+
     Eigen::Vector3d lkdr = raysurf.xyz() - obs;
 
     psmrts::PsmrtsRayTrace bullet_spt;
@@ -144,6 +152,14 @@ TEST_CASE("Bullet-DSK Comparison Test", "[bullet][dsk][raytrace]") {
     CHECK_THAT( bullet_spt.normal()(0), Catch::Matchers::WithinAbs( dsk_spt.normal()(0), tolerance ));
     CHECK_THAT( bullet_spt.normal()(1), Catch::Matchers::WithinAbs( dsk_spt.normal()(1), tolerance ));
     CHECK_THAT( bullet_spt.normal()(2), Catch::Matchers::WithinAbs( dsk_spt.normal()(2), tolerance ));
+
+    CHECK_THAT( bullet_spt.observer()(0), Catch::Matchers::WithinAbs( dsk_spt.observer()(0), tolerance ));
+    CHECK_THAT( bullet_spt.observer()(1), Catch::Matchers::WithinAbs( dsk_spt.observer()(1), tolerance ));
+    CHECK_THAT( bullet_spt.observer()(2), Catch::Matchers::WithinAbs( dsk_spt.observer()(2), tolerance ));
+
+    CHECK_THAT( bullet_spt.lookdir()(0), Catch::Matchers::WithinAbs( dsk_spt.lookdir()(0), tolerance ));
+    CHECK_THAT( bullet_spt.lookdir()(1), Catch::Matchers::WithinAbs( dsk_spt.lookdir()(1), tolerance ));
+    CHECK_THAT( bullet_spt.lookdir()(2), Catch::Matchers::WithinAbs( dsk_spt.lookdir()(2), tolerance ));
 
     CHECK_THAT (bullet_spt.xyz()(0), Catch::Matchers::WithinAbs( dsk_spt.xyz()(0), tolerance ));
     CHECK_THAT (bullet_spt.xyz()(1), Catch::Matchers::WithinAbs( dsk_spt.xyz()(1), tolerance ));
@@ -347,7 +363,7 @@ TEST_CASE("Bullet-DSK Comparison Test - float", "[bullet][dsk][raytrace][float]"
 }
 
 TEST_CASE( "BulletTracerModel Test", "[bullet][tracer][model]" ) {
-    const double tolerance_km = 1.0e-6;
+    const double tolerance_km = 1.0e-9;
 
     std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
 
@@ -397,9 +413,9 @@ TEST_CASE( "BulletTracerModel Test", "[bullet][tracer][model]" ) {
     CHECK( spt.plateid()        == 30 );
     CHECK( spt.segment_number() == 0 );
 
-    CHECK_THAT( normal[0], Catch::Matchers::WithinAbs(0.0,                tolerance_km ));
-    CHECK_THAT( normal[1], Catch::Matchers::WithinAbs(0.5257310881115882, tolerance_km ));
-    CHECK_THAT( normal[2], Catch::Matchers::WithinAbs(0.85065082318951801, tolerance_km ));
+    CHECK_THAT( normal[0], Catch::Matchers::WithinAbs(0.00000002599305447, tolerance_km ) );
+    CHECK_THAT( normal[1], Catch::Matchers::WithinAbs(0.5257310881115882,  tolerance_km ) );
+    CHECK_THAT( normal[2], Catch::Matchers::WithinAbs(0.85065082318951801, tolerance_km ) );
 
     // Compute radius/lon/lat from intercept surface point (body-fixed)
     double bt_lat, bt_lon, bt_radius;

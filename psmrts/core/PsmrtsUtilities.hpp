@@ -20,6 +20,8 @@ find files of those names at the top level of this repository. **/
 #include <atomic>
 #include <algorithm>
 #include <cassert>
+#include <iostream>
+#include <fstream>
 #include <chrono>
 #include <cmath>
 #include <ctime>
@@ -466,8 +468,9 @@ namespace psmrts {
    * 
    * @param s                         An string in the forms detailed above
    * @param t_sep                     Default separator character, ','.
-   * @return std::vector<std::string> Returns a string vector of one or more values, unless provided
-   *                                  an incorrectly formatted string input
+   * @return std::vector<std::string> Returns a string vector of one or more
+   *                                  values, unless provided an incorrectly
+   *                                  formatted string input
    */
   inline std::vector<std::string> string_tokenizer(const std::string &s,
                                                    const std::string &t_sep = ",") {
@@ -593,6 +596,56 @@ namespace psmrts {
       throw std::invalid_argument("Error: Acceptable boolean value not found - " + val );
     }
   }
+
+    /**
+     * @brief Read a file assumed to contain a list of items on each line
+     * 
+     * This function reads a file by line and adds each line to the string
+     * vector. If include_comments == true, then no processing of each line is
+     * performed. Otherwise, any blank line or line that starts with a '#' will
+     * be excluded from the list. And each line will be trimmed of leading and
+     * trailing white space before adding to the vector.
+     * 
+     * @param t_file  File to read
+     * @param files   Output vector of strings containing each line
+     * @param include_comments If true, each line is added to the vector without
+     *                          processing, If false, blank lines and lines
+     *                          beggining with a '#' are ignored and whitespace
+     *                          is removed from each end of the line.
+     * @return size_t Total number of lines added to output vector
+     */
+    inline size_t read_list_file( const std::string &t_file,
+                               std::vector<std::string> &files,
+                               const bool include_comments = false ) {
+      std::ifstream infile(t_file.c_str(), std::ofstream::in);
+      if ( !infile ) {
+        throw std::runtime_error("Cannot open list file for read: " + t_file );
+      }
+
+      // Read the entire contents and append to output string
+      std::string f_line;
+      size_t nread = 0;
+      while ( std::getline( infile, f_line ) ) {
+
+        if ( include_comments ) {
+          files.push_back( f_line );
+          nread ++;
+        }
+        else {
+
+          std::string filename = psmrts_trim( f_line );
+          if ( filename.size() > 0 ) {
+            if ( filename[0] != '#' )  {
+              files.push_back( filename );
+              nread ++;
+            }
+          }
+
+        }
+      }
+
+      return ( nread );
+    }  
 
 /**
  * @brief Mutex wrapper for arbitrary data type
@@ -781,48 +834,6 @@ namespace psmrts {
         }
     };
 
-    /**
-     * @brief Provide a system-wide unique identifer 
-     * 
-     * This class provides a PSRMTS-wide (and beyond) procedure
-     * for acquiring a unique integer based identifier. All
-     * PSMRTS products constructed should have one of these
-     * for caching purposes.
-     * 
-     * Use of PsmrtsUID::UID_Reserved is for products
-     * that are not intended to be cached. However, this is not
-     * directly enforced. If they are cached, then
-     * they will only ever occupy one space in the map 
-     * and promptly be replaced.
-     * 
-     * Inherent use of std::atomic makes this class thread-safe.
-     * 
-     */
-    class PsmrtsUID {
-      public:
-        using UIDType = unsigned long long;
-
-        inline static const  UIDType &null_uid() {
-          return ( UID_Reserved );
-        }
-
-        /** Return a unique ID which should never assumed to be negative */
-        inline static UIDType get_uid() {
-          return ( ++m_uid );  // This reserves ID <= UID_Reserved!
-        }
-
-        /** Checks for a valid ID */
-        inline static bool is_valid_uid( const UIDType uid ) {
-          return ( uid > null_uid() );
-        }
-
-      private:
-        PsmrtsUID()  = default;
-        ~PsmrtsUID() = default;
-
-        inline static const UIDType UID_Reserved{0};
-        inline static std::atomic<UIDType> m_uid{UID_Reserved};
-    };
 
 } // namespace psmrts
 

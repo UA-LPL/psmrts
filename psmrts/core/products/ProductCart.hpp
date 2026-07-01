@@ -43,7 +43,7 @@ namespace psmrts {
    * shape that contains its own individaul options passed on in an additional
    * configuration for parsing by a PsmrtsShape product.
    * 
-   * This is merely a convenient container. Processingof its contents is
+   * This is merely a convenient container. Processing of its contents is
    * performed by other classes. It does standardize/expedite constructing and
    * comparing PSRMTS products.
    * 
@@ -107,10 +107,16 @@ namespace psmrts {
                 ( m_config.size() >  0 ) && 
                 ( m_specs.size() > 0 ) &&
                 ( this->residual_size() == 0 ) );
-      }
+      }      
 
       inline size_t size() const {
         return ( m_config.size() );
+      }
+
+     inline bool isempty() const {
+        return ( ( m_config.size() ==   0 ) && 
+                 ( m_specs.size() ==  0 ) &&
+                 ( this->residual_size() == 0 ) );
       }
 
       /** The product name such as "obj", "bullet" as defined in the specs */
@@ -127,8 +133,9 @@ namespace psmrts {
         return ( m_residual.size() );
       }
 
-      inline void set_configuration( const ProductConfiguration &config = ProductConfiguration( "none" ) ) {
+      inline ProductCart &set_configuration( const ProductConfiguration &config = ProductConfiguration( "none" ) ) {
         m_config = config;
+        return ( *this );
       }
 
       inline const ProductConfiguration &configuration() const {
@@ -147,8 +154,9 @@ namespace psmrts {
         m_config.add_metadata( option );
       }
 
-      inline void set_specification( const ProductSpecification &specs = ProductSpecification() ) {
+      inline ProductCart &set_specification( const ProductSpecification &specs = ProductSpecification() ) {
         m_specs = specs;
+        return ( *this );
       }
 
       inline const ProductSpecification &specification() const {
@@ -163,6 +171,10 @@ namespace psmrts {
         m_residual.add( option );
       }
 
+      inline void clear_residuals() {
+        m_residual.clear();
+      }
+
       inline ProductConfiguration residual_config( ) const {
         return ( ProductConfiguration( m_config.name(), m_residual ) );
       }
@@ -175,20 +187,22 @@ namespace psmrts {
         return ( order_j );
       }
 
-      inline void set_tracer_uid( const UIDType uid_t ) {
+      inline ProductCart &set_tracer_uid( const UIDType uid_t ) {
         m_tracer_uid = uid_t;
+        return ( *this );
       }
 
       inline UIDType get_tracer_uid( ) const {
         return ( m_tracer_uid );
       }
       
-      inline void set_shape_uid( const UIDType uid_t ) {
+      inline ProductCart &set_shape_uid( const UIDType uid_t ) {
         m_shape_uid = uid_t;
+        return ( *this );
       }
       
       inline UIDType get_shape_uid( ) const {
-        return ( m_tracer_uid );
+        return ( m_shape_uid );
       }      
 
     private:

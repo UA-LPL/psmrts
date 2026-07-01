@@ -30,7 +30,13 @@ namespace psmrts {
   namespace traits_v = psmrts::algorithm::variants;
 
   /** 
-   * @brief PSMRTS product order 
+   * @brief PSMRTS product maker class that creates all products 
+   * 
+   * This class provides support of all product variant types. It can extract
+   * all the class variant specifications for a particular product class. These
+   * specifications are used to verify user-based configurations and create a
+   * variant from the configuration. This variant class is then instantiated
+   * within the product and retained in this object for subsequent use.
    * 
    * @author Kris J. Becker, University of Arizona
    * @history 2026-01-31 Kris J. Becker  Original Version
@@ -52,20 +58,24 @@ namespace psmrts {
                       m_product( std::nullopt ) { }                        
         virtual ~ProductMaker() { }
     
+        /** Determine validity of the maker (a constructed product exists) */
         inline bool isvalid() const {
-          return ( m_product.has_value() );
+          return ( ( this->error_count() == 0 ) && m_product.has_value() );
         }
 
+        /** Returns the specfication of the constructed product */
         inline const ProductSpecsList &specifications() const {
           return ( m_specs );
         }
 
+        /** Returns the constructed product if valid otherwise a default product */
         inline Product product() const {
           if ( this->isvalid() ) return ( m_product.value() );
           return ( Product() );  // This returns an non-value variant
         }
 
-        inline const ProductCart cart() const {
+        /** Returns the product cart used to construct the product */
+        inline const ProductCart &cart() const {
           return ( m_cart );
         }
 
@@ -119,9 +129,15 @@ namespace psmrts {
               m_cart = ProductCart::extract_config( conf, s );
 
               if ( m_cart.isvalid() ) { 
-                m_specs.add( s );
-                m_product.emplace( Product( V( m_cart )) );
-                return;
+                try {
+                  m_product.emplace( Product( V( m_cart )) );
+                  m_specs.add( s );
+                  return;                
+
+                }
+                catch ( const std::runtime_error &re ) {
+                  this->add_error( re );
+                }
               }
             }
           } );
@@ -129,6 +145,100 @@ namespace psmrts {
           return ( m_product.has_value() );
         }
 
+        /**
+         * @brief Process a product cart containing a product configuration
+         * 
+         * This method uses contents of a product cart to create a new product.
+         * The cart contains a specifcation and a configuration that has been
+         * preprocessed to be compatible with the product specification. 
+         * 
+         * This method searches the available variants for the compatible
+         * config/specs and calls the cart constructor to create the product.
+         * 
+         * This method does not search any inventory for a compatible product.
+         * This should be done prior to calling the maker.
+         * 
+         * @param cart    The config/spec data used to construct the product
+         * @return true   If the product was successfully created
+         * @return false  If the product could not nbe created
+         */
+        inline bool process_cart( const ProductCart &cart ) {
+
+          m_specs.clear();
+          m_product.reset();
+          m_cart = cart;      
+
+          auto v_indexes = traits_v::indexing_tuple<std::variant_size_v<Variants>>;
+          traits_v::tuple_foreach( v_indexes, [&](auto I) { // Compile time index of variant
+            if ( m_product.has_value() ) return;  // Check if product has been created
+
+            using V = std::variant_alternative_t<I, Variants>;
+            ProductSpecification s = V().product_specifications();  // Should be able to get w/o instantiation!
+            if ( s.name() == cart.specification().name() ) {
+              try {
+                m_product.emplace( Product( V( m_cart )) );
+                m_specs.add( s );
+                return;
+              }
+              catch ( const std::runtime_error &re ) {
+                this->add_error( re );
+              }
+            }
+          } );           
+          
+          return ( m_product.has_value() );
+        }
+
+
+        /**
+         * @brief Create a new product with a cart and one additional argument
+         * 
+         * This method is specialized to create a new product using a product
+         * cart and an additional argument. It is designed specifically for
+         * tracer variants that require a shape argument but may be useful for
+         * other products as well.
+         * 
+         * The cart must contain a specific specification that is present in the
+         * class template Product parameter. It searches through all the
+         * variants to find the variant of the same name and then determines if
+         * the variant has the approipriate Shape type. Shape can be anything
+         * but this method is typically useful to construct a Bullet tracer with
+         * a Shape = PsmrtsShape.
+         * 
+         * @tparam Shape Template type used as an additional argumemt in a constructor
+         * @param cart   Product cart containing a config and specification
+         *                 associated with a variant specification. It is
+         *                 assumed to have a compatible constructor for the arguments.
+         * @param shape  The Shape type argument passed into the variant constructor
+         * @return true  If the product is successfully constructed
+         * @return false If the product could not be constructed
+         */
+        template <typename Shape> 
+          inline bool process_cart( const ProductCart &cart,
+                                    const Shape &shape ) {
+          m_specs.clear();
+          m_product.reset();
+          m_cart = cart;           
+          auto v_indexes = traits_v::indexing_tuple<std::variant_size_v<Variants>>;
+          traits_v::tuple_foreach( v_indexes, [&](auto I) { // Compile time index of variant
+            if ( m_product.has_value() ) return;  // Check if product has been created
+            using V = std::variant_alternative_t<I, Variants>;
+            ProductSpecification s = V().product_specifications();  // Should be able to get w/o instantiation!
+            if ( s.name() == cart.specification().name() ) {
+              try {
+                m_product.emplace( Product( traits_v::construct_compatible_product<V>( m_cart, shape ) ) );
+                m_specs.add( s );
+                return;
+              }
+              catch ( const std::runtime_error &re ) {
+                this->add_error( re );
+                this->add_error( "PsmrtsMaker::process_cart( cart, Args...) cannot be created for " + s.name() );
+              }
+            }
+          } );           
+          
+          return ( m_product.has_value() );
+        }
 
       private:
         ProductCart            m_cart;

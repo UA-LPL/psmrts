@@ -22,6 +22,7 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/PsmrtsJson.hpp>
 #include <psmrts/core/PsmrtsContainer.hpp>
+#include <psmrts/core/products/ProductOption.hpp>
 #include <psmrts/core/PsmrtsTranslations.hpp>
 #include <psmrts/core/products/ProductConfiguration.hpp>
 #include <psmrts/core/products/ProductFeature.hpp>
@@ -81,51 +82,62 @@ namespace psmrts {
                                      m_creator( std::nullopt ) { }         
       virtual ~ProductSpecification() = default;
 
-
+      /** Returns the name of the product specification */
       inline const std::string &name() const {
         return ( m_name );
       }
-
+      
+      /** Returns the name of the product */
       inline const std::string &product() const {
         return ( m_product );
       }
 
+      /** Returns the number of feature options in this spec */
       inline size_t size() const {
         return ( m_features.size() );
       }
 
+      /** Returns the product information section */
       inline const ProductInfo &info() const {
         return ( m_info );
       }
 
+      /** Returns the list if product features in this spec */
       inline const ProductFeatures &features() const {
         return ( m_features );
       }
 
+      /** Returns the infomation key names in this spec */
       inline std::vector<std::string> info_keys() const {
         return ( m_info.keys() );
       }
 
+      /** Returns a list of all feature names in this spec */
       inline std::vector<std::string> feature_names() const {
         return ( m_features.keys() );
       }
 
+      /** Adds a option to the info section of the spec */
       inline void add_info( const ProductOption &option ) {
         m_info.replace( option );
       }
 
+      /** Adds a product feature option */
       inline void add_feature( const ProductFeature &feature ) {
         m_features.replace( feature );
       }
 
+      /** Checks for the existance of a feature by name */
       inline bool contains( const std::string &name ) const {
         return ( m_features.contains( name ) );
       }
 
+      /** Finds/returns an existing feature option by name */
       inline const ProductFeature &find( const std::string &name ) const {
         return ( m_features.find( name ) );
       }      
 
+      /** Returns the set of required feature names in this spec */
       inline std::vector<std::string> required() const {
         std::vector<std::string> keys;
         for ( const auto &f : this->features() ) {
@@ -134,6 +146,7 @@ namespace psmrts {
         return ( keys );
       }
 
+      /** Returns the set of dependency options in this spec */
       inline std::vector<std::string> dependency() const {
         std::vector<std::string> keys;
         for ( const auto &f : this->features() ) {
@@ -142,6 +155,7 @@ namespace psmrts {
         return ( keys );
       }
 
+      /** Returns the set of optional feature names in this spec */
       inline std::vector<std::string> optional() const {
         std::vector<std::string> keys;
         for ( const auto &f : this->features() ) {
@@ -162,17 +176,33 @@ namespace psmrts {
        * alias name.
        * 
        * @param name         name of potential alias key
+       * @param default_a    Default to return if aliases do not exist
        * @return std::string If an alias name exits, the real name of the
        *                       feature is returned. If no alias exists, an empty
        *                       string is returned.
        */
-      inline std::string get_alias_feature_name( const std::string &name ) const {
+      inline std::string get_alias_feature_name( const std::string &name,
+                                                 const std::string &default_a = "" ) const {
         for ( const auto &f : this->features() ) {
           if ( f.isa_alias( name ) ) return ( f.name() );
         }
-        return ( "" );        
+        return ( default_a );        
       }
 
+      /**
+       * @brief Find an aliased option for the given feature
+       * 
+       * This method will search through a product configuration for the first
+       * alias names in the feature given. If the config contains an option with
+       * a feature name, the name of the option is returned.
+       * 
+       * @param feature   Feature containing aliases to search for
+       * @param config    Product configuration that may contain a feature alias
+       *                    product option
+       * @return std::string Returns the name of the first feature alias name
+       *                      found in the config or a empty string if one is
+       *                      not found
+       */
       inline std::string find_feature_option_name( const ProductFeature &feature,
                                                    const ProductConfiguration &config ) 
                                                    const {
@@ -209,6 +239,19 @@ namespace psmrts {
         return ( j );
       }
 
+      /**
+       * @brief Check the feature for a valid option
+       * 
+       * Searches the "valid" specification data and compares it with the given
+       * option. 
+       * 
+       * @param option    Option value to check against feature valid list
+       * @param feature   Feature to check valid list in option value
+       * @param validator Error logger to report invalid conditions
+       * @return true     True if the option value is valid or the feature does
+       *                   not contain a valid key in its spec 
+       * @return false    If the option value is not valid in the feature
+       */
       inline bool valid_option_with_feature( const ProductOption &option,
                                              const ProductFeature &feature,
                                              PsmrtsRequest &validator ) const {
@@ -229,19 +272,83 @@ namespace psmrts {
         return ( is_good );
       }
 
+      /**
+       * @brief Determines if the option contains a valid option
+       * 
+       * Search through all product specifications feature names that may match
+       * the option name or an alias and validate its value.
+       * 
+       * @param option    Option to validate
+       * @param validator Error logger
+       * @return true     True if this spec contains a feature option that is
+       *                    validated against the option value. 
+       * @return false    False if the spec does not contain the option name or
+       *                    alias or the values in the option are invalid. 
+       */
+      inline bool validate_option_default( const ProductOption &option,
+                                           PsmrtsRequest &validator ) const {
+        bool is_good = true;
+        const std::string name_t = option.name();
+        const std::string alias_name = this->get_alias_feature_name( name_t, name_t );
 
+        ProductOption option_a( alias_name, option );
+        if ( this->contains( alias_name ) ) {
+          const ProductFeature &feature_t = this->find( alias_name );
+          if ( feature_t.contains( "default" ) ) {
+            const ProductOption &default_t = feature_t.find( "default" );
+            if ( default_t.size() != option_a.size() ) {
+              validator.add_error( name_t + " (" + alias_name + ") feature default not same size in specs." );
+              is_good = false;
+            }
+
+            // Compare the options
+            if ( ProductOption::StringsComparator::compare( option_a,  default_t) == false ) {
+              validator.add_error( name_t + " (" + alias_name + ") does not compare with feature default." );
+              is_good = false;
+            }
+
+          }
+          else {
+            validator.add_error( name_t + " (" + alias_name + ") feature default does not exist in specs." );
+            is_good = false;
+          }
+        }
+        else { 
+          validator.add_error( name_t + " (" + alias_name + ") feature does not exist in specs." );
+          is_good = false;
+        }
+              
+        return ( is_good );
+      }
+      
+      /**
+       * @brief Compares/extracts/validates a configuration with this spec
+       * 
+       * Given a product configuration, the contents of it are compared with
+       * this specification for valid content and values with expanding if
+       * applicable (e.g., file names).
+       * 
+       * Residuals returned indicating the option is not part of the spec and is
+       * likely invalid within the provided config. 
+       * 
+       * @param config    Product configuration to compare with this spec
+       * @param residuals A list if residual options that are not in this spec
+       * @param validator Error logger for this operation
+       * @return ProductConfiguration Valid/translated product config extracted
+       *          from the parameter config and content of this spec 
+       */
       inline ProductConfiguration extract( const ProductConfiguration &config,
                                            ResidualList &residuals, 
                                            PsmrtsRequest &validator ) const {
-
         ProductConfiguration config_t( this->name() );
         std::vector<std::string> required_list;   
 
         for ( const auto &option : config.options() ) {
-          std::string f_name = this->get_alias_feature_name( option.name() ); 
+          std::string option_name_t = option.name();
+          std::string f_name = this->get_alias_feature_name( option_name_t ); 
 
-          if ( this->contains( option.name() ) || this->contains( f_name ) ) {
-            if ( f_name.length() == 0 ) f_name = option.name();
+          if ( this->contains( option_name_t ) || this->contains( f_name ) ) {
+            if ( f_name.length() == 0 ) f_name = option_name_t;
 
             const ProductFeature &feature = this->find( f_name );
             if ( feature.is_required() ) required_list.push_back( f_name );
@@ -253,8 +360,8 @@ namespace psmrts {
               ProductOption option_t( f_name, option );  
               config_t.add( option_t );
               this->valid_option_with_feature( option_t, feature, validator );          
-              if ( config.metadata().contains( f_name+"_expanded" ) ) {
-                config_t.add_metadata( config.metadata().find( f_name+"_expanded" ) );
+              if ( config.metadata().contains( option_name_t+"_expanded" ) ) {
+                config_t.add( ProductOption( f_name, config.metadata().find( option_name_t+"_expanded" ) ) );
               }
             }
           }
@@ -276,10 +383,10 @@ namespace psmrts {
         return ( config_t );
       }
 
+      /** Adds a generic constructor that may be used to create the product */
       inline void add_creator( const Creator &creator ) {
         m_creator = creator;
       }
-
       
     private:
       std::string     m_name;

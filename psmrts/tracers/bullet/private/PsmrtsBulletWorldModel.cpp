@@ -37,11 +37,12 @@ namespace psmrts::bullet {
         initWorld( );
       }
 
-      /** Construct an array of values */
+      /** Construct a named bullet world */
       PsmrtsBulletWorldModel::PsmrtsBulletWorldModel( const std::string &name ) {
         initWorld( name );
       }
 
+      /** Construct a Bullet world with the given mesh */
       PsmrtsBulletWorldModel::PsmrtsBulletWorldModel( const PsmrtsBulletMeshMap &mesh, 
                                                       const std::string &name,
                                                       const bool useCompression,
@@ -120,15 +121,14 @@ namespace psmrts::bullet {
       bool PsmrtsBulletWorldModel::extract_ray_trace_results( const PsmrtsBulletClosestRayCallback &results,
                                                                PsmrtsRayTrace &ray ) const {
 
-        ray.reset( PsmrtsBulletClosestRayCallback::toStdVector( results.observer() ),
-                   PsmrtsBulletClosestRayCallback::toStdVector( results.lookdir()  ) );
-
         ray.datum().m_hit = results.hasHit();
-        ray.datum().m_xyz = PsmrtsBulletClosestRayCallback::toStdVector( results.xyz() );
-        ray.datum().m_normal = PsmrtsBulletClosestRayCallback::toStdVector( results.normal() );
+        if ( ray.hasHit() ) {
+          ray.datum().m_xyz = PsmrtsBulletClosestRayCallback::toStdVector( results.xyz() );
+          ray.datum().m_normal = PsmrtsBulletClosestRayCallback::toStdVector( results.normal() );
 
-        ray.datum().m_plateid = results.triangleIndex();
-        ray.datum().m_segment = results.partId();
+          ray.datum().m_plateid = results.triangleIndex();
+          ray.datum().m_segment = results.partId();
+        }
 
         return ( ray.hasHit() );
       }
@@ -224,10 +224,12 @@ namespace psmrts::bullet {
       }
 
 
+      /** Return the elapsed time of this object */
       double PsmrtsBulletWorldModel::elapsed_life_time_s() const {
         return ( m_tracker.runtime_s() );
       }
 
+      /** Return the nunmber of tracked ray traces */
       size_t PsmrtsBulletWorldModel::track_count() const {
         return ( m_tracker.count() );
       }

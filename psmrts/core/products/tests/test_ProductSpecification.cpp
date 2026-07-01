@@ -100,14 +100,13 @@ TEST_CASE( "ProductSpecification Configuration Test", "[product][specification][
   psmrts::PsmrtsShape shape_d( dskfile );
   psmrts::ProductSpecification specs_d  = shape_d.specs();
   psmrts::ProductConfiguration config_d = shape_d.config();
-  psmrts::ProductCart cart_d( specs_d, config_d );
+  CHECK( config_d.size() == 2 );
 
-  CHECK( config_d.size() == 3 );
+  psmrts::ProductCart cart_d( specs_d, config_d );
   psmrts::ProductOrder order_d = process_t.process_cart( cart_d );
   CHECK( order_d.isvalid()          == true );
   CHECK( order_d.error_count()      == 0 );
   CHECK( order_d.errors_to_string() == "" );
-  CHECK( order_d.config().size()    == 4 );
+  CHECK( order_d.config().size()    == 2 );
   CHECK( order_d.residual().size()  == 0 );
-  // CHECK( order_d.to_json() == "" );
 }

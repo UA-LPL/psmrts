@@ -12,7 +12,7 @@
 
 TEST_CASE("PsmrtsShape Default Test", "[shape][default]") {
 
-    CHECK( sizeof( psmrts::PsmrtsShape) <= 1390 );
+    CHECK( sizeof( psmrts::PsmrtsShape) <= 1565 );
 
     psmrts::PsmrtsShape test_shape;
     CHECK( test_shape.isValid()         == false );

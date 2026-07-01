@@ -33,16 +33,15 @@ namespace psmrts {
         using ProductInfo     = ProductSpecification::ProductInfo;
         using ProductFeatures = ProductSpecification::ProductFeatures; 
 
-        MeshShape() : PsmrtsProduct( "mesh", "mesh"),
+        MeshShape() : PsmrtsProduct( "mesh", "shape", "mesh"),
                       m_mesh( ), m_config( init_mesh( "mesh") )  { }
         MeshShape( const PsmrtsMeshData &mesh, 
                    const std::string &name = "mesh") : 
-                   PsmrtsProduct( name, "mesh" ),
+                   PsmrtsProduct( name, "shape", "mesh" ),
                    m_mesh( mesh ),
                    m_config( mesh.config() ) { }
-        MeshShape( const ProductCart &processed_cart ) {
-          this->set_name( processed_cart.name() );
-          this->set_type( "mesh" );          
+        MeshShape( const ProductCart &processed_cart ) :
+                   PsmrtsProduct( processed_cart.name(), "shape", "mesh" ) {
           this->create( processed_cart );
         }                      
         virtual ~MeshShape() = default;
@@ -123,9 +122,11 @@ namespace psmrts {
 
         inline void create( const ProductCart &cart ) {
 
+            std::string name_t = cart.configuration().name();
+
             // Check for valid shape type
             if (cart.error_count() > 0 ) {
-              std::string mess = "MeshShape::create(" + cart.name() + 
+              std::string mess = "MeshShape::create(" + name_t + 
                                 ") has config/spec processing errors: \n" +
                                   cart.errors_to_string();
               throw std::runtime_error( mess );          
@@ -133,7 +134,7 @@ namespace psmrts {
 
             ProductConfiguration v_conf = cart.configuration();
             if (cart.error_count() > 0 ) {
-              std::string mess = "MeshShape::create(" + cart.name() + ") has errors: " +
+              std::string mess = "MeshShape::create(" + name_t + ") has errors: " +
                                   cart.errors_to_string();
               throw std::runtime_error( mess );          
             }
@@ -158,6 +159,8 @@ namespace psmrts {
             else {
               m_mesh = PsmrtsMeshData( PsmrtsVector3i(), PsmrtsVector3d()  );
             }
+
+            m_config.add_metadata( ProductOption( "shape_uid", PsmrtsUID::to_string( this->uid() ) ) );
 
             return;
           }          

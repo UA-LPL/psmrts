@@ -16,29 +16,31 @@ find files of those names at the top level of this repository. **/
 #include "PsmrtsPLYFormat.hpp"
 
 namespace psmrts {
-  PlyShape::PlyShape( const std::string &ply_file ) : PsmrtsProduct( ply_file, "ply"){
+  PlyShape::PlyShape( const std::string &ply_file ) : 
+                      PsmrtsProduct( ply_file, "shape", "ply") {
     PsmrtsPLYFormat m_model( ply_file );
     m_config = m_model.get_metadata(); // check if can rename to config
     m_mesh = m_model.get_mesh();
   }
 
-  PlyShape::PlyShape( const ProductCart &processed_cart ) {
-    this->set_name( processed_cart.name() );
-    this->set_type( "ply" );
+  PlyShape::PlyShape( const ProductCart &processed_cart ) :
+                      PsmrtsProduct( processed_cart.configuration().name(), "shape", "ply" ) {
     this->create( processed_cart );
   }     
   
   void PlyShape::create( const ProductCart &cart ) {
 
+    std::string name_t = cart.configuration().name();
+
     // Check for valid shape type
     if (cart.error_count() > 0 ) {
-      std::string mess = "PlyShape::create(" + cart.name() + 
+      std::string mess = "PlyShape::create(" + name_t + 
                          ") has config/spec processing errors: \n" +
                           cart.errors_to_string();
       throw std::runtime_error( mess );          
     }
     if (cart.error_count() > 0 ) {
-      std::string mess = "PlyShape::create(" + cart.name() + ") has errors: " +
+      std::string mess = "PlyShape::create(" + name_t + ") has errors: " +
                           cart.errors_to_string();
       throw std::runtime_error( mess );          
     }
@@ -52,17 +54,21 @@ namespace psmrts {
       }
     }
 
-    std::string plyfile;
+    std::string plyfile          = name_t;
+    std::string plyfile_extended = name_t;
     // Check for obj_file
     if ( m_config.contains( "ply_file" ) ) {
       plyfile  = m_config.find( "ply_file" ).to_string();
+      name_t = plyfile;
       if ( m_config.metadata().contains( "ply_file_expanded" ) ) {
-        plyfile =  m_config.metadata().find( "ply_file_expanded" ).to_string();
+        plyfile_extended =  m_config.metadata().find( "ply_file_expanded" ).to_string();
       }
     }
     else {
       std::string mess = "PlyShape - ply_file not found in config";
     }
+
+    this->set_name( name_t );
 
     // Load the PLY file
     PsmrtsPLYFormat model_p( plyfile );
@@ -75,7 +81,9 @@ namespace psmrts {
       m_mesh = PsmrtsMeshData( model_p.get_indexes(), model_p.get_double_vectors() );
     }
 
-    m_config = model_p.get_metadata();
+    m_config.merge( model_p.get_metadata() );
+    m_config.add_metadata( ProductOption( "shape_uid", PsmrtsUID::to_string( this->uid() ) ) );
+
   }
 
 

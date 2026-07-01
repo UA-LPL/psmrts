@@ -4,6 +4,7 @@ target_sources( psmrts PUBLIC
                            TYPE HEADERS
                            FILES  PsmrtsTracer.hpp
                                   PsmrtsPriorityTracer.hpp
+                                  PsmrtsTracerSystem.hpp
               )
 
 add_subdirectory( bullet )

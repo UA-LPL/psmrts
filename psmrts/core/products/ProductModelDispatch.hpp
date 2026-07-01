@@ -10,8 +10,8 @@ find files of those names at the top level of this repository. **/
  
 /* SPDX-License-Identifier: CC0-1.0 */
 
-#ifndef ProductProcessDispatch_hpp
-#define ProductProcessDispatch_hpp
+#ifndef ProductModelDispatch_hpp
+#define ProductModelDispatch_hpp
 
 #include <exception>
 #include <variant>
@@ -26,36 +26,20 @@ namespace psmrts {
 
 
   template <typename... Ts>
-    class ProductProcessDispatch {
+    class ProductModelDispatch {
       public:
-        using ProductType = std::variant<Ts...>;
+        using Model = std::variant<Ts...>;
 
-        ProductProcessDispatch( )         = default;
-        ProductProcessDispatch( const ProductType &product ) : m_product( product ) {  }
-        virtual ~ProductProcessDispatch() = default;
+        ProductModelDispatch( )         = default;
+        ProductModelDispatch( const Model &model ) : m_model( model ) {  }
+        virtual ~ProductModelDispatch() = default;
 
-        /** Returns the name of the product */
-        inline const std::string &name() const {
-          auto get_product_name = []( auto &product ) -> const std::string& {
-            return ( product.name() );
+        /** Returns the product info of the model */
+        inline const PsmrtsProduct &product() const {
+          auto get_product_info = []( auto &model ) -> const PsmrtsProduct& {
+            return ( model.product() );
           };
-          return ( std::visit( get_product_name, m_product ) );
-        }
-
-        /** Returns the type of the product */
-        inline const std::string &type() const {
-          auto get_product_type = []( auto &product ) -> const std::string& {
-            return ( product.type() );
-          };
-          return ( std::visit( get_product_type, m_product ) );
-        }
-
-        /** Return the product id for the variant */
-        inline const PsmrtsUID::UIDType &uid() const {
-          auto get_product_uid = []( auto &product ) -> const PsmrtsUID::UIDType& {
-            return ( product.uid() );
-          };
-          return ( std::visit( get_product_uid, m_product ) );
+          return ( std::visit( get_product_info, m_model ) );
         }
 
         /**
@@ -97,12 +81,12 @@ namespace psmrts {
           bool process( PRQ &request ) const {
 
             /** lambda to run the trace with proper tracking */
-            auto dispatch_process = [] ( const auto &product, auto &request ) -> bool {
+            auto dispatch_model = [] ( const auto &model, auto &request ) -> bool {
               bool status = false;
               try {
                 request.reset();  // Resets the timer to this moment
                 request.process_running();   // Hits the counter, logs entry        
-                status = product.process( request ); // Execute
+                status = model.process( request ); // Execute
                 request.process_complete( status );  // No thrown errors
               }
               catch ( const std::exception &e ) {
@@ -119,12 +103,21 @@ namespace psmrts {
               return ( status );
             };
 
-            // Dispatch the process method to the ProductType
-            return ( std::visit( [&] ( auto &&product ) -> bool { return ( dispatch_process( product, request ) ); }, m_product ) );
+            // Dispatch the process method to the modelType
+            return ( std::visit( [&] ( auto &&model ) -> bool { return ( dispatch_model( model, request ) ); }, this->model() ) );
           }
 
       protected:
-        ProductType  m_product;
+        Model  m_model;
+
+        inline const Model &model() const {
+          return ( m_model );
+        }
+
+        inline void set_model( const Model &model ) {
+          m_model = model;
+        }
+
 
     };
 

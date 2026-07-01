@@ -3,7 +3,7 @@ target_sources( psmrts PUBLIC
                          FILE_SET psmrts_headers 
                            TYPE HEADERS 
                            FILES  AllOptionConversions.hpp
-                                  IsisDataDirectory.hpp
+                                  ISISDataDirectory.hpp
                                   PsmrtsBuffer.hpp
                                   PsmrtsBufferData.hpp
                                   PsmrtsCache.hpp
@@ -18,6 +18,7 @@ target_sources( psmrts PUBLIC
                                   PsmrtsRequest.hpp
                                   PsmrtsStridingBuffer.hpp
                                   PsmrtsTranslations.hpp
+                                  PsmrtsUID.hpp
                                   PsmrtsUtilities.hpp
                                   PsmrtsVector3.hpp
                                   psmrts_version.h )

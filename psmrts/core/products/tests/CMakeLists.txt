@@ -11,8 +11,9 @@ add_executable( products_test_suite  products_catch2_main.cpp
                                   test_ProductInventory.cpp
                                   test_ProductOption.cpp
                                   test_ProductOrder.cpp
+                                  test_ProductProcessing.cpp
                                   test_ProductMaker.cpp
-                                  test_ProductProcessDispatch.cpp
+                                  test_ProductModelDispatch.cpp
                                   test_ProductSpecification.cpp
                                   test_ProductVoidVariant.cpp
                                   test_PRQProduct.cpp )

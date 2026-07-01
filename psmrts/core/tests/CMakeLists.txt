@@ -5,7 +5,7 @@ find_package( Catch2 CONFIG REQUIRED )
 
 # Build all-in-one renderer test application
 add_executable( psmrts_test_suite psmrts_catch2_main.cpp
-                                  test_IsisDataDirectory.cpp
+                                  test_ISISDataDirectory.cpp
                                   test_PsmrtsBuffer.cpp
                                   test_PsmrtsBufferData.cpp
                                   test_PsmrtsCache.cpp
@@ -21,8 +21,8 @@ add_executable( psmrts_test_suite psmrts_catch2_main.cpp
                                   test_PsmrtsRequest.cpp
                                   test_PsmrtsStridingBuffer.cpp
                                   test_PsmrtsTagSearch.cpp
-                                  test_PsmrtsTracerModel.cpp
                                   test_PsmrtsTranslations.cpp
+                                  test_PsmrtsUID.cpp
                                   test_PsmrtsUtilities.cpp
                                   test_PsmrtsVector3.cpp )
 

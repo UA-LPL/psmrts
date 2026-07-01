@@ -33,7 +33,7 @@ namespace psmrts {
       using ProductInfo     = ProductSpecification::ProductInfo;
       using ProductFeatures = ProductSpecification::ProductFeatures;
                 
-      PlyShape() : PsmrtsProduct( "none", "ply"), 
+      PlyShape() : PsmrtsProduct( "none", "shape", "ply"), 
                   m_mesh(),
                   m_config( "ply" ) { }
       PlyShape( const std::string &ply_file );

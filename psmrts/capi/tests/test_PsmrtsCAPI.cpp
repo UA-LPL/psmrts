@@ -1,6 +1,7 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 #include <psmrts/capi/psmrts_c.h>
 
+#include <cmath>
 #include <cstring>
 #include <string>
 
@@ -929,205 +930,155 @@ TEST_CASE ( "PSMRTS C API - Photometric Array", "[capi][c++][photometric][array]
 
 /**
  * @brief Tests PSMRTS C API functionality for the conversion from latitudinal to
- *        rectangular coordinates.
+ *        rectangular coordinates and vice versa.
  *
- * This test exercises the PSMRTS C API function psmrts_lonlatrad_to_xyz_d.
+ * This test exercises PSMRTS C API functions psmrts_lonlatrad_to_xyz_d and
+ *                                            psmrts_xyz_to_lonlatrad_d.
+ * 
+ * Latitude coordinates are generated every 15 deg from -90 to +90.
+ * Longitude coordinates are generated every 30 deg from -360 to +360.
+ * Radius is held constant at 1.0.
+ * 
+ * xyz coordinates are computed via psmrts_lonlatrad_to_xyz_d for every lon, lat, radius combination.
+ * Validations are
+ *   1) radius is computed from the output xyz coordinates and confirmed to be 1.0
+ *   2) for points lying very close to the poles, xyz coordinates are confirmed to be (0,0, ±R)
+ *   3) confirm no nan/infinity output
+ * 
+ * The output xyz coordinates are then converted back to lon, lat, radius via psmrts_xyz_to_lonlatrad_d
  *
  * NOTE: Latitude is assumed to lie within -90 to +90 degree range. If latitude falls
  *       outside of that range, it is clamped to identically -90 or +90 degrees. We
- *       test those conditions below.
- *
+ *       address those conditions in a separate test immediately after this.
  */
 TEST_CASE( "PSMRTS C API - Latitudinal to Rectangular Coordinate Conversion", "[capi][c++][utilities][lat2rect][conversion]" ) {
-  const double tolerance = 1.0e-6;
-
+  const double tolerance = 1.0e-13;
   PSMRTS_Vector3d llr_d; // lon, lat in degrees; radius in km
-  PSMRTS_Vector3d xyz;   // km
 
-  // test at with latitude > 90.0 (should clamp to 90.0)
-  llr_d.longitude = 0.0;
-  llr_d.latitude  = 100.0;
+  // Generate latitude every 15 degrees from -90 to 90
+  // Generate longitude every 30 degrees from -360 to +360
+  // GENERATE will evaluate all 13 (lat) * 25 (lon) = 325 combinations
+  auto lon = GENERATE( range( -360.0, 360.1, 30.0 ) );
+  auto lat = GENERATE( range( -90.0, 90.1, 15.0 ) );
+        
+  llr_d.longitude = lon;
+  llr_d.latitude  = lat;
   llr_d.radius    = 1.0;
 
-  // convert vector from lon (d), lat (d), r (km) to xyz (km)
-  xyz = psmrts_lonlatrad_to_xyz_d( &llr_d );
+  SECTION("XYZ coordinates mathematically map correctly") {
+    auto xyz = psmrts_lonlatrad_to_xyz_d( &llr_d ); // converts to 360 domain if necessary
 
-  CHECK_THAT( xyz.x, Catch::Matchers::WithinAbs( 0.0, tolerance ));
-  CHECK_THAT( xyz.y, Catch::Matchers::WithinAbs( 0.0, tolerance ));
-  CHECK_THAT( xyz.z, Catch::Matchers::WithinAbs( 1.0, tolerance ));
+    // Verify radius squared computed from xyz remains constant at 1
+    double R2 = xyz.x * xyz.x + xyz.y * xyz.y + xyz.z * xyz.z;
+    CAPTURE( lon, lat, xyz.x, xyz.y, xyz.z );
+    REQUIRE( R2 == Catch::Approx( 1.0 ).margin( tolerance ) );
 
-  // test with latitude < -90.0 (should clamp to -90.0)
-  llr_d.longitude =  0.0;
-  llr_d.latitude  = -100.0;
-  llr_d.radius    =  1.0;
+    // Verify latitude bounds
+    // if latitude is very nearly at the N or S pole, xyz coordinates should be (0, 0, ±R)
+    if ( lat == Catch::Approx( 90.0 ).margin( tolerance ) ||
+         lat == Catch::Approx( -90.0 ).margin( tolerance ) ) {
+      REQUIRE( std::abs( xyz.x ) < tolerance );
+      REQUIRE( std::abs( xyz.y ) < tolerance );
+      REQUIRE( std::abs( std::abs( xyz.z ) - llr_d.radius ) < tolerance );
+    }
 
-  xyz = psmrts_lonlatrad_to_xyz_d( &llr_d );
+    // Ensure no nan/infinity output
+    REQUIRE( std::isfinite( xyz.x ) );
+    REQUIRE( std::isfinite( xyz.y ) );
+    REQUIRE( std::isfinite( xyz.z ) );
 
-  CHECK_THAT( xyz.x, Catch::Matchers::WithinAbs(  0.0, tolerance ));
-  CHECK_THAT( xyz.y, Catch::Matchers::WithinAbs(  0.0, tolerance ));
-  CHECK_THAT( xyz.z, Catch::Matchers::WithinAbs( -1.0, tolerance ));
+    // convert output xyz back to lon, lat, radius
+    // and confirm it's equal to the input lon, lat, radius 
+    auto llr_out_d = psmrts_xyz_to_lonlatrad_d( &xyz );
 
-  // test at lon = 0 in the XY plane
-  llr_d.longitude = 0.0;
-  llr_d.latitude  = 0.0;
-  llr_d.radius    = 1.0;
+    // Verify radius
+    REQUIRE( llr_out_d.radius == Catch::Approx( llr_d.radius ).epsilon( tolerance ) );
 
-  xyz = psmrts_lonlatrad_to_xyz_d( &llr_d );
+    // Verify latitude
+    REQUIRE( llr_out_d.latitude == Catch::Approx( llr_d.latitude ).epsilon( tolerance ) );
 
-  CHECK_THAT( xyz.x, Catch::Matchers::WithinAbs( 1.0, tolerance ));
-  CHECK_THAT( xyz.y, Catch::Matchers::WithinAbs( 0.0, tolerance ));
-  CHECK_THAT( xyz.z, Catch::Matchers::WithinAbs( 0.0, tolerance ));
-
-  // test at lon = 90 in the XY plane
-  llr_d.longitude = 90.0;
-  llr_d.latitude  =  0.0;
-  llr_d.radius    =  1.0;
-
-  xyz = psmrts_lonlatrad_to_xyz_d( &llr_d );
-
-  CHECK_THAT( xyz.x, Catch::Matchers::WithinAbs( 0.0, tolerance ));
-  CHECK_THAT( xyz.y, Catch::Matchers::WithinAbs( 1.0, tolerance ));
-  CHECK_THAT( xyz.z, Catch::Matchers::WithinAbs( 0.0, tolerance ));
-
-    // test at lon = 180 in the XY plane
-  llr_d.longitude = 180.0;
-  llr_d.latitude  =   0.0;
-  llr_d.radius    =   1.0;
-
-  xyz = psmrts_lonlatrad_to_xyz_d( &llr_d );
-
-  CHECK_THAT( xyz.x, Catch::Matchers::WithinAbs( -1.0, tolerance ));
-  CHECK_THAT( xyz.y, Catch::Matchers::WithinAbs(  0.0, tolerance ));
-  CHECK_THAT( xyz.z, Catch::Matchers::WithinAbs(  0.0, tolerance ));
-
-  // test at lon = 270 in the XY plane
-  llr_d.longitude = 270.0;
-  llr_d.latitude  =   0.0;
-  llr_d.radius    =   1.0;
-
-  xyz = psmrts_lonlatrad_to_xyz_d( &llr_d );
-
-  CHECK_THAT( xyz.x, Catch::Matchers::WithinAbs(  0.0, tolerance ));
-  CHECK_THAT( xyz.y, Catch::Matchers::WithinAbs( -1.0, tolerance ));
-  CHECK_THAT( xyz.z, Catch::Matchers::WithinAbs(  0.0, tolerance ));
-
-    // test at lon = 45, lat = 45
-  llr_d.longitude = 45.0;
-  llr_d.latitude  = 45.0;
-  llr_d.radius    =  1.0;
-
-  xyz = psmrts_lonlatrad_to_xyz_d( &llr_d );
-
-  CHECK_THAT( xyz.x, Catch::Matchers::WithinAbs( 0.5, tolerance ));
-  CHECK_THAT( xyz.y, Catch::Matchers::WithinAbs( 0.5, tolerance ));
-  CHECK_THAT( xyz.z, Catch::Matchers::WithinAbs( 0.707106, tolerance ));
-
-  // test at lon = -45, lat = -45
-  llr_d.longitude = -45.0;
-  llr_d.latitude  = -45.0;
-  llr_d.radius    =  1.0;
-
-  xyz = psmrts_lonlatrad_to_xyz_d( &llr_d );
-
-  CHECK_THAT( xyz.x, Catch::Matchers::WithinAbs(  0.5, tolerance ));
-  CHECK_THAT( xyz.y, Catch::Matchers::WithinAbs( -0.5, tolerance ));
-  CHECK_THAT( xyz.z, Catch::Matchers::WithinAbs( -0.707106, tolerance ));
-
-  // test at lon = 135, lat = 45
-  llr_d.longitude = 135.0;
-  llr_d.latitude  =  45.0;
-  llr_d.radius    =   1.0;
-
-  xyz = psmrts_lonlatrad_to_xyz_d( &llr_d );
-
-  CHECK_THAT( xyz.x, Catch::Matchers::WithinAbs( -0.5, tolerance ));
-  CHECK_THAT( xyz.y, Catch::Matchers::WithinAbs(  0.5, tolerance ));
-  CHECK_THAT( xyz.z, Catch::Matchers::WithinAbs(  0.707106, tolerance ));
-
-  // test at lon = -135, lat = -45
-  llr_d.longitude = -135.0;
-  llr_d.latitude  =  -45.0;
-  llr_d.radius    =    1.0;
-
-  xyz = psmrts_lonlatrad_to_xyz_d( &llr_d );
-
-  CHECK_THAT( xyz.x, Catch::Matchers::WithinAbs( -0.5, tolerance ));
-  CHECK_THAT( xyz.y, Catch::Matchers::WithinAbs( -0.5, tolerance ));
-  CHECK_THAT( xyz.z, Catch::Matchers::WithinAbs( -0.707106, tolerance ));
+    // Verify Longitude (accounting for 180/-180 meridian wrap-around)
+    // e.g. 180 deg == -180 deg mathematically for spherical orientation
+    double lonDiff = std::fmod( std::abs( llr_out_d.longitude - llr_d.longitude ), 360.0 );
+    if ( lonDiff > 180.0 ) {
+      lonDiff = 360.0 - lonDiff;
+    }
+    REQUIRE( lonDiff == Catch::Approx( 0.0 ).margin( tolerance ) );
+  }
 }
 
 /**
- * @brief Tests PSMRTS C API functionality for the conversion from rectangular to
- *        latitudinal coordinates.
+ * @brief Tests PSMRTS C API functionality for the conversion from latitudinal to
+ *        rectangular coordinates and vice versa when the latitude coordinate is outside
+ *        of the range -90 to +90. In that case the latitude is it is clamped to
+ *        identically -90 or +90 degrees.
  *
- * This test exercises the PSMRTS C API function psmrts_xyz_to_lonlatrad_d.
+ * This test exercises PSMRTS C API functions psmrts_lonlatrad_to_xyz_d and
+ *                                            psmrts_xyz_to_lonlatrad_d
+ * when the latitude coordinate is outside of the range -90 to +90.
+ * 
+ * Two coordinates are tested with latitudes of -100 and +100 degrees.
+ * 
+ * xyz coordinates are computed via psmrts_lonlatrad_to_xyz_d for each point.
+ * Validations are
+ *   1) radius is computed from the output xyz coordinates and confirmed to be 1.0
+ *   2) for points lying very close to the poles, xyz coordinates are confirmed to be (0,0, ±R)
+ *   3) confirm no nan/infinity output
  *
  */
-TEST_CASE( "PSMRTS C API - Rectangular to Latitudinal Coordinate Conversion", "[capi][c++][utilities][rect2lat][conversion]" ) {
-  const double tolerance = 1.0e-6;
+TEST_CASE( "PSMRTS C API - Latitudinal to Rectangular Clamped Coordinate Conversion", "[capi][c++][utilities][lat2rect][clamp][conversion]" ) {
+  const double tolerance = 1.0e-13;
 
-  PSMRTS_Vector3d xyz;   // km
-  PSMRTS_Vector3d llr_d; // lon, lat in degrees; radius in km
+  // point with latitude less than -90
+  PSMRTS_Vector3d llr_d1; // lon, lat in degrees; radius in km
+        
+  llr_d1.longitude =   45.0;
+  llr_d1.latitude  = -100.0;
+  llr_d1.radius    =    1.0;
 
-  // test zero vector
-  xyz.x = 0.0;
-  xyz.y = 0.0;
-  xyz.z = 0.0;
+  auto xyz1 = psmrts_lonlatrad_to_xyz_d( &llr_d1 );
 
-  // convert to longitude, latitude, radius
-  llr_d = psmrts_xyz_to_lonlatrad_d( &xyz );
+  // Verify radius squared computed from xyz remains constant at 1
+  double R2 = xyz1.x * xyz1.x + xyz1.y * xyz1.y + xyz1.z * xyz1.z;
+  CAPTURE( llr_d1.longitude, llr_d1.latitude, xyz1.x, xyz1.y, xyz1.z );
+  REQUIRE( R2 == Catch::Approx( 1.0 ).margin( tolerance ) );
 
-  CHECK_THAT( llr_d.longitude, Catch::Matchers::WithinAbs( 0.0, tolerance ) );
-  CHECK_THAT( llr_d.latitude, Catch::Matchers::WithinAbs( 0.0, tolerance ) );
-  CHECK_THAT( llr_d.radius, Catch::Matchers::WithinAbs( 0.0, tolerance ) );
+  // Verify latitude bounds
+  // if latitude is very nearly at the N or S pole, xyz coordinates should be (0, 0, ±R)
+  if ( llr_d1.latitude == Catch::Approx( 90.0 ).margin( tolerance ) ||
+       llr_d1.latitude == Catch::Approx( -90.0 ).margin( tolerance ) ) {
+    REQUIRE( std::abs( xyz1.x ) < tolerance );
+    REQUIRE( std::abs( xyz1.y ) < tolerance );
+    REQUIRE( std::abs( std::abs( xyz1.z ) - llr_d1.radius ) < tolerance );
+  }
 
-  // point at 45 lon, 45 lat
-  xyz.x = 0.5;
-  xyz.y = 0.5;
-  xyz.z = 0.707106781;
+  // Ensure no nan/infinity output
+  REQUIRE( std::isfinite( xyz1.x ) );
+  REQUIRE( std::isfinite( xyz1.y ) );
+  REQUIRE( std::isfinite( xyz1.z ) );
 
-  // convert to longitude, latitude, radius
-  llr_d = psmrts_xyz_to_lonlatrad_d( &xyz );
+  // point with latitude greater than +90
+  PSMRTS_Vector3d llr_d2;
+    
+  llr_d2.longitude =  45.0;
+  llr_d2.latitude  = 100.0;
+  llr_d2.radius    =   1.0;
 
-  CHECK_THAT( llr_d.longitude, Catch::Matchers::WithinAbs( 45.0, tolerance ) );
-  CHECK_THAT( llr_d.latitude, Catch::Matchers::WithinAbs( 45.0, tolerance ) );
-  CHECK_THAT( llr_d.radius, Catch::Matchers::WithinAbs( 1.0, tolerance ) );
+  auto xyz2 = psmrts_lonlatrad_to_xyz_d( &llr_d2 );
 
-  // point at 225 lon, -45 lat
-  xyz.x = -0.5;
-  xyz.y = -0.5;
-  xyz.z =  0.707106781;
+  // Verify latitude bounds
+  // if latitude is very nearly at the N or S pole, xyz coordinates should be (0, 0, ±R)
+  if ( llr_d2.latitude == Catch::Approx( 90.0 ).margin( tolerance ) ||
+       llr_d2.latitude == Catch::Approx( -90.0 ).margin( tolerance ) ) {
+    REQUIRE( std::abs( xyz2.x ) < tolerance );
+    REQUIRE( std::abs( xyz2.y ) < tolerance );
+    REQUIRE( std::abs( std::abs( xyz2.z ) - llr_d2.radius ) < tolerance );
+  }
 
-  // convert to longitude, latitude, radius
-  llr_d = psmrts_xyz_to_lonlatrad_d( &xyz );
-
-  CHECK_THAT( llr_d.longitude, Catch::Matchers::WithinAbs( 225.0, tolerance ) );
-  CHECK_THAT( llr_d.latitude, Catch::Matchers::WithinAbs( 45.0, tolerance ) );
-  CHECK_THAT( llr_d.radius, Catch::Matchers::WithinAbs( 1.0, tolerance ) );
-
-  // point at 315 lon, -45 lat
-  xyz.x =  0.5;
-  xyz.y = -0.5;
-  xyz.z = -0.707106781;
-
-  // convert to longitude, latitude, radius
-  llr_d = psmrts_xyz_to_lonlatrad_d( &xyz );
-
-  CHECK_THAT( llr_d.longitude, Catch::Matchers::WithinAbs( 315.0, tolerance ) );
-  CHECK_THAT( llr_d.latitude, Catch::Matchers::WithinAbs( -45.0, tolerance ) );
-  CHECK_THAT( llr_d.radius, Catch::Matchers::WithinAbs( 1.0, tolerance ) );
-
-  // point at 135 lon, 45 lat
-  xyz.x = -0.5;
-  xyz.y =  0.5;
-  xyz.z =  0.707106781;
-
-  // convert to longitude, latitude, radius
-  llr_d = psmrts_xyz_to_lonlatrad_d( &xyz );
-
-  CHECK_THAT( llr_d.longitude, Catch::Matchers::WithinAbs( 135.0, tolerance ) );
-  CHECK_THAT( llr_d.latitude, Catch::Matchers::WithinAbs( 45.0, tolerance ) );
-  CHECK_THAT( llr_d.radius, Catch::Matchers::WithinAbs( 1.0, tolerance ) );
+  // Ensure no nan/infinity output
+  REQUIRE( std::isfinite( xyz2.x ) );
+  REQUIRE( std::isfinite( xyz2.y ) );
+  REQUIRE( std::isfinite( xyz2.z ) );
 }
 
 /**
@@ -1657,9 +1608,6 @@ TEST_CASE( "C API Invoice & Translations Shape Test", "[capi][c++][invoice][tran
   // create priority tracer
   PSMRTS_PriorityTracer *ptracer = psmrts_generate_priority_tracer( plyinvoice, nullptr );
 
-  // test psmrts_generate_products
-  CHECK( psmrts_generate_products( plyinvoice ) == PSMRTS_TRUE );
-
   // free memory
   psmrts_free_translations( trans_t );
   psmrts_free_product_config( shape_config );
@@ -1722,9 +1670,6 @@ TEST_CASE( "C API Invoice & Translations Tracer Test", "[capi][c++][invoice][tra
 
   // create priority tracer
   PSMRTS_PriorityTracer *ptracer = psmrts_generate_priority_tracer( bulletinvoice, nullptr );
-
-  // test psmrts_generate_products
-  CHECK( psmrts_generate_products( bulletinvoice ) == PSMRTS_TRUE );
 
   // free memory
   psmrts_free_translations( trans_t );

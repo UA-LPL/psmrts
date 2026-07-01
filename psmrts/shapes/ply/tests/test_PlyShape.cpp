@@ -20,13 +20,14 @@ TEST_CASE( "PLY SHAPE - Default Test", "[ply][shape][specification]") {
 
 TEST_CASE( "PSMRTS Product PLY Specification Test", "[product][type][mesh][ply]") {
 
-    CHECK( sizeof( psmrts::PlyShape ) <= 870 );  
+    CHECK( sizeof( psmrts::PlyShape ) <= 890 );  
 
     std::string plyfile = psmrts_shapes_path( "ply/data/Bennu_Radar.ply"  );
     psmrts::PlyShape ply_m( plyfile );
   
     CHECK( ply_m.name() == plyfile );
-    CHECK( ply_m.type() == "ply" );
+    CHECK( ply_m.type() == "shape" );
+    CHECK( ply_m.model() == "ply" );
     CHECK( psmrts::PsmrtsUID::is_valid_uid( ply_m.uid() ) );
     
     psmrts::PsmrtsMeshData mesh_d = ply_m.get_mesh( );

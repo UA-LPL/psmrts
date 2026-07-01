@@ -10,7 +10,7 @@ target_sources( psmrts PUBLIC
                                   ProductMaker.hpp
                                   ProductOption.hpp
                                   ProductOrder.hpp
-                                  ProductProcessDispatch.hpp
+                                  ProductModelDispatch.hpp
                                   ProductProcessing.hpp
                                   ProductSpecification.hpp
                                   PRQProduct.hpp )

@@ -31,7 +31,8 @@ namespace psmrts {
   class PsmrtsPriorityTracer : public PsmrtsProduct {
     public:
       using UIDType         = PsmrtsUID::UIDType;
-      using TracerList      = std::vector<UIDType>;
+      using TracerList      = std::vector<PsmrtsTracer>;
+      using TracerUIDList   = std::vector<UIDType>;
       using TracerInventory = ProductInventory<UIDType, PsmrtsTracer>;
       using PriorityFunc    = std::function<TracerList(const TracerList &current,
                                                        const TracerInventory &inventory)>;
@@ -60,18 +61,20 @@ namespace psmrts {
         return ( tracers().size() );
       }
 
-      /** Adds a tracer to Priority Tracer list */
+      /** Adds a valid tracer to Priority Tracer list */
       inline void add_tracer( const PsmrtsTracer &tracer ) {
-        m_tracers.push_back( tracer.uid() );
-        if ( !m_inventory_t.contains( tracer.uid() ) ) {
-          m_inventory_t.add_product( tracer );
+        if ( PsmrtsUID::is_valid_uid( tracer.uid() ) ) {
+          m_uids_t.push_back( tracer.uid() );
+          m_tracers.push_back( tracer );
+          if ( !m_inventory_t.contains( tracer.uid() ) ) {
+            m_inventory_t.add_product( tracer );
+          }
         }
       }
       
       inline bool process ( PRQRayTrace &ray ) const {
         // Trace through list as ordered in the current UID set
-        for ( const auto &uid : tracers() ) {
-          const auto &tracer = m_inventory_t.find( uid );
+        for ( const auto &tracer : tracers() ) {
           if ( tracer.process( ray )  ) {
             return ( ray.isValid() );
           }
@@ -83,9 +86,11 @@ namespace psmrts {
         // Trace through list as ordered in the current UID set
         size_t ngood = 0;
         for ( auto &ray : tracelist.traces() ) {
-          for ( const auto &uid : tracers() ) {
-            const auto &tracer = m_inventory_t.find( uid );
-            if ( tracer.process( ray ) == true ) ngood++;
+          for ( const auto &tracer : tracers() ) {
+            if ( tracer.process( ray ) == true ) {
+              ngood++;
+              break;
+            }
           }
         }
         return ( ngood > 0 );
@@ -95,8 +100,7 @@ namespace psmrts {
 
      inline bool process ( PRQPhotometricTrace &ray_p ) const {
         // Trace through list as ordered in the current UID set
-        for ( const auto &uid : tracers() ) {
-          const auto &tracer = m_inventory_t.find( uid );
+        for ( const auto &tracer : tracers() ) {
           if ( tracer.process( ray_p ) == true ) return ( true );
         }
         return ( false ); // Not a one intercepted
@@ -107,9 +111,11 @@ namespace psmrts {
         // Trace through list as ordered in the current UID set
         size_t ngood = 0;
         for ( auto &ray : tracelist.traces() ) {
-          for ( const auto &uid : tracers() ) {
-            const auto &tracer = m_inventory_t.find( uid );
-            if ( tracer.process( ray ) == true ) ngood++;
+          for ( const auto &tracer : tracers() ) {
+            if ( tracer.process( ray ) == true ) {
+              ngood++;
+              break;
+            } 
           }
         }
         return ( ngood > 0 );
@@ -147,13 +153,17 @@ namespace psmrts {
 
       /** Run a trace on the priority list */
       inline bool ray_trace( PRQRayTrace &ray ) const {
-        for ( const auto &uid : tracers() ) {
-          const auto &tracer = m_inventory_t.find( uid );
+        for ( const auto &tracer : tracers() ) {
           if ( this->ray_trace( tracer, ray ) == true ) {
             return ( ray.isValid() );
           }
         }
         return ( ray.isValid() );
+      }
+
+      /** Return list of tracer uids contained in the inventory */
+      inline const TracerUIDList &tracer_uids() const {
+        return ( m_uids_t );
       }
 
       /** Return list of tracers in this object */
@@ -224,18 +234,49 @@ namespace psmrts {
           reversed.reserve( current_order.size() );
           std::transform( current_order.rbegin(), current_order.rend(), 
                           std::back_insert_iterator( reversed ),
-                         []( UIDType t ) { return ( t ); } );
+                         []( const PsmrtsTracer &t ) { return ( t ); } );
           return ( reversed );
         };
        
         return ( prioritize( reverse_tracers ) );
       }
+
+      /** Find the maximum radius from all tracers */
+      inline double maximum_radius() const {
+        double max_r ( psmrts::null() );
+
+        if ( m_tracers.size() > 0 ) {
+          max_r = m_tracers[0].maximum_radius();
+          for ( size_t ith = 1 ; ith < m_tracers.size() ; ith++ ) {
+            double radius_t =  m_tracers[ith].maximum_radius();
+            if ( radius_t > max_r ) max_r = radius_t;
+          }
+        }
+        return ( max_r ); 
+      }
+      
+      /** Find the minimum radius from all tracers */
+      inline double minimum_radius() const {
+        double min_r ( psmrts::null() );
+
+        if ( m_tracers.size() > 0 ) {
+          min_r = m_tracers[0].minimum_radius();
+          for ( size_t ith = 1 ; ith < m_tracers.size() ; ith++ ) {
+            double radius_t = m_tracers[ith].minimum_radius();
+            if ( radius_t < min_r ) min_r = radius_t;
+          }
+        }
+        return ( min_r );
+      }
+
       
     private:
+      TracerUIDList   m_uids_t;
       TracerList      m_tracers;
       TracerInventory m_inventory_t;
 
       inline void init( ) {
+        m_uids_t.clear();
         m_tracers.clear();
         m_inventory_t.clear();
       }

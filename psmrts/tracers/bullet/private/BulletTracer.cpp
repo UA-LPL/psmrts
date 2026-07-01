@@ -31,13 +31,13 @@ namespace psmrts {
    */
   class BulletTracer::BulletTracerImpl : public PsmrtsProduct {
     public:
-      BulletTracerImpl( ) : PsmrtsProduct( "bullet", "bullet" ),
+      BulletTracerImpl( ) : PsmrtsProduct( "none", "tracer", "bullet" ),
                             m_shape(), 
                             m_bullet_model() { }
       BulletTracerImpl( const PsmrtsShape &shape,
                         const bool useCompression = true,
                         const bool buildBvh = true   ) : 
-                        PsmrtsProduct( shape.name(), "bullet" ),
+                        PsmrtsProduct( shape.name(), "tracer", "bullet" ),
                         m_shape( shape ),
                         m_bullet_model( bullet::PsmrtsBulletMeshMap( shape.get_mesh(), 
                                                                      shape.name(), 0), 
@@ -83,26 +83,32 @@ namespace psmrts {
    * 
    * 
    */
-  BulletTracer::BulletTracer( ) : PsmrtsProduct( "bullet", "bullet" ),
+  BulletTracer::BulletTracer( ) : PsmrtsProduct( "bullet", "tracer", "bullet" ),
                                   m_model( std::make_shared<BulletTracerImpl>() ),
                                   m_config("bullet") {  }
 
   BulletTracer::BulletTracer( const PsmrtsShape &shape ) : 
-                              PsmrtsProduct( shape.config().name(), "bullet"),
+                              PsmrtsProduct( shape.config().name(), "tracer", "bullet"),
                               m_config("bullet") {
     m_model = std::make_shared<BulletTracerImpl> ( shape );
     m_config.merge( shape.config() );
     m_config.add( ProductOption( "tracer", "bullet" ) );
-    m_config.add_metadata( ProductOption( "bullet_optimize_bvh", m_model->useBuildBvh() ) );
-    m_config.add_metadata( ProductOption( "bullet_compressed",  m_model->useCompression() ) );
+    m_config.add_metadata( ProductOption( "tracer_uid", PsmrtsUID::to_string( this->uid() ) ) );
+    m_config.add( ProductOption( "bullet_optimize_bvh", m_model->useBuildBvh() ) );
+    m_config.add( ProductOption( "bullet_compressed",  m_model->useCompression() ) );
     m_config.add_metadata( ProductOption( "bullet_thread_safety", m_model->useThreadSafety() ) );
   }
   
-  BulletTracer::BulletTracer( const ProductCart &processed_cart ) {
-    this->set_name( processed_cart.name() );
-    this->set_type( "bullet" );    
+  BulletTracer::BulletTracer( const ProductCart &processed_cart ) :
+                              PsmrtsProduct( processed_cart.configuration().name(), "tracer", "bullet") {
     this->create( processed_cart );
-  }     
+  }
+  
+  BulletTracer::BulletTracer( const ProductCart &processed_cart,
+                              const PsmrtsShape &shape ) :
+                              PsmrtsProduct( processed_cart.configuration().name(), "tracer", "bullet") {
+    this->create( processed_cart, shape );
+  }    
   
   BulletTracer::~BulletTracer() = default;
 
@@ -131,8 +137,8 @@ namespace psmrts {
     return ( m_model->shape() );
   }
 
-  void BulletTracer::create(const ProductCart &cart ) {
-
+  void BulletTracer::create(const ProductCart &cart,
+                            const PsmrtsShape &shape ) {
     PsmrtsTranslations trans_t = PsmrtsTranslations::create();
 
     // Check for valid shape type
@@ -157,7 +163,11 @@ namespace psmrts {
     // currently only possible because this is a .cpp file.
     std::optional<PsmrtsShape> shape_t( std::nullopt );
     ProductCart::UIDType shape_uid = cart.get_shape_uid();
-    if ( PsmrtsUID::is_valid_uid( shape_uid ) ) {
+    std::string name_t = cart.configuration().name();
+    if ( shape.isValid() ) {
+      shape_t.emplace( shape );
+    }
+    else if ( PsmrtsUID::is_valid_uid( shape_uid ) ) {
       // See if its in the default factory and use it!
       const PsmrtsInventory &inventory = PsmrtsFactory().find();
       if ( inventory.shapes().contains( shape_uid )  ) {
@@ -166,11 +176,12 @@ namespace psmrts {
     }
     else {
       // Parse out and validate the shape config
-      ProductMaker<PsmrtsShape> shape_m( "shape" );
-      ProductConfiguration shape_c( "shape", cart.residual_config() );
+      ProductMaker<PsmrtsShape> shape_m( name_t );
+      ProductConfiguration shape_c( name_t, cart.residual_config() );
 
       (void) shape_m.process_config( shape_c,  trans_t );
       ProductCart cart_s = shape_m.cart();
+
       if ( cart_s.error_count() > 0 ) {
         std::string mess = "BulletTracer::create(" + cart_s.name() + 
                           ") errors constructing shape with config: \n" +
@@ -208,6 +219,10 @@ namespace psmrts {
       }
     }
 
+    // Add the tracer UID to the metadata
+    m_config.add_metadata( ProductOption( "shape_uid", PsmrtsUID::to_string( shape_t.value().uid() ) ) );
+    m_config.add_metadata( ProductOption( "tracer_uid", PsmrtsUID::to_string( this->uid() ) ) );
+
     // Get defaults from specs
     ProductSpecification spec_b = cart.specification();
     bool useCompression = psmrts::is_bool( spec_b.find( "bullet_compression" ).find("default").to_string() );
@@ -223,6 +238,6 @@ namespace psmrts {
     // Create the bullet tracer
     m_model = std::make_shared<BulletTracerImpl> ( shape_t.value(), useCompression, useBuildBvh );
     return;
-  }  
+  }
 
 } // namespace psmrts

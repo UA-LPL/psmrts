@@ -64,8 +64,8 @@ endif(PSMRTS_BUILD_SHARED)
 #-----------------------------------------------------------------------------
 # PSMRTS project configuration. PROJECT_SOURCE_DIR=psmrts
 #-----------------------------------------------------------------------------
-project(PSMRTS VERSION 0.6.2 LANGUAGES CXX C)
-set( PSMRTS_VERSION_DATE  "2026-05-14")
+project(PSMRTS VERSION 0.7.0 LANGUAGES CXX C)
+set( PSMRTS_VERSION_DATE  "2026-06-29")
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -74,7 +74,7 @@ set( PSMRTS_PROJECT_DIR  ${CMAKE_SOURCE_DIR} )
 set( PSMRTS_DIR          ${CMAKE_SOURCE_DIR}/psmrts )
 set( PSMRTS_SOURCE_DIR   ${CMAKE_SOURCE_DIR}/psmrts )
 set( PSMRTS_TEST_DIR     ${CMAKE_SOURCE_DIR}/psmrts )
-set( PSMRTS_DATA_DIR     ${CMAKE_SOURCE_DIR}core/data )
+set( PSMRTS_DATA_DIR     ${CMAKE_SOURCE_DIR}/core/data )
 set( PSMRTS_TRACERS_DIR  ${CMAKE_SOURCE_DIR}/tracers )
 set( PSMRTS_SHAPES_DIR   ${CMAKE_SOURCE_DIR}/shapes )
 

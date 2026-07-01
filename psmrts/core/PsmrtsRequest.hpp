@@ -19,6 +19,7 @@ find files of those names at the top level of this repository. **/
 #include <exception>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 
 namespace psmrts { 
@@ -33,15 +34,17 @@ namespace psmrts {
    * 
    * @see PsmrtsTracer.hpp for an example of this technique.
    */
-  class MissingProcessRequestHandler {
+  class MissingProcessRequestHandler : public PsmrtsProduct {
     public:
-      MissingProcessRequestHandler() : m_name( "Product" ) { }
+      MissingProcessRequestHandler() : PsmrtsProduct() { }
       MissingProcessRequestHandler( const std::string &name ) : 
-                                   m_name ( name ) { }
+                                    PsmrtsProduct() {
+       this->set_name( name ) ;
+     }
       virtual ~MissingProcessRequestHandler() = default;
 
       inline const std::string &name() const {
-        return ( m_name );
+        return ( this->product().name() );
       }
 
       template <class PRQ>
@@ -55,7 +58,6 @@ namespace psmrts {
         }
 
     private:
-      std::string m_name;
   };
 
   /**
@@ -221,6 +223,7 @@ namespace psmrts {
         return ( mess );
       }
 
+      /** Throw iff any errors actually exist */
       inline void throw_errors() const {
         if ( this->error_count() > 0 ) {
           throw std::runtime_error( this->errors_to_string() );
@@ -360,7 +363,7 @@ namespace psmrts {
 
       /** Reset the tracer with new observer and lookdir */
       inline PRQRayTrace &set_trace( const Eigen::Vector3d &observer, 
-                                 const Eigen::Vector3d &lookdir ) {
+                                     const Eigen::Vector3d &lookdir ) {
         this->reset();
          m_sc_to_surface.reset( observer, lookdir );
          return ( *this );
