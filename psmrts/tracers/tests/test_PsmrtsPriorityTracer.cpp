@@ -39,6 +39,9 @@ TEST_CASE ( "NAIF DSK Priority Tracer Test", "[naif][shape][priority][tracer]") 
   psmrts::PsmrtsPriorityTracer p_tracer( dsk_tracer );
   CHECK( p_tracer.isValid() == true );
   CHECK( p_tracer.size()    == 1 );
+  
+  CHECK( dsk_tracer.minimum_radius()  < dsk_tracer.maximum_radius() );
+  CHECK( p_tracer.minimum_radius()  < p_tracer.maximum_radius() );
 
   Eigen::Vector3d obs;
   double radius = 1.0;
@@ -67,6 +70,9 @@ TEST_CASE( "Naif Priority Tracer Default Test", "[priority][tracer][naif]") {
   psmrts::EllipsoidTracer s_ellipse( 1.0, 2.0, 3.0, "small" );
   psmrts::EllipsoidTracer l_ellipse( 10.0, 20.0, 30.0, "large" );
 
+  CHECK( s_ellipse.minimum_radius()  < s_ellipse.maximum_radius() );
+  CHECK( l_ellipse.minimum_radius()  < l_ellipse.maximum_radius() );
+  
   Eigen::Vector3d obs;
   double radius   = 1.0;
   double obs_long = 45.0 * rpd_c();

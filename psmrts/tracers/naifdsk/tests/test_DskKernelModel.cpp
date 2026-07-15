@@ -130,8 +130,8 @@ TEST_CASE ( "DSK Model Test - Multi-Load/Init/Shared Tests", "[kernel][dsk][shap
     CHECK ( dsk.tracer_model_type() == "naifdsk" );
     CHECK ( dsk.tracer_model_name() == "DskKernelModel" );
     CHECK ( dsk.shape_tracer_id() == "naifdsk::DskKernelModel::" + dsk.shapefile());
+    CHECK( dsk.minimum_radius() < dsk.maximum_radius() );
  
-
     // Since only one segment, should be same as below values for ie n_vertices(), n_plates(), etc
 
     // Test first segment of an open DSK kernel
@@ -152,8 +152,6 @@ TEST_CASE ( "DSK Model Test - Multi-Load/Init/Shared Tests", "[kernel][dsk][shap
 
     CHECK ( dsk.n_total_vertices() == 20 );
     CHECK ( dsk.n_total_plates() == 36 );
-    
-
 
     // Test DSK methods
     CHECK ( dsk.get_id_list()[0] == 2101955  );
@@ -176,8 +174,6 @@ TEST_CASE ( "DSK Model Test - Multi-Load/Init/Shared Tests", "[kernel][dsk][shap
     CHECK_NOTHROW ( naif::DskKernelModel::reset_dsk_system() ); // Reset/Initialize the kernel system
     CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() ); // Reset/Initialize the kernel system
     CHECK ( naif::KernelFileSystem::size() == 0 );
-
-    
 }
 
 
@@ -190,6 +186,7 @@ TEST_CASE ( "DSK Model Test - Dsk File API Tests", "[kernel][dsk][inventory][api
     std::string dsk_test_file = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
 
     naif::DskKernelModel dsk_test( dsk_test_file );
+    CHECK( dsk_test.minimum_radius() < dsk_test.maximum_radius() );
 
     // has_dsk_shape(file) - returns bool
     CHECK ( dsk_test.has_dsk_shape( dsk_test_file ) == true ); 

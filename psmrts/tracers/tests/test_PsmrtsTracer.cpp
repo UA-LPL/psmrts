@@ -106,6 +106,9 @@ TEST_CASE("PsmrtsTracer Values / Raytrace Test", "[tracer][raytrace][default]") 
     psmrts::PsmrtsTracer bullet_t( psmrts::PsmrtsTracer::bullet( dskfile ) );
     psmrts::PsmrtsTracer naifdsk_t( psmrts::PsmrtsTracer::naifdsk( dskfile ) );
 
+    CHECK( bullet_t.minimum_radius()  < bullet_t.maximum_radius() );
+    CHECK( naifdsk_t.minimum_radius() < naifdsk_t.maximum_radius() );
+    
     Eigen::Vector3d obs;
     double radius = 10.0;
     double obs_long = 45.0 * rpd_c();

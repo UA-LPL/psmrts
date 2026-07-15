@@ -390,12 +390,12 @@ namespace naif {
 
       /** Returns minimum radius */
       inline double minimum_radius() const {
-        return ( this->segment().maximum_radius() );
+        return ( this->segment().minimum_radius() );
       }
 
       /** Returns maximum radius */
       inline double maximum_radius() const {
-        return ( this->segment().minimum_radius() );
+        return ( this->segment().maximum_radius() );
       }
 
       /** Returns radii vector */
