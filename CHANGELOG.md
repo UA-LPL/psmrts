@@ -33,79 +33,73 @@ release.
 -->
 
 ## TODO
+
 - See [TODO](TODO.md)
 
+## [0.7.1] 2026-07-14
+
+- Fix min/max radius bug in DskKernelModel
+- The DskKernelModel::minimum_radius() and DskKernelModel::maxmum_radius() now returns the correct radii instead of the opposite.
+- Added tests to all tracer tests to enure the minimium radius is less than the maximum radius.
+- Update CMakeLists.txt version to [0.7.1]
+- Update CHANGELOG
+
 ## [0.7.0] 2026-06-29
-**This PR addresses mainly ISIS support but is generally applicable to a tracing
-  process that includes complex combinations of prioritized shape models and
-  ellipsoid traces to mimic the ISIS ShapeModel system.**
+
+**This PR addresses mainly ISIS support but is generally applicable to a tracing process that includes complex combinations of prioritized shape models and ellipsoid traces to mimic the ISIS ShapeModel system.**
+
 - Add min/max radius methods to tracers
 - Add utility functions to read file lists from text files
-- PsmrtsInvoice: Add tracer and shape methods to include these products in the
-  tracer system
-- Added new class PsmrtsTracerSystem with tests that provides most all the ISIS
-  support needs
+- PsmrtsInvoice: Add tracer and shape methods to include these products in the tracer system
+- Added new class PsmrtsTracerSystem with tests that provides most all the ISIS support needs
 - Updated documentation for PsmrtsTagSearch
 - Added accessor/convenience methods to PsmrtsFactory
 - Improved product identification/tracking/management techniques
 - Improved consistency across all tracer and shape products
 - Update/improve tests
-- Renamed IsisDataDictionary to IsisDataDirectory to be consistent with ISIS
-  terminology
--  Add product UIDs to product metadata
+- Renamed IsisDataDictionary to IsisDataDirectory to be consistent with ISIS terminology
+- Add product UIDs to product metadata
 - Updated Bullet tracer to utilize and track UIDs
 - Added flexible constructor mechanism to ProductMaker class
 - Add complete extractor/comparator definitions to ProductOption class
 - Fix product processing and search comparison operations
-- Changed PsmrtsTracerSystem inheritance of PsmrtsInvoice to composition to
-  ensure proper/complete operations on adding tracer configurations.
-- Clean/simplify product management in tracer system enforcing invoice inventory
-  tracking and creating/adding tracers to priority tracer as they are added to
-  the tracer system
-- Do not automatically clear the NAIF kernel pool upon initialization in the
-  iniKernelSystem() method
-- Fix lookdir to normlized unit vector and preservation of ray trace object state
-  in PsmrtsBulletWorldModel
-- Add workflow action to run on any branch, not only when a PR is submitted,
-  using a drop-down menu
+- Changed PsmrtsTracerSystem inheritance of PsmrtsInvoice to composition to ensure proper/complete operations on adding tracer configurations.
+- Clean/simplify product management in tracer system enforcing invoice inventory tracking and creating/adding tracers to priority tracer as they are added to the tracer system
+- Do not automatically clear the NAIF kernel pool upon initialization in the iniKernelSystem() method
+- Fix lookdir to normlized unit vector and preservation of ray trace object state in PsmrtsBulletWorldModel
+- Add workflow action to run on any branch, not only when a PR is submitted, using a drop-down menu
 - Address/fix product naming in shapes and tracer classes for consistency
--  Fix DskShape config issues, update tests
-- Improve searches, use PsmrtsFactory for primary cache in tracer system to
-  reduce system resource overhead, consolidates caching of tracers and shapes
-  into one code source, and minimizes complexity
+- Fix DskShape config issues, update tests
+- Improve searches, use PsmrtsFactory for primary cache in tracer system to reduce system resource overhead, consolidates caching of tracers and shapes into one code source, and minimizes complexity
 - Simplity/limit product caching and scope in PsmrtsInvoice
-- Consolidate NAIF DSK creation, config management in ProductCart file creation
-  and ProductConfiguration with consolidation into DskKernelModel for shapes and
-  tracer
+- Consolidate NAIF DSK creation, config management in ProductCart file creation and ProductConfiguration with consolidation into DskKernelModel for shapes and tracer
 - Fix configuration management in Bullet tracer
 - Create a PRQ request class, PRQShape, to aid tracer searches
 - Add explicit PsmrtsFactory::create() method for custom inventory management
-- Update tests by adding PsmrtsFactory liquidation calls to ensure subsequest
-  tests won’t encounter lingering products in the system cache
-- Change PsmrtsPriortyTrace to store PsrmtsTracers rather than tracer UID
-  lookups for efficiency
+- Update tests by adding PsmrtsFactory liquidation calls to ensure subsequest tests won’t encounter lingering products in the system cache
+- Change PsmrtsPriortyTrace to store PsrmtsTracers rather than tracer UID lookups for efficiency
 - Remove PsmrtsTracerModel from system
 - Update version to 0.7.0
 - Update CHANGELOG
 
 ## [0.6.2] 2026-05-14
+
 - Change ISISDataDictionary to ISISDataDirectory.
 - Update CMakesLists, test files.
 - Update version to v0.6.2.
 - Update CHANGELOG.
 
 ## [0.6.1] 2026-03-20
-- Add preliminary PsmrtsTagSearch, PsmrtsMetakernel, and IsisDataDictionary
-  classes for file parsing support.
+
+- Add preliminary PsmrtsTagSearch, PsmrtsMetakernel, and IsisDataDictionary classes for file parsing support.
 - Add related tests, and input/output test files.
-- Adjusted PsmrtsTranslations named constructor to load / merge environment
-  through parameter.
+- Adjusted PsmrtsTranslations named constructor to load / merge environment through parameter.
 - Slight clean up of PsmrtsTranslations.
 - Update version to v0.6.1.
 - Update CHANGELOG.
 
-
 ## [0.6.0] 2026-02-21
+
 - Changes to documentation.
 - Fix CMake system for import and use in other projects.
 - Remove compilation warnings most due to unused variables.
@@ -113,17 +107,14 @@ release.
 - Update/add targets "docs", "lcov_coverage".
 - Change "docs" target to run from the project directory rather than docs.
 - Some files were not being exported during install.
-- Made psmrts target PUBLIC when linking to psmrts_c. This is required to
-  propate the top level include path of pmsrts.
-- Changed all PSMRTS CMake options so as to remove side effects of variables.
-  BUILD_TESTING is set when enable_tests() is called which was initially the
-  name of an option. Prepend PSMRTS to each option to make them unqiue.
+- Made psmrts target PUBLIC when linking to psmrts_c. This is required to propate the top level include path of pmsrts.
+- Changed all PSMRTS CMake options so as to remove side effects of variables. BUILD_TESTING is set when enable_tests() is called which was initially the name of an option. Prepend PSMRTS to each option to make them unqiue.
 - Update build and CI scripts to incorporate these changes.
 - Update version to v0.6.0.
 - Update CHANGELOG.
 
-
 ## [0.5.1] 2026-02-21
+
 - Work on documentation.
 - Fix JSON object insertion for arrays in PsmrtsJson.
 - Add psmrts_product_specs applicaton.
@@ -133,30 +124,25 @@ release.
 - Update version to v0.5.1.
 - Update CHANGELOG.
 
-
 ## [0.5.0] 2026-02-11
+
 - Add string and string array support to C API.
 - Add product configuration and creation functions to C API.
 - Add explicit void variant class ProductVoidVariant.
-- Add PsmrtsTranslations class providing support for environment variable and
-  (ISIS mission) parameter file path substitutions.
-- Complete support for product invoicing providing a local inventory of
-  products shapes, tracers, priority tracers. It is designed to create a
-  priority tracer that may have additional tracers added for building complex
-  systems of tracers. This is manifest in the classes ProductCart, ProductOrder,
-  ProductInvoice.
+- Add PsmrtsTranslations class providing support for environment variable and (ISIS mission) parameter file path substitutions.
+- Complete support for product invoicing providing a local inventory of products shapes, tracers, priority tracers. It is designed to create a priority tracer that may have additional tracers added for building complex systems of tracers. This is manifest in the classes ProductCart, ProductOrder, ProductInvoice.
 - Greatly improved handling of JSON structures in PSMRTS.
 - Improved DskShape dependency requirements and DSK segment support.
 - Improved product configuration/specification processing.
 - Improvements and code cleanup of shapes and tracers implementations.
-- Moved Product* classes to new directory psmrts/core/products.
+- Moved Product\* classes to new directory psmrts/core/products.
 - Renamed documentation target from "doxy_docs" to "docs".
-- Removed the "isis" directory as it is no longer compatible with the current
-  state of PSMRTS.
+- Removed the "isis" directory as it is no longer compatible with the current state of PSMRTS.
 - Update version to 0.5.0.
 - Update CHANGELOG.
 
 ## [0.4.1] 2026-02-03
+
 - Add PSMRTS licensing to repo
 - Add CC0-1.0 LICENSE file
 - Add AUTHORS file
@@ -164,12 +150,13 @@ release.
 - Update README.md with license information and some edits
 - Add copyright/license content to all PSMRTS source files
 - Updated version to [0.4.1]
-- Updated CHANGELOG.md with previous *and* current version changes
+- Updated CHANGELOG.md with previous _and_ current version changes
 - Update TODO.
 
 ## [0.4.0] 2026-01-22
 
 ### Fixed/updated ...
+
 - documentation, versioning, typos, formatting
 - code coverage, build scripts, CMAKE
 - separated public/private code
@@ -208,6 +195,7 @@ release.
 - loop counters
 
 ### Removed ...
+
 - non-const iterators and test
 - spdlog dependency
 - vcpkg catch.hpp include
@@ -219,6 +207,7 @@ release.
 - PsmrtsProduct from PsmrtsTracer
 
 ### Added ...
+
 - catch2_all.hpp
 - vcpkg, conda package manager options
 - PSMRTS_POINTERS define
@@ -258,16 +247,19 @@ release.
 - tracer ID to PsmrtsRayTrace & PsmrtsShape
 
 ## [0.3.7] 2025-11-04
+
 - Additions/updates to product configurations and tracking of products.
 - Update tracers to use private implementation, add construction options, tracking/meta data reporting and tests.
 - Add/update numerous tests.
 - Add Doxygen documentation to CMake system.
 
 ## [0.3.6] 2025-09-15
+
 - Removed unnecessary #include's
 - Fixed small number of minor misspellings.
 
 ## [0.3.5] 2025-09-10
+
 - Implement product/inventory/caching capabilities
 - Moved PsmrtsPriorityTracer.hpp to psmrts/tracers.
 - Implement PsmrtsInventory.hpp to house PSMRTS products.
@@ -275,7 +267,7 @@ release.
 - Added tests for DskSegment and PsmrtsTracer, adjusted related CMake files to include them.
 - Add ProductInventory and PsmrtsInventory
   - ProductInventory.hpp - Provides cache of individual PSMRTS products.
-  - PsmrtsInventory.hpp  - Maintains caches for PSMRTS keyword/value parameters/options, shapes, tracers, prioritity tracers and “environment” variables.
+  - PsmrtsInventory.hpp - Maintains caches for PSMRTS keyword/value parameters/options, shapes, tracers, prioritity tracers and “environment” variables.
 - Integrate ProductInventory and PsmrtsInventory classes
 - Clean up name designations of tracers where all are const references to the actual names of shape files or ellipsoids.
 - Set product names accordingly for tracers in constructors.
@@ -291,15 +283,17 @@ release.
 - Update project version to 0.3.4 in CMakeLists.txt.
 
 ## [0.3.4] 2025-09-02
+
 - Converted facet_datum struct to FacetDatum class in PsmrtsRayTrace.hpp.
 - Added facet surface_area and volume and mesh surface area, and volume functions to psmrts_c.cpp and defined PSMRTS_Shape opaque pointer to psmrts::PsmrtsShape instead of psmrts::PsmrtsMeshData.
 - Modified TEST_CASE_METHOD “PSMRTS C API - One Trace” in test_PsmrtsCAPI.cpp to check facet surface area and volume.
-- In  PsmrtsUtilities.hpp added facet_surface_area and facet_volume functions.
+- In PsmrtsUtilities.hpp added facet_surface_area and facet_volume functions.
 - Added TEST_CASE “PSMRTS Facet Geometry Test” to test_PsmrtsUtilities.cpp, testing facet surface area and volume.
 - In test_DskShape.cpp added checks to TEST_CASE(“PSMRTS Product DSK Specification Test” to test mesh_surface_area and mesh_volume.
 - In test_ObjShape.cpp added checks to TEST_CASE(“PSMRTS Product Obj Specification Test” to test mesh_surface_area and mesh_volume.
 
 ## [0.3.3] 2025-09-02
+
 - Renamed PsmrtsParameter to PsmrtsOption as it better fits is usage.
 - Rename ProductParameter to ProductFeature to better apply to its usage.
 - Rename ProductRequest to ProductConfiguration to better apply to its usage. Add initial implemenation.
@@ -314,7 +308,9 @@ release.
 - Update CHANGELOG.md
 
 ## [0.3.2] 2025-08-22
-- Removed/merged obsolete, redundant files/classes/tests to clean up system. 
+
+- Removed/merged obsolete, redundant files/classes/tests to clean up system.
+
 ```
 	deleted:    psmrts/core/PsmrtsShapeTracerAdapter.hpp
 	deleted:    psmrts/core/PsmrtsTracerModel.hpp
@@ -329,23 +325,28 @@ release.
 	deleted:    psmrts/tracers/naifdsk/tests/test_PsmrtsRayTrace.cpp
 	deleted:    psmrts/tracers/naifdsk/tests/test_PsmrtsShapeTracerAdapter.cpp
 ```
+
 - Added the `psmrts/algorithms` directory. Created the TracingBasics.hpp file containing generic ray tracing processes. Using these algorithms will remove/minimize the burden of maintaining common process methods.
 - Reworked the PsmrtsParameter.hpp (formerly PsmrtsParameters.hpp) to support PSMRTS intrinsic types for user/dev parameterization support.
 - Made progress on the priority tracer.
 
 ## [0.3.1] 2025-08-21
+
 - Added facet functionality to PSMRTS C API with supporting methods, tests, and documentation. Also added plate id and segment to C API Facet structure with updated conversion methods and tests.
 
 ## [0.3.0] 2025-08-15
+
 - Added facet functionality to C API with tests and documentation.
 - Major restructure of PSMRTS directory hierarchy and CMake implementation to simplify future development/maintenance. Includes necessary modifications to include paths, scripts, and tests to ensure successful building, testing, and code coverage across all platforms (Linux, OSX, Windows, etc.).
 - PSMRTS version updated to [0.3.0] in CHANGELOG.md, CMakeLists.txt, and cmocka_test.c files.
 
 ## [0.2.1] 2025-08-06
+
 - C++ version of C API documentation and testing updated.
 - C version of C API cmocka tests and documentation added.
 
 ## [0.2.0] 2025-07-22
+
 - Update CHANGELOG.md, CMakeLists.txt to version [0.2.0].
 - Renamed formats directory to shapes.
 - Simplified, renamed all instances of ShapeTracer to Tracer.
@@ -353,15 +354,15 @@ release.
 - C API documentation updated and included in Doxygen.
 - Updated product_specifications.md to reflect relevant changes.
 
-
 ## [0.1.0] 2025-07-16
+
 - Update CHANGELOG.md.
 - Update TODO.md which is now tracking development.
-- CMakeLists.txt - Updated to version [0.1.0]. 
+- CMakeLists.txt - Updated to version [0.1.0].
 - Create C API initial implementation in ./capi:
   - Added initial implementations of psmrts_c.h and psmrts_c.cpp.
   - Added ./apps directory and infrastructure: CMakeLists.txt and test directories.
-  - Added first implementation of C app psmrts_capi_features.cpp. 
+  - Added first implementation of C app psmrts_capi_features.cpp.
   - Added first implementation of C app psmrts_tracer_shape.cpp.
 - product_specification.md - NEW docs file that is the most up-to-date design document we are maintaining.
 - Documentation has been improved in a sweep through most all classes.
@@ -391,6 +392,7 @@ release.
 - test_NaifDskShapeTracer.cpp - Updated to test new features.
 
 ## [0.0.14] 2025-06-30
+
 - PsmrtsDskFormat.hpp - fixed formatting issues for config().
 - PsmrtsOBJFormat.hpp - Add comprehensive configuration data and add support for parameters.
 - PsmrtsPLYFormat.hpp - Add comprehensive configuration data and add support for parameters; fix propert_type_size() to use proper intrisic types.
@@ -405,12 +407,12 @@ release.
 - NaifDskShapeTracer.hpp - Added PSMRTS_PROCESS_CATCHALL() marcro to round out process( PRQ ) processes; change virtual declvals to inline (not needed).
 - EllipsoidShapeTracer.hpp - Added PSMRTS_PROCESS_CATCHALL() marcro to round out process( PRQ ) processes; change virtual declvals to inline (not needed); removed process( PRQFacet ) use as its obsolete.
 - NaifEllipsoidShape.hpp - Fix use of c radius for second radii in constructor of spheroids.
-- Renamed PsrmrtsRayTrace::surfpt() to PsmrtsRayTrace::raypt() since the definition of surfpt in NAIF conflicts with this name. raypt() returns the vector from  the observer to the surface point intercept, along the lookdir vector. The length of this vector is the sland distance (km).
+- Renamed PsrmrtsRayTrace::surfpt() to PsmrtsRayTrace::raypt() since the definition of surfpt in NAIF conflicts with this name. raypt() returns the vector from the observer to the surface point intercept, along the lookdir vector. The length of this vector is the sland distance (km).
 - This affected mostly tests including test_PsmrtsRayTrace.cpp, tst_EllipsoidShapeTracer.cpp, test_DskKernelModel.cpp, and test_NaifDskShapeTracer.cpp.
 - PsmrtsRequest.hpp - Add distinct tracking of process method invocation status; retain process return status independent of invocation status; clean up process runtime tracking; Set a limit on the maximum number of errors that wil be cached. It implements a FIFO cache with a maximum of 20 errors. After that, the first error in the cache is poped off the queue and the new one is appended.
 - PsrmrtsProductDispatch.hpp - Track proper completion status.
 - test_PsrmtsRequest.cpp, test_PsmrtsShapeTracer.cpp - updates process tracking and timing.
-- vcpkg.json - Removed embree3 as it was causing build errors. 
+- vcpkg.json - Removed embree3 as it was causing build errors.
 - Add new and update existing tests to CMake system.
 - test_PsmrtsOBJFormat.cpp - Update tests for config and parameters.
 - test_PsmrtsPLYFormat.cpp - Update tests for config and parameters.
@@ -423,6 +425,7 @@ release.
 - CHANGELOG.md - Update for this PR.
 
 ## [0.0.13] 2025-03-19
+
 - General improvements to the PSMRTS CMake build system
 - Reworked top level build in make_psmrts.sh to not directly install the vcpg dependencies. This essentially eliminates the need for install_vcpkg_packages.sh (CMake does this nicely); use cmake commands for the configure and build instructions.
 - Add dsk format to psmrts_format.cmake
@@ -431,30 +434,28 @@ release.
 - Updated CHANGELOG.md and set version to [0.0.13]
 
 ## [0.0.12] 2025-02-14
+
 - PsmrtsDSKFormat.hpp - Added DSK implementation to formats.
 - test_PsmrtsDSKFormat.cpp - Added, includes base DSK format testing. Included related Bennu file to directory for test assistance.
-- CMakeLists.txt - Added/adjusted related CMake files to include above dsk tests and
-implementation.
+- CMakeLists.txt - Added/adjusted related CMake files to include above dsk tests and implementation.
 - dsk_catch2_main.cpp - Added, DSK format to be included in Catch2 configuration.
 - KernelFileSystem.hpp - Small adjustments, includes NAIF error system bugfix.
 - Updated CHANGELOG.md and set version to [0.0.12]
 
 ## [0.0.11] 2025-02-07
+
 - PR #10 and PR #11 Changes - Documentation and Code Coverage Improvements
 - README.md - minor typo fix.
-- CMakeLists.txt - Expanded test suite dependencies, improved test directory exclusions in main Cmake file. Added bullet/tinyobjloader library links
-and tinyobjloader package to psmrts/tests CMake file. 
-- Comment documentation added to: PsmrtsOBJFormat.hpp, PsmrtsPlyFormat.hpp, PsmrtsBufferData.hpp, PsmrtsMeshData.hpp, PsmrtsParameters.hpp, PsmrtsPriorityTracer.hpp,
-PsmrtsRayTrace.hpp, PsmrtsShapeTracerAdapter.hpp, PsmrtsStridingBuffer.hpp, PsmrtsUtilities.hpp, PsmrtsVector3.hpp, BulletShapeTracer.hpp, BulletTracerModel.hpp,
-PsmrtsBulletMeshMap.hpp, PsmrtsBulletWorldModel.hpp, EllipsoidShapeTracer.hpp, EllipsoidTracerModel.hpp, DskKernelModel.hpp, DskSegment.hpp, NaifDskShapeTracer.hpp,
-NaifDskTracerModel.hpp, and NaifEllipsoidShape.hpp.
+- CMakeLists.txt - Expanded test suite dependencies, improved test directory exclusions in main Cmake file. Added bullet/tinyobjloader library links and tinyobjloader package to psmrts/tests CMake file.
+- Comment documentation added to: PsmrtsOBJFormat.hpp, PsmrtsPlyFormat.hpp, PsmrtsBufferData.hpp, PsmrtsMeshData.hpp, PsmrtsParameters.hpp, PsmrtsPriorityTracer.hpp, PsmrtsRayTrace.hpp, PsmrtsShapeTracerAdapter.hpp, PsmrtsStridingBuffer.hpp, PsmrtsUtilities.hpp, PsmrtsVector3.hpp, BulletShapeTracer.hpp, BulletTracerModel.hpp, PsmrtsBulletMeshMap.hpp, PsmrtsBulletWorldModel.hpp, EllipsoidShapeTracer.hpp, EllipsoidTracerModel.hpp, DskKernelModel.hpp, DskSegment.hpp, NaifDskShapeTracer.hpp, NaifDskTracerModel.hpp, and NaifEllipsoidShape.hpp.
 - test_EllipsoidTracerModel.cpp - Improved clone testing and coverage.
 - test_PsmrtsPLYFormat.cpp - Improved json output comparisons for better readability.
 - test_PsmrtsPriorityTracer.cpp - Added format testing, improvements.
 - test_PsmrtsVector3.cpp - Improved test for coverage and validation catching.
 - Updated CHANGELOG.md and set version to [0.0.11]
- 
+
 ## [0.0.10] 2025-01-06
+
 - Implemented an initial PSMRTS Request System, with PSMRTS Functor and Process() methods:
   - PRQRayTrace: Basic ray trace with a defined observer and look direction using body-fixed coordinates.
   - PRQPhotometricTrace: Normal ray trace with ovserver and look direction, but including a trace from the sun to the surface intercept.
@@ -471,7 +472,7 @@ NaifDskTracerModel.hpp, and NaifEllipsoidShape.hpp.
 - test_PsmrtsStridingBuffer.cpp - Minor checks added to test invalid stride conditions, and improve code coverage.
 - test_PsmrtsVector3.cpp - Minor check added to test slice constructor.
 - BulletShapeTracer.hpp - Added, implementated with base PRQ functors and PRQRayTraceArray / PRQPhotometricTraceArray processes. Slight edit to include lookdir validation. Added related test file, test_BulletShapeTracer.cpp - edited for correct process checking, THROWS vs FALSE conditions.
-- PsmrtsBulletClosestRayCallback.hpp - Changed point() and normal() function returns to vector of nulls in case of no hits. 
+- PsmrtsBulletClosestRayCallback.hpp - Changed point() and normal() function returns to vector of nulls in case of no hits.
 - test_BulletTracerModel.cpp - Added.
 - EllipsoidShapeTracer.hpp - Added, implemented with base PRQ functors and PRQRayTraceArray / PRQPhotometricTraceArray processes. Added related test file, test_EllipsoidShapeTracer.cpp.
 - test_EllipsoidTracerModel.cpp - Small bug fix.
@@ -479,19 +480,21 @@ NaifDskTracerModel.hpp, and NaifEllipsoidShape.hpp.
 - NaifDskTracerModel.hpp - Bug fixes, correcting various function returns.
 - README.md - Included lcov/gcovr instruction note.
 - build_psmrts.sh - Added -j parameter to indicate desired number of CPUs used for builds.
-- Some CmakeLists.txt and related configurations adjusted to reflect files additions and changes. 
+- Some CmakeLists.txt and related configurations adjusted to reflect files additions and changes.
 - Updated CHANGELOG.md and set version to [0.0.10]
 
 ## [PR #8] 2024-11-10
+
 - PsmrtsOBJImplementation.hpp, PsmrtsPLYImplementation.hpp - removed, functionality changed to PsmrtsOBJFormat.hpp, PsmrtsPLYFormat.hpp.
 - PsmrtsPLYFormat.hpp - Removed tinyply implementation, changed to reader utilizing [miniply](https://github.com/vilya/miniply) instead. Adjusted JSON config handling. Added test file, test_PsmrtsPLYFormat.cpp.
 - Bennu_Radar.obj, Bennu_Radar.ply, icosahedron.ply, icosahedron_binary.ply - Files added for PLY format testing.
 - PsmrtsBufferData.hpp - Minor text formatting fix in validate function.
 - PsmrtsMeshData.hpp - Minor code clean up.
 - PsmrtsVector3.hpp - Added new template function to convert vector arrays.
-- vcpkg.json - Adjusted for PLY changes, tinyply replaced with miniply. 
+- vcpkg.json - Adjusted for PLY changes, tinyply replaced with miniply.
 
 ## [0.0.9] 2024-08-01
+
 - The Bullet Physics ray tracing system has been integrated into a PSMRTS tracer model. Lots of refactoring and improvements were also made during this cycle to accomodate the flexible, but complex, striding buffer concept. This provides the BulletTracerModel class PsmrtsTracerModel, the PSMRTS tracer base class of al tracers, which is an abstract base class (ABC).
 - Developed a flexible data buffering class hierarchy system to streamline data access and efficient management. Every buffer is shared although deep copies can be made. Arbitrary data types are allocated and managed by the fundamental class PsmrtsBufferData. Next is a type-agnostic mapping of stride size lengths into a PsmrtsBufferData call the PsmrtsStridingBuffer. This the fundamental reference to type data that can be mapped into the PsmrtsBuffer<T> template class. Finally, the PsmrtsVector3<T> class provides generic typing of 3-element vectors of arbitrary types. PSMRTS main data mesh types are PsmrtVector3<int> for indexes, and PsmrtsVector3<double> or PsmrtsVector3<float> vectors.
 - The PsmrtsMeshData class serves up a mesh comprised of indexes (or facets) and vectors of double or float. PSMRTS strives for accuracy so the default type for mesh vectors is double.
@@ -500,19 +503,20 @@ NaifDskTracerModel.hpp, and NaifEllipsoidShape.hpp.
 - Modifined the NaifDsk tracer to utilize this design. The NaifDsk tracer system also provides full extraction the DSK mesh into a PsmrtsMeshData of double or float vectors. The NaifDskTracerModel derived from the PsmrtsTracerModel APC provides the PSMRTS compatible interface.
 - Introduced the EllipsoidTracerModel class to provide the full class of ellipsoid models. This includes spheres/spheroids, ellipsoids and trixial ellipsoids.
 - This release contains three complete PSMRTS tracer models (BulletTracerModel, NaifDskTracerModel and EllipsoidTracerModel) and support for two mesh/shape formats OBJ (PsrmtsOBJFormat) and DSK (directly from an DskKernelModel).
-- Also added a thread safe performance tracking system. This mechanism provides a *performance snapshot*, which contains elapsed time in seconds and milliseconds from creation of the tracker. The snapshot report also contains the born-on date, which is the creation time of the tracker, and the time of the snapshot. Included in this system is a thread-safe counter. This counter is used to track the total number rays of a source tracer (like Bullet) as well as individual tracing metrics per shared copy (this will measure ray traces/#shared ratio). The number of shared copied of meshes, tracers and (combined) mesh shape tracers are tracked by the count of shared instances of each source provided in the API.
+- Also added a thread safe performance tracking system. This mechanism provides a _performance snapshot_, which contains elapsed time in seconds and milliseconds from creation of the tracker. The snapshot report also contains the born-on date, which is the creation time of the tracker, and the time of the snapshot. Included in this system is a thread-safe counter. This counter is used to track the total number rays of a source tracer (like Bullet) as well as individual tracing metrics per shared copy (this will measure ray traces/#shared ratio). The number of shared copied of meshes, tracers and (combined) mesh shape tracers are tracked by the count of shared instances of each source provided in the API.
 - Integrated JSON support using the nlohmann::json library for reporting snapshots. This produces an inheritance hierarchy of data for each element in PSMRTS. This also provides the foundation of data and tracer parameterization.
 - Update the PSMRTS version model in CMakeLists.txt (which is used to generate a C++ header with this data).
 - Updated CHANGELOG.md and set version to [0.0.9]
 
 ## [0.0.8] 2024-06-26
+
 - Big refactor renames several classes
   - The RayTrace class was renamed to PsmrtsRayTrace. Source and test file contents were changed accordingly
-  - The PsmrtsOBJAsset class was renamed to PsmrtsOBJFormat. Source and test file contents were changed accordingly
-   Some CMakeLists.txt configurations were changed to accomodate renaming of files
-- Update CHANGELOG.md and set version to [0.0.8] 
+  - The PsmrtsOBJAsset class was renamed to PsmrtsOBJFormat. Source and test file contents were changed accordingly Some CMakeLists.txt configurations were changed to accomodate renaming of files
+- Update CHANGELOG.md and set version to [0.0.8]
 
 ## [0.0.7] 2024-06-26
+
 - PsmrtsPriorityTracer.hpp - Add add_tracer() and clear() methods
 - NaifEllipsoidShape.hpp - Add c radius to constructor; Add explicit constructors for sphere, ellipsoid and triaxial ellipsoid; provide shapefile() type;
 - tracers/naifdsk/tests/CmakeLists.txt - add new shape tracer (test_NaifShapeTracerAdapter.cpp) and priority shape tracer (test_PsmrtsPriorityTracer.cpp) tests to CMake configuration
@@ -532,23 +536,26 @@ NaifDskTracerModel.hpp, and NaifEllipsoidShape.hpp.
 - Update to version [0.0.7]
 
 ## [0.0.6] 2024-06-06
+
 - Migrate PSMRTS BitBucket repo to Github
 - Added auto-detection of native arm64-osx build for MacOSX (can set Terminal/Shell in Rosetta mode on ARM platforms to get the x64-osx build)
 - Updated documentation URLs for PSMRTS new repo home
 - Update minor release version
 
 ## [0.0.5] 2024-04-26
+
 - Add code coverage using GCOVR and [CodeCoverage.cmake](https://github.com/bilke/cmake-modules/blob/master/CodeCoverage.cmake).
 - Revisted PSMRTS version and added VERSION_DATE ot CMakeList.txt
 
 ## [0.0.4] 2024-04-09
+
 - Initial release of PMSRTS/ISIS integration (PR #10)
 - psmrts_isis_integration.md - Provides a comprehensive guide to PMSRTS/ISIS
 - PsmrtsModelFactory.hpp - The PSMRTS/ISIS shape model loader/initialization
 - Numerous code changes while testing PSMRTS/ISIS integration
 - Removed splog dependency as it was causing some issues with intergration
 - PsmrtsIsisShapeModel.cpp/h - Added PSMRTS shape model tracer to ISIS
-- Updates to PSMRTS/ISIS integration code 
+- Updates to PSMRTS/ISIS integration code
 - Reduce build dependency requirements until needed
 - test_NaifPsmrtsPriorityTracer.cpp, test_NaifShapeTracerAdapter.cpp - Add adapater/tracer tests
 - PsmrtsShapeTracerAdapter.hpp - Add generic adapter framework for PSMRTS models
@@ -570,6 +577,7 @@ NaifDskTracerModel.hpp, and NaifEllipsoidShape.hpp.
 - Move UA/ISIS iNAIF DSK sorces to import/src
 
 ## [0.0.3] 2024-02-29
+
 - DskKernelModel.hpp - Add shape/tracer tracking/id methods (PR #7)
 - DskKernelModel.hpp - Fixed tracking of new DSK kernel in inventory
 - DskKernelModel.hpp - Implement DSK shape model inventory system; DskKernelModel now maintains the lists of active DSKs. New instances are derived from this inventory
@@ -599,13 +607,13 @@ NaifDskTracerModel.hpp, and NaifEllipsoidShape.hpp.
 - Added kernel test to CMakeList, added ray trace test to ellipsoid test, and refining utilites test
 - Enhanced setting of NAIF error system
 - Add directory access/construction methods
-- KernelFileSystem.hpp  - a few doc changes
+- KernelFileSystem.hpp - a few doc changes
 - NaifEllipsoidShape.hpp - updated error checking.
 - test_NaifUtilities.cpp - updated error checking.
 - NaifUtilities.hpp - renamed check_for_errors() to check_naif_errors().
 - Fix trapping/reporting of NAIF Errors in C++ code
 - Add OREX/OCAMS test IK kernel
-- NAIF Utilities IK Kernel, NAIF Ellipsoid Max/Min Radius Test, and naifdsk data ocams file 
+- NAIF Utilities IK Kernel, NAIF Ellipsoid Max/Min Radius Test, and naifdsk data ocams file
 - Tag Changes in PsmrtsUtilities, and removing unnecessary #define in test_NaifEllipsoidShape (PR #5)
 - Develop KernelFileSystem.hpp for the basic NAIF kernel file system API
 - Add PSMRTS Longitude Domain testing 360/180, GENERATE Output test, and PSMRTS 360/180 routines
@@ -614,6 +622,7 @@ NaifDskTracerModel.hpp, and NaifEllipsoidShape.hpp.
 - Add the NAIF SPICE toolkit as the first tracer in PSMRTS
 
 ## [0.0.2] 2024-01-11
+
 - Added float test to test_PsmrtsDataModel.cpp
 - Few more data index changes for consistency
 - Fixed typedefs and cleaned up interface
@@ -633,6 +642,7 @@ NaifDskTracerModel.hpp, and NaifEllipsoidShape.hpp.
 - Add options to build tests and extras
 
 ## [0.0.1] 2023-10-06
+
 ### Initial Version
 
 This is the initial import of the Planetary Shape Model and Ray Tracing System (PSMRTS)
