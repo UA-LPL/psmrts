@@ -126,6 +126,8 @@ TEST_CASE( "Bullet Tracer Test - Ray Trace / Values", "[bullet][tracer][values]"
 
     // Beware the most vexing parse (see https://www.fluentcpp.com/2018/01/30/most-vexing-parse/)
     psmrts::BulletTracer b_tracer( psmrts::PsmrtsShape{ objfile } );
+    CHECK( b_tracer.minimum_radius()  < b_tracer.maximum_radius() );
+
     const double max_radius = b_tracer.maximum_radius();
     
     // Compute the position of the observer at ( 45,45 ) degrees
