@@ -1,3 +1,4 @@
+#include <tracy/Tracy.hpp>
 /** This is free and unencumbered software released into the public domain.
  
       OSIRIS-APEX (OSIRIS-APophis EXplorer) by University of Arizona 

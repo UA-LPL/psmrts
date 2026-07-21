@@ -1,3 +1,4 @@
+#include <tracy/Tracy.hpp>
 #ifndef PsmrtsTracerSystem_h
 #define PsmrtsTracerSystem_h
 

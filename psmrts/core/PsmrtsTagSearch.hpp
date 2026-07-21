@@ -1,3 +1,4 @@
+#include <tracy/Tracy.hpp>
 #ifndef PSMRTS_TAG_SEARCH_HPP
 #define PSMRTS_TAG_SEARCH_HPP
 

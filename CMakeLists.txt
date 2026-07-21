@@ -103,6 +103,8 @@ else()
   find_package( Bullet           CONFIG REQUIRED )
 endif(NOT "${_conda_bullet_config}" MATCHES ".*-NOTFOUND")
 
+find_package(Tracy  REQUIRED)
+
 # Create standardized/common targets. Note that Bullet and cspice can be
 # provided in projects by other means. This macro will check for other
 # resources providing these libraries. However, they must be called before
@@ -130,6 +132,7 @@ target_link_libraries( psmrts PUBLIC
     nlohmann_json::nlohmann_json
     Eigen3::Eigen
     ${CSPICE_LIBRARY_TARGET}
+    Tracy::TracyClient
 )
 
 target_link_libraries( psmrts PRIVATE

@@ -1,3 +1,4 @@
+#include <tracy/Tracy.hpp>
 #ifndef VariantTraits_hpp
 #define VariantTraits_hpp
 
