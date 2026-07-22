@@ -91,7 +91,7 @@ namespace psmrts::bullet {
       /** Adds an additional body object to the world model */
       btCollisionObject *PsmrtsBulletWorldModel::add_body( btBvhTriangleMeshShape *shape,
                                                            void *userptr ) {
-        ZoneScoped;
+        ZoneScopedN( "psmsrts::bullet::add_body" );
 
         m_bt_object.datum().m_sbt_shape.reset( shape );
         m_bt_object.datum().m_sbt_object.reset( new btCollisionObject() );
@@ -269,7 +269,7 @@ namespace psmrts::bullet {
                                               m_collision.get() ) );
         m_bt_object.datum() = BtShapeObject();
         m_tracker           = PsmrtsThreadSafeCounter();
-        m_thread_safety     = true;
+        m_thread_safety     = false;
       }
 
 
