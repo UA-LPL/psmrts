@@ -25,6 +25,7 @@ option( PSMRTS_BUILD_APPS      "Build PSMRTS C++ Applications"      OFF )
 option( PSMRTS_BUILD_CAPI_APPS "Build PMSRTS C Applications"        OFF )
 option( PSMRTS_BUILD_DOCS      "Build API Doxygen Documentation"    OFF )
 option( PSMRTS_WITH_ISIS       "Build with ISIS Shapemodel Support" OFF )
+option(TRACY_ENABLE "Turn on Tracy Profiling" ON)
 
 # Check for type of library build.
 if(PSMRTS_BUILD_SHARED)
