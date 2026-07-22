@@ -212,12 +212,12 @@ namespace psmrts::bullet {
 
         // Check for runtime single thread safety option
         if ( true == m_thread_safety ) {
-          std::scoped_lock mylocker( m_bt_object.mutex() );
-          m_tracker++;
+          //std::scoped_lock mylocker( m_bt_object.mutex() );
+          // m_tracker++;
           m_world->rayTest( rayStart, rayEnd, results);
         }
         else {
-          m_tracker++;
+          // m_tracker++;
           m_world->rayTest( rayStart, rayEnd, results);
         }
 
