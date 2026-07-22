@@ -64,6 +64,7 @@ namespace psmrts {
 
       /** Adds a valid tracer to Priority Tracer list */
       inline void add_tracer( const PsmrtsTracer &tracer ) {
+        ZoneScoped;
         if ( PsmrtsUID::is_valid_uid( tracer.uid() ) ) {
           m_uids_t.push_back( tracer.uid() );
           m_tracers.push_back( tracer );
@@ -74,6 +75,7 @@ namespace psmrts {
       }
       
       inline bool process ( PRQRayTrace &ray ) const {
+         ZoneScoped;
         // Trace through list as ordered in the current UID set
         for ( const auto &tracer : tracers() ) {
           if ( tracer.process( ray )  ) {
@@ -84,6 +86,7 @@ namespace psmrts {
       }
 
       inline bool process ( PRQRayTraceArray &tracelist ) const {
+        ZoneScoped;
         // Trace through list as ordered in the current UID set
         size_t ngood = 0;
         for ( auto &ray : tracelist.traces() ) {
@@ -100,6 +103,7 @@ namespace psmrts {
 
 
      inline bool process ( PRQPhotometricTrace &ray_p ) const {
+        ZoneScoped;
         // Trace through list as ordered in the current UID set
         for ( const auto &tracer : tracers() ) {
           if ( tracer.process( ray_p ) == true ) return ( true );
@@ -109,6 +113,7 @@ namespace psmrts {
 
       
       inline bool process ( PRQPhotometricTraceArray &tracelist ) const {
+        ZoneScoped;
         // Trace through list as ordered in the current UID set
         size_t ngood = 0;
         for ( auto &ray : tracelist.traces() ) {
@@ -149,11 +154,13 @@ namespace psmrts {
        * @param ray                         PsmrtsRayTrace returns the results of the trace
        */
       inline bool ray_trace( const PsmrtsTracer &tracer, PRQRayTrace &ray ) const {
+        ZoneScoped;
         return ( tracer.process( ray ) );
       }
 
       /** Run a trace on the priority list */
       inline bool ray_trace( PRQRayTrace &ray ) const {
+        ZoneScoped;
         for ( const auto &tracer : tracers() ) {
           if ( this->ray_trace( tracer, ray ) == true ) {
             return ( ray.isValid() );

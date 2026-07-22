@@ -26,6 +26,7 @@ option( PSMRTS_BUILD_CAPI_APPS "Build PMSRTS C Applications"        OFF )
 option( PSMRTS_BUILD_DOCS      "Build API Doxygen Documentation"    OFF )
 option( PSMRTS_WITH_ISIS       "Build with ISIS Shapemodel Support" OFF )
 option(TRACY_ENABLE "Turn on Tracy Profiling" ON)
+set(TRACY_ENABLE ON)
 
 # Check for type of library build.
 if(PSMRTS_BUILD_SHARED)
@@ -120,6 +121,7 @@ psmrts_create_dependency_targets()
 #-----------------------------------------------------------------------------
 add_library( psmrts ${PSMRTS_BUILD_TYPE} )
 add_library( psmrts::psmrts ALIAS psmrts )
+target_compile_definitions(psmrts PUBLIC TRACY_ENABLE)
 add_subdirectory(psmrts)
 target_include_directories( psmrts PUBLIC 
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>

@@ -36,6 +36,7 @@ namespace psmrts  {
                                  const double *lookdir,
                                  double *xyz, 
                                  double *normal ) const {
+      ZoneScoped;
 
       SpiceBoolean found;
       (void) surfpt_c( observer, lookdir,
@@ -54,12 +55,14 @@ namespace psmrts  {
 
   /** Retuns the vector normal of the input point */
   void EllipsoidTracer::compute_normal( const double *point, double *normal ) const {  
+    ZoneScoped;
     (void) surfnm_c( m_radii[0], m_radii[1], m_radii[2], point, normal );
     return;
   }
 
   void EllipsoidTracer::create( const ProductCart &cart ) {
 
+      ZoneScoped;
       std::string name_t = cart.configuration().name();
 
 

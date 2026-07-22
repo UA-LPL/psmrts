@@ -68,6 +68,7 @@ namespace psmrts  {
        * @return false  If no ray trace intercept was found
        */
       inline bool process ( PRQRayTrace &trace ) const {
+        ZoneScoped;
         return ( algorithms::process_basic_trace( *this, trace ) );
       }
 
@@ -88,6 +89,7 @@ namespace psmrts  {
        * @return false    If no trace intercepts were found
        */
       inline bool process ( PRQRayTraceArray &tracelist ) const {
+        ZoneScoped;
         return ( algorithms::process_basic_trace_array( *this, tracelist ) );
       }
 
@@ -107,6 +109,7 @@ namespace psmrts  {
        * @return false  If process fails to find facet/intercept
        */
       inline bool process( PRQFacet &facet ) const {
+        ZoneScoped;
         return ( algorithms::process_basic_facet( *this, facet ) );
       }
 
@@ -126,6 +129,7 @@ namespace psmrts  {
        * @return false  If either does not intercept the shape
        */
       inline bool process( PRQPhotometricTrace &trace_p ) const {
+        ZoneScoped;
         return ( algorithms::process_basic_photometric_trace( *this, trace_p ) );
       }
 
@@ -146,6 +150,7 @@ namespace psmrts  {
        * @return false    If no appropriate trace intercepts were found
        */
       inline bool process ( PRQPhotometricTraceArray &tracelist ) const {
+        ZoneScoped;
         return ( algorithms::process_basic_photometric_trace_array( *this, tracelist ) );
       }
 
@@ -197,6 +202,7 @@ namespace psmrts  {
                               const Eigen::Vector3d &lookdir,
                               PsmrtsRayTrace &ray ) const {
         // this->local_tracker()++;
+        ZoneScoped;
         return ( this->ray_trace( ray.reset( observer, lookdir ) ) );
       }
       
@@ -206,6 +212,7 @@ namespace psmrts  {
                        PsmrtsRayTrace::FacetDatum &facet) const;
             
       static inline ProductSpecification product_specifications() {
+        ZoneScoped;
         ProductInfo  info( "bullet", { 
                                  FeatureOption( "name", "bullet" ),
                                  FeatureOption( "product", "tracer" ),
@@ -263,6 +270,7 @@ namespace psmrts  {
       }
 
       inline bool matches( const ProductConfiguration &conf ) const {
+        ZoneScoped;
         if ( this->shape().matches( conf ) && this->config().matches( conf ) ) {
           return ( true );
         }

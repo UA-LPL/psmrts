@@ -257,6 +257,7 @@ namespace psmrts::bullet {
    */
   btScalar PsmrtsBulletClosestRayCallback::addSingleResult( btCollisionWorld::LocalRayResult &rayResult,
                                     bool normalInWorldSpace ) {
+    ZoneScoped;
     btScalar hitFraction = ClosestRayResultCallback::addSingleResult( rayResult, normalInWorldSpace );
 
     m_point  = m_hitPointWorld;
@@ -276,6 +277,7 @@ namespace psmrts::bullet {
    */
   void PsmrtsBulletClosestRayCallback::copyRayResult(btCollisionWorld::RayResultCallback &dest, 
                             const btCollisionWorld::RayResultCallback &source) {
+    ZoneScoped;
     dest = source;
     return;
   }

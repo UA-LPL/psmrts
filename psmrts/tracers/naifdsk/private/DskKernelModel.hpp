@@ -87,12 +87,14 @@ namespace naif {
       /** Open new or use existing DSK file */
       DskKernelModel( const std::string  &dskfile ) :
                       psmrts::PsmrtsProduct( dskfile, "tracer" ) {
+        ZoneScoped;
         init( dskfile );
       }
 
       DskKernelModel( const std::string  &dskfile, 
                       const Eigen::Vector3d &radii ) :
                       psmrts::PsmrtsProduct( dskfile, "tracer" ) {
+        ZoneScoped;
         init( dskfile );
         m_radii = radii;
       }
@@ -100,12 +102,14 @@ namespace naif {
       /** Initialize with a unique NAIF DSK file descriptor */
       DskKernelModel( const SharedDskDescriptor &k_descr ) :
                       psmrts::PsmrtsProduct( k_descr.datum().m_source_file, "tracer" ) {
-        init( k_descr );
+       ZoneScoped;
+       init( k_descr );
       }
 
       /** Recreate a model using a DSK segment from an existing segment */
       DskKernelModel( const DskKernelModel &model, const DskSegment &segment ) :
                       psmrts::PsmrtsProduct( model.name(), "tracer" ) {  
+        ZoneScoped;
         reset( &model.dskdsc() );
         add_segment( segment );
         return;
@@ -115,6 +119,7 @@ namespace naif {
       DskKernelModel( const DskKernelModel &model, 
                       const std::vector<DskSegment> &segments ) :
                       psmrts::PsmrtsProduct( model.name(), "tracer" ) {  
+        ZoneScoped;
         reset( &model.dskdsc() );
         for (const auto &segment : segments ) {
           add_segment( segment );
@@ -127,6 +132,7 @@ namespace naif {
                       psmrts::ProductConfiguration &config ) :
                       psmrts::PsmrtsProduct( processed_cart.configuration().name(),
                                              "tracer" )  {
+        ZoneScoped;
         config = this->create_from_cart( processed_cart );
       }        
       
@@ -181,6 +187,7 @@ namespace naif {
        */
       inline psmrts::ProductConfiguration create_from_cart( const psmrts::ProductCart &processed_cart ) {
 
+        ZoneScoped;
         std::string name_t = processed_cart.configuration().name();
 
         // Check for valid shape type
@@ -340,6 +347,7 @@ namespace naif {
 
       /** Returns a refernce to the nth DSK segment. Exceptions are thrown for bad index */
       inline const DskSegment &segment( const int segnum = 0 ) const {
+        ZoneScoped;
         for ( const auto &segment : segments() ) {
           if ( segment.segment_number() == segnum ) {
             return ( segment );
@@ -391,11 +399,13 @@ namespace naif {
 
       /** Returns minimum radius */
       inline double minimum_radius() const {
+        ZoneScoped;
         return ( this->segment().minimum_radius() );
       }
 
       /** Returns maximum radius */
       inline double maximum_radius() const {
+        ZoneScoped;
         return ( this->segment().maximum_radius() );
       }
 
@@ -433,6 +443,7 @@ namespace naif {
 
       inline bool ray_trace( const DskSegment &segment, 
                              psmrts::PsmrtsRayTrace &ray ) const {                              
+        ZoneScoped;
 
         // Lock up NAIF file I/O for thread safety ( >=c++17 )
         std::scoped_lock mylocker( this->mutex() );
@@ -479,6 +490,7 @@ namespace naif {
       }
 
       inline bool ray_trace( psmrts::PsmrtsRayTrace &ray ) const {
+        ZoneScoped;
         m_tracker++;
         for ( const auto &segment : segments() ) {
           bool has_hit = this->ray_trace( segment, ray );
@@ -505,6 +517,7 @@ namespace naif {
       inline bool get_facet( const psmrts::PsmrtsRayTrace &ray,
                              psmrts::PsmrtsRayTrace::FacetDatum &facet ) const {
                 
+        ZoneScoped;
         // Sanity check validity of raytrace
         facet.m_has_facet = false;
         if ( ray.hasHit() ) {
@@ -586,6 +599,7 @@ namespace naif {
        *                              index into the vector array.
        */
       inline DskIndexDataModel load_facet_indexes( const DskSegment *dsksegment = nullptr ) const {
+        ZoneScoped;
 
         const DskSegment &segref = ( nullptr != dsksegment ) ? *dsksegment : this->segment();
         DskIndexDataModel dskndx( segref.n_plates() );
@@ -627,6 +641,7 @@ namespace naif {
        */
       inline DskVectorDataModel load_facet_vectors( const DskSegment *dsksegment = nullptr ) const {
 
+        ZoneScoped;
         const DskSegment &segref = ( nullptr != dsksegment ) ? *dsksegment : this->segment();
 
         // For 1-baaed indexing into the vectors
@@ -671,6 +686,7 @@ namespace naif {
 
       inline psmrts::ProductConfiguration create_segment_config( const DskSegment &segment,
                                                                  const std::string &dskfile  ) const {
+        ZoneScoped;
         psmrts::ProductConfiguration dsk_config ( dskfile );
         // dsk_config.add( psmrts::ProductOption( "shape", "dsk" ) );
         dsk_config.add( psmrts::ProductOption( "dsk_file", dskfile ) );
@@ -693,6 +709,7 @@ namespace naif {
 
 
       inline psmrts::ProductConfiguration config( const std::vector<DskSegment> &segments ) const {
+        ZoneScoped;
         psmrts::ProductConfiguration config( "dsksegment" );
 
         std::vector<int> bodyid, segnum, surfid, frameid, segtype, classtype, nvertices, nfacets;
@@ -783,6 +800,7 @@ namespace naif {
        * @param k_descr Unique NAIF kernel descriptor to initialize object instance
        */
       inline void init( const SharedDskDescriptor &k_descr ) {
+        ZoneScoped;
        
         // Completely reset with this descriptor
         reset( &k_descr );
@@ -874,12 +892,14 @@ namespace naif {
     public:
 
       inline static bool has_dsk_shape( const std::string &dskfile ) {
+        ZoneScoped;
         std::scoped_lock mylocker( s_mutex );  
         auto dsk = s_dsk_shape_inventory.find( dskfile );
         return ( dsk != s_dsk_shape_inventory.end() );        
       }
 
       inline static DskKernelModel get_dsk_shape( const std::string &dskfile ) {
+        ZoneScoped;
         std::scoped_lock mylocker( s_mutex );  
         auto dsk = s_dsk_shape_inventory.find( dskfile );
         if ( s_dsk_shape_inventory.end() == dsk ) {

@@ -104,11 +104,13 @@ namespace psmrts  {
       
       /** Return the maximum radius of the ellipsoid */
       inline double maximum_radius() const {
+        ZoneScoped;
         return ( std::max( std::max( m_radii[0], m_radii[1]), m_radii[2] ) );
       }
 
       /** Return the minimum radius of the ellipsoid  */
       inline double minimum_radius() const {
+        ZoneScoped;
         return ( std::min( std::min( m_radii[0], m_radii[1]), m_radii[2] ) );
       }
 
@@ -128,6 +130,7 @@ namespace psmrts  {
        * @return false  If no ray trace intercept was found
        */
       inline bool process ( PRQRayTrace &trace ) const {
+        ZoneScoped;
         return ( psmrts::algorithms::process_basic_trace( *this, trace ) );
       }
 
@@ -148,6 +151,7 @@ namespace psmrts  {
        * @return false    If no trace intercepts were found
        */
       inline bool process ( PRQRayTraceArray &tracelist ) const {
+        ZoneScoped;
         return ( psmrts::algorithms::process_basic_trace_array( *this, tracelist ) );
       }
 
@@ -274,6 +278,7 @@ namespace psmrts  {
       void compute_normal( const double *point, double *normal ) const;
     
       static inline ProductSpecification product_specifications() {
+        ZoneScoped;
         ProductInfo  info( "ellipsoid", { 
                                  ProductOption( "name", "ellipsoid"),
                                  ProductOption( "product", "tracer"),
