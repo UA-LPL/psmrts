@@ -102,7 +102,7 @@ namespace psmrts::bullet {
         }
 
         m_world->addCollisionObject( m_bt_object.datum().object() );
-        m_world->updateAabbs();
+        // m_world->updateAabbs();
 
         return ( m_bt_object.datum().object() );
       }
