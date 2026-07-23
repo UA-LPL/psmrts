@@ -93,7 +93,7 @@ namespace psmrts::bullet {
 
   /** Creates a triangle mesh mapping with a designated max number of parts */
   btTriangleIndexVertexArray *PsmrtsBulletMeshMap::create_map_mesh( const size_t maxparts ) const {
-    ZoneScoped;
+    ZoneScopedN( "psmrts::PsmrtsBulletMeshMap::create_map_mesh" );
     
     // Set mesh state
     std::unique_ptr<btTriangleIndexVertexArray> bt_mesh;
@@ -146,7 +146,7 @@ namespace psmrts::bullet {
   btBvhTriangleMeshShape *PsmrtsBulletMeshMap::create_collision_shape( btTriangleIndexVertexArray *mesh,
                                                                 const bool useCompression,
                                                                 const bool buildBvh) {
-    ZoneScoped;
+    ZoneScopedN( "psmrts::PsmrtsBulletMeshMap::create_collision_shape(mesh)" );
 
     // Sanity check on pointer
     if ( nullptr == mesh ) {
@@ -161,7 +161,7 @@ namespace psmrts::bullet {
   /** Creates a triangle mesh based on internal mesh data */
     btBvhTriangleMeshShape *PsmrtsBulletMeshMap::create_collision_shape( const bool useCompression,
                                                                          const bool buildBvh ) const {
-    ZoneScoped;
+    ZoneScopedN( "psmrts::PsmrtsBulletMeshMap::create_collision_shape" );
 
     // Creates compressed and optimized Bullet meshes
     return ( this->create_collision_shape( m_bullet_mesh.get(), useCompression, buildBvh ) );

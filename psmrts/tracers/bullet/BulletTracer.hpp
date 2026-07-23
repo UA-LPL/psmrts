@@ -68,7 +68,7 @@ namespace psmrts  {
        * @return false  If no ray trace intercept was found
        */
       inline bool process ( PRQRayTrace &trace ) const {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::BulletTracer::process(trace)" );
         return ( algorithms::process_basic_trace( *this, trace ) );
       }
 
@@ -89,7 +89,7 @@ namespace psmrts  {
        * @return false    If no trace intercepts were found
        */
       inline bool process ( PRQRayTraceArray &tracelist ) const {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::BulletTracer::process(tracelist)" );
         return ( algorithms::process_basic_trace_array( *this, tracelist ) );
       }
 
@@ -109,7 +109,7 @@ namespace psmrts  {
        * @return false  If process fails to find facet/intercept
        */
       inline bool process( PRQFacet &facet ) const {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::BulletTracer::process(facet)" );
         return ( algorithms::process_basic_facet( *this, facet ) );
       }
 
@@ -129,7 +129,7 @@ namespace psmrts  {
        * @return false  If either does not intercept the shape
        */
       inline bool process( PRQPhotometricTrace &trace_p ) const {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::BulletTracer::process(phototrace)" );
         return ( algorithms::process_basic_photometric_trace( *this, trace_p ) );
       }
 
@@ -150,7 +150,7 @@ namespace psmrts  {
        * @return false    If no appropriate trace intercepts were found
        */
       inline bool process ( PRQPhotometricTraceArray &tracelist ) const {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::BulletTracer::process(phototracelist)" );
         return ( algorithms::process_basic_photometric_trace_array( *this, tracelist ) );
       }
 
@@ -202,7 +202,7 @@ namespace psmrts  {
                               const Eigen::Vector3d &lookdir,
                               PsmrtsRayTrace &ray ) const {
         // this->local_tracker()++;
-        ZoneScoped;
+        ZoneScopedN( "psmrts::BulletTracer::ray_trace(Eigen)" );
         return ( this->ray_trace( ray.reset( observer, lookdir ) ) );
       }
       
@@ -212,7 +212,7 @@ namespace psmrts  {
                        PsmrtsRayTrace::FacetDatum &facet) const;
             
       static inline ProductSpecification product_specifications() {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::BulletTracer::product_specifications" );
         ProductInfo  info( "bullet", { 
                                  FeatureOption( "name", "bullet" ),
                                  FeatureOption( "product", "tracer" ),
@@ -270,7 +270,7 @@ namespace psmrts  {
       }
 
       inline bool matches( const ProductConfiguration &conf ) const {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::BulletTracer::matches" );
         if ( this->shape().matches( conf ) && this->config().matches( conf ) ) {
           return ( true );
         }

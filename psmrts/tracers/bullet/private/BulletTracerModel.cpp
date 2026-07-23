@@ -61,7 +61,7 @@ namespace psmrts::bullet {
 
       /** Returns the maximum radius in the model */
       double BulletTracerModel::maximum_radius() const {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::BulletTracerModel::maximum_radius" );
         return ( m_bullet_model.mesh().maximum_radius() );
       }
 
@@ -90,13 +90,13 @@ namespace psmrts::bullet {
       bool BulletTracerModel::ray_trace( const Eigen::Vector3d &observer,
                                          const Eigen::Vector3d &lookdir,
                                          PsmrtsRayTrace &ray ) const {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::BulletTracerModel::ray_trace(Eigen)" );
         // this->local_tracker()++;
         return ( this->ray_trace( ray.reset( observer, lookdir ) ) );
       }
 
       bool BulletTracerModel::ray_trace( PsmrtsRayTrace &ray ) const {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::BulletTracerModel::ray_trace(ray)" );
         // this->local_tracker()++;
         return ( m_bullet_model.ray_trace( ray ) );
       }
@@ -112,7 +112,7 @@ namespace psmrts::bullet {
       bool BulletTracerModel::get_facet( const PsmrtsRayTrace &ray,
                                          PsmrtsRayTrace::FacetDatum &facet ) 
                                          const {
-       ZoneScoped;
+        ZoneScopedN( "psmrts::BulletTracerModel::get_facet(ray,facet)" );
 
        // Sanity check validity of raytrace
         facet.m_has_facet = false;

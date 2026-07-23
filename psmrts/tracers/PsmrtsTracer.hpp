@@ -147,7 +147,7 @@ namespace psmrts {
       }      
 
       inline ProductSpecification specs() const {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::PsmrtsTracer::specs" );
         const auto visitor = overload{            
                   [](auto &&tracer ) -> ProductSpecification {
                        return ( tracer.product_specifications() ); 
@@ -158,7 +158,7 @@ namespace psmrts {
       } 
 
       inline const ProductConfiguration &config() const {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::PsmrtsTracer::config" );
         const auto visitor = overload{            
                   [](auto &&tracer ) -> const ProductConfiguration & {
                        return ( tracer.config() ); 
@@ -169,12 +169,12 @@ namespace psmrts {
       }        
 
       inline bool matches( const ProductConfiguration &conf ) const {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::PsmrtsTracer::matches" );
         return ( this->config().matches( conf ) );
       }
 
       inline double maximum_radius() const {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::PsmrtsTracer::maximum_radius" );
         const auto visitor = overload{            
                   [](auto &&tracer ) ->double {
                        return ( tracer.maximum_radius() ); 
@@ -185,7 +185,7 @@ namespace psmrts {
       }
       
       inline double minimum_radius() const {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::PsmrtsTracer::minimum_radius" );
         const auto visitor = overload{            
                   [](auto &&tracer ) ->double {
                        return ( tracer.minimum_radius() ); 

@@ -91,7 +91,7 @@ namespace psmrts::bullet {
       /** Adds an additional body object to the world model */
       btCollisionObject *PsmrtsBulletWorldModel::add_body( btBvhTriangleMeshShape *shape,
                                                            void *userptr ) {
-        ZoneScopedN( "psmsrts::bullet::add_body" );
+        ZoneScopedN( "psmrts::PsmrtsBulletWorldModel::add_body" );
 
         m_bt_object.datum().m_sbt_shape.reset( shape );
         m_bt_object.datum().m_sbt_object.reset( new btCollisionObject() );
@@ -122,7 +122,7 @@ namespace psmrts::bullet {
       /** Returns true if ray trace result contains a hit, directing the trace data into the ray parameter */
       bool PsmrtsBulletWorldModel::extract_ray_trace_results( const PsmrtsBulletClosestRayCallback &results,
                                                                PsmrtsRayTrace &ray ) const {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::PsmrtsBulletWorldModel::extract_ray_trace_results" );
 
         ray.datum().m_hit = results.hasHit();
         if ( ray.hasHit() ) {
@@ -161,12 +161,12 @@ namespace psmrts::bullet {
       bool PsmrtsBulletWorldModel::ray_trace( const Eigen::Vector3d &observer, 
                              const Eigen::Vector3d &lookdir,
                              PsmrtsRayTrace &ray ) const {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::PsmrtsBulletWorldModel::ray_trace(Eigen)" );
         return ( this->ray_trace( ray.reset( observer, lookdir ) ) );
       }
 
       bool PsmrtsBulletWorldModel::ray_trace( PsmrtsRayTrace &ray ) const {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::PsmrtsBulletWorldModel::ray_trace(ray)" );
                               
         Eigen::Vector3d t_lookdir = ray.observer() + ( ray.lookdir().normalized()  * ( ray.observer().norm() * 2.0 ) );
         btVector3 b_observer = PsmrtsBulletClosestRayCallback::toBtVector( ray.observer() );
@@ -203,8 +203,12 @@ namespace psmrts::bullet {
       bool PsmrtsBulletWorldModel::bullet_ray_trace( const btVector3 &rayStart, 
                                                      const btVector3 &rayEnd,
                                                      PsmrtsBulletClosestRayCallback &results ) const {
+        std::cout << "\npsmrts::PsmrtsBulletWorldModel::bullet_ray_trace..." << std::endl;
+        std::cout << "RayStart: " << rayStart[0] << ", " << rayStart[2] << ", " << rayStart[2] << std::endl;
+        std::cout << "RayEnd:   " << rayEnd[0]   << ", " << rayEnd[2]   << ", " << rayEnd[2]   << std::endl;
+        std::cout << "Looklen:  " << (rayEnd - rayStart).norm() << std::endl;
 
-        ZoneScoped;
+        ZoneScopedN( "psmrts::PsmrtsBulletWorldModel::bullet_ray_trace" );
 
         // Lock up Bullet for thread safety ( >=c++17 )
         //btVector3 rayStart( observer[0], observer[1], observer[2] );
@@ -232,13 +236,13 @@ namespace psmrts::bullet {
 
       /** Return the elapsed time of this object */
       double PsmrtsBulletWorldModel::elapsed_life_time_s() const {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::PsmrtsBulletWorldModel::elapsed_life_time_s" );
         return ( m_tracker.runtime_s() );
       }
 
       /** Return the nunmber of tracked ray traces */
       size_t PsmrtsBulletWorldModel::track_count() const {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::PsmrtsBulletWorldModel::track_count" );
         return ( m_tracker.count() );
       }
 
@@ -256,7 +260,7 @@ namespace psmrts::bullet {
 
       /** Initialize a new Bullet world structure   */
       void PsmrtsBulletWorldModel::initWorld( const std::string &name ) { 
-        ZoneScoped;
+        ZoneScopedN( "psmrts::PsmrtsBulletWorldModel::initWorld" );
 
         m_name = name;   
 

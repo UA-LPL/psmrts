@@ -229,7 +229,7 @@ namespace psmrts {
        * @return false If product creation fails
        */
       inline bool make_product( const ProductConfiguration &config ) {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::PsmrtsTracerSystem::make_product" );
 
         ProductSet product_s = m_invoice.process_product( config );
         if ( !m_invoice.processor().is_valid_product( product_s ) ) {
@@ -261,7 +261,7 @@ namespace psmrts {
        */
       inline size_t process_shape_list( const std::vector<std::string> &shapes,
                                         const std::string &name = "psmrtstracersystem" ) {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::PsmrtsTracerSystem::process_shape_list" );
         std::vector<std::string> shape_file_list;
         for ( const std::string &file_s : shapes ) {
 
@@ -396,7 +396,7 @@ namespace psmrts {
        *                               tracer created by this method.
        */
       inline PsmrtsPriorityTracer create_priority_tracer( const std::string &name = "" ) {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::PsmrtsTracerSystem::create_priority_tracer" );
         m_tracer_p =  m_invoice.make_priority_tracer( name );
 
         // Check to ensure there is a reference ellipsoid for the system on
@@ -445,7 +445,7 @@ namespace psmrts {
        */
       inline PsmrtsTracer get_tracer_from_intercept( const PRQRayTrace &ray ) 
                                                      const {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::PsmrtsTracerSystem::get_tracer_from_intercept" );
         UIDType uid_t = ray.trace( ).get_tracer_id();
         if ( !PsmrtsUID::is_valid_uid( uid_t) ) {
           return ( PsmrtsTracer() );
@@ -470,7 +470,7 @@ namespace psmrts {
        * @return false If the trace did not intercept the shape
        */      
       inline bool shape_trace( PRQRayTrace &ray ) const {      
-        ZoneScoped;
+        ZoneScopedN( "psmrts::PsmrtsTracerSystem::shape_trace(ray)" );
         return ( m_tracer_p.process( ray ) );
       }
 
@@ -493,7 +493,7 @@ namespace psmrts {
       inline PRQRayTrace shape_trace( const std::vector<double> &observer_km,
                                       const std::vector<double> &lookdir_km ) 
                                       const {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::PsmrtsTracerSystem::shape_trace(std::vectors)" );
         PRQRayTrace ray_t( Eigen::Vector3d( observer_km.data() ), 
                            Eigen::Vector3d( lookdir_km.data() ) );
         (void) this->process( ray_t );
@@ -505,7 +505,7 @@ namespace psmrts {
                                       const Eigen::Vector3d &lookdir_km ) 
                                       const {
 
-        ZoneScoped;
+        ZoneScopedN( "psmrts::PsmrtsTracerSystem::shape_trace(Eigen)" );
         PRQRayTrace ray_t( observer_km, lookdir_km );
         this->process( ray_t );
         return ( ray_t );
@@ -531,7 +531,7 @@ namespace psmrts {
       inline PRQRayTrace ellipsoid_trace( const std::vector<double> &observer_km,
                                           const std::vector<double> &lookdir_km ) 
                                           const {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::PsmrtsTracerSystem::ellipsoid_trace(std::vectors)" );
 
         PRQRayTrace ray_t( Eigen::Vector3d( observer_km.data() ), 
                            Eigen::Vector3d( lookdir_km.data() ) );
@@ -544,7 +544,7 @@ namespace psmrts {
       inline PRQRayTrace ellipsoid_trace( const Eigen::Vector3d &observer_km, 
                                           const Eigen::Vector3d &lookdir_km ) 
                                           const {
-       ZoneScoped;
+        ZoneScopedN( "psmrts::PsmrtsTracerSystem::ellipsoid_trace(Eigen)" );
 
         PRQRayTrace ray_t( observer_km, lookdir_km );
 
@@ -563,7 +563,7 @@ namespace psmrts {
        */
       template <typename T>
        inline bool process( T &ray ) const {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::PsmrtsTracerSystem::process<T>(ray)" );
         return ( m_tracer_p.process( ray ) ); 
       }  
 
@@ -580,7 +580,7 @@ namespace psmrts {
        * @return false If the trace did not intercept the ellipsoid
        */
       inline bool ellipsoid_trace( PRQRayTrace &ray ) const {      
-        ZoneScoped;
+        ZoneScopedN( "psmrts::PsmrtsTracerSystem::ellipsoid_trace(ray)" );
         return ( m_ellipsoid_r.process( ray ) );
       }
 
@@ -605,7 +605,7 @@ namespace psmrts {
        */
       inline bool shape_photometric_trace( PRQPhotometricTrace &ray_p ) 
                                            const {      
-        ZoneScoped;
+        ZoneScopedN( "psmrts::PsmrtsTracerSystem::shape_photometric_trace(photoray)" );
         return ( m_tracer_p.process( ray_p ) );
       }
 
@@ -634,7 +634,7 @@ namespace psmrts {
                                                           const std::vector<double> &lookdir_km,
                                                           const std::vector<double> &sunpos_km ) 
                                                           const {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::PsmrtsTracerSystem::shape_photometric_trace(std::vectors)" );
 
         PRQPhotometricTrace ray_p( Eigen::Vector3d( observer_km.data() ), 
                                    Eigen::Vector3d( lookdir_km.data() ),
@@ -648,7 +648,7 @@ namespace psmrts {
                                                           const Eigen::Vector3d &lookdir_km,
                                                           const Eigen::Vector3d &sunpos_km )
                                                           const {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::PsmrtsTracerSystem::shape_photometric_trace(Eigen)" );
 
         PRQPhotometricTrace ray_p( observer_km, lookdir_km, sunpos_km );
         this->shape_photometric_trace( ray_p );
@@ -680,7 +680,7 @@ namespace psmrts {
                                                               const std::vector<double> &lookdir_km,
                                                               const std::vector<double> &sunpos_km ) 
                                                               const {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::PsmrtsTracerSystem::ellipsoid_photometric_trace(std::vectors)" );
 
         PRQPhotometricTrace ray_p( Eigen::Vector3d( observer_km.data() ), 
                                    Eigen::Vector3d( lookdir_km.data() ),
@@ -694,7 +694,7 @@ namespace psmrts {
                                                               const Eigen::Vector3d &lookdir_km,
                                                               const Eigen::Vector3d &sunpos_km ) 
                                                               const {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::PsmrtsTracerSystem::ellipsoid_photometric_trace(Eigen)" );
 
         PRQPhotometricTrace ray_p( observer_km, lookdir_km, sunpos_km );
         this->ellipsoid_photometric_trace( ray_p );
@@ -720,7 +720,7 @@ namespace psmrts {
        */      
       inline bool ellipsoid_photometric_trace( PRQPhotometricTrace &ray_p ) 
                                                const {      
-        ZoneScoped;
+        ZoneScopedN( "psmrts::PsmrtsTracerSystem::ellipsoid_photometric_trace(ray)" );
         return ( m_ellipsoid_r.process( ray_p ) );
       }
 

@@ -61,14 +61,14 @@ namespace psmrts {
       }
 
       inline bool ray_trace( PsmrtsRayTrace &ray ) const {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::BulletTracer::BulletTracerImpl::ray_trace" );
         ray.set_tracer_id( this->uid() );
         return ( m_bullet_model.ray_trace( ray ) );
       }
 
       inline bool get_facet(  const PsmrtsRayTrace &ray, 
                        PsmrtsRayTrace::FacetDatum &facet) const {
-        ZoneScoped;
+        ZoneScopedN( "psmrts::BulletTracer::get_facet(ray, facet)" );
         return ( m_bullet_model.get_facet( ray, facet ) );
       } 
 
@@ -93,6 +93,7 @@ namespace psmrts {
   BulletTracer::BulletTracer( const PsmrtsShape &shape ) : 
                               PsmrtsProduct( shape.config().name(), "tracer", "bullet"),
                               m_config("bullet") {
+    ZoneScopedN( "psmrts::BulletTracer(shape)" );
     m_model = std::make_shared<BulletTracerImpl> ( shape );
     m_config.merge( shape.config() );
     m_config.add( ProductOption( "tracer", "bullet" ) );
@@ -104,13 +105,14 @@ namespace psmrts {
   
   BulletTracer::BulletTracer( const ProductCart &processed_cart ) :
                               PsmrtsProduct( processed_cart.configuration().name(), "tracer", "bullet") {
+    ZoneScopedN( "psmrts::BulletTracer(cart)" );
     this->create( processed_cart );
   }
   
   BulletTracer::BulletTracer( const ProductCart &processed_cart,
                               const PsmrtsShape &shape ) :
                               PsmrtsProduct( processed_cart.configuration().name(), "tracer", "bullet") {
-    ZoneScoped;
+    ZoneScopedN( "psmrts::BulletTracer(cart,shape)" );
     this->create( processed_cart, shape );
   }    
   
@@ -119,25 +121,26 @@ namespace psmrts {
       
   
   double BulletTracer::maximum_radius() const {
-    ZoneScoped;
+    ZoneScopedN( "psmrts::BulletTracer::maximum_radius" );
     return ( shape().maximum_radius() );
   }
 
   double BulletTracer::minimum_radius() const { 
-    ZoneScoped;
+    ZoneScopedN( "psmrts::BulletTracer::ray_trace" );
     return ( shape().minimum_radius() );
   }
 
   bool BulletTracer::ray_trace( PsmrtsRayTrace &ray ) const {
-    ZoneScoped;
-    bool status = m_model->ray_trace( ray );
+    ZoneScopedN( "psmrts::BulletTracer::ray_trace(ray)" );
+    bool status     
+ m_model->ray_trace( ray );
     ray.set_tracer_id( this->uid() );
     return ( status );
 
   }
   bool BulletTracer::get_facet(  const PsmrtsRayTrace &ray, 
                                  PsmrtsRayTrace::FacetDatum &facet) const {
-    ZoneScoped;
+    ZoneScopedN( "psmrts::BulletTracer::get_facet" );
     return ( m_model->get_facet( ray, facet ) );                                 
   }
 
@@ -147,7 +150,9 @@ namespace psmrts {
 
   void BulletTracer::create(const ProductCart &cart,
                             const PsmrtsShape &shape ) {
-    ZoneScoped;
+
+    ZoneScopedN( "psmrts::BulletTracer::create(cart,shape)" );
+
     PsmrtsTranslations trans_t = PsmrtsTranslations::create();
 
     // Check for valid shape type
