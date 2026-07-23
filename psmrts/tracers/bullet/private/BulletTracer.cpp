@@ -238,11 +238,13 @@ namespace psmrts {
     if ( m_config.contains( "bullet_compression" ) ) {
       useCompression  = psmrts::is_bool( OptionStringsExtractor( m_config.find( "bullet_compression" ) ).get() );
     }   
+    m_config.add_metadata( ProductOption( "bullet_compression",  useCompression ) );
     
     bool useBuildBvh = psmrts::is_bool( spec_b.find( "bullet_optimize_bvh" ).find("default").to_string() );
     if ( m_config.contains( "bullet_optimize_bvh" ) ) {
       useBuildBvh  = psmrts::is_bool( OptionStringsExtractor( m_config.find( "bullet_optimize_bvh" ) ).get() );
     } 
+    m_config.add_metadata( ProductOption( "bullet_optimize_bvh",  useBuildBvh ) );
 
     // Create the bullet tracer
     m_model = std::make_shared<BulletTracerImpl> ( shape_t.value(), useCompression, useBuildBvh );
