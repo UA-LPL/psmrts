@@ -173,7 +173,7 @@ namespace psmrts::bullet {
         btVector3 b_lookdir  = PsmrtsBulletClosestRayCallback::toBtVector( t_lookdir );
 
         PsmrtsBulletClosestRayCallback results(b_observer, b_lookdir );
-        (void) bullet_ray_trace( ray.observer(), t_lookdir, results );
+        (void) bullet_ray_trace( b_observer, b_lookdir, results );
         return ( extract_ray_trace_results( results, ray ) );
       }
 
@@ -200,15 +200,15 @@ namespace psmrts::bullet {
        * @return true   If the trace intercepts the shape
        * @return false  If no ray trace intercept was found
        */
-      bool PsmrtsBulletWorldModel::bullet_ray_trace( const Eigen::Vector3d &observer, 
-                                                     const Eigen::Vector3d &lookdir,
+      bool PsmrtsBulletWorldModel::bullet_ray_trace( const btVector3 &rayStart, 
+                                                     const btVector3 &rayEnd,
                                                      PsmrtsBulletClosestRayCallback &results ) const {
 
         ZoneScoped;
 
         // Lock up Bullet for thread safety ( >=c++17 )
-        btVector3 rayStart( observer[0], observer[1], observer[2] );
-        btVector3 rayEnd( lookdir[0], lookdir[1], lookdir[2] );
+        //btVector3 rayStart( observer[0], observer[1], observer[2] );
+        // btVector3 rayEnd( lookdir[0], lookdir[1], lookdir[2] );
 
         // Check for runtime single thread safety option
         if ( true == m_thread_safety ) {
