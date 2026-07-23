@@ -132,8 +132,7 @@ namespace psmrts {
 
   bool BulletTracer::ray_trace( PsmrtsRayTrace &ray ) const {
     ZoneScopedN( "psmrts::BulletTracer::ray_trace(ray)" );
-    bool status     
- m_model->ray_trace( ray );
+    bool status = m_model->ray_trace( ray );
     ray.set_tracer_id( this->uid() );
     return ( status );
 
