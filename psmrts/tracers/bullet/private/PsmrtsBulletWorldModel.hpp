@@ -129,8 +129,8 @@ namespace psmrts::bullet {
        * @return true   If the trace intercepts the shape
        * @return false  If no ray trace intercept was found
        */
-      bool bullet_ray_trace( const Eigen::Vector3d &observer, 
-                             const Eigen::Vector3d &lookdir,
+      bool bullet_ray_trace( const btVector3 &observer, 
+                             const btVector3 &lookdir,
                              PsmrtsBulletClosestRayCallback &results ) const;
       /** Returns the model's associated mesh */
       const PsmrtsBulletMeshMap &mesh() const;
