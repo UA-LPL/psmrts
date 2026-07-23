@@ -203,11 +203,13 @@ namespace psmrts::bullet {
       bool PsmrtsBulletWorldModel::bullet_ray_trace( const btVector3 &rayStart, 
                                                      const btVector3 &rayEnd,
                                                      PsmrtsBulletClosestRayCallback &results ) const {
+
+#if 0                                                      
         std::cout << "\npsmrts::PsmrtsBulletWorldModel::bullet_ray_trace..." << std::endl;
         std::cout << "RayStart: " << rayStart[0] << ", " << rayStart[2] << ", " << rayStart[2] << std::endl;
         std::cout << "RayEnd:   " << rayEnd[0]   << ", " << rayEnd[2]   << ", " << rayEnd[2]   << std::endl;
         std::cout << "Looklen:  " << (rayEnd - rayStart).norm() << std::endl;
-
+#endif
         ZoneScopedN( "psmrts::PsmrtsBulletWorldModel::bullet_ray_trace" );
 
         // Lock up Bullet for thread safety ( >=c++17 )
