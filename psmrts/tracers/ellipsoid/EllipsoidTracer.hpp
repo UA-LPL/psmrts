@@ -16,6 +16,7 @@ find files of those names at the top level of this repository. **/
 #include <string>
 
 #include <Eigen/Geometry>
+#include <Eigen/Dense>
 
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/PsmrtsProduct.hpp>
@@ -45,10 +46,70 @@ namespace psmrts  {
    * uses for mutex locking: psmrts::PsmrtsThreadSafeCounter in 
    * PsmrtsUtilities.hpp.
    * 
-   * See ./private for implementation details. 
+   * The center of this ellipsoid is assumed to be {0, 0 0}.
+   *
+   * --------------------------------------------------------------------------- 
+   *      This algorithm was developed with the assistance of Claude.
+   * 
+   * Numerically stable ray/ellipsoid intersection.
+   *
+   * PROBLEM
+   * -------
+   * The textbook approach transforms the ray into the ellipsoid's unit-sphere
+   * space and solves:
+   *
+   *      A t^2 + B t + C = 0
+   *      A = dot(d,d)
+   *      B = 2*dot(o,d)
+   *      C = dot(o,o) - 1
+   *
+   * where o, d are the (radii-scaled) ray origin and direction.
+   *
+   * This works fine when the origin is close to the ellipsoid. But when the
+   * origin is very far away (e.g. a camera millions/billions of units from a
+   * planet), |o| is huge, so B and C are huge, and the discriminant
+   * B^2 - 4*A*C becomes the difference of two enormous, nearly-equal
+   * floating point numbers -> catastrophic cancellation. Symptoms: missed
+   * intersections, negative discriminants for rays that actually hit, and
+   * hit points that are wrong by a significant fraction of the ellipsoid's
+   * own size.
+   *
+   * FIX
+   * ---
+   * 1) Re-center the quadratic at the point on the infinite ray closest to
+   *    the ellipsoid's center (parameter tm), and solve for the *offset* s
+   *    from that point instead of solving directly at the (possibly huge)
+   *    origin. The recentered point `om` has magnitude close to 1 (it's near
+   *    the ellipsoid) regardless of how far away the original origin was, so
+   *    B' and C' stay small and the cancellation disappears.
+   * 2) Use the "Citardauq" / stable quadratic formula to compute the two
+   *    roots without subtracting nearly-equal numbers a second time.
+   * 3) Normalize the ray direction first so `t` is a clean world-space
+   *    distance and A doesn't carry an arbitrary direction-length scale.
+   *
+   * LIMITS OF THIS FIX
+   * -------------------
+   * This removes the cancellation *inside the intersection math itself*.
+   * It cannot fix precision lost *before* this function is called -- e.g.
+   * if you represent both the camera and the ellipsoid center as huge
+   * world-space coordinates and subtract them to get `rayOrigin - center`,
+   * that subtraction can itself lose precision if both operands are huge
+   * and comparable in size. For truly extreme scales (light-years from an
+   * Earth-sized ellipsoid), combine this with camera-relative / floating
+   * origin rendering (keep the ellipsoid center at/near the coordinate
+   * origin, or use double-double / long double for the origin subtraction)
+   * so that `rayOrigin - center` itself is computed accurately.
+   *
+   * All math here uses double precision. Swap `double` -> `long double`
+   * throughout if you need extra headroom and your platform supports 80-bit
+   * extended precision.
+   * ---------------------------------------------------------------------------
    * 
    * @history 2025-08-12 Kris J. Becker - Restructured to use private
    *                       implementation 
+   * @history 2026-07-27 Kris J. Becker - Rewrote with assistance from Claude
+   *                       thus removing NAIF toolkit dependency and creating a
+   *                       thread-safe version of the ellipsoid tracer
    */
   class EllipsoidTracer : public PsmrtsProduct {
 
@@ -58,26 +119,26 @@ namespace psmrts  {
 
       EllipsoidTracer( ) : PsmrtsProduct( "default", "tracer", "ellipsoid" ), 
                            m_radii{ 1.0, 1.0, 1.0 },
-                           m_config( init_config( "default", { 1.0 }, "sphere" ) ) { }
+                           m_config( init_config( "default", { 1.0 }, "sphere" ) ) {  }
       EllipsoidTracer( const double radius,
                        const std::string &name = "sphere") :
                        PsmrtsProduct( name, "tracer", "sphere" ),
-                       m_radii{ radius, radius, radius },
-                       m_config( init_config( name, { radius}, "sphere" ) ) { }
+                       m_radii{ radius, radius, radius },  
+                       m_config( init_config( name, { radius }, "sphere" ) ) { }
       EllipsoidTracer( const double a, const double c,
                        const std::string &name = "spheroid") :
                        PsmrtsProduct( name, "tracer", "spheroid" ), 
                        m_radii{ a, a, c },
-                       m_config( init_config( name, { a, c}, "spheroid" )  ) { }     
+                       m_config( init_config( name, { a, c }, "spheroid" )  ) { }     
       EllipsoidTracer( const double a, const double b, const double c,
                        const std::string &name = "ellipsoid") :
                        PsmrtsProduct( name, "tracer", "ellipsoid" ),
                        m_radii{ a, b, c },
-                       m_config( init_config( name, { a, b, c}, "ellipsoid" ) )  { }     
+                       m_config( init_config( name, { a, b, c }, "ellipsoid" ) )  { }     
       EllipsoidTracer( const Eigen::Vector3d &radii,
                        const std::string &name = "ellipsoid" ) : 
                        PsmrtsProduct( name, "tracer", "ellipsoid" ),
-                       m_radii{ radii[0], radii[1],radii[2] },
+                       m_radii{ radii[0], radii[1], radii[2] },
                        m_config( init_config( name, { radii[0], radii[1], radii[2] }, "ellipsoid" ) ) { }
       EllipsoidTracer( const ProductCart &processed_cart ) :
                        PsmrtsProduct( processed_cart.configuration().name(), "tracer", "ellipsoid" ) {
@@ -149,8 +210,6 @@ namespace psmrts  {
       inline bool process ( PRQRayTraceArray &tracelist ) const {
         return ( psmrts::algorithms::process_basic_trace_array( *this, tracelist ) );
       }
-
-
 
       /**
        * @brief Ellipsoid Photometric Trace Processor
@@ -263,15 +322,79 @@ namespace psmrts  {
      * @return true    If the trace intercepts the shape
      * @return false   If no ray trace intercept was found
      */
-      bool ray_trace( PsmrtsRayTrace &ray ) const;
+      bool ray_trace( PsmrtsRayTrace &ray ) const {
 
-      /** IMPL function to compute the rays */
-      bool ray_trace( const double *observer, const double *lookdir,
-                      double *xyz, double *normal ) const;
+        // Set up access to ray elements
+        const Eigen::Vector3d &lookdir  = ray.lookdir();
+        const Eigen::Vector3d &observer = ray.observer();
+        auto &datum_r                   = ray.datum();
 
-      /** Retuns the vector normal of an input point */
-      void compute_normal( const double *point, double *normal ) const;
-    
+        double ldirlen_t = lookdir.norm();
+        if ( ldirlen_t  == 0.0 ) {
+           datum_r.m_hit = false;
+           return ( false );          
+        }
+
+        Eigen::Vector3d lookdir_u = lookdir * ( 1.0 / ldirlen_t );
+        Eigen::Vector3d lookdir_t = lookdir_u.array() / m_radii.array();  // d
+        Eigen::Vector3d origin_t  = observer.array()  / m_radii.array();  // o
+
+        double A_t = lookdir_t.dot( lookdir_t );
+        if ( A_t <= 0.0 ) {
+           datum_r.m_hit = false;
+           return ( false );             
+        }
+
+        // Recenter at point on the ray closest to ellipsoid center
+        double center_e          = -origin_t.dot( lookdir_t ) / A_t;      // tm
+        Eigen::Vector3d center_m =  origin_t + ( lookdir_t * center_e );  // om
+
+        double B_t = 2.0 * center_m.dot( lookdir_t );
+        double C_t = center_m.dot( center_m ) - 1.0;
+
+        double discriminant = ( B_t * B_t ) - 4.0 * A_t * C_t;
+        if ( discriminant < 0.0 ) {
+           datum_r.m_hit = false;
+           return ( false );
+        }  
+
+      // Stable quadratic (Citardauq): avoids cancellation when picking roots.
+        double d_sqrt = std::sqrt( discriminant );
+        double q_t = -0.5 * (B_t + std::copysign( d_sqrt, B_t ) );
+
+        double s0, s1;
+        if (q_t != 0.0) {
+          s0 = q_t / A_t;
+          s1 = C_t / q_t;
+        } else {
+          s0 = s1 = 0.0;
+        }
+        if (s0 > s1) std::swap(s0, s1);
+
+        datum_r.m_hit = true;
+        double t0_l = center_e + s0;
+        double t1_l = center_e + s1;
+
+        // Convert back to original scale to get surface intercept point
+        Eigen::Vector3d point_scaled = center_m + ( lookdir_t * s0 );
+        datum_r.m_xyz = point_scaled.array() * m_radii.array();
+
+        // Compute nornal from scaled point
+        Eigen::Vector3d normal_s = point_scaled.array() / m_radii.array();
+        datum_r.m_normal = normal_s.normalized();
+
+        datum_r.m_hit = true;
+        ray.set_tracer_id( this->uid() );
+        return ( true );
+      }
+
+      /**
+       * @brief The EllipsoidTracer product specification data
+       * 
+       * This static method returns the product specification for the EllipsoidTracer.
+       * 
+       * @return ProductSpecification Configuration elements of ellipsoid tracer
+       */
       static inline ProductSpecification product_specifications() {
         ProductInfo  info( "ellipsoid", { 
                                  ProductOption( "name", "ellipsoid"),
@@ -314,22 +437,102 @@ namespace psmrts  {
       PSMRTS_PROCESS_CATCHALL( "EllipsoidTracer" )
 
     private:
-      double               m_radii[3];
+      Eigen::Vector3d      m_radii;  // Radii of ellipsoid
       ProductConfiguration m_config;
 
-      void create( const ProductCart &cart );
+      /**
+       * @brief Create an ellipsoid from a cart configuration
+       * 
+       * @param cart Provides the ellipsoid configuration
+       */
+      void create( const ProductCart &cart ) {
+      
+        std::string name_t = cart.configuration().name();
+
+        // Check for valid shape type
+        if ( cart.error_count() > 0 ) {
+          std::string mess = "EllipsoidTracer::create(" + name_t + 
+                            ") has config/spec processing errors: \n" +
+                              cart.errors_to_string();
+          throw std::runtime_error( mess );          
+        }
+
+        if ( !cart.isvalid() ) {
+          std::string mess = "EllipsoidTracer::create(" + name_t + 
+                            ") is invalid with " + 
+                            std::to_string( cart.configuration().size() ) +
+                            " config options and " +
+                            std::to_string( cart.residual().size() ) +
+                            " residual options";
+          throw std::runtime_error( mess );          
+        }
+
+        ProductConfiguration v_conf = cart.configuration();
+        std::string model = "ellipsoid";
+
+        if ( v_conf.contains( "tracer" ) ) {
+          model = v_conf.find( "tracer" ).to_string();
+          std::vector<std::string> valid_s = { "ellipsoid", "spheroid", "sphere" };
+          if ( std::find( valid_s.begin(), valid_s.end(), model) == valid_s.end() ) {
+            std::string mess = "EllipsoidTracer::create() - tracer must be "
+                              "\"ellipsoid\", \"spheroid\" or \"sphere\" "
+                                " but found " + model;
+            throw std::runtime_error( mess );
+          }
+        }
+
+        std::vector<double> radii = OptionDoublesExtractor( v_conf.find( "radii" ) ).get_all();
+        if ( ( radii.size() < 1 ) || (radii.size() > 3 ) ) {
+          std::string mess = "EllipsoidTracer::create() - radii must have 1, 2 or 3 values"
+                            " but got " + std::to_string( radii.size() );
+          throw std::runtime_error( mess );
+        }
+
+        std::string name = name_t;
+        if ( v_conf.contains( "name" ) ) {
+          name = v_conf.find( "name" ).to_string();
+        }
+
+        if ( radii.size() == 1 ) {
+          m_radii[0]  = radii[0];
+          m_radii[1]  = radii[0];
+          m_radii[2]  = radii[0];
+          m_config = init_config( name, { radii[0] }, model );
+        }
+        else if ( radii.size() == 2 ) {
+          m_radii[0]  = radii[0];
+          m_radii[1]  = radii[0];
+          m_radii[2]  = radii[1];
+          m_config = init_config( name, { radii[0], radii[1] }, model);
+        }
+        else {
+          m_radii[0]  = radii[0];
+          m_radii[1]  = radii[1];
+          m_radii[2]  = radii[2];
+          m_config = init_config( name, { radii[0], radii[1], radii[2] }, model);
+        }        
+
+      }
 
 
       inline ProductConfiguration init_config( const std::string &name, 
                                                const std::initializer_list<double> radii,
-                                               const std::string &model = "ellipsoid"  ) {
+                                               const std::string &model = "ellipsoid"  ) {               
 
         ProductConfiguration config( "ellipsoid" );
         config.add( ProductOption( "tracer", model ) );
         config.add( ProductOption( "radii",  radii ) );
         config.add( ProductOption( "name",   name ) );
-        config.add_metadata( ProductOption( "tracer_uid", PsmrtsUID::to_string( this->uid() ) ) );
 
+        // Check to ensure none of the radii are invalid
+        for ( const double &r : radii ) {
+          if ( r <= 0.0 ) {
+            std::string mess = config.to_json().dump(-1);
+            throw std::runtime_error( "***ERROR - Invalid radii for ellipsoid: " + mess );
+          }
+        } 
+        
+        config.add_metadata( ProductOption( "tracer_uid", PsmrtsUID::to_string( this->uid() ) ) );
         return ( config );
       }
 

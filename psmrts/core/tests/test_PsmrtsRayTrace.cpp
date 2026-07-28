@@ -127,6 +127,7 @@ TEST_CASE( "PsmrtsRayTrace Baseline Values Test - Ellipsoid", "[ray][trace][valu
   CHECK_THAT( ellipse_ray.emission(), Catch::Matchers::WithinAbs( 0.0, tolerance ));
   CHECK( ellipse_ray.plateid()        == -1 );
   CHECK( ellipse_ray.segment_number() == -1 ); 
+  CHECK( ellipse_ray.get_tracer_id()  == e_tracer.uid() ); 
   CHECK( psmrts::isnull(ellipse_ray.emission()) ==  false );   
 
   // Constructor initialized with another ray as parameter
@@ -147,6 +148,7 @@ TEST_CASE( "PsmrtsRayTrace Baseline Values Test - Ellipsoid", "[ray][trace][valu
   CHECK_THAT( second_ray.emission(), Catch::Matchers::WithinAbs( 0.0, tolerance ));
   CHECK( second_ray.plateid()        == -1 );
   CHECK( second_ray.segment_number() == -1 ); 
+  CHECK( second_ray.get_tracer_id()  == e_tracer.uid() ); 
   CHECK( psmrts::isnull(second_ray.emission()) ==  false );   
 
   // Reset with new obs / lkdr values
@@ -175,11 +177,12 @@ TEST_CASE( "PsmrtsRayTrace Baseline Values Test - Ellipsoid", "[ray][trace][valu
   CHECK_THAT( reset_ray.xyz()[1], Catch::Matchers::WithinAbs( -0.499924, tolerance ));
   CHECK_THAT( reset_ray.xyz()[2], Catch::Matchers::WithinAbs( -0.700909, tolerance ));
   CHECK( reset_ray.raypt()          == reset_ray.xyz() + obs_reset );
-  CHECK( reset_ray.radius()         == 1.0 ); 
-  CHECK( reset_ray.slant_distance() == 1.0 ); 
-  CHECK( reset_ray.emission()       == 0.0 ); 
+  CHECK_THAT( reset_ray.radius(), Catch::Matchers::WithinAbs( 1.0, tolerance ) ); 
+  CHECK_THAT( reset_ray.slant_distance(), Catch::Matchers::WithinAbs( 1.0, tolerance ) ); 
+  CHECK_THAT( reset_ray.emission(), Catch::Matchers::WithinAbs( 0.0, tolerance ) ); 
   CHECK( reset_ray.plateid()        == -1 );
   CHECK( reset_ray.segment_number() == -1 );
+  CHECK( reset_ray.get_tracer_id()  == e_tracer.uid() ); 
   CHECK( psmrts::isnull(reset_ray.emission()) ==  false ); 
 
 
@@ -197,6 +200,7 @@ TEST_CASE( "PsmrtsRayTrace Baseline Values Test - Ellipsoid", "[ray][trace][valu
   CHECK( ellipse_ray.plateid()        == -1 );
   CHECK( ellipse_ray.segment_number() == -1 );
   CHECK( ellipse_ray.datum().hasHit() == false );
+  CHECK( psmrts::PsmrtsUID::is_valid_uid( ellipse_ray.get_tracer_id() ) == false ); 
 }   
 
 
