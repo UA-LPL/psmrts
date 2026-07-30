@@ -29,7 +29,7 @@ find files of those names at the top level of this repository. **/
 
 namespace psmrts  {
   /**
-   * @brief Ellipsoid ShapeModel supports spheres, spheroids and ellipsiods
+   * @brief Ellipsoid ShapeModel supports spheres, spheroids and ellipsoids
    * 
    * In this hybrid implementation, EllipsoidModel must provide an init method
    * constructor, a destructor method that takes a three element Eigen::Vector3d and an option
@@ -379,7 +379,7 @@ namespace psmrts  {
         Eigen::Vector3d point_scaled = center_m + ( lookdir_t * s0 );
         datum_r.m_xyz = point_scaled.array() * m_radii.array();
 
-        // Compute nornal from scaled point
+        // Compute normal from scaled point
         Eigen::Vector3d normal_s = point_scaled.array() / m_radii.array();
         datum_r.m_normal = normal_s.normalized();
 
@@ -405,7 +405,7 @@ namespace psmrts  {
                                  ProductOption( "type", "string" ),
                                  ProductOption( "description", "Describe the product type: ellipsoid, spheroid or sphere"),
                                  ProductOption( "status", "optional" ),
-                                 ProductOption( "default", "ellipsoid" ) ,
+                                 ProductOption( "default", "ellipsoid" ),
                                  ProductOption( "valid", { "ellipsoid", "spheroid", "sphere" } ) } );                                 
         ProductFeature radii( "radii", {
                                  ProductOption( "name", "radii"),
@@ -418,6 +418,7 @@ namespace psmrts  {
                                  ProductOption( "type", "string"),
                                  ProductOption( "description", "Name of the ellipsoid model"),
                                  ProductOption( "status", "optional"),
+                                 ProductOption( "default", "ellipsoid" ),
                                  ProductOption( "aliases", "model" ) } );                                 
 
         // This validates the JSON structure and provides product info to callers
