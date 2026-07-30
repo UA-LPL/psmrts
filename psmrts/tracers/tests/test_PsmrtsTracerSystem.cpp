@@ -324,15 +324,15 @@ TEST_CASE("PsmrtsTracerSystem ISIS Ellipsoid Test", "[tracer][system][ellipsoid]
 
   // Now check setting of reference ellipsoid
   std::vector<double> radii_1 = { 17, 5.5, 5.5 };
-  CHECK( tracer_s.set_reference_ellipsoid( "ref_1", radii_1 ) );
+  CHECK( tracer_s.set_reference_ellipsoid( "ref_1", radii_1 ) == true);
   CHECK( processor_t.tracers().size() == 1 );
 
   std::vector<double> radii_2 = { 17.0, 5.50, 5.5 };
-  CHECK( tracer_s.set_reference_ellipsoid( "ref_2", radii_2 ) );
+  CHECK( tracer_s.set_reference_ellipsoid( "ref_2", radii_2 ) == true) ;
   CHECK( processor_t.tracers().size() == 1 );
 
   std::vector<double> radii_3 = { 17.0, 5.50, 5.500 };
-  CHECK( tracer_s.set_reference_ellipsoid( "ref_3", radii_3 ) );
+  CHECK( tracer_s.set_reference_ellipsoid( "ref_3", radii_3 )  == true );
   CHECK( processor_t.tracers().size() == 1 );
 
   // There should only be 1!
