@@ -36,6 +36,21 @@ release.
 
 - See [TODO](TODO.md)
 
+## [0.8.0] 2026-07-30
+
+- Fix a bug in the reuse of EllipsoidTracers by adding a default value to the optional "name" parameter in the specification and ensure "name" is one of the three variations {ellipsoid, spheroid and sphere}
+- Reimplemented the EllipsoidTracer ray tracing algorithm to make it thread-safe, replacing it with a header-only robust, numerically stable version that is comparible to performance of the NAIF toolkit routines, surfpt and surfnm
+- Added a check in EllipsoidTracer to validate radii are > 0 on construction
+- Fixed a bug in EllipsoidTracer that records the tracer ID when a valid trace is executed
+- In PsmrtsTracerSystem, fix construction of ellipsoid tracers to comply with requirements for reuse.
+  - Convert the radii text specification values to double precision to ensure better comparisons to EllipsoidTracer instances, where they are always double precision
+  - Rework creation of reference ellipsoid to conform with reuse conditions as changed in this revision
+  - Added support for spheroids and spheres
+- Updated test_PsmrtsRayTrace.cpp, test_EllipsoidTracer.cpp and test_PsmrtsTracerSystem.cpp to validate these changes
+- Fixes issue [#41](https://github.com/UA-LPL/psmrts/issues/41)
+- Update CMakeLists.txt version to [0.8.0]
+- Update CHANGELOG.md
+
 ## [0.7.1] 2026-07-14
 
 - Fix min/max radius bug in DskKernelModel
