@@ -300,9 +300,19 @@ namespace psmrts {
           if ( parts_t.size() > 1 ) {
             std::string tracer_t = psmrts_tolower( psmrts_trim( parts_t[0] ) );
             tracer_c.add_option( ProductOption( "tracer", tracer_t ) );
-            if ( "ellipsoid" == tracer_t ) {
+
+            // For ellipsoids, comparablity is dependent upon exact names and
+            // comparisons of radii. For radii to be comparable, the radii needs
+            // to be double values rather than strings. And we must standardize
+            // the name of the ellipsoid so reset the name of the config - radii
+            // provides uniqueness. Also suppports spheroids and spheres.
+            static std::vector<std::string> ellipsoid_types = { "ellipsoid", "spheroid", "sphere" };
+            if ( psmrts_contains_string( tracer_t, ellipsoid_types ) == true ) {
               name_t = "ellipsoid";
-              tracer_c.add_option( ProductOption( "radii", string_tokenizer( parts_t[1], "," ) ) );
+              tracer_c = ProductConfiguration( tracer_t, tracer_c );
+              ProductOption radii_s( "radii_string", string_tokenizer( parts_t[1], "," ) );
+              tracer_c.add_option( ProductOption( "radii", ProductOption::DoublesExtractor( radii_s ).get_all() ) );
+              tracer_c.add_metadata( ProductOption( "identifier", shape_t ) );
             }
             else {
               name_t = psmrts_trim( parts_t[1] );
@@ -357,13 +367,18 @@ namespace psmrts {
        */
       inline bool set_reference_ellipsoid( const std::string &name,
                                            const std::vector<double> &radii ) {
-        ProductOption pid( "name", name );
+
         ProductOption tracer( "tracer", "ellipsoid" );
         ProductOption rads( "radii", radii );
-        ProductConfiguration ellipsoid( "name", { pid, tracer, rads } );
-        ProductMaker<PsmrtsTracer> maker_t( name );
-        bool status = maker_t.process_config( ellipsoid, m_invoice.translations() ); 
-        m_ellipsoid_r = maker_t.product();
+        ProductConfiguration ellipsoid( "ellipsoid", { tracer, rads } );
+        ellipsoid.add_metadata( ProductOption( "identifier", name ) );
+        ProductSet product_s = m_invoice.process_product( ellipsoid );
+
+        bool status = m_invoice.processor().has_valid_tracer( product_s );
+        if ( true == product_s.has_tracer() ) {
+          m_ellipsoid_r = product_s.tracer_p.value();
+        }
+
         return ( status );
       }
 
