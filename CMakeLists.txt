@@ -64,8 +64,8 @@ endif(PSMRTS_BUILD_SHARED)
 #-----------------------------------------------------------------------------
 # PSMRTS project configuration. PROJECT_SOURCE_DIR=psmrts
 #-----------------------------------------------------------------------------
-project(PSMRTS VERSION 0.7.1 LANGUAGES CXX C)
-set( PSMRTS_VERSION_DATE  "2026-07-14")
+project(PSMRTS VERSION 0.8.0 LANGUAGES CXX C)
+set( PSMRTS_VERSION_DATE  "2026-07-30")
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)

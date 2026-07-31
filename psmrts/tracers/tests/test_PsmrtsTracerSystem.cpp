@@ -185,7 +185,6 @@ TEST_CASE("PsmrtsTracerSystem Shapes Test", "[tracer][system][shapes]") {
 
     psmrts::PsmrtsFactory().liquidate();
 
-
     std::string objfile = psmrts_shapes_path("obj/data/bennu_20facets.obj");
     std::string bdsfile = psmrts_tracers_path("naifdsk/data/bennu_20facets.bds");
 
@@ -302,5 +301,94 @@ TEST_CASE("PsmrtsTracerSystem ISIS Interface Test", "[tracer][system][isislike]"
   CHECK( tracer_p.isValid()          == true );
   CHECK( tracer_p.inventory().size() == 4 );
   
+  psmrts::PsmrtsFactory().liquidate();
+}
+
+
+TEST_CASE("PsmrtsTracerSystem ISIS Ellipsoid Test", "[tracer][system][ellipsoid][share]") {
+  psmrts::PsmrtsFactory().liquidate();
+
+  std::vector<std::string> ellipsoids = { "ellipsoid::17, 5.5, 5.5",
+                                          "ellipsoid::17,5.5,5.5",
+                                          "ellipsoid::17.0,5.50,5.500" };
+
+  psmrts::PsmrtsTracerSystem tracer_s( "ellipsoid_tests" );
+  CHECK( tracer_s.process_shape_list( ellipsoids ) == 3 );
+  
+  const psmrts::PsmrtsPriorityTracer &priority_t = tracer_s.create_priority_tracer( "ellipsoids" );
+  CHECK( priority_t.size() == 1 );
+
+  const psmrts::ProductProcessing &processor_t = tracer_s.invoice().processor();
+  CHECK( processor_t.tracers().size() == 1 );
+  CHECK( processor_t.shapes().size()  == 0 );
+
+  // Now check setting of reference ellipsoid
+  std::vector<double> radii_1 = { 17, 5.5, 5.5 };
+  CHECK( tracer_s.set_reference_ellipsoid( "ref_1", radii_1 ) == true);
+  CHECK( processor_t.tracers().size() == 1 );
+
+  std::vector<double> radii_2 = { 17.0, 5.50, 5.5 };
+  CHECK( tracer_s.set_reference_ellipsoid( "ref_2", radii_2 ) == true) ;
+  CHECK( processor_t.tracers().size() == 1 );
+
+  std::vector<double> radii_3 = { 17.0, 5.50, 5.500 };
+  CHECK( tracer_s.set_reference_ellipsoid( "ref_3", radii_3 )  == true );
+  CHECK( processor_t.tracers().size() == 1 );
+
+  // There should only be 1!
+  CHECK( psmrts::PsmrtsFactory().tracers().size() == 1 );
+
+  psmrts::PsmrtsFactory().liquidate();
+}
+
+TEST_CASE("PsmrtsTracerSystem ISIS Bullet Test", "[tracer][system][bullet][share]") {
+  psmrts::PsmrtsFactory().liquidate();
+
+  // Set up translation system
+  psmrts::PsmrtsTranslations trans_t( "ISISTest" );
+  trans_t.add_environment( "ISISDATA", psmrts_rootpath() );
+  trans_t.add_parameter( "osirisrex", "$ISISDATA/psmrts/shapes" );    
+
+  std::vector<std::string> bullets = { "bullet::$osirisrex/dsk/data/bennu_20facets.bds",
+                                       "bullet::$osirisrex/dsk/data/bennu_20facets.bds",
+                                       "bullet::$osirisrex/dsk/data/bennu_20facets.bds" };
+
+  psmrts::PsmrtsTracerSystem system_t( "bullets", trans_t );
+  CHECK( system_t.process_shape_list( bullets ) == 3 );
+  CHECK( system_t.size()                        == 1 );
+  
+  const psmrts::PsmrtsPriorityTracer &priority_t = system_t.create_priority_tracer( "bullets" );
+  CHECK( priority_t.size() == 1 );
+
+  const psmrts::ProductProcessing &processor_t = system_t.invoice().processor();
+  CHECK( processor_t.tracers().size() == 1 );
+  CHECK( processor_t.shapes().size()  == 1 );
+
+  psmrts::PsmrtsFactory().liquidate();
+}
+
+TEST_CASE("PsmrtsTracerSystem ISIS NaifDsk Test", "[tracer][system][naifdsk][share]") {
+  psmrts::PsmrtsFactory().liquidate();
+
+  // Set up translation system
+  psmrts::PsmrtsTranslations trans_t( "ISISTest" );
+  trans_t.add_environment( "ISISDATA", psmrts_rootpath() );
+  trans_t.add_parameter( "osirisrex", "$ISISDATA/psmrts/shapes" );    
+
+  std::vector<std::string> bullets = { "naifdsk::$osirisrex/dsk/data/bennu_20facets.bds",
+                                       "naifdsk::$osirisrex/dsk/data/bennu_20facets.bds",
+                                       "naifdsk::$osirisrex/dsk/data/bennu_20facets.bds" };
+
+  psmrts::PsmrtsTracerSystem system_t( "bullets", trans_t );
+  CHECK( system_t.process_shape_list( bullets ) == 3 );
+  CHECK( system_t.size()                        == 1 );
+  
+  const psmrts::PsmrtsPriorityTracer &priority_t = system_t.create_priority_tracer( "bullets" );
+  CHECK( priority_t.size() == 1 );
+
+  const psmrts::ProductProcessing &processor_t = system_t.invoice().processor();
+  CHECK( processor_t.tracers().size() == 1 );
+  CHECK( processor_t.shapes().size()  == 0 );
+
   psmrts::PsmrtsFactory().liquidate();
 }

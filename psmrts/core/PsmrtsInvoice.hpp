@@ -111,7 +111,7 @@ namespace psmrts {
         // Parse/evalute the configuration
         ProductSet product_s = m_processor.process_configuration( config );
         if ( !m_processor.is_valid_product( product_s ) ) {
-          std::string mess = "PsmsrtsInvoice::process_product() - " + 
+          std::string mess = "PsmsrtsInvoice::process_product() - (" + 
                               config.name() +
                               ") config validation errors: " +
                               m_processor.product_error_string( product_s );
@@ -121,7 +121,7 @@ namespace psmrts {
 
         // Process the product set
         if ( !m_processor.process_product_set( product_s ) ) {
-          std::string mess = "PsmrtsInvoice::process_product() - " + 
+          std::string mess = "PsmrtsInvoice::process_product() - (" + 
                              config.name() +
                               ") product creation errors: " +
                               m_processor.product_error_string( product_s );

@@ -541,8 +541,49 @@ TEST_CASE ( "Ellipsoid Tracer Value-Range Test - Spheroid/Ellipsoid", "[raytrace
           CHECK_THAT ( spt[0] , Catch::Matchers::WithinAbs( naif_spt[0], tolerance )); 
           CHECK_THAT ( spt[1] , Catch::Matchers::WithinAbs( naif_spt[1], tolerance ));
           CHECK_THAT ( spt[2] , Catch::Matchers::WithinAbs( naif_spt[2], tolerance ));
+
+          CHECK( ray.trace().get_tracer_id()  == t_ellipse.uid() ); 
+
         }
       }
     } 
   }
+}
+
+TEST_CASE ( "Ellipsoid Tracer Earth Test", "[raytrace][observer][ellipsoid][earth]") {
+  const double tolerance = 1.0e-6;
+
+  Eigen::Vector3d earth_radius( { 6378.1, 6378.1, 6356.8 } );
+  psmrts::EllipsoidTracer ellipsoid_t( earth_radius );
+
+  Eigen::Vector3d observer( { 1500000000.0, 0.0, 0.0 } );
+  Eigen::Vector3d lookdir( {-1.0, 0.0, 0.0} );
+
+  SpiceBoolean s_found;
+  Eigen::Vector3d naif_spt;
+  (void) surfpt_c( observer.data(), lookdir.data(), earth_radius[0], earth_radius[1], earth_radius[2], naif_spt.data(), &s_found );
+  CHECK( s_found == SPICETRUE );
+
+  Eigen::Vector3d naif_normal ( { 0, 0, 0, } );
+  (void) surfnm_c( earth_radius[0], earth_radius[1], earth_radius[2], naif_spt.data(), naif_normal.data() );
+
+  psmrts::PRQRayTrace ray( observer, lookdir );
+  CHECK( ellipsoid_t.process( ray ) == true );
+  Eigen::Vector3d spt = ray.trace().xyz();
+  Eigen::Vector3d normal = ray.trace().normal();
+
+  CHECK_THAT ( normal[0] , Catch::Matchers::WithinAbs( naif_normal[0], tolerance )); 
+  CHECK_THAT ( normal[1] , Catch::Matchers::WithinAbs( naif_normal[1], tolerance ));
+  CHECK_THAT ( normal[2] , Catch::Matchers::WithinAbs( naif_normal[2], tolerance ));
+
+  double emission = ray.trace().emission() * dpr_c();
+  INFO( "Emission Angle = " << emission );
+
+  double surfsep = vsep_c( naif_spt.data(), spt.data() ) * dpr_c();
+  INFO( "Surfpt Angle   = " << surfsep );
+
+  CHECK_THAT ( spt[0] , Catch::Matchers::WithinAbs( naif_spt[0], tolerance )); 
+  CHECK_THAT ( spt[1] , Catch::Matchers::WithinAbs( naif_spt[1], tolerance ));
+  CHECK_THAT ( spt[2] , Catch::Matchers::WithinAbs( naif_spt[2], tolerance ));
+
 }
