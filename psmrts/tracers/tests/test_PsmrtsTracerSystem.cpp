@@ -1,5 +1,7 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
+#include <thread>
+
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsUID.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
@@ -392,3 +394,89 @@ TEST_CASE("PsmrtsTracerSystem ISIS NaifDsk Test", "[tracer][system][naifdsk][sha
 
   psmrts::PsmrtsFactory().liquidate();
 }
+
+
+TEST_CASE("PsmrtsTracerSystem Threads Test", "[tracer][system][threads]") {
+
+  /** Class to run loads of three of the same tracers */
+  class ThreadTracers {
+    public:
+      ThreadTracers( ) {
+        // Set up translation system
+        psmrts::PsmrtsTranslations trans_t( "ISISTest" );
+        trans_t.add_environment( "ISISDATA", psmrts_rootpath() );
+        trans_t.add_parameter( "osirisrex", "$ISISDATA/psmrts/shapes" );  
+        m_tracers = psmrts::PsmrtsTracerSystem( "threads", trans_t );
+      }
+      virtual ~ThreadTracers() = default;
+
+      inline void load( const std::vector<std::string> &shapes ) {
+        m_tracers.process_shape_list( shapes );
+      }
+
+      inline const psmrts::PsmrtsTracerSystem &tracers() const {
+        return ( m_tracers );
+      }
+
+    private:
+      psmrts::PsmrtsTracerSystem m_tracers;
+
+  };
+
+  psmrts::PsmrtsFactory().liquidate();
+
+  std::vector<std::string> bullets = { "bullet::$osirisrex/dsk/data/bennu_20facets.bds",
+                                       "bullet::$osirisrex/dsk/data/bennu_20facets.bds",
+                                       "bullet::$osirisrex/dsk/data/bennu_20facets.bds" };
+
+
+  ThreadTracers tracer_1;
+  ThreadTracers tracer_2;
+  ThreadTracers tracer_3;
+
+  // Execute the threads
+  std::thread t1( &ThreadTracers::load, &tracer_1, bullets );
+  std::thread t2( &ThreadTracers::load, &tracer_2, bullets );
+  std::thread t3( &ThreadTracers::load, &tracer_3, bullets );
+
+  // Join the threads - required.
+  t1.join();
+  t2.join();
+  t3.join();
+  
+  // Check validity of all tracers
+  CHECK( tracer_1.tracers().has_errors() == false );
+  CHECK( tracer_2.tracers().has_errors() == false );
+  CHECK( tracer_3.tracers().has_errors() == false );
+
+  // They all should have one each of a bullet tracer and a shape
+  CHECK( tracer_1.tracers().size() == 1 );
+  CHECK( tracer_2.tracers().size() == 1 );
+  CHECK( tracer_3.tracers().size() == 1 );
+  
+  // Get priority tracers and check states
+  const psmrts::PsmrtsPriorityTracer &priority_1 = tracer_1.tracers().get_shape_tracer();
+  const psmrts::PsmrtsPriorityTracer &priority_2 = tracer_2.tracers().get_shape_tracer();
+  const psmrts::PsmrtsPriorityTracer &priority_3 = tracer_3.tracers().get_shape_tracer();
+
+  // All have one tracer from 3 of the same configuration
+  CHECK( priority_1.size() == 1 );
+  CHECK( priority_2.size() == 1 );
+  CHECK( priority_3.size() == 1 );
+
+  CHECK( tracer_1.tracers().invoice().processor().tracers().size() == 1 );
+  CHECK( tracer_1.tracers().invoice().processor().shapes().size()  == 1 );
+  
+  CHECK( tracer_2.tracers().invoice().processor().tracers().size() == 1 );
+  CHECK( tracer_2.tracers().invoice().processor().shapes().size()  == 1 );
+    
+  CHECK( tracer_3.tracers().invoice().processor().tracers().size() == 1 );
+  CHECK( tracer_3.tracers().invoice().processor().shapes().size()  == 1 );
+
+  // There should be only 1 each!
+  CHECK( psmrts::PsmrtsFactory().tracers().size() == 1 );
+  CHECK( psmrts::PsmrtsFactory().shapes().size() == 1 );
+
+  psmrts::PsmrtsFactory().liquidate();
+}
+

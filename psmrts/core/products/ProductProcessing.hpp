@@ -17,6 +17,7 @@ find files of those names at the top level of this repository. **/
 #include <vector>
 #include <exception>
 #include <optional>
+#include <mutex>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsJson.hpp>
@@ -162,6 +163,8 @@ namespace psmrts {
                                                   const ShapeInventory &inventory,
                                                   std::optional<PsmrtsShape> &shape ) 
                                                   const {
+        // Lock search of shape inventory
+        std::scoped_lock mylocker( m_mutex );
 
         for ( const auto &[ uid, p ] : inventory.cache() ) {
           ProductCart cart_s( p.specs(), p.config() ); 
@@ -193,6 +196,8 @@ namespace psmrts {
                                                    const TracerInventory &inventory,
                                                    std::optional<PsmrtsTracer> &tracer )
                                                    const {
+        // Lock search of tracers
+        std::scoped_lock mylocker( m_mutex );
 
         for ( const auto &[ uid, p ] : inventory.cache() ) {
           ProductCart cart_t( p.specs(), p.config() );
@@ -219,6 +224,10 @@ namespace psmrts {
                                     const {
 
         if ( this->is_valid_order( set_p.tracer )  ) {
+
+          // Lock search of tracers
+          std::scoped_lock mylocker( m_mutex );
+
           for ( const auto &[ uid, p ] : inventory.tracers().cache() ) {
             ProductCart cart_t( p.specs(), p.config() ); 
             ProductOrder order_t = this->compare_product_config( set_p.tracer.config(),
@@ -296,6 +305,9 @@ namespace psmrts {
         // ok, we have to make one now
         if ( !product_s.shape_p.has_value() ) {
 
+          // Lock creation of new shape
+          std::scoped_lock mylocker( m_mutex );
+
           ProductMaker<PsmrtsShape> maker_t( product_s.shape.name() );
           maker_t.process_cart( product_s.shape.cart() );
           if ( maker_t.isvalid() ) {
@@ -340,6 +352,9 @@ namespace psmrts {
           // Search/make a shape product if needed
           make_shape( product_s );
           if ( this->error_count() == 0 ) {
+
+            // Lock creation of tracer
+            std::scoped_lock mylocker( m_mutex );
 
             ProductMaker<PsmrtsTracer> maker_t( product_s.tracer.name() );
             if ( product_s.has_shape() ) {
@@ -1160,13 +1175,13 @@ namespace psmrts {
 
       
     private:
-      PsmrtsTranslations m_translator;
-      std::string        m_name_inv;
+      PsmrtsTranslations       m_translator;
+      std::string              m_name_inv;
+      static inline std::mutex m_mutex{};
 
 
       inline bool create_inventory( const std::string &name ) {
         return ( PsmrtsFactory().create( name ) );
-        // return ( PsmrtsFactory().create( name ) );
       }
 
 
