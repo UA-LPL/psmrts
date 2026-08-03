@@ -120,7 +120,7 @@ namespace psmrts {
         return ( m_invoice.error_count() );
       }
 
-      inline size_t has_errors() const {
+      inline bool has_errors() const {
         return ( m_invoice.error_count() > 0 );
       }
 
@@ -341,6 +341,7 @@ namespace psmrts {
             tracer_c.add( ProductOption( "tracer", "bullet") );
           }
 
+          // Construct the tracer/shape composite and add to system
           if ( !this->make_product ( tracer_c ) ) {
             nerrs++;
           }
