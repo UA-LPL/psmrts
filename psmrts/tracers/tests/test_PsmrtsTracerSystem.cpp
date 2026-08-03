@@ -395,40 +395,65 @@ TEST_CASE("PsmrtsTracerSystem ISIS NaifDsk Test", "[tracer][system][naifdsk][sha
   psmrts::PsmrtsFactory().liquidate();
 }
 
+TEST_CASE("PsmrtsTracerSystem ISIS Bullet OBJ/PLY Test", "[tracer][system][obj][ply][shapes]") {
+  psmrts::PsmrtsFactory().liquidate();
+
+  // Set up translation system
+  psmrts::PsmrtsTranslations trans_t( "ISISTest" );
+  trans_t.add_environment( "ISISDATA", psmrts_rootpath() );
+  trans_t.add_parameter( "osirisrex", "$ISISDATA/psmrts/shapes" );    
+
+  std::vector<std::string> shapes =  { "bullet::$osirisrex/obj/data/bennu_20facets.obj",
+                                       "bullet::$osirisrex/obj/data/bennu_20facets.obj",
+                                       "bullet::$osirisrex/ply/data/Bennu_Radar.ply",
+                                       "bullet::$osirisrex/ply/data/Bennu_Radar.ply" };
+
+  psmrts::PsmrtsTracerSystem system_t( "objply", trans_t );
+  CHECK( system_t.process_shape_list( shapes ) == 4 );
+  CHECK( system_t.size()                       == 2 );
+  
+  const psmrts::PsmrtsPriorityTracer &priority_t = system_t.create_priority_tracer( "objply" );
+  CHECK( priority_t.size() == 2 );
+
+  const psmrts::ProductProcessing &processor_t = system_t.invoice().processor();
+  CHECK( processor_t.tracers().size() == 2 );
+  CHECK( processor_t.shapes().size()  == 2 );
+
+  psmrts::PsmrtsFactory().liquidate();
+}
+
+/** Class to process lists of tracers within threads */
+class ThreadTracers {
+  public:
+    ThreadTracers( ) {
+      // Set up translation system
+      psmrts::PsmrtsTranslations trans_t( "ISISTest" );
+      trans_t.add_environment( "ISISDATA", psmrts_rootpath() );
+      trans_t.add_parameter( "osirisrex", "$ISISDATA/psmrts/shapes" );  
+      m_tracers = psmrts::PsmrtsTracerSystem( "threads", trans_t );
+    }
+    virtual ~ThreadTracers() = default;
+
+    inline void load( const std::vector<std::string> &shapes ) {
+      m_tracers.process_shape_list( shapes );
+    }
+
+    inline const psmrts::PsmrtsTracerSystem &tracers() const {
+      return ( m_tracers );
+    }
+
+  private:
+    psmrts::PsmrtsTracerSystem m_tracers;
+
+};
 
 TEST_CASE("PsmrtsTracerSystem Threads Test", "[tracer][system][threads]") {
-
-  /** Class to run loads of three of the same tracers */
-  class ThreadTracers {
-    public:
-      ThreadTracers( ) {
-        // Set up translation system
-        psmrts::PsmrtsTranslations trans_t( "ISISTest" );
-        trans_t.add_environment( "ISISDATA", psmrts_rootpath() );
-        trans_t.add_parameter( "osirisrex", "$ISISDATA/psmrts/shapes" );  
-        m_tracers = psmrts::PsmrtsTracerSystem( "threads", trans_t );
-      }
-      virtual ~ThreadTracers() = default;
-
-      inline void load( const std::vector<std::string> &shapes ) {
-        m_tracers.process_shape_list( shapes );
-      }
-
-      inline const psmrts::PsmrtsTracerSystem &tracers() const {
-        return ( m_tracers );
-      }
-
-    private:
-      psmrts::PsmrtsTracerSystem m_tracers;
-
-  };
 
   psmrts::PsmrtsFactory().liquidate();
 
   std::vector<std::string> bullets = { "bullet::$osirisrex/dsk/data/bennu_20facets.bds",
                                        "bullet::$osirisrex/dsk/data/bennu_20facets.bds",
                                        "bullet::$osirisrex/dsk/data/bennu_20facets.bds" };
-
 
   ThreadTracers tracer_1;
   ThreadTracers tracer_2;
@@ -475,8 +500,81 @@ TEST_CASE("PsmrtsTracerSystem Threads Test", "[tracer][system][threads]") {
 
   // There should be only 1 each!
   CHECK( psmrts::PsmrtsFactory().tracers().size() == 1 );
-  CHECK( psmrts::PsmrtsFactory().shapes().size() == 1 );
+  CHECK( psmrts::PsmrtsFactory().shapes().size()  == 1 );
 
   psmrts::PsmrtsFactory().liquidate();
 }
 
+TEST_CASE("PsmrtsTracerSystem Threads Multi-Type Tracers Test", "[tracer][system][threads][multitype]") {
+
+  psmrts::PsmrtsFactory().liquidate();
+
+  // Here are 5 unique tracers and 3 unique shapes all created in 4 threads
+  std::vector<std::string> shapes = {  "naifdsk::$osirisrex/dsk/data/bennu_20facets.bds",
+                                       "bullet::$osirisrex/ply/data/Bennu_Radar.obj",
+                                       "bullet::$osirisrex/obj/data/bennu_20facets.obj",
+                                       "bullet::$osirisrex/dsk/data/bennu_20facets.bds",
+                                       "bullet::$osirisrex/ply/data/Bennu_Radar.obj",
+                                       "bullet::$osirisrex/obj/data/bennu_20facets.obj",
+                                       "ellipsoid::17, 5.5, 5.5",
+                                       "ellipsoid::17.0, 5.50, 5.500" };
+
+  ThreadTracers tracer_1;
+  ThreadTracers tracer_2;
+  ThreadTracers tracer_3;
+  ThreadTracers tracer_4;
+
+  // Execute the threads
+  std::thread t1( &ThreadTracers::load, &tracer_1, shapes );
+  std::thread t2( &ThreadTracers::load, &tracer_2, shapes );
+  std::thread t3( &ThreadTracers::load, &tracer_3, shapes );
+  std::thread t4( &ThreadTracers::load, &tracer_4, shapes );
+
+  // Join the threads - required.
+  t1.join();
+  t2.join();
+  t3.join();
+  t4.join();
+  
+  // Check validity of all tracers
+  CHECK( tracer_1.tracers().has_errors() == false );
+  CHECK( tracer_2.tracers().has_errors() == false );
+  CHECK( tracer_3.tracers().has_errors() == false );
+  CHECK( tracer_4.tracers().has_errors() == false );
+
+  // They all should have one each of a bullet tracer and a shape
+  CHECK( tracer_1.tracers().size() == 5 );
+  CHECK( tracer_2.tracers().size() == 5 );
+  CHECK( tracer_3.tracers().size() == 5 );
+  CHECK( tracer_4.tracers().size() == 5 );
+  
+  // Get priority tracers and check states
+  const psmrts::PsmrtsPriorityTracer &priority_1 = tracer_1.tracers().get_shape_tracer();
+  const psmrts::PsmrtsPriorityTracer &priority_2 = tracer_2.tracers().get_shape_tracer();
+  const psmrts::PsmrtsPriorityTracer &priority_3 = tracer_3.tracers().get_shape_tracer();
+  const psmrts::PsmrtsPriorityTracer &priority_4 = tracer_4.tracers().get_shape_tracer();
+
+  // All have one tracer from 3 of the same configuration
+  CHECK( priority_1.size() == 5 );
+  CHECK( priority_2.size() == 5 );
+  CHECK( priority_3.size() == 5 );
+  CHECK( priority_4.size() == 5 );
+
+  CHECK( tracer_1.tracers().invoice().processor().tracers().size() == 5 );
+  CHECK( tracer_1.tracers().invoice().processor().shapes().size()  == 3 );
+  
+  CHECK( tracer_2.tracers().invoice().processor().tracers().size() == 5 );
+  CHECK( tracer_2.tracers().invoice().processor().shapes().size()  == 3 );
+    
+  CHECK( tracer_3.tracers().invoice().processor().tracers().size() == 5 );
+  CHECK( tracer_3.tracers().invoice().processor().shapes().size()  == 3 );
+
+  CHECK( tracer_3.tracers().invoice().processor().tracers().size() == 5 );
+  CHECK( tracer_3.tracers().invoice().processor().shapes().size()  == 3 );
+
+  // There should be only 1 each!
+  CHECK( psmrts::PsmrtsFactory().tracers().size() == 5 );
+  CHECK( psmrts::PsmrtsFactory().shapes().size()  == 3 );
+
+  psmrts::PsmrtsFactory().liquidate();
+}
