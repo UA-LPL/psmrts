@@ -252,8 +252,6 @@ namespace psmrts {
                 return ( true );
               }
             }
-            else {
-            }
           }                
         }
         else if ( this->is_valid_order( set_p.shape ) ) {
@@ -501,7 +499,7 @@ namespace psmrts {
        */
       inline ProductOrder compare_product_config( const ProductConfiguration &config,
                                                   const ProductCart &product_cart ) const { 
-        
+
         // Prepare the cart for comparisons of the product configuration
         ProductConfiguration config_new( config.name() );
         ProductOrder order_t( config, product_cart, this->translator() );
@@ -540,18 +538,18 @@ namespace psmrts {
               }
             }
             else {
-              order_t.add_error( name_t + " option is invalid or isn't the default in specs " + specs_c.name() );              
+              order_t.add_error( "\"" + name_t + "\" option is invalid or isn't the default in specs " + specs_c.name() );              
             }
           }
           else {
-            order_t.add_error( name_t + " is not found in specs for " + specs_c.name() );
+            order_t.add_error( "\"" + name_t + "\" is not found in specs for " + specs_c.name() );
           }
         }
 
         // Now check for required keywords
         for ( const std::string &key_r : specs_c.required() ) {
           if ( !config_new.contains( key_r ) ) {
-            order_t.add_error( "Required key " + key_r + " not found in config " + config.name() );
+            order_t.add_error( "Required key \"" + key_r + "\" not found in config " + config.name() );
           }
         }
 
@@ -770,8 +768,8 @@ namespace psmrts {
         else {
           // Its not compatible with this one
           std::string mess = "*** ProductProcessing::process_order() - "
-                              "Invalid filename/extension in option(" 
-                              + option.name() + ") = " + option.to_string();
+                              "Invalid filename/extension in option (" 
+                              + option.name() + " = " + option.to_string() + ")";
           order.add_error(  mess );
           order.add_residual( option );
         } 
