@@ -30,7 +30,8 @@ namespace psmrts {
   
   void PlyShape::create( const ProductCart &cart ) {
 
-    std::string name_t = cart.configuration().name();
+    const ProductConfiguration &v_conf = cart.configuration();
+    std::string name_t = v_conf.name();
 
     // Check for valid shape type
     if (cart.error_count() > 0 ) {
@@ -45,23 +46,25 @@ namespace psmrts {
       throw std::runtime_error( mess );          
     }
 
-    m_config = cart.configuration();
-    if ( m_config.contains( "shape" ) ) {
-      if ( m_config.find( "shape" ).to_string() != "ply" ) {
+    m_config = ProductConfiguration( v_conf.name() );;
+    if ( v_conf.contains( "shape" ) ) {
+      if ( v_conf.find( "shape" ).to_string() != "ply" ) {
         std::string mess = "PlyShape::create() - shape type must be \"ply\""
-                            " but found " + m_config.find("shape").to_string();
+                            " but found " + v_conf.find("shape").to_string();
         throw std::runtime_error( mess );
       }
+      m_config.add( ProductOption( "shape", "ply" ) );
     }
 
     std::string plyfile          = name_t;
-    std::string plyfile_extended = name_t;
     // Check for obj_file
-    if ( m_config.contains( "ply_file" ) ) {
-      plyfile  = m_config.find( "ply_file" ).to_string();
+    if ( v_conf.contains( "ply_file" ) ) {
+      plyfile  = v_conf.find( "ply_file" ).to_string();
+      m_config.add( ProductOption( "ply_file", plyfile ) );
       name_t = plyfile;
-      if ( m_config.metadata().contains( "ply_file_expanded" ) ) {
-        plyfile_extended =  m_config.metadata().find( "ply_file_expanded" ).to_string();
+      if ( v_conf.metadata().contains( "ply_file_expanded" ) ) {
+        plyfile =  v_conf.metadata().find( "ply_file_expanded" ).to_string();
+        m_config.add_metadata( ProductOption( "ply_file_expanded", plyfile) );
       }
     }
     else {
@@ -73,15 +76,16 @@ namespace psmrts {
     // Load the PLY file
     PsmrtsPLYFormat model_p( plyfile );
 
-    if ( m_config.contains( "ply_data_type") && 
-          ( m_config.find( "ply_data_type" ).to_string() == "float" ) ) {
+    if ( v_conf.contains( "ply_data_type") && 
+          ( v_conf.find( "ply_data_type" ).to_string() == "float" ) ) {
+      m_config.add( ProductOption( "ply_data_type", "float") );
       m_mesh = PsmrtsMeshData( model_p.get_indexes(), model_p.get_float_vectors() );
     }
     else {
       m_mesh = PsmrtsMeshData( model_p.get_indexes(), model_p.get_double_vectors() );
     }
 
-    m_config.merge( model_p.get_metadata() );
+    m_config.add_metadata( model_p.get_metadata().metadata() );
     m_config.add_metadata( ProductOption( "shape_uid", PsmrtsUID::to_string( this->uid() ) ) );
 
   }
