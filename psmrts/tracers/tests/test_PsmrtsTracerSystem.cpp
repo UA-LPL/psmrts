@@ -1,6 +1,7 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
 #include <thread>
+#include <random>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsUID.hpp>
@@ -509,7 +510,7 @@ TEST_CASE("PsmrtsTracerSystem Threads Multi-Type Tracers Test", "[tracer][system
 
   psmrts::PsmrtsFactory().liquidate();
 
-  // Here are 5 unique tracers and 3 unique shapes all created in 4 threads
+  // Here are 5 unique tracers and 3 unique shapes all created in all threads
   std::vector<std::string> shapes = {  "naifdsk::$osirisrex/dsk/data/bennu_20facets.bds",
                                        "bullet::$osirisrex/ply/data/Bennu_Radar.obj",
                                        "bullet::$osirisrex/obj/data/bennu_20facets.obj",
@@ -519,58 +520,42 @@ TEST_CASE("PsmrtsTracerSystem Threads Multi-Type Tracers Test", "[tracer][system
                                        "ellipsoid::17, 5.5, 5.5",
                                        "ellipsoid::17.0, 5.50, 5.500" };
 
-  ThreadTracers tracer_1;
-  ThreadTracers tracer_2;
-  ThreadTracers tracer_3;
-  ThreadTracers tracer_4;
+  std::random_device rd;
+  std::mt19937 g(rd());
 
-  // Execute the threads
-  std::thread t1( &ThreadTracers::load, &tracer_1, shapes );
-  std::thread t2( &ThreadTracers::load, &tracer_2, shapes );
-  std::thread t3( &ThreadTracers::load, &tracer_3, shapes );
-  std::thread t4( &ThreadTracers::load, &tracer_4, shapes );
+  // Allocate all the threads and tracers here
+  static unsigned int n_threads = 20;  // This allocates 20 threads
+  std::vector<std::thread> threads( n_threads );
+  std::vector<ThreadTracers> tracer_list( n_threads );
 
-  // Join the threads - required.
-  t1.join();
-  t2.join();
-  t3.join();
-  t4.join();
+  // Create all the tracer threads
+  unsigned int n = 0;
+  for ( auto &t : threads ) {
+    t = std::thread( &ThreadTracers::load, &tracer_list[n++], shapes );
+    std::shuffle( shapes.begin(), shapes.end(), g );
+  }
+
+  // Must join them all
+  for ( auto &t : threads ) {
+    t.join();
+  }
   
-  // Check validity of all tracers
-  CHECK( tracer_1.tracers().has_errors() == false );
-  CHECK( tracer_2.tracers().has_errors() == false );
-  CHECK( tracer_3.tracers().has_errors() == false );
-  CHECK( tracer_4.tracers().has_errors() == false );
+  // All tracers should have the same state
+  for ( const auto &tracer_t : tracer_list ) {
+    // Check validity of all tracers
+    CHECK( tracer_t.tracers().has_errors() == false );
 
-  // They all should have one each of a bullet tracer and a shape
-  CHECK( tracer_1.tracers().size() == 5 );
-  CHECK( tracer_2.tracers().size() == 5 );
-  CHECK( tracer_3.tracers().size() == 5 );
-  CHECK( tracer_4.tracers().size() == 5 );
-  
-  // Get priority tracers and check states
-  const psmrts::PsmrtsPriorityTracer &priority_1 = tracer_1.tracers().get_shape_tracer();
-  const psmrts::PsmrtsPriorityTracer &priority_2 = tracer_2.tracers().get_shape_tracer();
-  const psmrts::PsmrtsPriorityTracer &priority_3 = tracer_3.tracers().get_shape_tracer();
-  const psmrts::PsmrtsPriorityTracer &priority_4 = tracer_4.tracers().get_shape_tracer();
-
-  // All have one tracer from 3 of the same configuration
-  CHECK( priority_1.size() == 5 );
-  CHECK( priority_2.size() == 5 );
-  CHECK( priority_3.size() == 5 );
-  CHECK( priority_4.size() == 5 );
-
-  CHECK( tracer_1.tracers().invoice().processor().tracers().size() == 5 );
-  CHECK( tracer_1.tracers().invoice().processor().shapes().size()  == 3 );
-  
-  CHECK( tracer_2.tracers().invoice().processor().tracers().size() == 5 );
-  CHECK( tracer_2.tracers().invoice().processor().shapes().size()  == 3 );
+    // They all should have one each of a bullet tracer and a shape
+    CHECK( tracer_t.tracers().size() == 5 );
     
-  CHECK( tracer_3.tracers().invoice().processor().tracers().size() == 5 );
-  CHECK( tracer_3.tracers().invoice().processor().shapes().size()  == 3 );
+    // Get priority tracers and check states
+    const psmrts::PsmrtsPriorityTracer &priority_t = tracer_t.tracers().get_shape_tracer();
 
-  CHECK( tracer_3.tracers().invoice().processor().tracers().size() == 5 );
-  CHECK( tracer_3.tracers().invoice().processor().shapes().size()  == 3 );
+    // All have one tracer from 3 of the same configuration
+    CHECK( priority_t.size()                                         == 5 );
+    CHECK( tracer_t.tracers().invoice().processor().tracers().size() == 5 );
+    CHECK( tracer_t.tracers().invoice().processor().shapes().size()  == 3 );
+  }
 
   // There should be only 1 each!
   CHECK( psmrts::PsmrtsFactory().tracers().size() == 5 );

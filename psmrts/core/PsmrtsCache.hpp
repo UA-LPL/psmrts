@@ -18,6 +18,7 @@ find files of those names at the top level of this repository. **/
 #include <map>
 #include <algorithm>
 #include <iterator>
+#include <functional>
 namespace psmrts {
 
   /**
@@ -42,6 +43,9 @@ namespace psmrts {
         using CacheMap          = std::map<K,T>;
         using CacheMapIter      = typename std::map<K,T>::iterator;
         using CacheMapConstIter = typename std::map<K,T>::const_iterator;
+
+        // Iterator function/lamda directly on cache data container
+        using IteratorFunction  = std::function<void( const CacheMap &cachemap )>;        
 
         PsmrtsCache( ) : m_cache(), m_mutex() {  }
         PsmrtsCache( const std::string &name ) : 
@@ -93,6 +97,13 @@ namespace psmrts {
           if ( it_c != m_cache.end() ) return ( true );
           return ( false );
         }
+
+        /** Thread-safe process iterator function/lambda/object method */
+        template <typename Functor>
+          bool process( Functor function ) const {
+            std::scoped_lock mylocker( this->mutex() );
+            return ( function( m_cache ) );
+          }
 
         /** Find and return a reference to the specified key value */
         inline T &find( const K &key ) {

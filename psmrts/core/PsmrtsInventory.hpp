@@ -51,8 +51,10 @@ namespace psmrts {
         using TracerInventory         = ProductInventory<UIDType, PsmrtsTracer>;
         using PriorityTracerInventory = ProductInventory<UIDType, PsmrtsPriorityTracer>;
         using ParameterInventory      = PsmrtsTranslations::ParameterInventory;        
-        using EnvironmentInventory    = PsmrtsTranslations::EnvironmentInventory;        
+        using EnvironmentInventory    = PsmrtsTranslations::EnvironmentInventory;
 
+        using ShapeCacheMap           = ShapeInventory::ProductCacheMap;
+        using TracerCacheMap          = TracerInventory::ProductCacheMap;
 
         PsmrtsInventory( ) : PsmrtsProduct( "product", "inventory" ) {
           this->init();
@@ -98,6 +100,24 @@ namespace psmrts {
           return ( m_prioritytracers );
         }
 
+        /** Thread-safe process shapes with function/lambda/object */
+        template <typename Functor>
+          bool process_shapes( Functor function ) const {
+            return ( m_shapes.process( function ) );
+          }
+           
+        /** Thread-safe process tracers with function/lambda/object */
+        template <typename Functor>
+          bool process_tracers( Functor function ) const {
+            return ( m_tracers.process( function ) );
+          }
+
+        /** Thread-safe process priority tracers with function/lambda/object */
+        template <typename Functor>
+          bool process_prioritytracers( Functor function ) const {
+            return ( m_prioritytracers.process( function ) );
+          }          
+          
         inline const ParameterInventory &parameters( ) const {
           return ( m_translations.parameters() );
         }

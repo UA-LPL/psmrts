@@ -44,8 +44,10 @@ namespace psmrts {
   template <typename K, typename P>
     class ProductInventory : public PsmrtsProduct {
       public:
-        using CacheType       = PsmrtsCache<K,P>;
-        using KeyType         = typename CacheType::KeyType; // == K
+        using CacheType        = PsmrtsCache<K,P>;
+        using KeyType          = typename CacheType::KeyType; // == K
+        using IteratorFunction = typename CacheType::IteratorFunction;
+        using ProductCacheMap  = typename CacheType::CacheMap;
 
         /** Static method used for case-insensitive string keys */
         static std::string case_insensitive_key( const std::string &key ) {
@@ -162,7 +164,7 @@ namespace psmrts {
 
         /** Remove the same products in this cache that exists in cache */
         inline void remove( const CacheType &cache ) {
-          for ( const auto &p_it : m_cache ) {
+          for ( const auto &p_it : cache ) {
             m_cache.remove( m_key_t( p_it->first ) );
           }
           return;
@@ -172,6 +174,12 @@ namespace psmrts {
         inline std::vector<KeyType> keys() const {
           return ( m_cache.keys() );
         }
+
+        /** Thread-safe process iterator function/lambda method */
+        template <typename Functor>
+          bool process( Functor function ) const {
+            return ( m_cache.process( function ) );
+          }
 
         /** Const access direct to the PsmrtsCache for iterator use mainly */
         inline const CacheType &cache() const {
@@ -191,8 +199,8 @@ namespace psmrts {
         }
 
       private:
-        CacheType                 m_cache;  ///!  The product cache
-        std::function<K(const K)> m_key_t;  ///!  Instance of map key translator
+        CacheType                       m_cache;  ///!  The product cache
+        std::function<K(const K & key)> m_key_t;  ///!  Instance of map key translator
 
     };
 
