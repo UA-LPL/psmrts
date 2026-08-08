@@ -46,7 +46,7 @@ namespace psmrts {
       throw std::runtime_error( mess );          
     }
 
-    m_config = ProductConfiguration( v_conf.name() );;
+    m_config = ProductConfiguration( v_conf.name() );
     if ( v_conf.contains( "shape" ) ) {
       if ( v_conf.find( "shape" ).to_string() != "ply" ) {
         std::string mess = "PlyShape::create() - shape type must be \"ply\""

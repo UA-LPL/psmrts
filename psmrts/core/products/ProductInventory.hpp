@@ -200,7 +200,7 @@ namespace psmrts {
 
       private:
         CacheType                       m_cache;  ///!  The product cache
-        std::function<K(const K & key)> m_key_t;  ///!  Instance of map key translator
+        std::function<K(const K &key)>  m_key_t;  ///!  Instance of map key translator
 
     };
 
