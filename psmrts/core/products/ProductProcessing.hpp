@@ -17,6 +17,7 @@ find files of those names at the top level of this repository. **/
 #include <vector>
 #include <exception>
 #include <optional>
+#include <mutex>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsJson.hpp>
@@ -60,6 +61,9 @@ namespace psmrts {
       using ShapeInventory   = PsmrtsInventory::ShapeInventory;
       using TracerInventory  = PsmrtsInventory::TracerInventory;      
       using ResidualList     = ProductSpecification::ResidualList;      
+
+      using ShapeCacheMap    = ShapeInventory::ProductCacheMap;
+      using TracerCacheMap   = TracerInventory::ProductCacheMap;
 
     /**
      * @brief Class to store a composite tracer/shape product config/spec
@@ -162,17 +166,28 @@ namespace psmrts {
                                                   const ShapeInventory &inventory,
                                                   std::optional<PsmrtsShape> &shape ) 
                                                   const {
+        // Lock search of shape inventory
+        std::scoped_lock mylocker( m_mutex );
 
-        for ( const auto &[ uid, p ] : inventory.cache() ) {
-          ProductCart cart_s( p.specs(), p.config() ); 
-          ProductOrder order = this->compare_product_config( config, cart_s.set_shape_uid( uid) );
-          if ( order.error_count() == 0  ) {
-            shape.emplace( p );
-            return ( order );
+        // Create the shape search lambda method to run the search directly on
+        // the shape cache map using thread-safe techniques.
+        ProductOrder order;
+        auto shape_search = [&]( const ShapeCacheMap &map_c ) -> bool {
+          for ( const auto &[ uid, p ] : map_c ) {
+            ProductCart cart_s( p.specs(), p.config() ); 
+            order = this->compare_product_config( config, cart_s.set_shape_uid( uid) );
+            if ( order.error_count() == 0  ) {
+              shape.emplace( p );
+              return ( true );
+            }
           }
-        }                                              
+          order = ProductOrder( config, this->translator() );
+          return ( false );
+        };
 
-        return ( ProductOrder( config, this->translator() ) );
+        // Run the search and return result
+        inventory.process( shape_search );
+        return ( order );
       }
 
       /**
@@ -193,17 +208,27 @@ namespace psmrts {
                                                    const TracerInventory &inventory,
                                                    std::optional<PsmrtsTracer> &tracer )
                                                    const {
+        // Lock search of tracers
+        std::scoped_lock mylocker( m_mutex );
 
-        for ( const auto &[ uid, p ] : inventory.cache() ) {
-          ProductCart cart_t( p.specs(), p.config() );
-          ProductOrder order = this->compare_product_config( config, cart_t.set_tracer_uid( uid) );
-          if ( order.error_count() == 0  ) {
-            tracer.emplace( p );
-            return ( order );
-          }
-        }                                              
+        // Create the tracer search lambda method to run the search directly on
+        // the tracer cache map using thread-safe techniques.
+        ProductOrder order;
+        auto tracer_search = [&]( const TracerCacheMap &map_t ) -> bool {
+          for ( const auto &[ uid, p ] : map_t ) {
+            ProductCart cart_t( p.specs(), p.config() );
+            order = this->compare_product_config( config, cart_t.set_tracer_uid( uid) );
+            if ( order.error_count() == 0  ) {
+              tracer.emplace( p );
+              return ( true );
+            }
+          } 
+          order = ProductOrder( config, this->translator() );
+          return ( false );
+        };                                                       
 
-        return ( ProductOrder( config, this->translator() ) );
+        inventory.process( tracer_search );
+        return ( order );
       }
 
       /**
@@ -219,35 +244,46 @@ namespace psmrts {
                                     const {
 
         if ( this->is_valid_order( set_p.tracer )  ) {
-          for ( const auto &[ uid, p ] : inventory.tracers().cache() ) {
-            ProductCart cart_t( p.specs(), p.config() ); 
-            ProductOrder order_t = this->compare_product_config( set_p.tracer.config(),
-                                                                 cart_t.set_tracer_uid( uid ) );
-            if ( order_t.error_count() == 0 ) {
-              if ( !set_p.shape.isempty() ) {
-                // Now check if a shape exists and it matches the shape config
-                PRQShape shaper_t;
-                if ( p.process( shaper_t ) ) {
-                  ProductCart cart_s( shaper_t.shape().specs(), shaper_t.shape().config() );
-                  (void) cart_s.set_shape_uid( shaper_t.shape().uid() );
-                  ProductOrder order_s = this->compare_product_config( set_p.shape.config(), cart_s );
-                  if ( order_s.error_count() == 0 ) {
-                    set_p.tracer_p.emplace( p );
-                    set_p.shape_p.emplace( shaper_t.shape() );
-                    return ( true );                
-                  } 
+
+          // Lock search of tracers
+          std::scoped_lock mylocker( m_mutex );
+
+          /** Thread-safe lambda tracer search for composite tracer/shape products */
+          ProductOrder order;
+          auto product_search = [&]( const TracerCacheMap &map_t ) -> bool {
+            for ( const auto &[ uid, p ] : map_t ) {
+              ProductCart cart_t( p.specs(), p.config() ); 
+              ProductOrder order_t = this->compare_product_config( set_p.tracer.config(),
+                                                                    cart_t.set_tracer_uid( uid ) );
+              if ( order_t.error_count() == 0 ) {
+                if ( !set_p.shape.isempty() ) {
+                  // Now check if a shape exists and it matches the shape config
+                  PRQShape shaper_t;
+                  if ( p.process( shaper_t ) ) {
+                    ProductCart cart_s( shaper_t.shape().specs(), shaper_t.shape().config() );
+                    (void) cart_s.set_shape_uid( shaper_t.shape().uid() );
+                    ProductOrder order_s = this->compare_product_config( set_p.shape.config(), cart_s );
+                    if ( order_s.error_count() == 0 ) {
+                      set_p.tracer_p.emplace( p );
+                      set_p.shape_p.emplace( shaper_t.shape() );
+                      return ( true );                
+                    } 
+                  }
+                }
+                else {
+                  set_p.tracer_p.emplace( p );
+                  return ( true );
                 }
               }
-              else {
-                set_p.tracer_p.emplace( p );
-                return ( true );
-              }
             }
-            else {
-            }
-          }                
+            return (false );
+          };  
+        
+          // Search for tracers with shape verification if needed
+          return ( inventory.process_tracers( product_search ) );
         }
         else if ( this->is_valid_order( set_p.shape ) ) {
+          // Just a shape for this one, which is not common here.
           ProductOrder order_s = this->search_shape_inventory( set_p.shape.config(),
                                                                 inventory.shapes(),
                                                                 set_p.shape_p );
@@ -296,6 +332,9 @@ namespace psmrts {
         // ok, we have to make one now
         if ( !product_s.shape_p.has_value() ) {
 
+          // Lock creation of new shape
+          std::scoped_lock mylocker( m_mutex );
+
           ProductMaker<PsmrtsShape> maker_t( product_s.shape.name() );
           maker_t.process_cart( product_s.shape.cart() );
           if ( maker_t.isvalid() ) {
@@ -337,9 +376,13 @@ namespace psmrts {
 
         // if the search is not successful 
         if ( !search_inventory( product_s, this->inventory() ) ) {
-          // Search/make a shape product if needed
+          // Search/make a shape product if needed. Don't lock here as the
+          // make_shape() method runs a lock!!
           make_shape( product_s );
           if ( this->error_count() == 0 ) {
+
+            // Lock creation of tracer
+            std::scoped_lock mylocker( m_mutex );
 
             ProductMaker<PsmrtsTracer> maker_t( product_s.tracer.name() );
             if ( product_s.has_shape() ) {
@@ -486,7 +529,7 @@ namespace psmrts {
        */
       inline ProductOrder compare_product_config( const ProductConfiguration &config,
                                                   const ProductCart &product_cart ) const { 
-        
+
         // Prepare the cart for comparisons of the product configuration
         ProductConfiguration config_new( config.name() );
         ProductOrder order_t( config, product_cart, this->translator() );
@@ -525,18 +568,18 @@ namespace psmrts {
               }
             }
             else {
-              order_t.add_error( name_t + " option is invalid or isn't the default in specs " + specs_c.name() );              
+              order_t.add_error( "\"" + name_t + "\" option is invalid or isn't the default in specs " + specs_c.name() );              
             }
           }
           else {
-            order_t.add_error( name_t + " is not found in specs for " + specs_c.name() );
+            order_t.add_error( "\"" + name_t + "\" is not found in specs for " + specs_c.name() );
           }
         }
 
         // Now check for required keywords
         for ( const std::string &key_r : specs_c.required() ) {
           if ( !config_new.contains( key_r ) ) {
-            order_t.add_error( "Required key " + key_r + " not found in config " + config.name() );
+            order_t.add_error( "Required key \"" + key_r + "\" not found in config " + config.name() );
           }
         }
 
@@ -755,8 +798,8 @@ namespace psmrts {
         else {
           // Its not compatible with this one
           std::string mess = "*** ProductProcessing::process_order() - "
-                              "Invalid filename/extension in option(" 
-                              + option.name() + ") = " + option.to_string();
+                              "Invalid filename/extension in option (" 
+                              + option.name() + " = " + option.to_string() + ")";
           order.add_error(  mess );
           order.add_residual( option );
         } 
@@ -1160,13 +1203,13 @@ namespace psmrts {
 
       
     private:
-      PsmrtsTranslations m_translator;
-      std::string        m_name_inv;
+      PsmrtsTranslations       m_translator;
+      std::string              m_name_inv;
+      static inline std::mutex m_mutex{};
 
 
       inline bool create_inventory( const std::string &name ) {
         return ( PsmrtsFactory().create( name ) );
-        // return ( PsmrtsFactory().create( name ) );
       }
 
 

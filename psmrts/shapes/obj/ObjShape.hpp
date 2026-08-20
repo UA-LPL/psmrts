@@ -121,7 +121,8 @@ namespace psmrts  {
                                  ProductOption( "type", "string"),
                                  ProductOption( "description", "Format-compatible string containing contents of an OBJ file" ),
                                  ProductOption( "status", "optional"),
-                                 ProductOption( "aliases", "obj_mesh_string" ) } );
+                                 ProductOption( "aliases", "obj_mesh_string" ),
+                                ProductOption( "default", "" ) } );
         ProductFeature dtype( "obj_data_type", {
                                  ProductOption( "name", "obj_data_type"),
                                  ProductOption( "type", "string"),
@@ -135,7 +136,8 @@ namespace psmrts  {
                                  ProductOption( "type", "directory"),
                                  ProductOption( "description", "Directory path to OBJ materials files"),
                                  ProductOption( "status", "optional"),
-                                 ProductOption( "aliases", { "obj_materials_dir", "obj_materials_directory" } ) } );
+                                 ProductOption( "aliases", { "obj_materials_dir", "obj_materials_directory" } ),
+                                 ProductOption( "default", "" ) } );
 
 
         // This validates the JSON structure and provides product info to callers
@@ -180,17 +182,17 @@ namespace psmrts  {
           throw std::runtime_error( mess );          
         }
 
-        m_config = cart.configuration();
-        if ( m_config.contains( "shape" ) ) {
-          if ( m_config.find( "shape" ).to_string() != "obj" ) {
+        m_config = ProductConfiguration( cart.configuration().name() );
+        if ( v_conf.contains( "shape" ) ) {
+          if ( v_conf.find( "shape" ).to_string() != "obj" ) {
             std::string mess = "ObjShape::create() - shape type must be \"obj\""
-                               " but found " + m_config.find("shape").to_string();
+                               " but found " + v_conf.find("shape").to_string();
             throw std::runtime_error( mess );
           }
+          m_config.add( ProductOption( "shape", "obj" ) );
         }
-
         // Check for conflicts
-        if ( m_config.contains( "obj_file" ) && m_config.contains( "obj_string" ) ) {
+        if ( v_conf.contains( "obj_file" ) && v_conf.contains( "obj_string" ) ) {
           std::string mess = "ObjShape::create() - only one of obj_file or obj_string is allowed!";
           throw std::runtime_error( mess );
         }
@@ -199,38 +201,49 @@ namespace psmrts  {
         std::string text_q;
         std::string objfile;
         std::string materials_path; 
-        if ( m_config.contains( "obj_mtl_search_path" ) ) {
-          materials_path  = m_config.find( "obj_mtl_search_path" ).to_string();
-          if ( m_config.metadata().contains( "obj_mtl_search_path_expanded" ) ) {
-            materials_path = m_config.metadata().find( "obj_mtl_search_path_expanded" ).to_string();
+
+        auto extract_materials_path = [&]( const ProductConfiguration &c ) {
+          if ( c.contains( "obj_mtl_search_path" ) ) {
+            materials_path  = c.find( "obj_mtl_search_path" ).to_string();
+            m_config.add( ProductOption( "obj_mtl_search_path", materials_path) );
+            if ( c.metadata().contains( "obj_mtl_search_path_expanded" ) ) {
+              materials_path = c.metadata().find( "obj_mtl_search_path_expanded" ).to_string();
+              m_config.add_metadata( ProductOption( "obj_mtl_search_path_extended", materials_path) );
+            }
           }
-        }   
-        
+        };
         
         // Check for obj_file
-        if ( m_config.contains( "obj_file" ) ) {
-          objfile  = m_config.find( "obj_file" ).to_string();
-          if ( m_config.metadata().contains( "obj_file_expanded" ) ) {
-            objfile =  m_config.metadata().find( "obj_file_expanded" ).to_string();
+        if ( v_conf.contains( "obj_file" ) ) {
+          objfile  = v_conf.find( "obj_file" ).to_string();
+          m_config.add( ProductOption( "obj_file", objfile) );
+
+          if ( v_conf.metadata().contains( "obj_file_expanded" ) ) {
+            objfile =  v_conf.metadata().find( "obj_file_expanded" ).to_string();
+            m_config.add_metadata( ProductOption( "obj_file_expanded", objfile) );
           }
+          extract_materials_path( v_conf );
           m_model = PsmrtsOBJFormat( objfile, materials_path );
         }
-        else if ( m_config.contains( "obj_string" ) ) {
-          text_q = m_config.find( "obj_string" ).to_string();
+        else if ( v_conf.contains( "obj_string" ) ) {
+          text_q = v_conf.find( "obj_string" ).to_string();
+          m_config.add( ProductOption( "obj_string", text_q) );
+          extract_materials_path( v_conf );
+
           m_model = PsmrtsOBJFormat( PsmrtsOBJFormat::load_obj_string( text_q, materials_path,
                                                       PsmrtsOBJFormat::obj_config( materials_path ) ),
                                                       "obj_string" );
         }
 
-        if ( m_config.contains( "obj_data_type") && 
-             ( m_config.find( "obj_data_type" ).to_string() == "float" ) ) {
+        if ( v_conf.contains( "obj_data_type") && 
+             ( v_conf.find( "obj_data_type" ).to_string() == "float" ) ) {
+          m_config.add( ProductOption( "obj_data_type", "float") );
           m_mesh = PsmrtsMeshData( m_model.get_indexes(), m_model.get_float_vectors() );
         }
         else {
           m_mesh = PsmrtsMeshData( m_model.get_indexes(), m_model.get_double_vectors() );
         }
 
-        m_config = v_conf;
         m_config.add_metadata( ProductOption( "minimum_radius", m_mesh.minimum_radius() ) );
         m_config.add_metadata( ProductOption( "maximum_radius", m_mesh.maximum_radius() ) );           
         m_config.add_metadata( ProductOption( "shape_uid", PsmrtsUID::to_string( this->uid() ) ) );

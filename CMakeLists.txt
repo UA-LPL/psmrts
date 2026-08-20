@@ -64,8 +64,8 @@ endif(PSMRTS_BUILD_SHARED)
 #-----------------------------------------------------------------------------
 # PSMRTS project configuration. PROJECT_SOURCE_DIR=psmrts
 #-----------------------------------------------------------------------------
-project(PSMRTS VERSION 0.8.0 LANGUAGES CXX C)
-set( PSMRTS_VERSION_DATE  "2026-07-30")
+project(PSMRTS VERSION 0.9.0 LANGUAGES CXX C)
+set( PSMRTS_VERSION_DATE  "2026-08-07")
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -216,7 +216,7 @@ if( PSMRTS_BUILD_TESTS )
 
     # Must add these flags to the INTERFACE portion of PSMRTS or it won't
     # pick up the headers!
-    target_compile_options(psmrts INTERFACE -g0 --coverage)
+    target_compile_options(psmrts INTERFACE -g0 --coverage -fprofile-update=atomic)
     target_link_options(psmrts    INTERFACE -g0 --coverage)
 
 

@@ -10,6 +10,7 @@ find files of those names at the top level of this repository. **/
 
 #include <vector>
 #include <string>
+#include <mutex>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsJson.hpp>
@@ -119,7 +120,7 @@ namespace psmrts {
         return ( m_invoice.error_count() );
       }
 
-      inline size_t has_errors() const {
+      inline bool has_errors() const {
         return ( m_invoice.error_count() > 0 );
       }
 
@@ -259,6 +260,10 @@ namespace psmrts {
        */
       inline size_t process_shape_list( const std::vector<std::string> &shapes,
                                         const std::string &name = "psmrtstracersystem" ) {
+
+        // Lock creation of tracers for this process
+        // std::scoped_lock mylocker( m_mutex );
+
         std::vector<std::string> shape_file_list;
         for ( const std::string &file_s : shapes ) {
 
@@ -336,6 +341,7 @@ namespace psmrts {
             tracer_c.add( ProductOption( "tracer", "bullet") );
           }
 
+          // Construct the tracer/shape composite and add to system
           if ( !this->make_product ( tracer_c ) ) {
             nerrs++;
           }
@@ -367,6 +373,9 @@ namespace psmrts {
        */
       inline bool set_reference_ellipsoid( const std::string &name,
                                            const std::vector<double> &radii ) {
+
+        // Lock creation of ellipsoid
+        // std::scoped_lock mylocker( m_mutex );
 
         ProductOption tracer( "tracer", "ellipsoid" );
         ProductOption rads( "radii", radii );
@@ -731,10 +740,10 @@ namespace psmrts {
       }
 
     private:
-      PsmrtsInvoice        m_invoice;
-      PsmrtsPriorityTracer m_tracer_p;
-      PsmrtsTracer         m_ellipsoid_r;
-
+      PsmrtsInvoice            m_invoice;
+      PsmrtsPriorityTracer     m_tracer_p;
+      PsmrtsTracer             m_ellipsoid_r;
+      // static inline std::mutex m_mutex{};
   };
 }
 

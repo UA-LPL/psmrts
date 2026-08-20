@@ -36,6 +36,22 @@ release.
 
 - See [TODO](TODO.md)
 
+## [0.9.0] 2026-07-30
+
+This PR addresses thread-safety and is in response to issue [#42](https://github.com/UA-LPL/psmrts/issues/42).
+
+- Add mutexes to ProductProcessing.hpp and PsmrtsTracerSystem.hpp to address conflicts during searches and creations of objects.
+- Fixed OBJ configurations to better adherer to ObjShape specifications. This also fixes search comparisons for resource reuse.
+- Fixed PLY configurations to better adherer to PlyShape specifications. This also fixes search comparisons for resource reuse.
+- Fix return type (bool) of PsmrtsTracerSystem::has_errors() method.
+- The PsmrtsTracerSystem class has a static std::mutex that is locked in the PsmrtsTracerSystem::load_shape_list() method that ensures no redundancy loads of the same shape from different invocations of PsmrtsTracerSystem and/or simultaneous threads of this class.
+- The ProductProcessor contains a static std::mutex that is locked during product searches/creations when they are requested on shapes and tracers. This does not prevent conflicts at the actual product cache level, but the implementation uses a lambda function that is scoped locked in the methods running the product searches invoking the lambda functions that are provided direct access to the product cache std::map.
+- The cache map, using std::map as its container, provides a PsmrtsCache::process() template method that accepts a function, lambda or function object containing an operator()/function that accepts a `const &std::map<K,P>` parameter of the requested type you can use as desired, typically product comparisons during searches.
+- The PsmrtsInventory and ProductInventory classes have template methods that pass these function methods to the requested inventories which create a top-to-bottom thread-safe creation and search infrastructure within PSMRTS using these classes.
+- Thread tests have been added to test_PsmrtsTracerSystem.cpp to validate these changes.
+- Change CMakeLists.txt version to [0.9.0]
+- Update CHANGELOG.md
+
 ## [0.8.0] 2026-07-30
 
 - Fix a bug in the reuse of EllipsoidTracers by adding a default value to the optional "name" parameter in the specification and ensure "name" is one of the three variations {ellipsoid, spheroid and sphere}
