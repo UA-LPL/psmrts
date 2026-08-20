@@ -216,7 +216,7 @@ if( PSMRTS_BUILD_TESTS )
 
     # Must add these flags to the INTERFACE portion of PSMRTS or it won't
     # pick up the headers!
-    target_compile_options(psmrts INTERFACE -g0 --coverage -fprofile-update=atomic)
+    target_compile_options(psmrts INTERFACE -g0 --coverage)
     target_link_options(psmrts    INTERFACE -g0 --coverage)
 
 
