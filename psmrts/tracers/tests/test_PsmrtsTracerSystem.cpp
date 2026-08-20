@@ -91,29 +91,40 @@ TEST_CASE("PsmrtsTracerSystem Values Test", "[tracer][system][values]") {
     bool naif_check = false;
     bool bullet_check = false;
     
-    for (const auto &[uid, tracer] : sys1.invoice().inventory().tracers().cache() ) {
-        if (tracer.config().contains("tracer") ) {
-            std::string type = tracer.config().find("tracer").to_string();
-            if (type == "naifdsk") {
-                naif_check = true;
-            }
-            if (type == "bullet") {
-                bullet_check = true;
-            }
-        }
-    }
-
+    auto check_tracer_types1 = [&] ( const auto &map_c ) -> bool {
+      for (const auto &[uid, tracer] : map_c ) {
+          if (tracer.config().contains("tracer") ) {
+              std::string type = tracer.config().find("tracer").to_string();
+              if (type == "naifdsk") {
+                  naif_check = true;
+              }
+              if (type == "bullet") {
+                  bullet_check = true;
+              }
+          }
+      }
+      return ( naif_check && bullet_check );
+    };
+    bool proc1_check = sys1.invoice().inventory().tracers().process( check_tracer_types1 );
     CHECK( naif_check   == true ); 
     CHECK( bullet_check == true );
 
-    for (const auto &[uid, tracer] : sys2.invoice().inventory().tracers().cache() ) {
-        if (tracer.config().contains("tracer") ) {
-            std::string type = tracer.config().find("tracer").to_string();
-            if (type == "bullet") {
-                bullet_check = true;
-            }
-        }
-    }
+
+    auto check_tracer_types2 = [&] ( const auto &map_c ) -> bool {
+      for (const auto &[uid, tracer] : map_c ) {
+          if (tracer.config().contains("tracer") ) {
+              std::string type = tracer.config().find("tracer").to_string();
+              if (type == "bullet") {
+                  bullet_check = true;
+              }
+          }
+      }
+      return ( bullet_check );
+    };
+  
+    naif_check = false;
+    bullet_check = false;
+    CHECK ( sys2.invoice().inventory().tracers().process( check_tracer_types2 ) == true ); 
     CHECK( bullet_check == true ); 
 
     psmrts::PsmrtsShape obj_shape( objfile );
@@ -121,13 +132,17 @@ TEST_CASE("PsmrtsTracerSystem Values Test", "[tracer][system][values]") {
     CHECK( sys1.add_shape( obj_shape ) == true );
 
     bool obj_check = false;
-    for (const auto &[uid, shape] : sys1.invoice().inventory().shapes().cache()) {
+    auto check_shape_types = [&] ( const auto &map_c ) -> bool {
+      for (const auto &[uid, shape] : map_c ) {
         if ( shape.config().contains("shape") ) {
             if ( shape.config().find("shape").to_string() == "obj" ) {
                 obj_check = true;
             }
         }
-    }
+      }
+      return ( obj_check );
+    };
+    CHECK ( sys1.invoice().inventory().shapes().process( check_shape_types ) == true );   
     CHECK( obj_check == true );
   
     psmrts::PsmrtsFactory().liquidate();
@@ -563,3 +578,4 @@ TEST_CASE("PsmrtsTracerSystem Threads Multi-Type Tracers Test", "[tracer][system
 
   psmrts::PsmrtsFactory().liquidate();
 }
+

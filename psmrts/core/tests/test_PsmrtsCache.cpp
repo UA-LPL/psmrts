@@ -3,6 +3,22 @@
 #include <psmrts/core/PsmrtsCache.hpp>
 
 TEST_CASE( "PSMRTS Cache Default Test", "[cache][default]") {
+
+    /** Generic cache extractor */
+    auto cache_extractor = []( auto &keys, auto &values, const auto &cache ) {
+      auto cache_iterator = [&] ( const auto &map_c ) -> bool {
+        for ( const auto &[ key, value ] : map_c ) {
+          keys.push_back( key );
+          values.push_back( value );
+        }
+        return ( true );
+      };
+
+      // Run the extraction
+      cache.process( cache_iterator );
+      return;
+    };
+
     psmrts::PsmrtsCache<std::string, int> cache;
     CHECK( cache.size() == 0 );
 
@@ -40,11 +56,13 @@ TEST_CASE( "PSMRTS Cache Default Test", "[cache][default]") {
 
     std::vector<std::string> i_keys;
     std::vector<int> i_values;
+#if 0
     for (auto i = cache.begin(); i != cache.end(); ++i ) {
         i_keys.push_back(i->first);
         i_values.push_back(i->second);
     }
-    
+#endif
+    cache_extractor(i_keys, i_values, cache );   
     CHECK( i_keys == std::vector<std::string>{"test", "test2", "test3", "test4"} );
     CHECK( i_values == std::vector<int>{1, 20, 3, 4} );
     
@@ -56,17 +74,24 @@ TEST_CASE( "PSMRTS Cache Default Test", "[cache][default]") {
     const auto& const_cache = cache;
     std::vector<std::string> c_keys;
     std::vector<int> c_values;
+    cache_extractor(c_keys, c_values, const_cache );   
+#if 0
     for (auto j = const_cache.begin(); j != const_cache.end(); ++j ) {
         c_keys.push_back(j->first);
         c_values.push_back(j->second);
     }
-
+#endif
     CHECK( c_keys == std::vector<std::string>{"test", "test2", "test3", "test4"} );
     CHECK( c_values == std::vector<int>{1, 20, 3, 4} );
 
     std::vector<std::string> iter_keys;
-    std::transform(cache.begin(), cache.end(), std::back_inserter(iter_keys),
-        [](const auto& kv) { return kv.first; });
+    auto cache_transformer = [&] ( const auto &map_c ) -> bool {
+      std::transform(map_c.begin(), map_c.end(), std::back_inserter(iter_keys),
+          [](const auto& kv) { return kv.first; });
+      return ( true );
+    };
+    cache.process( cache_transformer );
+
 
     CHECK(iter_keys == std::vector<std::string>{"test", "test2", "test3", "test4"});
     

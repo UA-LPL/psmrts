@@ -133,7 +133,6 @@ namespace psmrts {
         return ( product_s );
       }
 
-
       /**
        * @brief Adds a product set to the internal container
        * 

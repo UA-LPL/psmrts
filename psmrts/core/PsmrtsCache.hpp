@@ -19,6 +19,9 @@ find files of those names at the top level of this repository. **/
 #include <algorithm>
 #include <iterator>
 #include <functional>
+#include <mutex>
+#include <shared_mutex>
+
 namespace psmrts {
 
   /**
@@ -53,14 +56,14 @@ namespace psmrts {
                      m_mutex() {  }
         /** Required copy constructor due to std::mutex */
         PsmrtsCache( const PsmrtsCache &other )  {
-          std::scoped_lock mylocker( other.mutex() );
+          std::unique_lock<std::shared_mutex> mylocker( other.m_mutex );
           m_cache = other.m_cache; 
         }
 
         /** Required copy operator due to std::mutex */
         PsmrtsCache &operator=( const PsmrtsCache &other ) {
           if (this != &other) {
-            std::scoped_lock mylocker( m_mutex, other.mutex() );
+            std::unique_lock<std::shared_mutex> mylocker( other.m_mutex );
             m_cache = other.m_cache;
           }
           return ( *this );
@@ -69,20 +72,20 @@ namespace psmrts {
 
         /** Returns the number of elements in the cache */
         inline size_t size() const {
-          std::scoped_lock mylocker( this->mutex() );
+          std::shared_lock<std::shared_mutex> mylocker( m_mutex );
           return ( m_cache.size() );
         }
 
         /** Add a value to the cache - overwrites existing data */
         inline void add( const K &key, const T &value ) {
-          std::scoped_lock mylocker( this->mutex() );
+          std::unique_lock<std::shared_mutex> mylocker( m_mutex );
           m_cache[key] = value;
         }
 
 
         /** Remove the requested cache value by key */
         inline void remove( const K &key ) {
-          std::scoped_lock mylocker( this->mutex() );
+          std::unique_lock<std::shared_mutex> mylocker( m_mutex );
           CacheMapConstIter it_c = m_cache.find( key );
           if ( it_c != m_cache.end() ) {
             m_cache.erase( it_c );
@@ -92,7 +95,7 @@ namespace psmrts {
 
         /** Check for a particular key/value in the cache */
         inline bool contains( const K &key ) const {
-          std::scoped_lock mylocker( this->mutex() );
+          std::shared_lock<std::shared_mutex> mylocker( m_mutex );
           CacheMapConstIter it_c = m_cache.find( key );
           if ( it_c != m_cache.end() ) return ( true );
           return ( false );
@@ -101,13 +104,13 @@ namespace psmrts {
         /** Thread-safe process iterator function/lambda/object method */
         template <typename Functor>
           bool process( Functor function ) const {
-            std::scoped_lock mylocker( this->mutex() );
+            std::shared_lock<std::shared_mutex> mylocker( m_mutex );
             return ( function( m_cache ) );
           }
 
         /** Find and return a reference to the specified key value */
         inline T &find( const K &key ) {
-          std::scoped_lock mylocker( this->mutex() );
+          std::shared_lock<std::shared_mutex> mylocker( m_mutex );
           CacheMapIter it_c = m_cache.find( key );
           if ( it_c != m_cache.end() ) {
             return ( it_c->second );
@@ -121,7 +124,7 @@ namespace psmrts {
 
         /** Find and return a reference to the specified key value */
         inline const T &find( const K &key ) const {
-          std::scoped_lock mylocker( this->mutex() );
+          std::shared_lock<std::shared_mutex> mylocker( m_mutex );
           CacheMapConstIter it_c = m_cache.find( key );
           if ( it_c != m_cache.end() ) {
             return ( it_c->second );
@@ -135,7 +138,7 @@ namespace psmrts {
 
         /** Return a key value if it exits otherwise returns the default value */
         inline const T &find( const K &key, const T &default_t ) const {
-          std::scoped_lock mylocker( this->mutex() );
+          std::shared_lock<std::shared_mutex> mylocker( m_mutex );
           CacheMapConstIter it_c = m_cache.find( key );
           if ( it_c != m_cache.end() ) {
             return ( it_c->second );
@@ -143,25 +146,13 @@ namespace psmrts {
           return ( default_t );
         }
 
-        /** Return the const begin iterator of the map */
-        inline CacheMapConstIter begin() const {
-          std::scoped_lock mylocker( this->mutex() );
-          return ( m_cache.begin() );
-        }
-
-        /** Return the const end iterator of the map */
-        inline CacheMapConstIter end() const {
-          std::scoped_lock mylocker( this->mutex() );
-          return ( m_cache.end() );
-        }
-
         inline void clear() {
-          std::scoped_lock mylocker( this->mutex() );
+          std::unique_lock<std::shared_mutex> mylocker( m_mutex );
           m_cache.clear();
         }
 
         inline std::vector<K> keys() const {
-          std::scoped_lock mylocker( this->mutex() );
+          std::shared_lock<std::shared_mutex> mylocker( m_mutex );
           std::vector<K> keys_m;
           keys_m.reserve( m_cache.size() );
           std::transform( m_cache.begin(), m_cache.end(), std::back_inserter( keys_m ), 
@@ -170,7 +161,7 @@ namespace psmrts {
         }
 
         inline std::vector<T> values() const {
-          std::scoped_lock mylocker( this->mutex() );
+          std::shared_lock<std::shared_mutex> mylocker( m_mutex );
           std::vector<T> values_m;
           values_m.reserve( m_cache.size() );
           std::transform( m_cache.begin(), m_cache.end(), std::back_inserter( values_m ), 
@@ -178,15 +169,9 @@ namespace psmrts {
           return ( values_m );
         }
 
-      protected:
-        /** Mutex for thread locking use - local data only! */
-        inline std::mutex &mutex() const {
-          return ( m_mutex );
-        }
-
       private:
-        CacheMap           m_cache;
-        mutable std::mutex m_mutex;
+        CacheMap                  m_cache;
+        mutable std::shared_mutex m_mutex;
     };
 
 } // namespace psmrts

@@ -126,12 +126,18 @@ namespace psmrts {
          */
         inline size_t merge( const ProductInventory &product ) {
           size_t n_merged = 0;
-          for ( const auto &p_it : product.cache() ) {
-            if ( !m_cache.contains( p_it.first ) ) {
-              m_cache.add( m_key_t( p_it.first ), p_it.second );
-              n_merged++;
+
+          /** Merger lambda function */
+          auto merger_functor = [&]( const ProductCacheMap &map_c ) -> bool {
+            for ( const auto &[ uid, p ] : map_c ) {
+              if ( !m_cache.contains( uid ) ) {
+                m_cache.add( uid, p );
+                n_merged++;
+              }              
             }
-          }
+            return ( true );
+          };
+          product.process( merger_functor );
           return ( n_merged );
         }
 

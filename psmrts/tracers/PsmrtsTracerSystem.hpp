@@ -262,7 +262,7 @@ namespace psmrts {
                                         const std::string &name = "psmrtstracersystem" ) {
 
         // Lock creation of tracers for this process
-        std::scoped_lock mylocker( m_mutex );
+        // std::scoped_lock mylocker( m_mutex );
 
         std::vector<std::string> shape_file_list;
         for ( const std::string &file_s : shapes ) {
@@ -375,7 +375,7 @@ namespace psmrts {
                                            const std::vector<double> &radii ) {
 
         // Lock creation of ellipsoid
-        std::scoped_lock mylocker( m_mutex );
+        // std::scoped_lock mylocker( m_mutex );
 
         ProductOption tracer( "tracer", "ellipsoid" );
         ProductOption rads( "radii", radii );
@@ -743,7 +743,7 @@ namespace psmrts {
       PsmrtsInvoice            m_invoice;
       PsmrtsPriorityTracer     m_tracer_p;
       PsmrtsTracer             m_ellipsoid_r;
-      static inline std::mutex m_mutex{};
+      // static inline std::mutex m_mutex{};
   };
 }
 
