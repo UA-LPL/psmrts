@@ -18,11 +18,12 @@ find files of those names at the top level of this repository. **/
 #include <cstdio>
 #include <tuple>
 #include <algorithm>
+#include <memory>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsTranslations.hpp>
-#include <psmrts/core/products/ProductInventory.hpp>
+#include <psmrts/core/PsmrtsSharedCache.hpp>
 #include <psmrts/core/products/ProductOption.hpp>
 #include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/tracers/PsmrtsTracer.hpp>
@@ -30,7 +31,7 @@ find files of those names at the top level of this repository. **/
 
 namespace psmrts {
 
-    /**
+  /**
      * @brief PSMRTS product inventory container that maintains all product caches 
      * 
      * This class contains a collection of shapes, tracers, priority tracers and
@@ -39,7 +40,22 @@ namespace psmrts {
      * 
      * Typically, priority is given to the existance of a priority tracer.
      * Priority tracers are created by the contents of the TracerInventory.
-     * The TracerInventory contains products from the shape 
+     * The TracerInventory contains products from the ShapeInventory. Because
+     * PsrmtsPriorityTracers can have the order and content of the their tracer
+     * priority modified, they cannot be passed around a shared pointer. Hence,
+     * the PsmrstPriortyTracer interface will provide copies of them for safe
+     * use in instances.
+     * 
+     * The PsmrtsTranslations contains a state of the users shell environment
+     * variables and parameters typcially used to translate file paths. There is
+     * one copy of the translations maintained for this inventory.
+     * 
+     * Copies of these environments result in completely shared resources across
+     * all instances as they are shared pointers internally.
+     * 
+     * Thread safety is deferred to the PsmrtsSharedCache objects that store
+     * the tracers, shapes and priority tracers as well as the PsmrtsCache for
+     * the translation variables.
      * 
     */
     class PsmrtsInventory : public PsmrtsProduct {
@@ -47,14 +63,14 @@ namespace psmrts {
         using UIDType         = PsmrtsProduct::UIDType;
         using PsmrtsParameter = ProductOption;
 
-        using ShapeInventory          = ProductInventory<UIDType, PsmrtsShape>;
-        using TracerInventory         = ProductInventory<UIDType, PsmrtsTracer>;
-        using PriorityTracerInventory = ProductInventory<UIDType, PsmrtsPriorityTracer>;
+        using ShapeInventory          = PsmrtsSharedCache<UIDType, PsmrtsShape>;
+        using TracerInventory         = PsmrtsSharedCache<UIDType, PsmrtsTracer>;
+        using PriorityTracerInventory = PsmrtsSharedCache<UIDType, PsmrtsPriorityTracer>;
         using ParameterInventory      = PsmrtsTranslations::ParameterInventory;        
         using EnvironmentInventory    = PsmrtsTranslations::EnvironmentInventory;
 
-        using ShapeCacheMap           = ShapeInventory::ProductCacheMap;
-        using TracerCacheMap          = TracerInventory::ProductCacheMap;
+        using ShapeCacheMap           = ShapeInventory::CacheMap;
+        using TracerCacheMap          = TracerInventory::CacheMap;
 
         PsmrtsInventory( ) : PsmrtsProduct( "product", "inventory" ) {
           this->init();
@@ -66,108 +82,115 @@ namespace psmrts {
           this->init();
         }
 
-        virtual ~PsmrtsInventory() { }
+        virtual ~PsmrtsInventory() = default;
 
         /** Returns the number of all products excluding parameters and envs */
         inline size_t size() const {
-          size_t n_products = this->shapes().size() + 
-                              this->tracers().size() +
-                              this->prioritytracers().size();
+          size_t n_products = m_shapes->size() + 
+                              m_tracers->size() +
+                              m_prioritytracers->size();
           return ( n_products );
         }
 
         inline const ShapeInventory &shapes( ) const {
-          return ( m_shapes );
+          return ( *m_shapes );
         }
 
-        inline  ShapeInventory &shapes( )  {
-          return ( m_shapes );
+        inline ShapeInventory &shapes( )  {
+          return ( *m_shapes );
         }
 
         inline const TracerInventory &tracers( ) const {
-          return ( m_tracers );
+          return ( *m_tracers );
         }
 
         inline TracerInventory &tracers( ) {
-          return ( m_tracers );
+          return ( *m_tracers );
         }        
 
-        inline const PriorityTracerInventory &prioritytracers( ) const {
-          return ( m_prioritytracers );
+        inline size_t priority_tracer_size() const {
+          return ( m_prioritytracers->size() );
         }
 
-        inline PriorityTracerInventory &prioritytracers( ) {
-          return ( m_prioritytracers );
+        inline PsmrtsPriorityTracer priority_tracer_contains( const UIDType &uid ) {
+          return ( m_prioritytracers->contains( uid ) );
+        }
+
+        inline PsmrtsPriorityTracer priority_tracer_find( const UIDType &uid ) {
+          auto pt_t = m_prioritytracers->find( uid );
+          if ( !pt_t ) return ( PsmrtsPriorityTracer() );
+          return ( *pt_t );
+        }
+
+        inline void priority_tracer_add( const PsmrtsPriorityTracer &pt ) {
+          if ( pt.isValid() ) {
+            m_prioritytracers->add( pt.uid(), pt );
+          }
+          return;
         }
 
         /** Thread-safe process shapes with function/lambda/object */
         template <typename Functor>
           bool process_shapes( Functor function ) const {
-            return ( m_shapes.process( function ) );
+            return ( m_shapes->process( function ) );
           }
            
         /** Thread-safe process tracers with function/lambda/object */
         template <typename Functor>
           bool process_tracers( Functor function ) const {
-            return ( m_tracers.process( function ) );
+            return ( m_tracers->process( function ) );
           }
 
-        /** Thread-safe process priority tracers with function/lambda/object */
-        template <typename Functor>
-          bool process_prioritytracers( Functor function ) const {
-            return ( m_prioritytracers.process( function ) );
-          }          
-          
         inline const ParameterInventory &parameters( ) const {
-          return ( m_translations.parameters() );
+          return ( m_translations->parameters() );
         }
 
         inline const EnvironmentInventory &environment( ) const {
-          return ( m_translations.environment() );
+          return ( m_translations->environment() );
         }     
         
         inline const PsmrtsTranslations &translations() const {
-          return ( m_translations );
+          return ( *m_translations );
         }
 
         /** Merge a PsmrtsInventory into another inventory */
         inline size_t merge( const PsmrtsInventory &other ) {
           size_t n_merged = 0;
           if ( this != &other ) {
-            n_merged += this->shapes().merge( other.shapes() );
-            n_merged += this->tracers().merge( other.tracers() );
-            n_merged += this->prioritytracers().merge( other.prioritytracers() );
-            n_merged += m_translations.merge( other.translations() );
+            n_merged += m_shapes->merge( *other.m_shapes );
+            n_merged += m_tracers->merge( *other.m_tracers );
+            n_merged += m_prioritytracers->merge( *other.m_prioritytracers );
+            n_merged += m_translations->merge( *other.m_translations );
           }
           return ( n_merged );
         }
                 
         inline void remove( const UIDType &uid) {
-          this->shapes().remove( uid );
-          this->tracers().remove( uid );
-          this->prioritytracers().remove( uid );
+          m_shapes->remove( uid );
+          m_tracers->remove( uid );
+          m_prioritytracers->remove( uid );
         }
 
         /** Clear everything out, liquidate */
         inline void clear() {
-          this->shapes().clear();
-          this->tracers().clear();
-          this->prioritytracers().clear();
+          m_shapes->clear();
+          m_tracers->clear();
+          m_prioritytracers->clear();
         }
 
         /** Reinitialize everything  */
         inline void init( ) {
-          m_shapes          = ShapeInventory{ this->product().name(), "shapes" } ;
-          m_tracers         = TracerInventory{ this->product().name(), "tracers" } ;
-          m_prioritytracers = PriorityTracerInventory{ this->product().name(), "prioritytracers" };
-          m_translations    = PsmrtsTranslations::create();
+          m_shape.reset( make_shared_copy( ShapeInventory( m_name ) );
+          m_tracers.reset( make_shared_copy(TracerInventory( m_name ) );
+          m_prioritytracers.reset( make_shared_copy( PriorityTracerInventory{ m_name ) );
+          m_translations.reset( make_shared_copy( PsmrtsTranslations::create() );
         }
 
       private:
-        ShapeInventory           m_shapes;
-        TracerInventory          m_tracers;
-        PriorityTracerInventory  m_prioritytracers;
-        PsmrtsTranslations       m_translations;
+        std::shared_ptr<ShapeInventory>          m_shapes;
+        std::shared_ptr<TracerInventory>         m_tracers;
+        std::shared_ptr<PriorityTracerInventory> m_prioritytracers;
+        std::shared_ptr<PsmrtsTranslations>      m_translations;
 
     };
 
