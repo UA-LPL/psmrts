@@ -28,10 +28,12 @@ find files of those names at the top level of this repository. **/
 #include <iterator>
 #include <limits>
 #include <locale>
+#include <memory>
 #include <mutex>
 #include <stdexcept>
 #include <string>
 #include <time.h>
+#include <utility>
 #include <vector>
 
 // For Windows
@@ -131,6 +133,21 @@ namespace psmrts {
                                                  const PSMRTS_SYSTEM_CLOCK_TIME &end_time ) {
     return ( std::chrono::duration_cast<std::chrono::nanoseconds>( end_time - start_time ).count() );
   } 
+
+  /** 
+   * @brief Create an efficicient shared copy of a data value
+   * 
+   * This template function creates a copy of a data value using an efficient
+   * management technique of heap memory. The data value must be copyable
+   * 
+   * @see https://ddanilov.me/shared-ptr-is-evil/
+   * 
+   * @tparam T    Data type of value
+   * @param value Data value to create allocated heap instance of
+  template <typename T>
+    std::shared_ptr<T> make_shared_copy( const T& value ) {
+      return ( std::make_shared<T>( std::move( value ) ) ); 
+    }
 
   /**
    * @brief Standard, typesafe method to cast shared pointer to another type
@@ -384,7 +401,21 @@ namespace psmrts {
     return ( ( a.cross( b ).dot( c ) ) / 6.0 );
   }
 
-////---> String utlitities
+////---> String utilities
+
+/** Case insensitive string comparison designed for std::map<std::string, T> */
+inline struct CompareCaseInsensitive {
+    inline bool operator()( const std::string &lhs, const std::string &rhs) const {
+      return std::lexicographical_compare(
+          lhs.begin(), lhs.end(),
+          rhs.begin(), rhs.end(),
+          [](unsigned char a, unsigned char b) {
+              return std::tolower(a) < std::tolower(b);
+          }
+      );
+    }
+  };
+  
   /** Returns string completely converted to lower case */
   inline std::string psmrts_tolower( const std::string &s ) {
     std::string s_t = s;
