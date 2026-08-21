@@ -22,7 +22,6 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsCache.hpp>
 #include <psmrts/core/PsmrtsTranslations.hpp>
-#include <psmrts/core/products/ProductInventory.hpp>
 #include <psmrts/core/products/ProductSpecification.hpp>
 #include <psmrts/core/PsmrtsInventory.hpp>
 
@@ -123,6 +122,7 @@ namespace psmrts {
       using ShapeInventory          = PsmrtsInventory::ShapeInventory;
       using PriorityTracerInventory = PsmrtsInventory::PriorityTracerInventory;
       using ParameterInventory      = PsmrtsInventory::ParameterInventory;
+      using InventoryCache          = PsmrtsSharedCache<std::string, PsmrtsInventory, CompareCaseInsensitive>;
 
       PsmrtsFactory( )  {  }
       virtual ~PsmrtsFactory() { }
@@ -340,7 +340,7 @@ namespace psmrts {
 
     private:
       // Definitions and cache of active product inventories.
-      using FactoryInventory = ProductInventory<std::string, PsmrtsInventory>;
+      using FactoryInventory = InventoryCache;
       static inline std::mutex       m_mutex{};
 
       // Flag to initialize at startup
@@ -350,8 +350,8 @@ namespace psmrts {
       static inline FactoryInventory &inventory()  {
         static FactoryInventory m_inventory;
          std::call_once( psmrts_inventory_init, [&]( ){ 
-            m_inventory = create_case_insensitive_inventory<PsmrtsInventory>( psmrts_inventory );
-            m_inventory.add( psmrts_inventory, PsmrtsInventory( psmrts_inventory ) ); 
+            m_inventory = InventoryCache( psmrts_inventory );
+            m_inventory.add( psmrts_inventory, make_shared_copy( PsmrtsInventory( psmrts_inventory ) ) ); 
           } ); // set up default product inventory cache on first call
 
         return ( m_inventory );

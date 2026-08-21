@@ -8,7 +8,6 @@ add_executable( products_test_suite  products_catch2_main.cpp
                                   test_ProductCart.cpp
                                   test_ProductConfiguration.cpp
                                   test_ProductFeature.cpp
-                                  test_ProductInventory.cpp
                                   test_ProductOption.cpp
                                   test_ProductOrder.cpp
                                   test_ProductProcessing.cpp

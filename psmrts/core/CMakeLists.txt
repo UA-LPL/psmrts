@@ -16,6 +16,7 @@ target_sources( psmrts PUBLIC
                                   PsmrtsProduct.hpp
                                   PsmrtsRayTrace.hpp
                                   PsmrtsRequest.hpp
+                                  PsmrtsSharedCache.hpp
                                   PsmrtsStridingBuffer.hpp
                                   PsmrtsTranslations.hpp
                                   PsmrtsUID.hpp

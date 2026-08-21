@@ -28,7 +28,7 @@ find files of those names at the top level of this repository. **/
 #include <algorithm>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
-#include <psmrts/core/products/ProductInventory.hpp>
+#include <psmrts/core/PsmrtsCache.hpp>
 
 namespace psmrts {
 
@@ -55,8 +55,8 @@ namespace psmrts {
   */
   class PsmrtsTranslations {
     public:
-      using ParameterInventory   = ProductInventory<std::string, std::string>;
-      using EnvironmentInventory = ProductInventory<std::string, std::string>;
+      using ParameterInventory   = PsmrtsCache<std::string, std::string, CompareCaseInsensitive>;
+      using EnvironmentInventory = PsmrtsCache<std::string, std::string, CompareCaseInsensitive>;
 
       PsmrtsTranslations(  ) {
         this->init( "translations" );
@@ -247,8 +247,8 @@ namespace psmrts {
       /** Reinitialize everything  */
       inline void init( const std::string &name = "translations" ) {
         m_name = name;
-        m_parameters  = create_case_insensitive_inventory<std::string>( "parameters" );
-        m_environment = create_case_sensitive_inventory<std::string>( "environment");
+        m_parameters.clear()
+        m_environment.clear()
       }
 
       inline const EnvironmentInventory &load_and_merge_environment( ) {
