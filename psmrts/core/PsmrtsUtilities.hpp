@@ -144,6 +144,7 @@ namespace psmrts {
    * 
    * @tparam T    Data type of value
    * @param value Data value to create allocated heap instance of
+   */
   template <typename T>
     std::shared_ptr<T> make_shared_copy( const T& value ) {
       return ( std::make_shared<T>( std::move( value ) ) ); 
@@ -404,7 +405,7 @@ namespace psmrts {
 ////---> String utilities
 
 /** Case insensitive string comparison designed for std::map<std::string, T> */
-inline struct CompareCaseInsensitive {
+struct CompareCaseInsensitive {
     inline bool operator()( const std::string &lhs, const std::string &rhs) const {
       return std::lexicographical_compare(
           lhs.begin(), lhs.end(),
