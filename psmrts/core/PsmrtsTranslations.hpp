@@ -66,13 +66,22 @@ namespace psmrts {
         if (load_env) {
           this->load_and_merge_environment( );
         }
-      }      
+      }
+      PsmrtsTranslations( const PsmrtsTranslations &trans) = default;
       virtual ~PsmrtsTranslations() = default;
 
       static PsmrtsTranslations create( const std::string &name = "translations" ) {
         PsmrtsTranslations trans_t ( name );
         trans_t.load_and_merge_environment( );
         return ( trans_t );
+      }
+
+      inline size_t size() const {
+        return ( m_parameters.size() + m_environment.size() );
+      }
+
+      inline bool empty( ) const {
+        return ( this->size() == 0 );
       }
 
       /** Return the name of this environment */
@@ -235,7 +244,7 @@ namespace psmrts {
 
       /** Returns an empty parameters Inventory */
       static inline ParameterInventory create_parameters( const std::string &name_p = "parameters ") {
-        return ( create_case_insensitive_inventory<std::string>( name_p ) );
+        return ( ParameterInventory( name_p ) );
       }
 
     private:
@@ -247,8 +256,8 @@ namespace psmrts {
       /** Reinitialize everything  */
       inline void init( const std::string &name = "translations" ) {
         m_name = name;
-        m_parameters.clear()
-        m_environment.clear()
+        m_parameters.clear();
+        m_environment.clear();
       }
 
       inline const EnvironmentInventory &load_and_merge_environment( ) {
@@ -269,7 +278,7 @@ namespace psmrts {
             
       /** Load all the environment variables */
       static inline EnvironmentInventory get_environment_variables( const std::string &name_p = "environment" ) {
-          EnvironmentInventory env_t = create_case_sensitive_inventory<std::string>( name_p ) ;
+          EnvironmentInventory env_t = EnvironmentInventory( name_p ) ;
 
 #if defined(WIN32) || defined(_MSC_VER) || defined(__CYGWIN__)
           // **** Windows implementation *****/
@@ -301,6 +310,9 @@ namespace psmrts {
         }
 
   };
+
+  // Declare a shared pointer type for translations
+  using SharedTranslations = std::shared_ptr<PsmrtsTranslations>;
 
 } // namespace psmrts
 
