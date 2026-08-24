@@ -45,22 +45,23 @@ namespace psmrts {
     class ProductMaker : public PsmrtsRequest {
       using Variants         = typename Product::Variants;
       using ProductSpecsList = PsmrtsContainer<ProductSpecification>;
+      using SharedProduct    = std::shared_ptr<Product>;
 
       public:
         ProductMaker( ) : PsmrtsRequest( "ProductMaker" ),
                           m_cart( "Product" ),
                           m_specs( "specs" ),
-                          m_product( std::nullopt ) { }
+                          m_product( ) { }
         ProductMaker( const std::string &name ) : 
                       PsmrtsRequest( name ),
                       m_cart( name ),
                       m_specs( "specs" ),
-                      m_product( std::nullopt ) { }                        
+                      m_product( ) { }                        
         virtual ~ProductMaker() { }
     
         /** Determine validity of the maker (a constructed product exists) */
         inline bool isvalid() const {
-          return ( ( this->error_count() == 0 ) && m_product.has_value() );
+          return ( ( this->error_count() == 0 ) && ( m_product.get() != nullptr ) );
         }
 
         /** Returns the specfication of the constructed product */
@@ -69,9 +70,8 @@ namespace psmrts {
         }
 
         /** Returns the constructed product if valid otherwise a default product */
-        inline Product product() const {
-          if ( this->isvalid() ) return ( m_product.value() );
-          return ( Product() );  // This returns an non-value variant
+        inline SharedProduct product() const {
+          return ( m_product );  // This may return an empty shared pointer
         }
 
         /** Returns the product cart used to construct the product */
@@ -113,15 +113,15 @@ namespace psmrts {
          *                     be any type with a register_product() method. 
          * @param registrar  Registrar object get the ProductSpecification
          */
-        inline bool process_config( const ProductConfiguration &conf,
-                                    const PsmrtsTranslations &translations ) {
+        inline SharedProduct process_config( const ProductConfiguration &conf,
+                                             const PsmrtsTranslations &translations ) {
 
           m_specs.clear();
           m_product.reset();
           m_cart = ProductCart( conf.name() );
           auto v_indexes = traits_v::indexing_tuple<std::variant_size_v<Variants>>;
           traits_v::tuple_foreach( v_indexes, [&](auto I) { // Compile time index of variant
-            if ( m_product.has_value() ) return;  // Check if product has been created
+            if ( m_product ) return;  // Check if product has been created
             using V = std::variant_alternative_t<I, Variants>;
             ProductSpecification s = V().product_specifications();  // Should be able to get w/o instantiation!
 
@@ -130,7 +130,7 @@ namespace psmrts {
 
               if ( m_cart.isvalid() ) { 
                 try {
-                  m_product.emplace( Product( V( m_cart )) );
+                  m_product = make_shared_copy( Product( V( m_cart )) );
                   m_specs.add( s );
                   return;                
 
@@ -142,7 +142,7 @@ namespace psmrts {
             }
           } );
           
-          return ( m_product.has_value() );
+          return ( m_product );
         }
 
         /**
@@ -162,7 +162,7 @@ namespace psmrts {
          * @return true   If the product was successfully created
          * @return false  If the product could not nbe created
          */
-        inline bool process_cart( const ProductCart &cart ) {
+        inline SharedProduct process_cart( const ProductCart &cart ) {
 
           m_specs.clear();
           m_product.reset();
@@ -170,13 +170,13 @@ namespace psmrts {
 
           auto v_indexes = traits_v::indexing_tuple<std::variant_size_v<Variants>>;
           traits_v::tuple_foreach( v_indexes, [&](auto I) { // Compile time index of variant
-            if ( m_product.has_value() ) return;  // Check if product has been created
+            if ( m_product ) return;  // Check if product has been created
 
             using V = std::variant_alternative_t<I, Variants>;
             ProductSpecification s = V().product_specifications();  // Should be able to get w/o instantiation!
             if ( s.name() == cart.specification().name() ) {
               try {
-                m_product.emplace( Product( V( m_cart )) );
+                m_product = make_shared_copy( Product( V( m_cart )) );
                 m_specs.add( s );
                 return;
               }
@@ -186,7 +186,7 @@ namespace psmrts {
             }
           } );           
           
-          return ( m_product.has_value() );
+          return ( m_product );
         }
 
 
@@ -214,19 +214,19 @@ namespace psmrts {
          * @return false If the product could not be constructed
          */
         template <typename Shape> 
-          inline bool process_cart( const ProductCart &cart,
-                                    const Shape &shape ) {
+          inline SharedProduct process_cart( const ProductCart &cart,
+                                             const Shape &shape ) {
           m_specs.clear();
           m_product.reset();
           m_cart = cart;           
           auto v_indexes = traits_v::indexing_tuple<std::variant_size_v<Variants>>;
           traits_v::tuple_foreach( v_indexes, [&](auto I) { // Compile time index of variant
-            if ( m_product.has_value() ) return;  // Check if product has been created
+            if ( m_product ) return;  // Check if product has been created
             using V = std::variant_alternative_t<I, Variants>;
             ProductSpecification s = V().product_specifications();  // Should be able to get w/o instantiation!
             if ( s.name() == cart.specification().name() ) {
               try {
-                m_product.emplace( Product( traits_v::construct_compatible_product<V>( m_cart, shape ) ) );
+                m_product = make_shared_copy( Product( traits_v::construct_compatible_product<V>( m_cart, shape ) ) );
                 m_specs.add( s );
                 return;
               }
@@ -237,13 +237,13 @@ namespace psmrts {
             }
           } );           
           
-          return ( m_product.has_value() );
+          return ( m_product );
         }
 
       private:
-        ProductCart            m_cart;
-        ProductSpecsList       m_specs;
-        std::optional<Product> m_product;
+        ProductCart      m_cart;
+        ProductSpecsList m_specs;
+        SharedProduct    m_product;
     };
 
 } // namespace psmrts
