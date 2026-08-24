@@ -32,10 +32,12 @@ namespace psmrts {
     public:
       using ProductInfo     = ProductSpecification::ProductInfo;
       using ProductFeatures = ProductSpecification::ProductFeatures;
+      using SharedMeshData  = std::shared_ptr<PsmrtsMeshData>;
                 
       PlyShape() : PsmrtsProduct( "none", "shape", "ply"), 
-                  m_mesh(),
-                  m_config( "ply" ) { }
+                   m_mesh(), m_config( "ply" ) { 
+        m_mesh = make_shared_copy ( PsmrtsMeshData() );
+      }
       PlyShape( const std::string &ply_file );
       PlyShape( const ProductCart &processed_cart );
       virtual ~PlyShape() = default;
@@ -86,7 +88,7 @@ namespace psmrts {
       }
 
         inline const PsmrtsMeshData &get_mesh() const {
-          return m_mesh;
+          return ( *m_mesh );
         }
 
         inline const ProductConfiguration &config() const {
@@ -100,7 +102,7 @@ namespace psmrts {
         PSMRTS_PROCESS_CATCHALL( "PlyShape" )
 
       private:
-        PsmrtsMeshData m_mesh;
+        SharedMeshData       m_mesh;
         ProductConfiguration m_config;
 
       void create( const ProductCart &cart );        

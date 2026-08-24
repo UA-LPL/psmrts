@@ -13,6 +13,7 @@ find files of those names at the top level of this repository. **/
 #ifndef PsmrtsTracer_hpp
 #define PsmrtsTracer_hpp
 
+#include <memory>
 #include <string>
 #include <variant>
 
@@ -114,7 +115,7 @@ namespace psmrts {
       }
 
       inline static PsmrtsTracer bullet( const std::string &meshfile ) {
-        return ( PsmrtsTracer( BulletTracer( PsmrtsShape( meshfile ) ) ) );
+        return ( PsmrtsTracer( BulletTracer( make_shared_copy( PsmrtsShape( meshfile ) ) ) ) );
       }
 
       inline static PsmrtsTracer naifdsk( const std::string &dskfile ) {
@@ -203,6 +204,9 @@ namespace psmrts {
       }
         
   };
+
+  // Declare a shared pointer type for tracers
+  using SharedTracer = std::shared_ptr<PsmrtsTracer>;
 
 } // namespace psmrts
 

@@ -31,14 +31,17 @@ namespace psmrts {
     class MeshShape : public PsmrtsProduct {
       public:
         using ProductInfo     = ProductSpecification::ProductInfo;
-        using ProductFeatures = ProductSpecification::ProductFeatures; 
+        using ProductFeatures = ProductSpecification::ProductFeatures;
+        using SharedMeshData  = std::shared_ptr<PsmrtsMeshData>;
+
 
         MeshShape() : PsmrtsProduct( "mesh", "shape", "mesh"),
-                      m_mesh( ), m_config( init_mesh( "mesh") )  { }
+                      m_mesh( make_shared_copy( PsmrtsMeshData() ) ),
+                      m_config( init_mesh( "mesh") )  { }
         MeshShape( const PsmrtsMeshData &mesh, 
                    const std::string &name = "mesh") : 
                    PsmrtsProduct( name, "shape", "mesh" ),
-                   m_mesh( mesh ),
+                   m_mesh( make_shared_copy( mesh ) ),
                    m_config( mesh.config() ) { }
         MeshShape( const ProductCart &processed_cart ) :
                    PsmrtsProduct( processed_cart.name(), "shape", "mesh" ) {
@@ -89,7 +92,7 @@ namespace psmrts {
         }
 
         inline const PsmrtsMeshData &get_mesh() const {
-           return m_mesh;
+           return ( *m_mesh );
         }
 
         inline const ProductConfiguration &config() const {
@@ -103,7 +106,7 @@ namespace psmrts {
         PSMRTS_PROCESS_CATCHALL( "MeshShape" )
 
       protected:
-        PsmrtsMeshData m_mesh;
+        SharedMeshData       m_mesh;
         ProductConfiguration m_config;
 
         inline ProductConfiguration init_mesh( const std::string &name ) {
@@ -120,7 +123,7 @@ namespace psmrts {
           return ( config );
         }
 
-        inline void create( const ProductCart &cart ) {
+        void create( const ProductCart &cart ) {
 
             std::string name_t = cart.configuration().name();
 
@@ -154,10 +157,10 @@ namespace psmrts {
             // Create an empty mesh
             if ( m_config.contains( "mesh_data_type") && 
                 ( m_config.find( "mesh_data_type" ).to_string() == "float" ) ) {
-              m_mesh = PsmrtsMeshData( PsmrtsVector3i(), PsmrtsVector3f() );
+              m_mesh = make_shared_copy( PsmrtsMeshData( PsmrtsVector3i(), PsmrtsVector3f() ) );
             }
             else {
-              m_mesh = PsmrtsMeshData( PsmrtsVector3i(), PsmrtsVector3d()  );
+              m_mesh = make_shared_copy( PsmrtsMeshData( PsmrtsVector3i(), PsmrtsVector3d() ) );
             }
 
             m_config.add_metadata( ProductOption( "shape_uid", PsmrtsUID::to_string( this->uid() ) ) );

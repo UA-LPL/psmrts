@@ -14,6 +14,7 @@ find files of those names at the top level of this repository. **/
 #define DskShape_hpp
 
 #include <string>
+#include <memory>
 
 #include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
@@ -29,9 +30,12 @@ namespace psmrts {
     public:
       using ProductInfo     = ProductSpecification::ProductInfo;
       using ProductFeatures = ProductSpecification::ProductFeatures;
+      using SharedMeshData  = std::shared_ptr<PsmrtsMeshData>;
 
       DskShape( ) : PsmrtsProduct( "null", "tracer", "dsk" ), 
-                    m_mesh(), m_config( { ProductConfiguration("dsk") } )  { }
+                    m_mesh(), m_config( { ProductConfiguration("dsk") } )  {
+        m_mesh = make_shared_copy ( PsmrtsMeshData() );
+      }
       DskShape( const std::string &dsk_file, const int segnum = 0 );
       DskShape( const ProductCart &processed_cart );
       virtual ~DskShape() = default;
@@ -89,7 +93,7 @@ namespace psmrts {
       }
 
       inline const PsmrtsMeshData &get_mesh() const {
-        return m_mesh; 
+        return ( *m_mesh ); 
       }
 
       inline const ProductConfiguration &config( ) const {
@@ -102,10 +106,8 @@ namespace psmrts {
 
 
     protected:
-      PsmrtsMeshData       m_mesh;
+      SharedMeshData       m_mesh;
       ProductConfiguration m_config;
-
-      void create( const ProductCart &cart );
 
   };
 }

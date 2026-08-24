@@ -945,6 +945,8 @@ namespace naif {
 
   };
 
+  // Declare a shared pointer type for the world model
+  using SharedDskKernelModel = std::shared_ptr<DskKernelModel>;  
 } // namespace naif
 
 #endif

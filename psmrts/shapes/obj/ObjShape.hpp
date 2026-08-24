@@ -35,49 +35,35 @@ namespace psmrts  {
     public:
       using ProductInfo     = ProductSpecification::ProductInfo;
       using ProductFeatures = ProductSpecification::ProductFeatures;
+      using SharedMeshData  = std::shared_ptr<PsmrtsMeshData>;
+      using SharedOBJFormat = std::shared_ptr<PsmrtsOBJFormat>;
 
       ObjShape( ) : PsmrtsProduct( "none", "shape", "obj" ), 
-                    m_model(), m_mesh(), m_config("obj" ) { }
+                    m_mesh(), m_config("obj" ) { 
+        m_mesh = make_shared_copy ( PsmrtsMeshData() );                      
+      }
       ObjShape( const psmrts::PsmrtsOBJFormat &obj_t ) :
                 PsmrtsProduct( obj_t.obj_source(), "shape", "obj" ), 
-                m_model( obj_t ), m_mesh( obj_t.get_mesh() ),
-                m_config( obj_t.get_config()) { 
-        m_config.add_metadata( ProductOption( "minimum_radius", m_mesh.minimum_radius() ) );
-        m_config.add_metadata( ProductOption( "maximum_radius", m_mesh.maximum_radius() ) );
+                m_mesh(), m_config( ) { 
+        m_mesh = make_shared_copy ( obj_t.get_mesh() );                      
+        m_config = obj_t.get_config();                     
+        m_config.add_metadata( ProductOption( "minimum_radius", m_mesh->minimum_radius() ) );
+        m_config.add_metadata( ProductOption( "maximum_radius", m_mesh->maximum_radius() ) );
       }
       ObjShape( const std::string &obj_file ) :
                 PsmrtsProduct( obj_file, "shape", "obj" ), 
-                m_model( obj_file ), m_mesh( m_model.get_mesh() ),
-                m_config( m_model.get_config() ) { 
-        m_config.add_metadata( ProductOption( "minimum_radius", m_mesh.minimum_radius() ) );
-        m_config.add_metadata( ProductOption( "maximum_radius", m_mesh.maximum_radius() ) );
+                m_mesh( ), m_config( ) {
+        SharedOBJFormat obj_t = make_shared_copy ( PsmrtsOBJFormat( obj_file ) );                      
+        m_mesh = make_shared_copy ( obj_t->get_mesh() ); 
+        m_config = obj_t->get_config();                     
+        m_config.add_metadata( ProductOption( "minimum_radius", m_mesh->minimum_radius() ) );
+        m_config.add_metadata( ProductOption( "maximum_radius", m_mesh->maximum_radius() ) );
       }
       ObjShape( const ProductCart &processed_cart ) : 
                 PsmrtsProduct( processed_cart.configuration().name(), "shape", "obj" ) {
         this->create( processed_cart );
       }      
       virtual ~ObjShape() { }
-
-
-      /**
-       * @brief OBJ Facet Processor
-       * 
-       * This method accepts a PRQFacet, usually instantiated with a ray
-       * trace, and processes it - storing the facet associated with the 
-       * trace's intercept back into the PRQFacet. The resulting facet
-       * can be accessed using the PRQFacet's facet() function.
-       * 
-       * It returns true if the process results in a valid facet.
-       * 
-       * @param facet   PRQFacet provides desired ray trace, and stores
-       *                  resulting facet data
-       * @return true   If process results in valid facet intercept
-       * @return false  If process fails to find facet/intercept
-       
-      inline bool process( PRQFacet &facet ) const {
-         return ( m_model.get_facet( facet.trace(), facet.facet() ) );
-      }
-        */
 
 
       /**
@@ -145,7 +131,7 @@ namespace psmrts  {
       }      
 
       inline const PsmrtsMeshData &get_mesh() const {
-        return m_mesh;
+        return ( *m_mesh );
       }
 
       inline const ProductConfiguration &config() const {
@@ -161,9 +147,8 @@ namespace psmrts  {
 
 
     protected:
-      psmrts::PsmrtsOBJFormat m_model; // Move to .cpp, WIP
-      psmrts::PsmrtsMeshData  m_mesh;
-      ProductConfiguration    m_config;
+      SharedMeshData       m_mesh;
+      ProductConfiguration m_config;
 
       inline void create( const ProductCart &cart ) {
 
@@ -214,6 +199,7 @@ namespace psmrts  {
         };
         
         // Check for obj_file
+        SharedOBJFormat obj_t;
         if ( v_conf.contains( "obj_file" ) ) {
           objfile  = v_conf.find( "obj_file" ).to_string();
           m_config.add( ProductOption( "obj_file", objfile) );
@@ -223,29 +209,28 @@ namespace psmrts  {
             m_config.add_metadata( ProductOption( "obj_file_expanded", objfile) );
           }
           extract_materials_path( v_conf );
-          m_model = PsmrtsOBJFormat( objfile, materials_path );
+          obj_t = make_shared_copy (PsmrtsOBJFormat( objfile, materials_path ) );
         }
         else if ( v_conf.contains( "obj_string" ) ) {
           text_q = v_conf.find( "obj_string" ).to_string();
           m_config.add( ProductOption( "obj_string", text_q) );
           extract_materials_path( v_conf );
-
-          m_model = PsmrtsOBJFormat( PsmrtsOBJFormat::load_obj_string( text_q, materials_path,
+          obj_t = make_shared_copy ( PsmrtsOBJFormat( PsmrtsOBJFormat::load_obj_string( text_q, materials_path,
                                                       PsmrtsOBJFormat::obj_config( materials_path ) ),
-                                                      "obj_string" );
+                                                      "obj_string" ) );
         }
 
         if ( v_conf.contains( "obj_data_type") && 
              ( v_conf.find( "obj_data_type" ).to_string() == "float" ) ) {
           m_config.add( ProductOption( "obj_data_type", "float") );
-          m_mesh = PsmrtsMeshData( m_model.get_indexes(), m_model.get_float_vectors() );
+          m_mesh = make_shared_copy( PsmrtsMeshData( obj_t->get_indexes(), obj_t->get_float_vectors() ) );
         }
         else {
-          m_mesh = PsmrtsMeshData( m_model.get_indexes(), m_model.get_double_vectors() );
+          m_mesh = make_shared_copy( PsmrtsMeshData( obj_t->get_indexes(), obj_t->get_double_vectors() ) );
         }
 
-        m_config.add_metadata( ProductOption( "minimum_radius", m_mesh.minimum_radius() ) );
-        m_config.add_metadata( ProductOption( "maximum_radius", m_mesh.maximum_radius() ) );           
+        m_config.add_metadata( ProductOption( "minimum_radius", m_mesh->minimum_radius() ) );
+        m_config.add_metadata( ProductOption( "maximum_radius", m_mesh->maximum_radius() ) );           
         m_config.add_metadata( ProductOption( "shape_uid", PsmrtsUID::to_string( this->uid() ) ) );
 
         return;

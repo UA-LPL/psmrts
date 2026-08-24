@@ -36,8 +36,8 @@ namespace psmrts {
     m_config.add( ProductOption( "shape", "dsk" ) );
     m_config.add_metadata( ProductOption( "dsk_file_expanded", dsk_expanded ) );
 
-    m_mesh   = PsmrtsMeshData( model_d.load_facet_indexes( &segment_d), 
-                               model_d.load_facet_vectors( &segment_d) );
+    m_mesh = make_shared_copy( PsmrtsMeshData( model_d.load_facet_indexes( &segment_d), 
+                               model_d.load_facet_vectors( &segment_d) ) );
   }
 
 
@@ -50,8 +50,8 @@ namespace psmrts {
 
     // Load the requested segment and generate the config
     naif::DskSegment segment_d = model_d.segment();
-    m_mesh   =  PsmrtsMeshData( model_d.load_facet_indexes( &segment_d ), 
-                                model_d.load_facet_vectors( &segment_d ) );    
+    m_mesh = make_shared_copy( PsmrtsMeshData( model_d.load_facet_indexes( &segment_d ), 
+                               model_d.load_facet_vectors( &segment_d ) ) );    
   }
 
 

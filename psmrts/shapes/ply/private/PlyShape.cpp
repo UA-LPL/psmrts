@@ -11,16 +11,21 @@ find files of those names at the top level of this repository. **/
 /* SPDX-License-Identifier: CC0-1.0 */
 
 #include <string>
+#include <memory>
 
 #include "../PlyShape.hpp"
 #include "PsmrtsPLYFormat.hpp"
 
 namespace psmrts {
+
+  using UniquePLYFormat = std::unique_ptr<PsmrtsPLYFormat>;
+
+
   PlyShape::PlyShape( const std::string &ply_file ) : 
                       PsmrtsProduct( ply_file, "shape", "ply") {
-    PsmrtsPLYFormat m_model( ply_file );
-    m_config = m_model.get_metadata(); // check if can rename to config
-    m_mesh = m_model.get_mesh();
+    UniquePLYFormat ply_t = std::make_unique<PsmrtsPLYFormat>( PsmrtsPLYFormat( ply_file ) );
+    m_config = ply_t->get_metadata(); // check if can rename to config
+    m_mesh = make_shared_copy( ply_t->get_mesh() );
   }
 
   PlyShape::PlyShape( const ProductCart &processed_cart ) :
@@ -74,18 +79,18 @@ namespace psmrts {
     this->set_name( name_t );
 
     // Load the PLY file
-    PsmrtsPLYFormat model_p( plyfile );
+    UniquePLYFormat ply_t = std::make_unique<PsmrtsPLYFormat>( PsmrtsPLYFormat( plyfile ) );
 
     if ( v_conf.contains( "ply_data_type") && 
           ( v_conf.find( "ply_data_type" ).to_string() == "float" ) ) {
       m_config.add( ProductOption( "ply_data_type", "float") );
-      m_mesh = PsmrtsMeshData( model_p.get_indexes(), model_p.get_float_vectors() );
+      m_mesh =  make_shared_copy( PsmrtsMeshData( ply_t->get_indexes(), ply_t->get_float_vectors() ) );
     }
     else {
-      m_mesh = PsmrtsMeshData( model_p.get_indexes(), model_p.get_double_vectors() );
+      m_mesh =  make_shared_copy( PsmrtsMeshData( ply_t->get_indexes(), ply_t->get_double_vectors() ) );
     }
 
-    m_config.add_metadata( model_p.get_metadata().metadata() );
+    m_config.add_metadata( ply_t->get_metadata().metadata() );
     m_config.add_metadata( ProductOption( "shape_uid", PsmrtsUID::to_string( this->uid() ) ) );
 
   }

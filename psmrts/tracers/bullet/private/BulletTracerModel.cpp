@@ -25,42 +25,46 @@ namespace psmrts::bullet {
 
       BulletTracerModel::BulletTracerModel( ) {  }
       BulletTracerModel::BulletTracerModel( const PsmrtsBulletWorldModel &bt_model ) :
-                                            m_bullet_model( bt_model ) {  }
+                                            m_bullet_model( ) {  
+        m_bullet_model = make_shared_copy( PsmrtsBulletWorldModel( bt_model ) );
+      }
       BulletTracerModel::BulletTracerModel(const PsmrtsMeshData &mesh, 
                                            const std::string &name,
                                            const bool useCompression,
                                            const bool buildBvh ) :
-                                           m_bullet_model(PsmrtsBulletMeshMap( mesh, name, 0), name,
-                                                                              useCompression, buildBvh ) { 
+                                           m_bullet_model() {
+                                           
+        m_bullet_model = make_shared_copy( PsmrtsBulletWorldModel( PsmrtsBulletMeshMap( mesh, name, 0), 
+                                                                   name, useCompression, buildBvh ) ); 
       }
 
       /** Returns name of tracer model, ie. bullet */
       std::string BulletTracerModel::tracer_model_name() const {
-        return ( m_bullet_model.mesh().mesh_type() );
+        return ( m_bullet_model->mesh().mesh_type() );
       }
 
       /** Name of the shape model source */
       const std::string &BulletTracerModel::shapefile() const {
-        return ( m_bullet_model.name() );
+        return ( m_bullet_model->name() );
       }
 
       bool BulletTracerModel::isValid() const {
-        return ( m_bullet_model.isValid() );
+        return ( m_bullet_model->isValid() );
       }
 
       /** Total number of plates/facets in model */
       size_t BulletTracerModel::plate_count()  const {
-        return ( m_bullet_model.mesh().nfacets() );
+        return ( m_bullet_model->mesh().nfacets() );
       }
 
       /** Total verticies in the model */
       size_t BulletTracerModel::vertex_count() const{
-        return ( m_bullet_model.mesh().nvectors() );
+        return ( m_bullet_model->mesh().nvectors() );
       }
 
       /** Returns the maximum radius in the model */
       double BulletTracerModel::maximum_radius() const {
-        return ( m_bullet_model.mesh().maximum_radius() );
+        return ( m_bullet_model->mesh().maximum_radius() );
       }
 
       /**
@@ -94,7 +98,7 @@ namespace psmrts::bullet {
 
       bool BulletTracerModel::ray_trace( PsmrtsRayTrace &ray ) const {
         // this->local_tracker()++;
-        return ( m_bullet_model.ray_trace( ray ) );
+        return ( m_bullet_model->ray_trace( ray ) );
       }
 
 
@@ -112,14 +116,14 @@ namespace psmrts::bullet {
        // Sanity check validity of raytrace
         facet.m_has_facet = false;
 
-        if ( ray.hasHit() && m_bullet_model.mesh().isValid() ) {
-          facet = m_bullet_model.mesh().get_facet( ray.plateid(), ray.segment_number() );
+        if ( ray.hasHit() && m_bullet_model->mesh().isValid() ) {
+          facet = m_bullet_model->mesh().get_facet( ray.plateid(), ray.segment_number() );
         }
 
         return ( facet.isValid() );
       }
 
-     const PsmrtsBulletWorldModel &BulletTracerModel::model() const {
+      const SharedBulletWorldModel &BulletTracerModel::model() const {
         return ( m_bullet_model );
       }
 

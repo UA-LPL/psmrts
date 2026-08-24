@@ -42,10 +42,10 @@ namespace psmrts  {
       using FeatureList   = ProductFeature::FeatureOptionList;
 
       BulletTracer( );
-      BulletTracer( const PsmrtsShape &shape );
+      BulletTracer( const SharedShape &shape );
       BulletTracer( const ProductCart &processed_cart  );      
       BulletTracer( const ProductCart &processed_cart,
-                    const PsmrtsShape &shape  );      
+                    const SharedShape &shape  );      
       virtual ~BulletTracer();
 
       double maximum_radius() const;
@@ -254,7 +254,7 @@ namespace psmrts  {
       }
 
       /** Return reference to PsmrtsShape used in this instance */
-      const PsmrtsShape &shape() const;
+      const SharedShape &shape() const;
 
       /** Return the current product configuration */
       inline const ProductConfiguration &config() const {
@@ -262,7 +262,7 @@ namespace psmrts  {
       }
 
       inline bool matches( const ProductConfiguration &conf ) const {
-        if ( this->shape().matches( conf ) && this->config().matches( conf ) ) {
+        if ( this->shape()->matches( conf ) && this->config().matches( conf ) ) {
           return ( true );
         }
 
@@ -279,7 +279,7 @@ namespace psmrts  {
       ProductConfiguration              m_config;
 
       void create( const ProductCart &cart, 
-                   const PsmrtsShape &shape = PsmrtsShape() );
+                   const SharedShape &shape = SharedShape() );
 
   };
 
