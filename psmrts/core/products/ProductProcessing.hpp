@@ -18,6 +18,7 @@ find files of those names at the top level of this repository. **/
 #include <exception>
 #include <optional>
 #include <mutex>
+#include <tuple>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsJson.hpp>
@@ -31,7 +32,6 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/tracers/PsmrtsTracer.hpp>
 #include <psmrts/core/PsmrtsInventory.hpp>
-#include <psmrts/core/PsmrtsFactory.hpp>
 #include <psmrts/core/AllOptionConversions.hpp>
 
 
@@ -52,7 +52,7 @@ namespace psmrts {
    * @author Kris J. Becker, University of Arizona
    * @history 2026-02-15 Kris J. Becker - Original Version
    */
-  class ProductProcessing : public PsmrtsRequest {
+  class ProductProcessing {
     public:
       using ProductInfo      = PsmrtsContainer<ProductOption>;
       using ProductFeatures  = PsmrtsContainer<ProductFeature>;
@@ -62,89 +62,33 @@ namespace psmrts {
       using TracerInventory  = PsmrtsInventory::TracerInventory;      
       using ResidualList     = ProductSpecification::ResidualList;      
 
-      using ShapeCacheMap    = ShapeInventory::ProductCacheMap;
-      using TracerCacheMap   = TracerInventory::ProductCacheMap;
+      using ShapeCacheMap    = PsmrtsInventory::ShapeCacheMap;
+      using TracerCacheMap   = PsmrtsInventory::TracerCacheMap;
 
-    /**
-     * @brief Class to store a composite tracer/shape product config/spec
-     * 
-     * This class is used to contain a full product configuration that is
-     * processed using a tracer and or shape specification. The contents of the
-     * processed configuration and be used to search the PSMRTS inventories to
-     * reusing existing compatible instances of them, or to create new products.
-     */
-      class ProductSet { 
-        public:
-          ProductConfiguration config; 
-          ProductOrder  tracer;
-          ProductOrder  shape;
-          UIDType       tracer_uid;
-          UIDType       shape_uid;
-          std::optional<PsmrtsTracer> tracer_p;
-          std::optional<PsmrtsShape>  shape_p;          
-
-          ProductSet( ) : config(), tracer(), shape( ),
-                          tracer_uid( PsmrtsUID::null_uid() ),
-                          shape_uid( PsmrtsUID::null_uid() ),
-                          tracer_p( std::nullopt ), 
-                          shape_p( std::nullopt ) { }
-          ProductSet( const ProductConfiguration &config ) : 
-                      config( config ), tracer(), shape( ),
-                      tracer_uid( PsmrtsUID::null_uid() ),
-                      shape_uid( PsmrtsUID::null_uid() ),
-                      tracer_p( std::nullopt ), 
-                      shape_p( std::nullopt ) { }                          
-          ~ProductSet() = default;
-
-          inline const std::string &name() const { 
-            return ( config.name() ); 
-          }
-          inline void set_tracer_uid( const UIDType &uid ) {
-            tracer.cart().set_tracer_uid( uid );
-            tracer_uid = uid;
-          }
-          inline void set_shape_uid( const UIDType &uid ) {
-            shape.cart().set_shape_uid( uid );
-            shape_uid = uid;
-          }                                                    
-          inline bool has_tracer() const {
-            return ( tracer_p.has_value() );
-          }                                                    
-          inline bool has_shape() const {
-            return ( shape_p.has_value() );
-          }
-      };
 
       /** Default constructor for product processing */
-      ProductProcessing( ) : PsmrtsRequest( "processor" ), 
-                             m_translator( ),
-                             m_name_inv( PsmrtsFactory::psmrts_inventory ) { 
-        this->create_inventory( m_name_inv );
-      }
+      ProductProcessing( ) : m_translator( ) { }
 
       /** Constructor with customized path translator */
-      ProductProcessing( const PsmrtsTranslations &trans ) : 
-                         PsmrtsRequest( "processor" ),
-                         m_translator( trans ),
-                         m_name_inv( PsmrtsFactory::psmrts_inventory ) {
-        this->create_inventory( m_name_inv );
-      }       
+      ProductProcessing( const SharedTranslations &trans ) : 
+                         m_translator( trans ) { }       
       virtual ~ProductProcessing() = default;
 
 
       /** Returns the file path translator */
-      inline const PsmrtsTranslations &translator() const {
+      inline const SharedTranslations &translator() const {
         return ( m_translator );
       }
 
       /** Sets a new file path translator replacing the existing instance */
-      inline void set_translator( const PsmrtsTranslations &trans ) {
+      inline void set_translator( const SharedTranslations &trans ) {
          m_translator  = trans;
       }
 
       /** Translate a file path using the path translator */
       inline std::string translate_path( const std::string &filepath ) const {
-        return ( this->translator().translate_path ( filepath ) );
+        if ( !m_translator ) return ( filepath );
+        return ( m_translator->translate_path( filepath ) );
       }
 
 
@@ -162,32 +106,32 @@ namespace psmrts {
        * @return ProductOrder Returns the order that should be checked for
        *                        errors to determine validity of search
        */
-      inline ProductOrder search_shape_inventory( const ProductConfiguration &config, 
-                                                  const ShapeInventory &inventory,
-                                                  std::optional<PsmrtsShape> &shape ) 
+      inline SharedShape search_shape_inventory( const ProductCart &cart, 
+                                                  const ShapeInventory &inventory ) 
                                                   const {
-        // Lock search of shape inventory
-        std::scoped_lock mylocker( m_mutex );
-
         // Create the shape search lambda method to run the search directly on
-        // the shape cache map using thread-safe techniques.
-        ProductOrder order;
+        // the shape cache map using thread-safe techniques
+        const ProductSpecification &spec_t   = cart.specification();
+        const ProductConfiguration &config_t = cart.configuration();
+
+        PsmrtsErrors errors;
+        SharedShape shape_p;
         auto shape_search = [&]( const ShapeCacheMap &map_c ) -> bool {
           for ( const auto &[ uid, p ] : map_c ) {
-            ProductCart cart_s( p.specs(), p.config() ); 
-            order = this->compare_product_config( config, cart_s.set_shape_uid( uid) );
-            if ( order.error_count() == 0  ) {
-              shape.emplace( p );
-              return ( true );
+            ProductCart cart_s( p->specs(), p->config() );
+            if ( spec_t.name() == p->name() ) {
+              if ( this->compare_product_config( config_t, cart_s, errors ) ) {
+                shape_p = p;
+                return ( true );
+              }
             }
           }
-          order = ProductOrder( config, this->translator() );
           return ( false );
         };
 
         // Run the search and return result
         inventory.process( shape_search );
-        return ( order );
+        return ( shape_p );
       }
 
       /**
@@ -197,274 +141,146 @@ namespace psmrts {
        * given tracer inventory. The parameter config is expected to be a
        * processed configuration validate with a specific product specification.
        * 
-       * @param config    Processed/validated product configuration
-       * @param inventory Tracer inventory of active tracer products
-       * @param tracer    An optional parameter that will contain a compatible
-       *                   tracer product if found in the search
-       * @return ProductOrder Returns the order that should be checked for
-       *                        errors to determine validity of search
+       * Note that this search does not check the shape of a tracer if it exists
+       * because if does not have a cart that defines the shape configuration.
+       * See search_inventory for that.
+       * 
+       * @param config       Processed/validated product configuration
+       * @param inventory    Tracer inventory of active tracer products
+       * @return ShapeTracer Returns a valid shared pointer to the tracer that
+       *                      matches the cart config.
        */
-      inline ProductOrder search_tracer_inventory( const ProductConfiguration &config, 
-                                                   const TracerInventory &inventory,
-                                                   std::optional<PsmrtsTracer> &tracer )
+      inline SharedTracer search_tracer_inventory( const ProductCart &cart, 
+                                                   const TracerInventory &inventory_t )
                                                    const {
-        // Lock search of tracers
-        std::scoped_lock mylocker( m_mutex );
 
-        // Create the tracer search lambda method to run the search directly on
-        // the tracer cache map using thread-safe techniques.
-        ProductOrder order;
-        auto tracer_search = [&]( const TracerCacheMap &map_t ) -> bool {
-          for ( const auto &[ uid, p ] : map_t ) {
-            ProductCart cart_t( p.specs(), p.config() );
-            order = this->compare_product_config( config, cart_t.set_tracer_uid( uid) );
-            if ( order.error_count() == 0  ) {
-              tracer.emplace( p );
-              return ( true );
+         // Create the shape search lambda method to run the search directly on
+        // the shape cache map using thread-safe techniques
+        const ProductSpecification &spec_t   = cart.specification();
+        const ProductConfiguration &config_t = cart.configuration();
+
+        PsmrtsErrors errors;
+        SharedTracer tracer_p;
+        auto tracer_search = [&]( const TracerCacheMap &map_c ) -> bool {
+          for ( const auto &[ uid, p ] : map_c ) {
+            ProductCart cart_t( p->specs(), p->config() );
+            if ( spec_t.name() == p->name() ) {
+              if ( this->compare_product_config( config_t, cart_t, errors ) ) {
+                tracer_p = p;
+                return ( true );
+              }
             }
-          } 
-          order = ProductOrder( config, this->translator() );
+          }
           return ( false );
-        };                                                       
+        };
 
-        inventory.process( tracer_search );
-        return ( order );
+        // Run the search and return result
+        inventory_t.process( tracer_search );
+        return ( tracer_p );
       }
 
       /**
-       * @brief Search inventory for a product that satisifies the configuration
+       * @brief Search inventories for a product that satisifies the configuration
        * 
        * @param set_p      Prodoct set containing configurations and specs
        * @param inventory  PSMRTS inventory to search for products
        * @return true      If the product set was fully resolved in the search
        * @return false     If the search failed
        */
-      inline bool search_inventory( ProductSet &set_p, 
-                                    const PsmrtsInventory &inventory ) 
-                                    const {
 
-        if ( this->is_valid_order( set_p.tracer )  ) {
+       /**
+        * @brief Searches for products specified in the product order
+        * 
+        * @param order       Order containing tracers and/or shape configurations
+        * @param inventory_t Tracer inventory to search
+        * @param inventory_p Shape inventory to searh
+        * @return std::tuple<bool, SharedTracer, SharedShape> Returns if the search
+        *             was successful as specified in the order and then shared
+        *             pointers to the products.
+        */
+      inline std::tuple<bool, SharedTracer, SharedShape> search_inventory( const ProductOrder &order, 
+                                                                     const TracerInventory &inventory_t,
+                                                                     const ShapeInventory &inventory_s ) 
+                                                                     const {
 
-          // Lock search of tracers
-          std::scoped_lock mylocker( m_mutex );
+        SharedTracer tracer_p;
+        SharedShape  shape_p;
+        if ( !order.isvalid() ) return ( std::make_tuple( false, tracer_p, shape_p) );
 
-          /** Thread-safe lambda tracer search for composite tracer/shape products */
-          ProductOrder order;
-          auto product_search = [&]( const TracerCacheMap &map_t ) -> bool {
-            for ( const auto &[ uid, p ] : map_t ) {
-              ProductCart cart_t( p.specs(), p.config() ); 
-              ProductOrder order_t = this->compare_product_config( set_p.tracer.config(),
-                                                                    cart_t.set_tracer_uid( uid ) );
-              if ( order_t.error_count() == 0 ) {
-                if ( !set_p.shape.isempty() ) {
-                  // Now check if a shape exists and it matches the shape config
-                  PRQShape shaper_t;
-                  if ( p.process( shaper_t ) ) {
-                    ProductCart cart_s( shaper_t.shape().specs(), shaper_t.shape().config() );
-                    (void) cart_s.set_shape_uid( shaper_t.shape().uid() );
-                    ProductOrder order_s = this->compare_product_config( set_p.shape.config(), cart_s );
-                    if ( order_s.error_count() == 0 ) {
-                      set_p.tracer_p.emplace( p );
-                      set_p.shape_p.emplace( shaper_t.shape() );
-                      return ( true );                
-                    } 
-                  }
-                }
-                else {
-                  set_p.tracer_p.emplace( p );
-                  return ( true );
-                }
+        SharedCart tracer_c = order.find( "tracer" );
+        SharedCart shape_c  = order.find( "shape" );
+        bool success = false;  // fail condition is default
+        if ( tracer_c ) {
+          auto tracer_t = this->search_tracer_inventory( *tracer_c, inventory_t );
+          if ( tracer_t ) {
+            // Now check if a shape exists and it matches the shape config
+            PRQShape shaper_t;
+            if ( shape_c && tracer_t->process( shaper_t ) ) {
+              auto shape_t = shaper_t.shape();
+              ProductCart cart_s( shape_t->specs(), shape_t->config() );
+              PsmrtsErrors errors;
+              if ( this->compare_product_config( shape_c->configuration(), cart_s, errors ) ) {
+                tracer_p = tracer_t;
+                shape_p  = shape_t;
+                success = true;
               }
             }
-            return (false );
-          };  
-        
-          // Search for tracers with shape verification if needed
-          return ( inventory.process_tracers( product_search ) );
-        }
-        else if ( this->is_valid_order( set_p.shape ) ) {
-          // Just a shape for this one, which is not common here.
-          ProductOrder order_s = this->search_shape_inventory( set_p.shape.config(),
-                                                                inventory.shapes(),
-                                                                set_p.shape_p );
-          if ( order_s.error_count() == 0  ) {    
-            if ( set_p.has_shape() ) {
-              return ( true );                
+            else if ( !shape_c ) {
+              tracer_p = tracer_t;
+              success = true;
             }
           }
+        }
+        else if ( shape_c ) {
+          shape_p = this->search_shape_inventory( *shape_c, inventory_s );
+          if ( shape_p ) success = true;
         }                  
-                              
-        return ( false );
+            
+        return ( std::make_tuple( success, tracer_p, shape_p ) );
       }
 
 
       /**
-       * @brief Comprehensive shape maker complete with search of existing resources
+       * @brief Process/validate a PSMRTS product configuration 
        * 
-       * This method will search the local inventory for a specific product id.
-       * If unsuccessful, it will the iterate through all products comparing
-       * configurations. If it finds a match it ensures the product is in both
-       * the passed inventory and the factory inventory.
-       * 
-       * @param product_s  The product set that contains a valid shape product
-       *                     order 
-       * @param inventory  The local inventory to check for shape products
-       * @param shape_p    The optional parameter to return the result
-       * @return true      If a shape product is succesfully found or created.
-       *                     Upon success the product set is updated accordingly. 
-       * @return false     False if failure. Errors are reported in the shape
-       *                     product order 
+       * @param config  Product configuration containing all options for tracers
+       *                  and shapes
+       * @return SharedProductOrder Contains the processed options into carts
+       *                              for searching for and creating new products
        */
-      inline bool make_shape( ProductSet &product_s ) const {
+      inline SharedProductOrder process_order( const ProductConfiguration &config ) 
+                                               const {
 
-        // Shapes may not be required!
-        if ( product_s.shape.isempty() ) return ( false );
-
-        // Refuse to process an invalid product
-        if ( !this->is_valid_order( product_s.shape ) ) return ( false );
-
-        // Let first check to see if we have a shape in the current factory
-        ProductOrder order_s = search_shape_inventory( product_s.shape.config(), 
-                                                       this->shapes(), 
-                                                       product_s.shape_p );
-        
-        // Check to see if don't have a shape and search using configs
-        // ok, we have to make one now
-        if ( !product_s.shape_p.has_value() ) {
-
-          // Lock creation of new shape
-          std::scoped_lock mylocker( m_mutex );
-
-          ProductMaker<PsmrtsShape> maker_t( product_s.shape.name() );
-          maker_t.process_cart( product_s.shape.cart() );
-          if ( maker_t.isvalid() ) {
-            product_s.shape_p.emplace( maker_t.product() );
-            this->cache_shape( maker_t.product() );
-            product_s.shape_uid = maker_t.product().uid();
-          }
-          else {
-            if (maker_t.error_count() > 0 ) {
-              this->add_error( maker_t.errors_to_string() );
-            }
-          }          
-        }
-                  
-        return ( this->error_count() == 0 );
-      }
-
-      /**
-       * @brief Comprehensive tracer maker complete with search of existing resources
-       * 
-       * This method will search the local inventory for a specific product id.
-       * If unsuccessful, it will the iterate through all products comparing
-       * configurations. If it finds a match it ensures the product is in both
-       * the passed inventory and the factory inventory.
-       * 
-       * @param product_s  The product set that contains a valid tracer product
-       *                     order 
-       * @param inventory  The local inventory to check for tracer products
-       * @param tracer_p   The optional parameter to return the result
-       * @return true      If a tracer product is succesfully found or created.
-       *                     Upon success the product set is updated accordingly. 
-       * @return false     False if failure. Errors are reported in the tracer
-       *                     product order 
-       */      
-      inline bool make_tracer( ProductSet &product_s ) const {
-
-        // Refuse to process an invalid empty product
-        if ( !this->is_valid_order( product_s.tracer ) ) return ( false );
-
-        // if the search is not successful 
-        if ( !search_inventory( product_s, this->inventory() ) ) {
-          // Search/make a shape product if needed. Don't lock here as the
-          // make_shape() method runs a lock!!
-          make_shape( product_s );
-          if ( this->error_count() == 0 ) {
-
-            // Lock creation of tracer
-            std::scoped_lock mylocker( m_mutex );
-
-            ProductMaker<PsmrtsTracer> maker_t( product_s.tracer.name() );
-            if ( product_s.has_shape() ) {
-              maker_t.process_cart( product_s.tracer.cart(), product_s.shape_p.value() );
-            }
-            else {
-              maker_t.process_cart( product_s.tracer.cart() );
-            }
-          
-            // Check for a valid product 
-            if (  maker_t.isvalid() ) {
-              product_s.tracer_p.emplace( maker_t.product() );
-              this->cache_tracer( maker_t.product() );
-              product_s.tracer_uid = maker_t.product().uid();
-            }
-            else {
-              if (maker_t.error_count() > 0 ) {
-                this->add_error( maker_t.errors_to_string() );
-              }
-            }
-          }
-        } 
-
-        return ( this->error_count() == 0 );
-      }
-
-      /**
-       * @brief Convenience method to process both types of products
-       * 
-       * This method will process a product set that may contain a tracer and or
-       * a shape. It will update the product set to reflect the uids of the
-       * newly created or existing products. Upon return, each product can be
-       * reference using the product id in each product set from the inventory.
-       * 
-       * @param product   The product set containing the products
-       * @return true     If the any type of the product set was successfully produced.
-       * @return false    If both failed.
-       */
-      inline bool process_product_set( ProductSet &product ) const {
-        // Process a tracer 
-        make_tracer( product );
-        return ( this->has_valid_product( product ) );
-      }
-
-
-      /**
-       * @brief Process a configuration returning a product order with status
-       * 
-       * This method function takes a compound configuration and returns
-       * results that are intended to create a PsmrtsTracer or PsrmtsShape,
-       * potentially both if properly configured.
-       * 
-       * @param config        The composite product configuration originating
-       *                        from a user
-       * @return ProductSet   A product set that contains configurations for a
-       *                        tracer and or a shape if specified.
-       */
-      inline ProductSet process_configuration( const ProductConfiguration &config ) 
-                                               const { 
-        ProductSet products_t( config );
+        SharedProductOrder order_t = make_shared_copy( ProductOrder( config, m_translator ) );
         if ( config.size() == 0 ) {
-          products_t.shape.add_error( "process_configuration() - Invalid configuration - has no options"  );
-          return ( products_t );
+          order_t->add_error( "process_order() - configuration has no options" ); 
+          return ( order_t );
         }
 
         // Process the till the first occurance of valid or no errors occurs
+        PsmrtsErrors all_errors;
+        ProductCart cart_t;
         auto tracer_specs_v = ProductMaker<PsmrtsTracer>().get_product_specs();
         for ( const auto &tracer_s : tracer_specs_v ) {
-          products_t.tracer = this->process_cart( ProductCart( tracer_s, config) );
-          products_t.tracer.add_dependency( tracer_s.name() );
+           cart_t = ProductCart( tracer_s );
+
+          this->process_cart( config, cart_t );
 
           // If this parse is successful, we are done and its a standalone tracer.
-          if ( products_t.tracer.isvalid() ) {
-            return ( products_t );
+          if ( cart_t.has_valid_content() ) {
+            order_t->add( cart_t );
+            return ( order_t  );
           }
 
           // Check for errors. If none break for shape processing
-          if ( products_t.tracer.error_count() == 0 ) {
+          if ( cart_t.error_count() == 0 ) {
             break;
           }
+          
+          // Accumulate error conditions
+          all_errors.append( cart_t );
         }
-        
+
         // If we have errors, then no tracer is detected/valid for this config
         // and we only have a shape to consider. Pass the original config for
         // shape processing. 
@@ -472,35 +288,38 @@ namespace psmrts {
         // If we have no errors but its not valid, assume a shape is required
         // and copy the residual config and process shape.
         ProductConfiguration config_t( config.name()  );
-        if ( ( products_t.tracer.error_count() > 0 ) || 
-             ( products_t.tracer.size() == 0 )) {
+        if ( ( cart_t.error_count() > 0 ) || ( cart_t.size() == 0 )) {
           // Process as shape only, start over
           config_t = config;
-          products_t.tracer.set_specification();
-          products_t.tracer.clear_errors();       
+          all_errors.clear_errors();
         }
         else {
-          // order_t content contains processed tracer, lets see if we have
+          // cart_t content contains processed tracer, lets see if we have
           // shape to consume the remaining residual/dependencies
-          config_t = products_t.tracer.residual_config();
+          config_t = cart_t.residual_config();
+          cart_t.clear_residuals();
         }
 
+        ProductCart cart_s;
         auto shape_specs_v  = ProductMaker<PsmrtsShape>().get_product_specs();
         for ( const auto &shape_s : shape_specs_v ) {
-          products_t.shape = this->process_cart( ProductCart( shape_s, config_t ) );
-          if ( products_t.shape.isvalid() ) {
-            products_t.tracer.clear_residuals();
-            return ( products_t );
+          cart_s = ProductCart( shape_s );
+          this->process_cart( config_t, cart_s );
+          if ( cart_s.has_valid_content() ) {
+            // Is there a tracer with this shape?
+            if ( cart_t.has_valid_content() ) {
+              order_t->add( cart_t );
+            }
+            order_t->add( cart_s );
+            return ( order_t );
           }
+          // Accumulate error conditions
+          all_errors.append( cart_s );          
         }
 
-        // Check for errors 
-        if ( ( products_t.shape.error_count() > 0 ) || 
-             ( products_t.shape.size() == 0 ) ) {
-          products_t.shape.set_specification();
-        }
+        order_t->append( all_errors );
+        return ( order_t );        
 
-        return ( products_t );
       }
 
       /**
@@ -521,21 +340,20 @@ namespace psmrts {
        * the order configuration where its configuration contains the product
        * UID for useage.
        * 
-       * @param config        Configuration to compare with the product_cart
-       * @param product_cart  Cart containing the spec and config of the product
-       *                      to compare.
-       * @return ProductOrder Returns the order containing the original product
-       *                      cart and a potentially updated config
+       * @param config Configuration to compare with the product_cart
+       * @param cart   Cart containing the spec and config of the product
+       *                 to compare.
+       * @return true Returns true if the config and cart match
        */
-      inline ProductOrder compare_product_config( const ProductConfiguration &config,
-                                                  const ProductCart &product_cart ) const { 
+      inline bool compare_product_config( const ProductConfiguration &config,
+                                          const ProductCart &cart,
+                                          PsmrtsErrors &errors ) const { 
 
         // Prepare the cart for comparisons of the product configuration
         ProductConfiguration config_new( config.name() );
-        ProductOrder order_t( config, product_cart, this->translator() );
 
-        const ProductSpecification &specs_c  = product_cart.specification();
-        const ProductConfiguration &config_c = product_cart.configuration();
+        const ProductSpecification &specs_c  = cart.specification();
+        const ProductConfiguration &config_c = cart.configuration();
 
         for ( const ProductOption &option : config.options() ) {
           std::string name_t = option.name();
@@ -563,23 +381,23 @@ namespace psmrts {
                 }
                 else {
                   config_new.add_metadata( ProductOption( f_extended, 
-                                                          order_t.translate_path( option.to_string() ) ) );
+                                                          this->translate_path( option.to_string() ) ) );
                 }
               }
             }
             else {
-              order_t.add_error( "\"" + name_t + "\" option is invalid or isn't the default in specs " + specs_c.name() );              
+              errors.add_error( "\"" + name_t + "\" option is invalid or isn't the default in specs " + specs_c.name() );              
             }
           }
           else {
-            order_t.add_error( "\"" + name_t + "\" is not found in specs for " + specs_c.name() );
+            errors.add_error( "\"" + name_t + "\" is not found in specs for " + specs_c.name() );
           }
         }
 
         // Now check for required keywords
         for ( const std::string &key_r : specs_c.required() ) {
           if ( !config_new.contains( key_r ) ) {
-            order_t.add_error( "Required key \"" + key_r + "\" not found in config " + config.name() );
+            errors.add_error( "Required key \"" + key_r + "\" not found in config " + config.name() );
           }
         }
 
@@ -588,11 +406,11 @@ namespace psmrts {
         // default.
         for ( const ProductOption &option_c : config_c.options() ) {
           if ( !config_new.contains( option_c.name() ) ) {
-            specs_c.validate_option_default( option_c, order_t );
+            specs_c.validate_option_default( option_c, errors );
           }
         }
 
-        return ( order_t );
+        return ( errors.error_count() == 0  );
       }
 
       /** Compare two options with its feature type */
@@ -629,7 +447,6 @@ namespace psmrts {
        * @param config  Product configuration with potenital option to compare
        *                 for equivalent values. 
        * @param feature Product feature to validate option
-       * @param order   Product order associted with the option
        * @return true   If the option compares with an existing config option or
        *                  contains a specified default
        * @return false  If the option does not compare/match product
@@ -671,29 +488,29 @@ namespace psmrts {
        * residual option. This is most prevelant in some tracers, such as
        * "bullet" that requires a mesh shape. This case 
        * 
-       * @param cart        Product cart configuration containing a product
-       *                      specification that will be compared/verified
-       *                      against a feature of the same name/type.
-       * @param translations Environment/parameter keyword/value pairs that will
+       * @param config     Original full tracer/shape configuration to process 
+       * @param cart       Product cart configuration will be populated with the
+       *                     result of processing. It will contain errors if 
+       *                     the config is invalid.
+       * @param translator Environment/parameter keyword/value pairs that will
        *                      replace occurances of path elements that begin
        *                      with a "$".
-       * @return ProductOrder Product order "form" that contains the results of
-       *                       the evalaution of option to an existing feature
-       *                       specification.
+       * @return true      If processing was successful
+       * @return false     If the config contained errors during processing
        */
-      inline ProductOrder process_cart( const ProductCart &cart ) const {
+      inline bool process_cart( const ProductConfiguration &config,
+                                ProductCart &cart ) const {
         
         // Check for invalid configuration
-        ProductOrder order( cart, this->translator() );
         if ( cart.has_valid_content() == false ) {
-          std::string mess = "ProductProcessing::process_cart(" + cart.name() + ") does not contain a valid product configuration";
-          order.add_error(  mess );
-          return ( order );
+          std::string mess = "ProductCompare::process_cart(" + cart.name() + ") does not contain a valid product configuration";
+          cart.add_error(  mess );
+          return ( false );
         }
 
         std::vector<std::string> required_list;
         const ProductSpecification &specs_t = cart.specification();
-        for ( const auto &option : cart.options() ) {
+        for ( const auto &option : config.options() ) {
           std::string option_name_t = option.name();
           std::string f_name = specs_t.get_alias_feature_name( option_name_t, option_name_t );
           if ( specs_t.contains( f_name ) ) {
@@ -706,52 +523,52 @@ namespace psmrts {
               // additional processing. This occurs, for example, for some
               // tracers that require a shape. Not all do. But they are required
               // to exist.
-              order.add_dependency( option, f_name );
+              cart.add_residual( option );
             }
             else { 
 
               // Get the real name of the option
               ProductOption option_t( f_name, option );
-              specs_t.valid_option_with_feature( option_t, feature, order );          
+              specs_t.valid_option_with_feature( option_t, feature, cart );          
 
               // Process based upon the feature type
               if ( ( feature.type() == "file" ) || ( feature.type() == "directory" )) {
-                process_file( option_t, feature, order );
+                process_file( option_t, feature, cart );
               }
               else if ( feature.type() == "double" ) {
-                process_doubles( option_t, feature, order );
+                process_doubles( option_t, feature, cart );
               }
               else if ( feature.type() == "int" ) {
-                process_integers( option_t, feature, order );
+                process_integers( option_t, feature, cart );
               }
               else if ( feature.type() == "size_t" ) {
-                process_size_t( option_t, feature, order );
+                process_size_t( option_t, feature, cart );
               }            
               else if ( feature.type() == "bool" ) {
-                process_booleans( option_t, feature, order );
+                process_booleans( option_t, feature, cart );
               }           
               else { // treat the rest as strings
-                process_strings( option_t, feature, order );
+                process_strings( option_t, feature, cart );
               }
             }
           }
           else {
             // This may or may not be an error so callers must check conditions
-            order.add_residual( option );
+            cart.add_residual( option );
           }
         }
 
         // Now check to see if all required keywords are present
         for ( const auto &key_r : specs_t.required() ) {
           if ( !psmrts_contains_string( key_r, required_list ) ) {
-            std::string mess = "*** ProductProcessing::process_cart(" + cart.name() + ")"
+            std::string mess = "*** ProductCompare::process_cart(" + cart.name() + ")"
                               "- required feature key " + key_r  + 
                               " is not present in " + specs_t.name() + " specification";
-            order.add_error(  mess );
+            cart.add_error(  mess );
           }
         }
 
-        return ( order );
+        return ( cart.error_count() > 0 );
       }
 
 
@@ -778,30 +595,30 @@ namespace psmrts {
        */
       inline void process_file( const ProductOption &option, 
                                 const ProductFeature &feature,
-                                ProductOrder &order ) const {
+                                ProductCart &cart ) const {
 
         if ( feature.type() == "directory") {
-          order.add_option( option );
-          std::string expanded_d = order.translate_path( option.to_string() );
+          cart.add_option( option );
+          std::string expanded_d = this->translate_path( option.to_string() );
           if ( expanded_d != option.to_string() ) {
-              order.add_metadata( ProductOption( option.name() +"_expanded", expanded_d ) );
+              cart.add_metadata( ProductOption( option.name() +"_expanded", expanded_d ) );
           }
         }
         else if ( feature.validate_file_suffix( option.to_string() ) ) {
           // Its a file.
-          order.add_option( option );
-          std::string expanded_f = order.translate_path( option.to_string() );
+          cart.add_option( option );
+          std::string expanded_f = this->translate_path( option.to_string() );
           if ( option.to_string() != expanded_f ) {
-            order.add_metadata( ProductOption( option.name()+"_expanded", expanded_f) );
+            cart.add_metadata( ProductOption( option.name()+"_expanded", expanded_f) );
           }
         }
         else {
           // Its not compatible with this one
-          std::string mess = "*** ProductProcessing::process_order() - "
+          std::string mess = "*** ProductCompare::process_cart() - "
                               "Invalid filename/extension in option (" 
                               + option.name() + " = " + option.to_string() + ")";
-          order.add_error(  mess );
-          order.add_residual( option );
+          cart.add_error(  mess );
+          cart.add_residual( option );
         } 
         return;                                   
       }
@@ -823,7 +640,7 @@ namespace psmrts {
        */
       inline void process_doubles( const ProductOption &option, 
                                    const ProductFeature &feature,
-                                   ProductOrder &order ) const {
+                                   ProductCart &cart) const {
         std::vector<double> d_values;
         psmrts::optvis::DoublesVisitor visitor_d = OptionDoublesExtractor( option ).create_visitor( d_values, option );
         option.visit( visitor_d );
@@ -831,10 +648,10 @@ namespace psmrts {
 
         for ( size_t ndx = 0 ; ndx < d_values.size() ; ndx++ ) {
           if ( !visitor_d.isvalid( d_values[ndx] ) ) {
-            std::string mess = "*** ProductProcessing::process_order() - "
+            std::string mess = "*** ProductCompare::process_order() - "
                               "Double value " + option.to_string( ndx )  + 
                               " in option(" + option.name() + ") is invalid!";
-            order.add_error(  mess );
+            cart.add_error(  mess );
           }
         }
         
@@ -852,20 +669,20 @@ namespace psmrts {
             // Check for a valid value
             if ( is_valid == false ) {
               is_all_valid = false;
-              std::string mess = "*** ProductProcessing::process_order() - "
+              std::string mess = "*** ProductCompare::process_order() - "
                                 "Double value " + option.to_string( opt_nth )  + 
                                 " at index = " + std::to_string( opt_nth ) +
                                 " in option(" + option.name() + ") is not valid!";
-              order.add_error(  mess );                    
+              cart.add_error(  mess );                    
             }
           }
         }
 
         if ( is_all_valid == true ) {
-          order.add_option( option );
+          cart.add_option( option );
         }
         else {
-          order.add_residual( option );
+          cart.add_residual( option );
         }
       
         return;
@@ -876,18 +693,18 @@ namespace psmrts {
        * 
        * This method processes compares a product config option with a feature
        * specification. Option values are extracted and compared with feature
-       * specs for validity. Errors that occur are recorded in the order.
+       * specs for validity. Errors that occur are recorded in the cart.
        * 
        * @param option  Configuration option that ultimately originates from
        *                  the user.
        * @param feature  Feature specification that it compares to the user
        *                  config.
-       * @param order    Product order that accumulates validation of the
+       * @param cart    Product cart that accumulates validation of the
        *                   options with the feature specs.
        */
       inline void process_integers( const ProductOption &option, 
                                     const ProductFeature &feature,
-                                    ProductOrder &order ) const {     
+                                    ProductCart &cart) const {     
         std::vector<int> i_values;
         psmrts::optvis::IntegersVisitor visitor_i = OptionIntegersExtractor( option ).create_visitor( i_values, option );
         option.visit( visitor_i );
@@ -895,10 +712,10 @@ namespace psmrts {
       
         for ( size_t ndx = 0 ; ndx < i_values.size() ; ndx++ ) {
           if ( !visitor_i.isvalid( i_values[ndx] ) ) {
-            std::string mess = "*** ProductProcessing::process_order() - "
+            std::string mess = "*** ProductCompare::process_cart() - "
                               "Integer value " + option.to_string( ndx )  + 
                               " in option(" + option.name() + ") is invalid!";
-            order.add_error(  mess );
+            cart.add_error(  mess );
             is_all_valid = false;
           }
         }
@@ -917,20 +734,20 @@ namespace psmrts {
             // Check for a valid value
             if ( is_valid == false ) {
               is_all_valid = false;
-              std::string mess = "*** ProductProcessing::process_order() - "
+              std::string mess = "*** ProductCompare::process_cart() - "
                                 "Integer value " + option.to_string( opt_nth )  + 
                                 " at index = " + std::to_string( opt_nth ) +
                                 " in option(" + option.name() + ") is not valid!";
-              order.add_error(  mess );                    
+              cart.add_error(  mess );                    
             }
           }
         }
 
         if ( is_all_valid == true ) {
-          order.add_option( option );
+          cart.add_option( option );
         }
         else {
-          order.add_residual( option );
+          cart.add_residual( option );
         }        
       }
 
@@ -939,18 +756,18 @@ namespace psmrts {
        * 
        * This method processes compares a product config option with a feature
        * specification. Option values are extracted and compared with feature
-       * specs for validity. Errors that occur are recorded in the order.
+       * specs for validity. Errors that occur are recorded in the cart.
        * 
        * @param option  Configuration option that ultimately originates from
        *                  the user.
        * @param feature  Feature specification that it compares to the user
        *                  config.
-       * @param order    Product order that accumulates validation of the
+       * @param cart    Product cart that accumulates validation of the
        *                   options with the feature specs.
        */
       inline void process_size_t( const ProductOption &option, 
                                     const ProductFeature &feature,
-                                    ProductOrder &order ) const {     
+                                    ProductCart &cart) const {     
         std::vector<size_t> st_values;
         psmrts::optvis::SizetsVisitor visitor_st = OptionSizetsExtractor( option ).create_visitor( st_values, option );
         option.visit( visitor_st );
@@ -958,10 +775,10 @@ namespace psmrts {
       
         for ( size_t ndx = 0 ; ndx < st_values.size() ; ndx++ ) {
           if ( !visitor_st.isvalid( st_values[ndx] ) ) {
-            std::string mess = "*** ProductProcessing::process_order() - "
+            std::string mess = "*** ProductCompare::process_cart() - "
                               "Size_t value " + option.to_string( ndx )  + 
                               " in option(" + option.name() + ") is invalid!";
-            order.add_error(  mess );
+            cart.add_error(  mess );
             is_all_valid = false;
           }
         }
@@ -980,20 +797,20 @@ namespace psmrts {
             // Check for a valid value
             if ( is_valid == false ) {
               is_all_valid = false;
-              std::string mess = "*** ProductProcessing::process_order() - "
+              std::string mess = "*** ProductCompare::process_cart() - "
                                 "Size_t value " + option.to_string( opt_nth )  + 
                                 " at index = " + std::to_string( opt_nth ) +
                                 " in option(" + option.name() + ") is not valid!";
-              order.add_error(  mess );                    
+              cart.add_error(  mess );                    
             }
           }
         }
 
         if ( is_all_valid == true ) {
-          order.add_option( option );
+          cart.add_option( option );
         }
         else {
-          order.add_residual( option );
+          cart.add_residual( option );
         }        
       }
 
@@ -1002,18 +819,18 @@ namespace psmrts {
        * 
        * This method processes compares a product config option with a feature
        * specification. Option values are extracted and compared with feature
-       * specs for validity. Errors that occur are recorded in the order.
+       * specs for validity. Errors that occur are recorded in the cart.
        * 
        * @param option  Configuration option that ultimately originates from
        *                  the user.
        * @param feature  Feature specification that it compares to the user
        *                  config.
-       * @param order    Product order that accumulates validation of the
+       * @param cart    Product cart that accumulates validation of the
        *                   options with the feature specs.
        */
       inline void process_booleans( const ProductOption &option, 
                                     const ProductFeature &feature,
-                                    ProductOrder &order ) const {   
+                                    ProductCart &cart) const {   
         // Process these as strings for better error detection
         std::vector<std::string> b_values;
         psmrts::optvis::StringsVisitor visitor_b = OptionStringsExtractor( option ).create_visitor( b_values, option );
@@ -1022,19 +839,19 @@ namespace psmrts {
 
         for ( size_t ndx = 0 ; ndx < b_values.size() ; ndx++ ) {
           if ( !visitor_b.isvalid( b_values[ndx] ) ) {
-            std::string mess = "*** ProductProcessing::process_order() - "
+            std::string mess = "*** ProductCompare::process_cart() - "
                               "Boolean value " + option.to_string( ndx )  + 
                               " in option(" + option.name() + ") is invalid!";
-            order.add_error(  mess );
+            cart.add_error(  mess );
             is_valid = false;
           }
         } 
         
         if ( is_valid == true ) {
-          order.add_option( option );
+          cart.add_option( option );
         }
         else {
-          order.add_residual( option );
+          cart.add_residual( option );
         }
         return;
       }
@@ -1047,18 +864,18 @@ namespace psmrts {
        * best with most all options if the feature specs are robust and correct.
        * 
        * Option values are extracted as strings and compared with feature
-       * specs for validity. Errors that occur are recorded in the order.
+       * specs for validity. Errors that occur are recorded in the cart.
        * 
        * @param option  Configuration option that ultimately originates from
        *                  the user.
        * @param feature  Feature specification that it compares to the user
        *                  config.
-       * @param order    Product order that accumulates validation of the
+       * @param cart    Product cart that accumulates validation of the
        *                   options with the feature specs.
        */
       inline void process_strings( const ProductOption &option, 
                                    const ProductFeature &feature,
-                                   ProductOrder &order ) const { 
+                                   ProductCart &cart) const { 
         std::vector<std::string> s_values;
         psmrts::optvis::StringsVisitor visitor_s = OptionStringsExtractor( option ).create_visitor( s_values, option );
         option.visit( visitor_s );
@@ -1066,10 +883,10 @@ namespace psmrts {
 
         for ( size_t ndx = 0 ; ndx < s_values.size() ; ndx++ ) {
           if ( !visitor_s.isvalid( s_values[ndx] ) ) {
-            std::string mess = "*** ProductProcessing::process_order() - "
+            std::string mess = "*** ProductCompare::process_cart() - "
                               "String value " + option.to_string( ndx )  + 
                               " in option(" + option.name() + ") is invalid!";
-            order.add_error(  mess );
+            cart.add_error(  mess );
             is_all_valid = false;
           }
         }
@@ -1088,22 +905,23 @@ namespace psmrts {
             // Check for a valid value
             if ( is_valid == false ) {
               is_all_valid = false;
-              std::string mess = "*** ProductProcessing::process_order() - "
+              std::string mess = "*** ProductCompare::process_cart() - "
                                 "String value " + option.to_string( opt_nth )  + 
                                 " at index = " + std::to_string( opt_nth ) +
                                 " in option(" + option.name() + ") is not valid!";
-              order.add_error(  mess );                    
+              cart.add_error(  mess );                    
             }
           }
         }        
 
         if ( is_all_valid == true ) {
-          order.add_option( option );
+          cart.add_option( option );
         }
         else {
-          order.add_residual( option );
+          cart.add_residual( option );
         }          
       }
+
 
 
       /** Determine if a product is valid */
@@ -1114,106 +932,8 @@ namespace psmrts {
         return ( true );
       }
 
-     /** Determine if any of the products are valid */
-      inline bool is_valid_product( const ProductSet &products ) const {
-        if ( is_valid_order( products.tracer ) || 
-             is_valid_order( products.shape  ) ) {
-          return ( true );
-        }
-        return ( false );
-      }
-
-      /** Determine if product contains a valid shape */
-      inline bool has_valid_shape( const ProductSet &products ) const {
-        if ( is_valid_order( products.shape ) &&  products.has_shape() ) {
-          return ( true );
-        }
-
-        return ( false );
-      }
-
-      /** Determine if product has a valid tracer */
-      inline bool has_valid_tracer( const ProductSet &products ) const {
-        if ( is_valid_order( products.tracer ) && products.has_tracer() ) {
-          return ( true );
-        }
-
-        return ( false );
-      }
-
-      /** Determine if product has a valid tracer */
-      inline bool has_valid_product( const ProductSet &products ) const {
-        if ( is_valid_product( products ) && 
-             ( has_valid_shape( products) || has_valid_tracer( products ) ) ) {
-          return ( true );
-        }
-
-        return ( false );
-      }
-
-      /** Return a composite set of errors if the exist */
-      inline std::string product_error_string( const ProductSet &products ) const { 
-        std::string error_s;
-        if ( products.tracer.error_count() > 0 ) {
-          error_s += products.tracer.errors_to_string();
-        } 
-
-        if (  products.shape.error_count() > 0 ) {
-          error_s += products.shape.errors_to_string();
-        } 
-  
-        if ( !is_valid_product( products )  ) {
-          auto residuals = products.shape.residual_config();
-          if ( residuals.size() > 0 ) {
-            std::string resid_s = residuals.to_json( residuals.options() ).dump(-1);
-            std::string mess = "Product config (" + products.config.name() +
-                             ") contains unrecognized key/value options: " +
-                             resid_s;
-            error_s += mess;
-          }
-        }
-
-        return ( error_s );
-      }
-
-      // *** Product inventory interfaces ****
-      inline const std::string &inventory_name() const {
-        return ( m_name_inv );
-      }
-
-      inline const PsmrtsInventory &inventory() const {
-        return ( PsmrtsFactory().find( m_name_inv ) );
-      }
-
-      inline const TracerInventory &tracers() const {
-        return ( this->inventory().tracers() );
-      }
-
-      inline const ShapeInventory &shapes() const {
-        return ( this->inventory().shapes() );
-      }
-
-      inline void cache_shape( const PsmrtsShape &shape ) const {
-        PsmrtsFactory().add_product( shape, m_name_inv );
-      }
-
-      inline void cache_tracer( const PsmrtsTracer &tracer ) const {
-        PsmrtsFactory().add_product( tracer, m_name_inv );
-      }
-
-      
     private:
-      PsmrtsTranslations       m_translator;
-      std::string              m_name_inv;
-      static inline std::mutex m_mutex{};
-
-
-      inline bool create_inventory( const std::string &name ) {
-        return ( PsmrtsFactory().create( name ) );
-      }
-
-
-
+      SharedTranslations m_translator;
   };
 
 } // namespace psmrts
