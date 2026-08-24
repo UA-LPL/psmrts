@@ -79,29 +79,37 @@ namespace psmrts {
    * @author 2026-03-05 Kris J. Becker
    * @history 2026-03-05 - Kris J. Becker - Original Version
    */
-  class PsmrtsTracerSystem {
+  class PsmrtsTracerSystem : public PsmrtsErrors {
     public:
       using UIDType     = PsmrtsUID::UIDType;
-      using ProductSet  = PsmrtsInvoice::ProductSet;      
 
       // Constructors
-      PsmrtsTracerSystem() : m_invoice( ), 
+      PsmrtsTracerSystem() : PsmrtsErrors(), 
+                             m_invoice( ), 
                              m_tracer_p( ), 
                              m_ellipsoid_r( ) { 
+        m_invoice = make_shared_copy( PsmrtsInvoice( "invoice", PsmrtsTranslations::create( ) ) );
       }
       PsmrtsTracerSystem( const std::string &name,
                           const PsmrtsTranslations &trans_t = PsmrtsTranslations::create( ) ) :
-                          m_invoice( name, trans_t ), 
+                          PsmrtsErrors(),
+                          m_invoice( ), 
                           m_tracer_p( ), 
                           m_ellipsoid_r( ) {
+        m_invoice = make_shared_copy( PsmrtsInvoice( name, trans_t) );
       }
       PsmrtsTracerSystem( const std::string &name,
                           const std::vector<std::string> &shapes, 
                           const PsmrtsTranslations &trans_t = PsmrtsTranslations::create( ) ) :
-                          m_invoice( name, trans_t ), 
+                          PsmrtsErrors(),
+                          m_invoice( ), 
                           m_tracer_p( ), 
                           m_ellipsoid_r( ) {
-        process_shape_list( shapes );
+        m_invoice = make_shared_copy( PsmrtsInvoice( name, trans_t ) );
+        for ( const std::string &file :  shapes ) {
+          this->add_product( "file", file );
+        }
+
       }      
 
       // Destructor
@@ -109,32 +117,11 @@ namespace psmrts {
 
 
       inline const std::string &name() const {
-        return ( m_invoice.name() );
+        return ( m_invoice->name() );
       }
 
       inline size_t size() const {
-        return ( m_invoice.size() );
-      }
-
-      inline size_t error_count() const {
-        return ( m_invoice.error_count() );
-      }
-
-      inline bool has_errors() const {
-        return ( m_invoice.error_count() > 0 );
-      }
-
-
-      inline std::string error_string( ) const {
-        return ( m_invoice.errors_to_string() );
-      }
-
-      inline void throw_errors( ) const {
-        return ( m_invoice.throw_errors() );
-      }
-
-      inline void clear_errors( ) {
-        return ( m_invoice.clear_errors() );
+        return ( m_invoice->size() );
       }
 
       /**
@@ -187,36 +174,6 @@ namespace psmrts {
 
 
       /**
-       * @brief Add shape product to the invoice inventory
-       * 
-       * This method adds the shape to the product inventory for use in config
-       * processing operations. It is used in inventory searches to resolve
-       * configuration matches.
-       * 
-       * @param shape  Shape product to add to inventory
-       * @return true  If the shape was successfully added
-       * @return false If the shape could not be added
-       */
-      inline bool add_shape( const PsmrtsShape &shape ) {
-        return ( m_invoice.add_shape( shape ) );
-      }
-
-      /**
-       * @brief Add tracer product to the invlice inventory
-       * 
-       * This method adds the tracer to the product inventory for use in config
-       * processing operations. It does not add it to the priority tracer but is
-       * used in inventory searches to resolve configuration matches.
-       * 
-       * @param tracer  Tracer product to add to inventory
-       * @return true   If the tracer is valid its added
-       * @return false  If its not a valid tracer
-       */
-      inline bool add_tracer( const PsmrtsTracer &tracer ) {
-        return ( m_invoice.add_tracer( tracer ) );
-      }
-
-      /**
        * @brief Create a tracer product from a configuration
        * 
        * This method can be use to create a fully spec'ed PSMRTS product. It
@@ -229,25 +186,8 @@ namespace psmrts {
        * @return false If product creation fails
        */
       inline bool make_product( const ProductConfiguration &config ) {
-
-        ProductSet product_s = m_invoice.process_product( config );
-        if ( !m_invoice.processor().is_valid_product( product_s ) ) {
-          std::string mess = "PsmrtsTracerSystem::make_product(" + config.name() +
-                              ") errors occured during validation: \n" +
-                              m_invoice.processor().product_error_string( product_s );
-          m_invoice.add_error( mess );
-          return ( false );
-        }
-
-        if ( !m_invoice.processor().has_valid_tracer( product_s ) ) {
-          std::string mess = "PsmrtsTracerSystem::make_product(" + config.name() +
-                              ") does not contain a valid tracer";
-          m_invoice.add_error( mess );
-          return ( false );          
-        }
-
         // Add the product to the tracer
-        m_invoice.add_product( product_s );
+        m_invoice->add( config );
         return ( true );
       }
 
@@ -267,7 +207,7 @@ namespace psmrts {
         std::vector<std::string> shape_file_list;
         for ( const std::string &file_s : shapes ) {
 
-          std::string file_t = m_invoice.translations().translate_path( file_s );
+          std::string file_t = m_invoice->translations().translate_path( file_s );
           std::string suffix_t = psmrts_tolower( psmrts_file_extension( file_t ) );
 
           if ( ( "txt" == suffix_t ) || ( "lis" == suffix_t )  ) {
@@ -282,7 +222,7 @@ namespace psmrts {
         auto add_expanded_path = [&] ( const std::string &file_t, 
                                        const std::string &path_t ) -> ProductOption {
           return ( ProductOption( file_t+"_expanded", 
-                                  m_invoice.translations().translate_path( path_t ) ) );          
+                                  m_invoice->translations().translate_path( path_t ) ) );          
         };
 
         // Now process each file in the list. Files can have a preferred tracer
@@ -328,7 +268,7 @@ namespace psmrts {
             // Check for formatting issues
             if ( parts_t.size() > 2 ) {
               std::string mess = "Invalid format for file string (" + shape_t + ")";
-              m_invoice.add_error( mess );
+              m_invoice->add_error( mess );
             }
           }
           else {
@@ -351,11 +291,11 @@ namespace psmrts {
         }
 
         // Check for errors in tracer creation process and toss'em if they occur
-        if ( nerrs > 0 ) m_invoice.throw_errors();
+        if ( nerrs > 0 ) m_invoice->throw_errors();
 
         // Now set the priority tracer up and check for addtional errors
         (void) create_priority_tracer( name );
-        if ( nerrs > 0 ) m_invoice.throw_errors();
+        if ( nerrs > 0 ) m_invoice->throw_errors();
 
         return ( n_shapes_added );
       }
@@ -374,21 +314,22 @@ namespace psmrts {
       inline bool set_reference_ellipsoid( const std::string &name,
                                            const std::vector<double> &radii ) {
 
-        // Lock creation of ellipsoid
-        // std::scoped_lock mylocker( m_mutex );
-
         ProductOption tracer( "tracer", "ellipsoid" );
         ProductOption rads( "radii", radii );
         ProductConfiguration ellipsoid( "ellipsoid", { tracer, rads } );
-        ellipsoid.add_metadata( ProductOption( "identifier", name ) );
-        ProductSet product_s = m_invoice.process_product( ellipsoid );
 
-        bool status = m_invoice.processor().has_valid_tracer( product_s );
-        if ( true == product_s.has_tracer() ) {
-          m_ellipsoid_r = product_s.tracer_p.value();
+        PsmrtsInvoice invoice_t( name );
+        ellipsoid.add_metadata( ProductOption( "identifier", name ) );
+        invoice_t.add( ellipsoid );
+        invoice_t.submit_order();
+
+        if ( ( invoice_t.size() != 1 ) || !invoice_t.isvalid()  ) {
+          this->add_error( "PsmrtsTracerSystem::set_reference_ellipsoid() - Failed to process ellipsoid config for " + name );
+          return ( false );
         }
 
-        return ( status );
+        m_ellipsoid_r = invoice_t.tracers()[0];
+        return ( true );
       }
 
       /**
@@ -399,8 +340,8 @@ namespace psmrts {
        * @param ellipsoid An ellipsoid tracer
        */
       inline bool set_reference_ellipsoid( const PsmrtsTracer &ellipsoid ) {
-        m_ellipsoid_r = ellipsoid;
-        return ( m_ellipsoid_r.isValid() );
+        m_ellipsoid_r = make_shared_copy( ellipsoid );
+        return ( m_ellipsoid_r->isValid() );
       }
 
       /**
@@ -417,11 +358,11 @@ namespace psmrts {
        *                               tracer created by this method.
        */
       inline PsmrtsPriorityTracer create_priority_tracer( const std::string &name = "" ) {
-        m_tracer_p =  m_invoice.make_priority_tracer( name );
+        m_tracer_p =  m_invoice->make_priority_tracer( name );
 
         // Check to ensure there is a reference ellipsoid for the system on
         // first instance of priority tracer. Users can reset this if desired.
-        if ( !m_ellipsoid_r.isValid() ) {
+        if ( !m_ellipsoid_r ) {
           EllipsoidTracer e_t( m_tracer_p.minimum_radius(), 
                                m_tracer_p.maximum_radius(),
                                m_tracer_p.name() );
@@ -463,14 +404,14 @@ namespace psmrts {
        *                             check status.
        *                            
        */
-      inline PsmrtsTracer get_tracer_from_intercept( const PRQRayTrace &ray ) 
+      inline SharedTracer get_tracer_from_intercept( const PRQRayTrace &ray ) 
                                                      const {
         UIDType uid_t = ray.trace( ).get_tracer_id();
         if ( !PsmrtsUID::is_valid_uid( uid_t) ) {
           return ( PsmrtsTracer() );
         }
 
-        if ( uid_t == m_ellipsoid_r.uid() ) {
+        if ( uid_t == m_ellipsoid_r->uid() ) {
           return ( m_ellipsoid_r );
         }
 
@@ -563,7 +504,7 @@ namespace psmrts {
 
         PRQRayTrace ray_t( observer_km, lookdir_km );
 
-        m_ellipsoid_r.process( ray_t );
+        m_ellipsoid_r->process( ray_t );
         return ( ray_t );
       }  
 
@@ -594,7 +535,7 @@ namespace psmrts {
        * @return false If the trace did not intercept the ellipsoid
        */
       inline bool ellipsoid_trace( PRQRayTrace &ray ) const {      
-        return ( m_ellipsoid_r.process( ray ) );
+        return ( m_ellipsoid_r->process( ray ) );
       }
 
 
@@ -728,22 +669,21 @@ namespace psmrts {
        */      
       inline bool ellipsoid_photometric_trace( PRQPhotometricTrace &ray_p ) 
                                                const {      
-        return ( m_ellipsoid_r.process( ray_p ) );
+        return ( m_ellipsoid_r->process( ray_p ) );
       }
 
-      inline const PsmrtsInvoice &invoice() const { 
+      inline const SharedInvoice &invoice() const { 
         return ( m_invoice );
       }
 
       inline const PsmrtsTranslations &translations() const {
-        return ( m_invoice.translations() );
+        return ( m_invoice->translations() );
       }
 
     private:
-      PsmrtsInvoice            m_invoice;
-      PsmrtsPriorityTracer     m_tracer_p;
-      PsmrtsTracer             m_ellipsoid_r;
-      // static inline std::mutex m_mutex{};
+      SharedInvoice        m_invoice;
+      PsmrtsPriorityTracer m_tracer_p;
+      SharedTracer         m_ellipsoid_r;
   };
 }
 
