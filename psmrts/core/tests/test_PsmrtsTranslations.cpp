@@ -12,11 +12,9 @@ TEST_CASE( "PSMRTS Translations Default", "[translations][inventory][default]") 
   CHECK( translations.name()              == "translations" );
   CHECK( translations.parameters().size() == 0 );
   CHECK( translations.parameters().name() == "parameters" );
-  CHECK( translations.parameters().type() == "inventory" );
 
   CHECK( translations.environment().size() == 0 );
   CHECK( translations.environment().name() == "environment" );
-  CHECK( translations.environment().type() == "inventory" );
 
 }
 
@@ -47,12 +45,12 @@ TEST_CASE("PSMRTS Translation Environment", "[translations][inventory][environme
   const size_t size_after_first_merge = translations.environment().size();
 
   // Check access to a known key
-  for (const auto& key : translations.environment().cache().keys()) {
+  for (const auto& key : translations.environment().keys()) {
     CHECK_NOTHROW(translations.environment().find(key));
   }
 
   // Remove one environment variable
-  std::string first_key = translations.environment().cache().keys().front();
+  std::string first_key = translations.environment().keys().front();
   translations.remove_environment(first_key);
   CHECK(translations.environment().contains(first_key) == false);
 

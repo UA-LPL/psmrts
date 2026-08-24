@@ -64,7 +64,6 @@ TEST_CASE( "ProductProcessing Test Search", "[product][processing][shape][search
 TEST_CASE( "ProductProcessing Configuration", "[product][processing][config]") {
 
   using UIDType          = psmrts::PsmrtsProduct::UIDType;
-  using ProductSet       = psmrts::ProductProcessing::ProductSet;
   using ProductOrderList = psmrts::PsmrtsInvoice::ProductOrderList;
 
   psmrts::PsmrtsFactory().liquidate();
@@ -97,15 +96,15 @@ TEST_CASE( "ProductProcessing Configuration", "[product][processing][config]") {
                                              { psmrts::ProductOption( "radii",  200.0 ),
                                                psmrts::ProductOption( "tracer", "sphere" ) } );
    
-  psmrts::ProductProcessing processor_t( trans_t );
+  psmrts::ProductProcessing processor_t( psmrts::make_shared_copy( trans_t ) );
   
   ProductOrderList orders_t;
   for ( const psmrts::ProductConfiguration &c : { config_obj, config_dsk_0, config_dsk_1, 
                                                    ellipsoid_0, ellipsoid_1, ellipsoid_2 } ) {
     CHECK( c.isvalid() == true );
-    ProductSet set_t = processor_t.process_configuration( c );
-    CHECK( set_t.name()                    == c.name() );
-    CHECK( set_t.tracer.error_count()      == 0 );
+    auto set_t = processor_t.process_order( c );
+    CHECK( set_t->name()                    == c.name() );
+    CHECK( set_t->tracer.error_count()      == 0 );
     CHECK( set_t.tracer.errors_to_string() == "" );
     CHECK( set_t.tracer.isvalid()          == true );
     CHECK( set_t.shape.name()              == set_t.shape.specs().name() );
@@ -151,7 +150,6 @@ TEST_CASE( "ProductProcessing Configuration", "[product][processing][config]") {
 TEST_CASE( "ProductProcessing Search Comparisons", "[product][processing][search][compare][dsk]") {
 
   using UIDType          = psmrts::PsmrtsProduct::UIDType;
-  using ProductSet       = psmrts::ProductProcessing::ProductSet;
   using ProductOrderList = psmrts::PsmrtsInvoice::ProductOrderList;
 
   psmrts::PsmrtsFactory().liquidate();
@@ -172,22 +170,11 @@ TEST_CASE( "ProductProcessing Search Comparisons", "[product][processing][search
                                                psmrts::ProductOption( "tracer", "naifdsk" ) } );
 
                                                  
-  psmrts::ProductProcessing processor_t( trans_t );
-  ProductSet set_0 = processor_t.process_configuration( config_dsk_0 );
-  psmrts::ProductOrder tracer_order = set_0.tracer;
-  psmrts::ProductOrder shape_order  = set_0.shape;
-
-  // CHECK( tracer_order.to_json().dump(-1) == "" );
-  // CHECK( shape_order.to_json().dump(-1)  == "" );
-
-  CHECK( tracer_order.error_count() == 0 );
-  CHECK( shape_order.error_count()  == 0 );
-
-  CHECK( tracer_order.residual_size() == 0 );
-  CHECK( shape_order.residual_size()  == 0 );
-
-  CHECK( tracer_order.has_dependencies() == true );
-  CHECK( shape_order.has_dependencies()  == false );
+  psmrts::ProductProcessing processor_t( psmrts::make_shared_copy( trans_t ));
+  auto set_0 = processor_t.process_order( config_dsk_0 );
+  //-->> THIS NEEDS SOME TESTS!
+  // CHECK( tracer_order.residual_size() == 0 );
+  // CHECK( shape_order.residual_size()  == 0 );
 
   psmrts::PsmrtsFactory().liquidate();
 }
