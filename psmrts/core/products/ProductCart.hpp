@@ -50,28 +50,28 @@ namespace psmrts {
    * @author Kris J. Becker, University of Arizona
    * @history 2026-02-14 Kris J. Becker  Original Version
    */
-  class ProductCart : public PsmrtsRequest {
+  class ProductCart : public PsmrtsErrors {
     public:
       using ProductOptionList = ProductConfiguration::ProductOptionList;
       using ResidualOptions   = PsmrtsContainer<ProductOption>;
       using UIDType           = PsmrtsProduct::UIDType;
 
 
-      ProductCart( ) : PsmrtsRequest( "ProductCart" ),
+      ProductCart( ) : PsmrtsErrors(), 
                        m_specs(  ),
                        m_config( ),
                        m_residual( "residualoptions" ),
                        m_tracer_uid( PsmrtsUID::null_uid() ),
                        m_shape_uid( PsmrtsUID::null_uid() ) { }
       ProductCart( const std::string &name ) : 
-                   PsmrtsRequest( name ),
+                   PsmrtsErrors(), 
                    m_specs(  ),
                    m_config( ),
                    m_residual( "residualoptions" ),
                    m_tracer_uid( PsmrtsUID::null_uid() ),
                    m_shape_uid( PsmrtsUID::null_uid() ) { }
-      ProductCart( const ProductSpecification &specs ) : 
-                   PsmrtsRequest( specs.name() ),
+      ProductCart( const ProductSpecification &specs ) :
+                   PsmrtsErrors(), 
                    m_specs( specs ),
                    m_config(  ),
                    m_residual( "residualoptions" ),
@@ -80,7 +80,7 @@ namespace psmrts {
       ProductCart( const ProductSpecification &specs,
                    const ProductConfiguration &config,
                    const ResidualOptions &residuals = ResidualOptions( "residualoptions" )) : 
-                   PsmrtsRequest( config.name() ),
+                   PsmrtsErrors(), 
                    m_specs( specs ),
                    m_config( config ),
                    m_residual( residuals ),
@@ -223,6 +223,9 @@ namespace psmrts {
         return ( j_opts );
       }      
   };
+
+  // Declare a shared pointer type for tracers
+  using SharedCart = std::shared_ptr<ProductCart>;
 
 } // namespace psmrts
 

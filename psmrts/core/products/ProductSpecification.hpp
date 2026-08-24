@@ -254,7 +254,7 @@ namespace psmrts {
        */
       inline bool valid_option_with_feature( const ProductOption &option,
                                              const ProductFeature &feature,
-                                             PsmrtsRequest &validator ) const {
+                                             PsmrtsErrors &validator ) const {
 
         bool is_good = true;
         if ( feature.contains( "valid" ) ) {
@@ -286,7 +286,7 @@ namespace psmrts {
        *                    alias or the values in the option are invalid. 
        */
       inline bool validate_option_default( const ProductOption &option,
-                                           PsmrtsRequest &validator ) const {
+                                           PsmrtsErrors &validator ) const {
         bool is_good = true;
         const std::string name_t = option.name();
         const std::string alias_name = this->get_alias_feature_name( name_t, name_t );
@@ -339,7 +339,7 @@ namespace psmrts {
        */
       inline ProductConfiguration extract( const ProductConfiguration &config,
                                            ResidualList &residuals, 
-                                           PsmrtsRequest &validator ) const {
+                                           PsmrtsErrors &validator ) const {
         ProductConfiguration config_t( this->name() );
         std::vector<std::string> required_list;   
 

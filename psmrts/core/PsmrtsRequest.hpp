@@ -126,43 +126,10 @@ namespace psmrts {
 #define PSMRTS_PROCESS_CATCHALL( producer_name ) 
 #endif
 
-  /**
-   * @brief Base class of all PSMRTS requests
-   * 
-   * This class provides the fundamental base class of all PSMRTS requests.
-   * It tracks counts of execution attempts, if a method was actually executed
-   * and returns any exceptions that may have been thrown during processing.
-   * 
-   * This is to be used in conjuction with the psmrts::submit_producer_request()
-   * function that is to be used to dispatch 
-   * 
-   */
-  class PsmrtsRequest {
+ class PsmrtsErrors {
     public:
-      PsmrtsRequest( ) { this->init( ); }
-
-      PsmrtsRequest( const std::string &name ) { 
-        this->init( name );
-      }
-
-      virtual ~PsmrtsRequest() { }
-
-      inline const std::string &name () const {
-        return ( m_name );
-      }
-
-      inline void process_running() {
-        m_tracker.hitme();
-        m_times_run++;
-        set_process_presence( true   );
-        return;
-      }
-
-      inline void process_complete( const bool status = true ) {
-        m_runtime_ms = m_tracker.runtime_ms();
-        m_success_status = status;
-        return;
-      }
+      PsmrtsErrors( ) : m_errors() { }
+      virtual ~PsmrtsErrors() = default;
 
       inline void add_error( const std::exception &e ) const {
       // Monitor the cache size of the error queue
@@ -184,24 +151,12 @@ namespace psmrts {
         return;
       }
 
-
-      inline size_t run_count() const {
-        return ( m_times_run );
-      }
-
-      /** Returns runtime for the last process */
-      inline double runtime_ms() const {
-        return ( m_runtime_ms );
-      }
-
-      /** Return the status of the last run */
-      inline bool process_status( ) const {
-        return ( m_success_status );
-      }
-
-      /** Was the process method invoked on the previous run */
-      inline bool was_invoked( ) const {
-        return ( m_is_present );
+      /** Append errors from another instance with limit checking */
+      inline void append( const PsmrtsErrors &errors ) const {
+        for ( const auto &error : errors.errors() ) {
+          this->add_error( error );
+        }
+        return;
       }
 
       inline size_t error_count() const {
@@ -231,14 +186,85 @@ namespace psmrts {
         return;
       }
 
-      /** Return a reference to the request tracker */
-      inline const PsmrtsThreadSafeCounter &tracker() const {
-        return ( m_tracker );
-      }
-
       inline void clear_errors() {
         m_errors.clear();
         return;
+      }
+
+      inline void reset() {
+        m_errors.clear();
+        return;
+      }
+
+      inline size_t max_error_cache_size() const {
+        return ( MaxQueuedErrors );
+      }
+
+    private:
+      inline static const size_t MaxQueuedErrors = 30;  // Limit cached error size
+      mutable std::deque<std::string> m_errors;
+  };
+
+  /**
+   * @brief Base class of all PSMRTS requests
+   * 
+   * This class provides the fundamental base class of all PSMRTS requests.
+   * It tracks counts of execution attempts, if a method was actually executed
+   * and returns any exceptions that may have been thrown during processing.
+   * 
+   * This is to be used in conjuction with the psmrts::submit_producer_request()
+   * function that is to be used to dispatch 
+   * 
+   */
+  class PsmrtsRequest : public PsmrtsErrors {
+    public:
+      PsmrtsRequest( ) { this->init( ); }
+
+      PsmrtsRequest( const std::string &name ) { 
+        this->init( name );
+      }
+
+      virtual ~PsmrtsRequest() { }
+
+      inline const std::string &name () const {
+        return ( m_name );
+      }
+
+      inline void process_running() {
+        m_tracker.hitme();
+        m_times_run++;
+        set_process_presence( true   );
+        return;
+      }
+
+      inline void process_complete( const bool status = true ) {
+        m_runtime_ms = m_tracker.runtime_ms();
+        m_success_status = status;
+        return;
+      }
+
+      inline size_t run_count() const {
+        return ( m_times_run );
+      }
+
+      /** Returns runtime for the last process */
+      inline double runtime_ms() const {
+        return ( m_runtime_ms );
+      }
+
+      /** Return the status of the last run */
+      inline bool process_status( ) const {
+        return ( m_success_status );
+      }
+
+      /** Was the process method invoked on the previous run */
+      inline bool was_invoked( ) const {
+        return ( m_is_present );
+      }
+
+      /** Return a reference to the request tracker */
+      inline const PsmrtsThreadSafeCounter &tracker() const {
+        return ( m_tracker );
       }
 
       inline void set_process_presence( const bool present = true   ) {
@@ -250,27 +276,19 @@ namespace psmrts {
         m_success_status = false;
         m_is_present     = false;
         m_times_run      = 0;
-        m_errors.clear();
+        this->clear_errors();
         m_tracker.reset_timer();
         m_runtime_ms = 0.0;
         return;
       }
 
-      inline size_t max_error_cache_size() const {
-        return ( MaxQueuedErrors );
-      }
-
     protected:
-      inline static const size_t MaxQueuedErrors = 30;  // Limit cached error size
-
       PsmrtsThreadSafeCounter    m_tracker;
       double                     m_runtime_ms;
       std::string                m_name;
       bool                       m_success_status;
       bool                       m_is_present;
       size_t                     m_times_run;
-      mutable std::deque<std::string> m_errors;
-
 
     private:
       inline void init( const std::string &name = "PsmrtsRequest" ) {
