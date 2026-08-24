@@ -23,8 +23,8 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
-#include <psmrts/core/PsmrtsInventory.hpp>
 #include <psmrts/tracers/PsmrtsTracer.hpp>
+#include <psmrts/core/PsmrtsSharedCache.hpp>
 
 namespace psmrts {
 
@@ -32,7 +32,7 @@ namespace psmrts {
     public:
       using UIDType         = PsmrtsUID::UIDType;
       using TracerUIDList   = std::vector<UIDType>;
-      using TracerInventory = PsmrtsInventory::TracerInventory;
+      using TracerInventory = PsmrtsSharedCache<UIDType, PsmrtsTracer>;
       using SharedTracer    = TracerInventory::SharedType;
       using TracerList      = std::vector<SharedTracer>;
       using PriorityFunc    = std::function<TracerList(const TracerList &current,
@@ -48,7 +48,22 @@ namespace psmrts {
         init();
         if ( !tracer ) return;
         if ( name.length() == 0 ) set_name( tracer->name() );
-        this->add_tracer( tracer );
+        this->add( tracer );
+      }
+      PsmrtsPriorityTracer(  const std::string &name ,
+                             const TracerList &tracers ) : 
+                             PsmrtsProduct( name ) { 
+        init();
+        for ( const auto &tracer : tracers ) {
+          this->add( tracer );
+        }
+      }
+      PsmrtsPriorityTracer(  const std::string &name ,
+                             const TracerInventory &tracers ) : 
+                             PsmrtsProduct( name ) { 
+        m_inventory_t = tracers;
+        m_uids_t      = tracers.keys();
+        m_tracers     = tracers.values();
       }
 
       virtual ~PsmrtsPriorityTracer() = default;
@@ -64,7 +79,7 @@ namespace psmrts {
       }
 
       /** Adds a valid tracer to Priority Tracer list */
-      inline void add_tracer( const SharedTracer &tracer ) {
+      inline void add( const SharedTracer &tracer ) {
 
         // Sanity check
         if ( !tracer ) return;
@@ -73,7 +88,7 @@ namespace psmrts {
           m_uids_t.push_back( tracer->uid() );
           m_tracers.push_back( tracer );
           if ( !m_inventory_t.contains( tracer->uid() ) ) {
-            m_inventory_t.add( tracer );
+            m_inventory_t.add( tracer->uid(), tracer );
           }
         }
       }
@@ -250,7 +265,7 @@ namespace psmrts {
         double min_r ( psmrts::null() );
 
         if ( m_tracers.size() > 0 ) {
-          min_r = m_tracers[0].minimum_radius();
+          min_r = m_tracers[0]->minimum_radius();
           for ( size_t ith = 1 ; ith < m_tracers.size() ; ith++ ) {
             double radius_t = m_tracers[ith]->minimum_radius();
             if ( radius_t < min_r ) min_r = radius_t;
