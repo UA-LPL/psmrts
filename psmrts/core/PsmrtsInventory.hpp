@@ -21,9 +21,9 @@ find files of those names at the top level of this repository. **/
 #include <memory>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsSharedCache.hpp>
 #include <psmrts/core/PsmrtsProduct.hpp>
 #include <psmrts/core/PsmrtsTranslations.hpp>
-#include <psmrts/core/PsmrtsSharedCache.hpp>
 #include <psmrts/core/products/ProductOption.hpp>
 #include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/tracers/PsmrtsTracer.hpp>
@@ -32,167 +32,204 @@ find files of those names at the top level of this repository. **/
 namespace psmrts {
 
   /**
-     * @brief PSMRTS product inventory container that maintains all product caches 
-     * 
-     * This class contains a collection of shapes, tracers, priority tracers and
-     * a set of parameters/options that are maintained for each instance of 
-     * a PsmrtsInventory.
-     * 
-     * Typically, priority is given to the existance of a priority tracer.
-     * Priority tracers are created by the contents of the TracerInventory.
-     * The TracerInventory contains products from the ShapeInventory. Because
-     * PsrmtsPriorityTracers can have the order and content of the their tracer
-     * priority modified, they cannot be passed around a shared pointer. Hence,
-     * the PsmrstPriortyTracer interface will provide copies of them for safe
-     * use in instances.
-     * 
-     * The PsmrtsTranslations contains a state of the users shell environment
-     * variables and parameters typcially used to translate file paths. There is
-     * one copy of the translations maintained for this inventory.
-     * 
-     * Copies of these environments result in completely shared resources across
-     * all instances as they are shared pointers internally.
-     * 
-     * Thread safety is deferred to the PsmrtsSharedCache objects that store
-     * the tracers, shapes and priority tracers as well as the PsmrtsCache for
-     * the translation variables.
-     * 
-    */
-    class PsmrtsInventory : public PsmrtsProduct {
-      public:
-        using UIDType         = PsmrtsProduct::UIDType;
-        using PsmrtsParameter = ProductOption;
+   * @brief PSMRTS product inventory container that maintains all product caches 
+   * 
+   * This class contains a collection of shapes, tracers, priority tracers and
+   * a set of parameters/options that are maintained for each instance of 
+   * a PsmrtsInventory.
+   * 
+   * Typically, priority is given to the existance of a priority tracer.
+   * Priority tracers are created by the contents of the TracerInventory.
+   * The TracerInventory contains products from the ShapeInventory. Because
+   * PsrmtsPriorityTracers can have the order and content of the their tracer
+   * priority modified, they cannot be passed around by shared pointer. Hence,
+   * the PsmrstPriortyTracer interface will provide copies of them for safe
+   * use in instances.
+   * 
+   * The PsmrtsTranslations contains a state of the users shell environment
+   * variables and parameters typcially used to translate file paths. There is
+   * one copy of the translations maintained for this inventory.
+   * 
+   * Copies of these environments result in completely shared resources across
+   * all instances as they are shared pointers internally.
+   * 
+   * Thread safety is deferred to the PsmrtsSharedCache objects that store
+   * the tracers, shapes and priority tracers as well as the PsmrtsCache for
+   * the translation variables.
+   * 
+   */
+  class PsmrtsInventory {
+    public:
+      using UIDType               = PsmrtsProduct::UIDType;
+      using ShapeInventory        = PsmrtsSharedCache<UIDType, PsmrtsShape>;
+      using TracerInventory       = PsmrtsSharedCache<UIDType, PsmrtsTracer>;
+      using SharedShapeInventory  = std::shared_ptr<ShapeInventory>;
+      using SharedTracerInventory = std::shared_ptr<TracerInventory>;
+      using ShapeCacheMap         = ShapeInventory::CacheMap;
+      using TracerCacheMap        = TracerInventory::CacheMap; 
+      using ParameterInventory    = PsmrtsTranslations::ParameterInventory;        
+      using EnvironmentInventory  = PsmrtsTranslations::EnvironmentInventory;      
 
-        using ShapeInventory          = PsmrtsSharedCache<UIDType, PsmrtsShape>;
-        using TracerInventory         = PsmrtsSharedCache<UIDType, PsmrtsTracer>;
-        using PriorityTracerInventory = PsmrtsSharedCache<UIDType, PsmrtsPriorityTracer>;
-        using ParameterInventory      = PsmrtsTranslations::ParameterInventory;        
-        using EnvironmentInventory    = PsmrtsTranslations::EnvironmentInventory;
+      PsmrtsInventory( ) {
+        m_name         = "inventory";
+        m_shapes       = make_shared_copy( ShapeInventory( this->name() ) );
+        m_tracers      = make_shared_copy( TracerInventory( this->name() ) );
+        m_translations = make_shared_copy( PsmrtsTranslations::create() );
+      }
+      PsmrtsInventory( const std::string &name ) {
+        m_name         = name;
+        m_shapes       = make_shared_copy( ShapeInventory( name ) );
+        m_tracers      = make_shared_copy( TracerInventory( name) );
+        m_translations = make_shared_copy( PsmrtsTranslations::create() );
+      }
+      PsmrtsInventory( const std::string &name,
+                       const PsmrtsTranslations &translator ) {
+        m_name         = name;
+        m_shapes       = make_shared_copy( ShapeInventory( name ) );
+        m_tracers      = make_shared_copy( TracerInventory( name) );
+        m_translations = make_shared_copy( translator );
+      }
+      PsmrtsInventory( const std::string &name,
+                       const SharedTranslations &translator ) {
+        m_name         = name;
+        m_shapes       = make_shared_copy( ShapeInventory( name ) );
+        m_tracers      = make_shared_copy( TracerInventory( name) );
+        m_translations = translator;
+      }      
+      virtual ~PsmrtsInventory() = default;
 
-        using ShapeCacheMap           = ShapeInventory::CacheMap;
-        using TracerCacheMap          = TracerInventory::CacheMap;
 
-        PsmrtsInventory( ) : PsmrtsProduct( "product", "inventory" ) {
-          this->init();
+      /** Return the inventory name */
+      inline const std::string &name() const {
+        return ( m_name );
+      }
+
+      /** Returns the number of all products excluding parameters and envs */
+      inline size_t size() const {
+        size_t n_products = m_shapes->size() + 
+                            m_tracers->size();
+        return ( n_products );
+      }
+
+      inline size_t size_shapes() const {
+        return ( m_shapes->size() );
+      }
+
+      inline const SharedShapeInventory &shapes( ) const {
+        return ( m_shapes );
+      }
+
+      inline SharedShapeInventory &shapes( )  {
+        return ( m_shapes );
+      }
+
+      inline size_t size_tracers() const {
+        return ( m_tracers->size() );
+      }
+
+      inline UIDType add( const SharedShape &shape ) {
+        if ( !shape ) return ( psmrts::PsmrtsUID::null_uid() );
+        m_shapes->add(shape->uid(), shape );
+        return ( shape->uid() );
+      }
+
+
+      inline const SharedTracerInventory &tracers( ) const {
+        return ( m_tracers );
+      }
+
+      inline SharedTracerInventory &tracers( ) {
+        return ( m_tracers );
+      }        
+
+      inline UIDType add( const SharedTracer &tracer ) {
+        if ( !tracer ) return ( psmrts::PsmrtsUID::null_uid() );
+        m_tracers->add( tracer->uid(), tracer );
+        return ( tracer->uid() );
+      }
+
+      /** Thread-safe process shapes with function/lambda/object */
+      template <typename Functor>
+        bool process_shapes( Functor function ) const {
+          return ( m_shapes->process( function ) );
+        }
+          
+      /** Thread-safe process tracers with function/lambda/object */
+      template <typename Functor>
+        bool process_tracers( Functor function ) const {
+          return ( m_tracers->process( function ) );
         }
 
-        PsmrtsInventory( const std::string &inventory_name,
-                         const std::string &itype = "inventory" ) : 
-                         PsmrtsProduct( inventory_name, itype ) {
-          this->init();
+
+      inline const ParameterInventory &parameters( ) const {
+        return ( m_translations->parameters() );
+      }
+
+      inline const EnvironmentInventory &environment( ) const {
+        return ( m_translations->environment() );
+      }     
+      
+      inline SharedTranslations translations() const {
+        return ( m_translations );
+      }
+
+      inline void set_translations( const PsmrtsTranslations &translator ) {
+        m_translations = make_shared_copy( translator );
+      }
+
+      inline void set_translations( const SharedTranslations &translator ) {
+        m_translations =  translator;
+      }
+
+
+      inline std::string translate_path( const std::string &filepath ) const {
+        if ( !m_translations ) return ( filepath );
+        return ( m_translations->translate_path( filepath ) );
+      }
+
+      inline PsmrtsPriorityTracer create_priority_tracer( const std::string &name = "" ) const {
+        std::string name_p( name );
+        if ( name_p.length() == 0 ) name_p = this->name();
+        return ( PsmrtsPriorityTracer( name, *m_tracers ) );
+      }
+
+      /** Merge a PsmrtsInventory into another inventory */
+      inline size_t merge( const PsmrtsInventory &other ) {
+        size_t n_merged = 0;
+        if ( this != &other ) {
+          n_merged += m_shapes->merge( *other.m_shapes );
+          n_merged += m_tracers->merge( *other.m_tracers );
+          n_merged += m_translations->merge( *other.m_translations );
         }
+        return ( n_merged );
+      }
+              
+      inline void remove_shape( const UIDType &uid) {
+        m_shapes->remove( uid );
+      }
 
-        virtual ~PsmrtsInventory() = default;
+      inline void remove_tracer( const UIDType &uid) {
+        m_tracers->remove( uid );
+      }
 
-        /** Returns the number of all products excluding parameters and envs */
-        inline size_t size() const {
-          size_t n_products = m_shapes->size() + 
-                              m_tracers->size() +
-                              m_prioritytracers->size();
-          return ( n_products );
+      /** Clear everything out, liquidate */
+      inline void clear( const bool preserve_translator = true ) {
+        m_shapes->clear();
+        m_tracers->clear();
+        if ( !preserve_translator ) {
+          m_translations  = make_shared_copy( PsmrtsTranslations::create() );
         }
+      }
 
-        inline const ShapeInventory &shapes( ) const {
-          return ( *m_shapes );
-        }
+    private:
+      std::string                              m_name;
+      std::shared_ptr<ShapeInventory>          m_shapes;
+      std::shared_ptr<TracerInventory>         m_tracers;
+      std::shared_ptr<PsmrtsTranslations>      m_translations;
+  };
 
-        inline ShapeInventory &shapes( )  {
-          return ( *m_shapes );
-        }
-
-        inline const TracerInventory &tracers( ) const {
-          return ( *m_tracers );
-        }
-
-        inline TracerInventory &tracers( ) {
-          return ( *m_tracers );
-        }        
-
-        inline size_t priority_tracer_size() const {
-          return ( m_prioritytracers->size() );
-        }
-
-        inline PsmrtsPriorityTracer priority_tracer_contains( const UIDType &uid ) {
-          return ( m_prioritytracers->contains( uid ) );
-        }
-
-        inline PsmrtsPriorityTracer priority_tracer_find( const UIDType &uid ) {
-          auto pt_t = m_prioritytracers->find( uid );
-          if ( !pt_t ) return ( PsmrtsPriorityTracer() );
-          return ( *pt_t );
-        }
-
-        inline void priority_tracer_add( const PsmrtsPriorityTracer &pt ) {
-          if ( pt.isValid() ) {
-            m_prioritytracers->add( pt.uid(), pt );
-          }
-          return;
-        }
-
-        /** Thread-safe process shapes with function/lambda/object */
-        template <typename Functor>
-          bool process_shapes( Functor function ) const {
-            return ( m_shapes->process( function ) );
-          }
-           
-        /** Thread-safe process tracers with function/lambda/object */
-        template <typename Functor>
-          bool process_tracers( Functor function ) const {
-            return ( m_tracers->process( function ) );
-          }
-
-        inline const ParameterInventory &parameters( ) const {
-          return ( m_translations->parameters() );
-        }
-
-        inline const EnvironmentInventory &environment( ) const {
-          return ( m_translations->environment() );
-        }     
-        
-        inline const PsmrtsTranslations &translations() const {
-          return ( *m_translations );
-        }
-
-        /** Merge a PsmrtsInventory into another inventory */
-        inline size_t merge( const PsmrtsInventory &other ) {
-          size_t n_merged = 0;
-          if ( this != &other ) {
-            n_merged += m_shapes->merge( *other.m_shapes );
-            n_merged += m_tracers->merge( *other.m_tracers );
-            n_merged += m_prioritytracers->merge( *other.m_prioritytracers );
-            n_merged += m_translations->merge( *other.m_translations );
-          }
-          return ( n_merged );
-        }
-                
-        inline void remove( const UIDType &uid) {
-          m_shapes->remove( uid );
-          m_tracers->remove( uid );
-          m_prioritytracers->remove( uid );
-        }
-
-        /** Clear everything out, liquidate */
-        inline void clear() {
-          m_shapes->clear();
-          m_tracers->clear();
-          m_prioritytracers->clear();
-        }
-
-        /** Reinitialize everything  */
-        inline void init( ) {
-          m_shape.reset( make_shared_copy( ShapeInventory( m_name ) );
-          m_tracers.reset( make_shared_copy(TracerInventory( m_name ) );
-          m_prioritytracers.reset( make_shared_copy( PriorityTracerInventory{ m_name ) );
-          m_translations.reset( make_shared_copy( PsmrtsTranslations::create() );
-        }
-
-      private:
-        std::shared_ptr<ShapeInventory>          m_shapes;
-        std::shared_ptr<TracerInventory>         m_tracers;
-        std::shared_ptr<PriorityTracerInventory> m_prioritytracers;
-        std::shared_ptr<PsmrtsTranslations>      m_translations;
-
-    };
+  // Declare a shared pointer type for tracers
+  using SharedInventory = std::shared_ptr<PsmrtsInventory>;
 
 } // namespace psmrts
 
