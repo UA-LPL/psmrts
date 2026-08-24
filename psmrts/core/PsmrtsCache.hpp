@@ -48,7 +48,7 @@ namespace psmrts {
       public:
         using CacheMap          = std::map<K,T,Compare>;
         using CacheMapIter      = typename std::map<K,T,Compare>::iterator;
-        using CacheMapConstIter = typename std::map<K,T,Compare>::const_iterator;
+        using ConstCacheMapIter = typename std::map<K,T,Compare>::const_iterator;
 
         // Iterator function/lamda directly on cache data container
         using IteratorFunction  = std::function<void( const CacheMap &cachemap )>;        
@@ -61,7 +61,7 @@ namespace psmrts {
         /** Required copy constructor due to std::mutex */
         PsmrtsCache( const PsmrtsCache &other )  {
           std::unique_lock<std::shared_mutex> mylocker( other.m_mutex );
-          m_name = other.name;
+          m_name = other.m_name;
           m_cache = other.m_cache; 
         }
 
@@ -69,7 +69,7 @@ namespace psmrts {
         PsmrtsCache &operator=( const PsmrtsCache &other ) {
           if (this != &other) {
             std::unique_lock<std::shared_mutex> mylocker( other.m_mutex );
-            m_name = other.name;
+            m_name = other.m_name;
             m_cache = other.m_cache;
           }
           return ( *this );
@@ -77,7 +77,7 @@ namespace psmrts {
         virtual ~PsmrtsCache() = default;
         
         /** Returns name of this cache */
-        inline std::string &name() const {
+        inline const std::string &name() const {
           return ( m_name );
         }
 
@@ -99,7 +99,7 @@ namespace psmrts {
           std::unique_lock<std::shared_mutex> mylocker( m_mutex );
           CacheMapIter it_m = m_cache.begin();
           while ( it_m != m_cache.end() ) {
-            if ( m_cache.key_comp( key, it_m->first ) ) {
+            if ( m_cache.key_comp()( key, it_m->first ) ) {
               m_cache.erase( it_m );
               break;
             }
@@ -125,7 +125,7 @@ namespace psmrts {
         inline T find( const K &key, const T &default_t = T() ) const {
           std::shared_lock<std::shared_mutex> mylocker( m_mutex );
           for ( const auto &[ uid, value_s ] : m_cache ) {
-            if ( m_cache.key_comp( uid, key ) ) return ( value_s );
+            if ( m_cache.key_comp()( uid, key ) ) return ( value_s );
           }
           return ( default_t );
         }
@@ -202,10 +202,58 @@ namespace psmrts {
          */
         inline bool has_key( const K &key ) const {
           for ( const auto &[ uid, value_s ] : m_cache ) {
-            if ( m_cache.key_comp( key, uid ) ) return ( true );
+            if ( m_cache.key_comp()( key, uid ) ) return ( true );
           }
           return ( false );
-        }           
+        } 
+        
+        /**
+         * @brief Lock-free search for for a const value type
+         * 
+         * Returns an const iterator of the map entry using the key. This method
+         * is lock-free and assumes the caller has applied any appropriate locks.
+         * 
+         * @param key           Map key to find entry for
+         * @return CacheMapIter The iterator of the found map entry or end() if
+         *                         not found
+         */
+        inline ConstCacheMapIter find_with_iter( const K &key ) const {
+          ConstCacheMapIter it_m = m_cache.cbegin();
+          while ( it_m != m_cache.cend() ) {
+            if ( m_cache.key_comp()( key, it_m->first ) ) {
+              break;
+            }
+            ++it_m;
+          }
+
+          return ( it_m );
+        }
+
+        /**
+         * @brief Lock-free search for for a value type
+         * 
+         * Returns an iterator of the map entry using the key. This method is
+         * lock-free and assumes the caller has applied any appropriate locks.
+         * 
+         * @param key           Map key to find entry for
+         * @return CacheMapIter The iterator of the found map entry or end() if
+         *                         not found
+         */
+        inline CacheMapIter find_with_iter( const K &key ) {
+          CacheMapIter it_m = m_cache.begin();
+          while ( it_m != m_cache.end() ) {
+            if ( m_cache.key_comp()( key, it_m->first ) ) {
+              break;
+            }
+            ++it_m;
+          }
+
+          return ( it_m );
+        }
+
+
+
+        
     };
 
 } // namespace psmrts
