@@ -69,7 +69,16 @@ namespace psmrts {
                      m_inventory( ),
                      m_tracers() {
         m_inventory = make_shared_copy( PsmrtsInventory( name, trans ) );    
-      }                     
+      }
+      PsmrtsInvoice( const std::string &name,
+                     const SharedTranslations &trans) : 
+                     m_name( name ),
+                     m_orders( ),
+                     m_inventory( ),
+                     m_tracers() {
+        m_inventory = make_shared_copy( PsmrtsInventory( name, trans ) );    
+      }
+
       virtual ~PsmrtsInvoice() = default;
   
       inline const std::string &name() const {
@@ -166,8 +175,19 @@ namespace psmrts {
         return ( PsmrtsPriorityTracer( name_t, m_tracers ) );
       }
 
+      /** Returns a list of tracers in the order (priority) submitted */
       inline const std::vector<SharedTracer> &tracers() const {
         return ( m_tracers );
+      }
+
+      /** Returns a list of tracers in the order (priority) submitted */
+      inline const ProductOrderList &orders() const {
+        return ( m_orders );
+      }      
+
+      /** Construct and return a processor consistent with this object */
+      inline ProductProcessing processor() const {
+        return ( ProductProcessing( m_inventory->translations() ) );
       }
 
     private:

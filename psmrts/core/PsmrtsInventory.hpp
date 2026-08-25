@@ -160,15 +160,6 @@ namespace psmrts {
           return ( m_tracers->process( function ) );
         }
 
-
-      inline const ParameterInventory &parameters( ) const {
-        return ( m_translations->parameters() );
-      }
-
-      inline const EnvironmentInventory &environment( ) const {
-        return ( m_translations->environment() );
-      }     
-      
       inline SharedTranslations translations() const {
         return ( m_translations );
       }

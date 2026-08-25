@@ -239,12 +239,16 @@ namespace psmrts {
                                                                             *inventory.tracers(), 
                                                                             *inventory.shapes() );
           // We are done if the product is already in the inventory parameter!!
-          if ( !success ) {
-            // Now check the factory inventory so lock it up!
+          if ( success == true ) {
+            tracer_list_t.push_back( tracer_p );
+          }
+          else {  // ( !success )
+            // Now check the factory inventory
             auto [ success, f_tracer_p, f_shape_p ] = processor.search_inventory( *order, 
                                                                                   *m_inventory.tracers(), 
                                                                                   *m_inventory.shapes() );
-            if ( success ) {
+            // Found it in the factory, push to callers inventory
+            if ( success == true ) {
               inventory.add( f_tracer_p );
               inventory.add( f_shape_p );
               tracer_list_t.push_back( f_tracer_p );
@@ -271,7 +275,6 @@ namespace psmrts {
     
                 inventory.add( f_shape_p );
                 m_inventory.add( f_shape_p );
-                tracer_list_t.push_back( f_tracer_p );
               }
             }
 

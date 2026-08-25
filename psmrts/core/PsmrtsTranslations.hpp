@@ -56,7 +56,7 @@ namespace psmrts {
   class PsmrtsTranslations {
     public:
       using ParameterInventory   = PsmrtsCache<std::string, std::string, CompareCaseInsensitive>;
-      using EnvironmentInventory = PsmrtsCache<std::string, std::string, CompareCaseInsensitive>;
+      using EnvironmentInventory = PsmrtsCache<std::string, std::string>;      
 
       PsmrtsTranslations(  ) {
         this->init( "translations" );
@@ -256,8 +256,8 @@ namespace psmrts {
       /** Reinitialize everything  */
       inline void init( const std::string &name = "translations" ) {
         m_name = name;
-        m_parameters.clear();
-        m_environment.clear();
+        m_parameters  = ParameterInventory( "parameters" );
+        m_environment = EnvironmentInventory( "environment" );
       }
 
       inline const EnvironmentInventory &load_and_merge_environment( ) {

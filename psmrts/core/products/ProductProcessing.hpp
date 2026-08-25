@@ -119,7 +119,7 @@ namespace psmrts {
         auto shape_search = [&]( const ShapeCacheMap &map_c ) -> bool {
           for ( const auto &[ uid, p ] : map_c ) {
             ProductCart cart_s( p->specs(), p->config() );
-            if ( spec_t.name() == p->name() ) {
+            if ( spec_t.name() == p->specs().name() ) {
               if ( this->compare_product_config( config_t, cart_s, errors ) ) {
                 shape_p = p;
                 return ( true );
@@ -164,7 +164,7 @@ namespace psmrts {
         auto tracer_search = [&]( const TracerCacheMap &map_c ) -> bool {
           for ( const auto &[ uid, p ] : map_c ) {
             ProductCart cart_t( p->specs(), p->config() );
-            if ( spec_t.name() == p->name() ) {
+            if ( spec_t.name() == p->specs().name() ) {
               if ( this->compare_product_config( config_t, cart_t, errors ) ) {
                 tracer_p = p;
                 return ( true );
@@ -500,14 +500,7 @@ namespace psmrts {
        */
       inline bool process_cart( const ProductConfiguration &config,
                                 ProductCart &cart ) const {
-        
-        // Check for invalid configuration
-        if ( cart.has_valid_content() == false ) {
-          std::string mess = "ProductCompare::process_cart(" + cart.name() + ") does not contain a valid product configuration";
-          cart.add_error(  mess );
-          return ( false );
-        }
-
+       
         std::vector<std::string> required_list;
         const ProductSpecification &specs_t = cart.specification();
         for ( const auto &option : config.options() ) {

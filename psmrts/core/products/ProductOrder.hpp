@@ -44,37 +44,34 @@ namespace psmrts {
       ProductOrder( ) : PsmrtsErrors( ),
                         m_submitted( ),
                         m_carts( ),
-                        m_inventory(" productorder" ) { }
+                        m_translator() { }
       ProductOrder( const std::string &name,
                     const SharedTranslations &trans = SharedTranslations() ) : 
                     PsmrtsErrors( ),
                     m_submitted( ),
                     m_carts( name ),
-                    m_inventory( name ) { }
+                    m_translator( trans ) { }
       ProductOrder( const ProductConfiguration &submitted,
                     const SharedTranslations &trans = SharedTranslations() ) : 
                     PsmrtsErrors( ),
                     m_submitted( submitted ),
                     m_carts( submitted.name() ),
-                    m_inventory( submitted.name() ) {
+                    m_translator( trans ) {
 
       }
       ProductOrder( const ProductConfiguration &submitted,
                     const ProductConfiguration &config,
-                    const SharedTranslations &trans = SharedTranslations(), 
-                    const std::vector<std::string> &depends = {} ) : 
+                    const SharedTranslations &trans = SharedTranslations() ) : 
                     PsmrtsErrors( ),
                     m_submitted( submitted ),
                     m_carts( submitted.name() ),
-                    m_inventory( submitted.name() )  {
-
-      }                    
+                    m_translator( trans )  { }                    
       ProductOrder( const ProductCart &cart,
                     const SharedTranslations &trans = SharedTranslations() ) : 
                     PsmrtsErrors( ),
                     m_submitted( cart.configuration() ),
                     m_carts(  ),
-                    m_inventory( cart.name()  )  { 
+                    m_translator( trans )  { 
         m_carts.add( cart.product(), cart );
       }
       ProductOrder( const ProductConfiguration &submitted,
@@ -83,7 +80,7 @@ namespace psmrts {
                     PsmrtsErrors( ),
                     m_submitted( submitted ),
                     m_carts( submitted.name() ),
-                    m_inventory( submitted.name() )  { 
+                    m_translator( trans )  { 
         m_carts.add( cart.product(), cart );
       }                    
       virtual ~ProductOrder() = default;
@@ -95,7 +92,6 @@ namespace psmrts {
       inline const std::string &name() const {
         return ( m_submitted.name() );
       }
-
       
       inline bool isempty() const {
         return ( m_carts.size() == 0 );
@@ -118,16 +114,25 @@ namespace psmrts {
         return ( m_carts.find( cart_type ) );
       }
 
+      inline std::vector<std::string> cart_keys() const {
+        return ( m_carts.keys() );
+      }
+
+      inline std::vector<SharedCart> cart_values() const {
+        return ( m_carts.values() );
+      }
+
       inline SharedTranslations translations() const {
-        return ( m_inventory.translations() );
+        return ( m_translator );
       }
 
       inline void set_translations( const SharedTranslations &translations ) {
-        m_inventory.set_translations( translations );
+        m_translator = translations;
       }
 
       inline std::string translate_path( const std::string &filepath ) const {
-        return ( m_inventory.translate_path( filepath ) );
+        if ( !m_translator ) return ( filepath );
+        return ( m_translator->translate_path( filepath ) );
       }
 
 #if 0      
@@ -141,9 +146,10 @@ namespace psmrts {
 #endif
 
     private:
-      ProductConfiguration     m_submitted;
-      CartCache                m_carts;
-      PsmrtsInventory          m_inventory;
+      ProductConfiguration m_submitted;
+      CartCache            m_carts;
+      SharedTranslations   m_translator;
+      // PsmrtsInventory          m_inventory;
 
   };
 

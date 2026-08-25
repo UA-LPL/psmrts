@@ -99,7 +99,7 @@ TEST_CASE( "PSMRTS Shared Cache Default Test", "[cache][default]") {
     
 
     REQUIRE( cache.contains("DNE") == false );
-    CHECK_THROWS(cache.find("DNE"));
+    REQUIRE( cache.find("DNE") == nullptr );
 
     psmrts::PsmrtsSharedCache<std::string, int> copy(cache);
     CHECK( copy.size() == cache.size() );

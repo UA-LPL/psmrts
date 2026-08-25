@@ -93,33 +93,32 @@ namespace psmrts {
         }
 
         /** Add a value to the cache - overwrites existing data */
-        inline void add( const K &key, const T &value ) {
+        inline K add( const K &key, const T &value ) {
           std::unique_lock<std::shared_mutex> mylocker( m_mutex );
           m_cache[key] = std::make_shared<T>( std::move( value ) );
+          return ( key );
         }
 
         /** Add a value to the cache - overwrites existing data */
-        inline void add( const T &value ) {
+        inline K add( const T &value ) {
           std::unique_lock<std::shared_mutex> mylocker( m_mutex );
           m_cache[value.uid()] = std::make_shared<T>( std::move( value ) );
+          return ( value.uid() );
         }        
 
         /** Add a value to the cache - overwrites existing data */
-        inline void add( const K &key, const SharedType &value ) {
+        inline K add( const K &key, const SharedType &value ) {
           std::unique_lock<std::shared_mutex> mylocker( m_mutex );
           m_cache[key] = value;
+          return ( key );
         }        
 
         /** Remove the requested cache value by key */
         inline void remove( const K &key ) {
           std::unique_lock<std::shared_mutex> mylocker( m_mutex );
-          CacheMapIter it_m = m_cache.begin();
-          while ( it_m != m_cache.end() ) {
-            if ( m_cache.key_comp()( key, it_m->first ) ) {
-              m_cache.erase( it_m );
-              break;
-            }
-            ++it_m;
+          CacheMapIter it_m = m_cache.find( key);
+          if (it_m != m_cache.end() ) {          
+            m_cache.erase( it_m );
           }
           return;
         }
@@ -127,8 +126,9 @@ namespace psmrts {
         /** Check for a particular key/value in the cache */
         inline bool contains( const K &key ) const {
           std::shared_lock<std::shared_mutex> mylocker( m_mutex );
-          for ( const auto &[ uid, value_s ] : m_cache ) {
-            if ( m_cache.key_comp()( key, uid ) ) return ( true );
+          ConstCacheMapIter it_m = m_cache.find( key);
+          if (it_m != m_cache.end() ) {   
+            return ( true );
           }
           return ( false );
         }
@@ -136,8 +136,9 @@ namespace psmrts {
         /** Find and return the specified key value */
         inline SharedType find( const K &key ) const {
           std::shared_lock<std::shared_mutex> mylocker( m_mutex );
-          for ( const auto &[ uid, value_s ] : m_cache ) {
-            if ( m_cache.key_comp()( key, uid ) ) return ( value_s );
+          ConstCacheMapIter it_m = m_cache.find( key);
+          if (it_m != m_cache.end() ) { 
+            return ( it_m->second );
           }
           return ( nullptr );
         }
@@ -224,57 +225,12 @@ namespace psmrts {
          * @return false If it doesn't exist
          */
         inline bool has_key( const K &key ) const {
-          for ( const auto &[ uid, value_s ] : m_cache ) {
-            if ( m_cache.key_comp()( key, uid ) ) return ( true );
+          ConstCacheMapIter it_m = m_cache.find( key);
+          if (it_m != m_cache.end() ) {
+            return ( true );
           }
           return ( false );
         }  
-        
-       /**
-         * @brief Lock-free search for for a const value type
-         * 
-         * Returns an const iterator of the map entry using the key. This method
-         * is lock-free and assumes the caller has applied any appropriate locks.
-         * 
-         * @param key           Map key to find entry for
-         * @return CacheMapIter The iterator of the found map entry or end() if
-         *                         not found
-         */
-        inline ConstCacheMapIter find_with_iter( const K &key ) const {
-          ConstCacheMapIter it_m = m_cache.cbegin();
-          while ( it_m != m_cache.cend() ) {
-            if ( m_cache.key_comp()( key, it_m->first ) ) {
-              break;
-            }
-            ++it_m;
-          }
-
-          return ( it_m );
-        }
-
-        /**
-         * @brief Lock-free search for for a value type
-         * 
-         * Returns an iterator of the map entry using the key. This method is
-         * lock-free and assumes the caller has applied any appropriate locks.
-         * 
-         * @param key           Map key to find entry for
-         * @return CacheMapIter The iterator of the found map entry or end() if
-         *                         not found
-         */
-        inline CacheMapIter find_with_iter( const K &key ) {
-          CacheMapIter it_m = m_cache.begin();
-          while ( it_m != m_cache.end() ) {
-            if ( m_cache.key_comp()( key, it_m->first ) ) {
-              break;
-            }
-            ++it_m;
-          }
-
-          return ( it_m );
-        }
-
-        
     };
 
 } // namespace psmrts

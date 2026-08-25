@@ -88,22 +88,19 @@ namespace psmrts {
         }
 
         /** Add a value to the cache - overwrites existing data */
-        inline void add( const K &key, const T &value ) {
+        inline K add( const K &key, const T &value ) {
           std::unique_lock<std::shared_mutex> mylocker( m_mutex );
           m_cache[key] = value;
+          return ( key );
         }
 
 
         /** Remove the requested cache value by key */
         inline void remove( const K &key ) {
           std::unique_lock<std::shared_mutex> mylocker( m_mutex );
-          CacheMapIter it_m = m_cache.begin();
-          while ( it_m != m_cache.end() ) {
-            if ( m_cache.key_comp()( key, it_m->first ) ) {
-              m_cache.erase( it_m );
-              break;
-            }
-            ++it_m;
+          CacheMapIter it_m = m_cache.find( key);
+          if (it_m != m_cache.end() ) {
+            m_cache.erase( it_m );
           }
           return;
         }
@@ -122,10 +119,25 @@ namespace psmrts {
           }
 
         /** Return a key value if it exits otherwise returns the default value */
-        inline T find( const K &key, const T &default_t = T() ) const {
+        inline T find( const K &key ) const {
           std::shared_lock<std::shared_mutex> mylocker( m_mutex );
-          for ( const auto &[ uid, value_s ] : m_cache ) {
-            if ( m_cache.key_comp()( uid, key ) ) return ( value_s );
+          ConstCacheMapIter it_m = m_cache.find( key);
+          if (it_m != m_cache.end() ) {          
+            return ( it_m->second );
+          }
+
+          // Throw an error if not found
+          std::ostringstream mess_s;
+          mess_s << "*** Error - PsmrtsCache::find(" << key << ") not found!";
+          throw std::runtime_error( mess_s.str() );         
+        }
+
+        /** Return a key value if it exits otherwise returns the default value */
+        inline T find( const K &key, const T &default_t ) const {
+          std::shared_lock<std::shared_mutex> mylocker( m_mutex );
+          ConstCacheMapIter it_m = m_cache.find( key);
+          if (it_m != m_cache.end() ) {          
+            return ( it_m->second );
           }
           return ( default_t );
         }
@@ -201,58 +213,10 @@ namespace psmrts {
          * @return false If it doesn't exist
          */
         inline bool has_key( const K &key ) const {
-          for ( const auto &[ uid, value_s ] : m_cache ) {
-            if ( m_cache.key_comp()( key, uid ) ) return ( true );
-          }
+          ConstCacheMapIter it_m = m_cache.find( key);
+          if (it_m != m_cache.end() ) return ( true );
           return ( false );
         } 
-        
-        /**
-         * @brief Lock-free search for for a const value type
-         * 
-         * Returns an const iterator of the map entry using the key. This method
-         * is lock-free and assumes the caller has applied any appropriate locks.
-         * 
-         * @param key           Map key to find entry for
-         * @return CacheMapIter The iterator of the found map entry or end() if
-         *                         not found
-         */
-        inline ConstCacheMapIter find_with_iter( const K &key ) const {
-          ConstCacheMapIter it_m = m_cache.cbegin();
-          while ( it_m != m_cache.cend() ) {
-            if ( m_cache.key_comp()( key, it_m->first ) ) {
-              break;
-            }
-            ++it_m;
-          }
-
-          return ( it_m );
-        }
-
-        /**
-         * @brief Lock-free search for for a value type
-         * 
-         * Returns an iterator of the map entry using the key. This method is
-         * lock-free and assumes the caller has applied any appropriate locks.
-         * 
-         * @param key           Map key to find entry for
-         * @return CacheMapIter The iterator of the found map entry or end() if
-         *                         not found
-         */
-        inline CacheMapIter find_with_iter( const K &key ) {
-          CacheMapIter it_m = m_cache.begin();
-          while ( it_m != m_cache.end() ) {
-            if ( m_cache.key_comp()( key, it_m->first ) ) {
-              break;
-            }
-            ++it_m;
-          }
-
-          return ( it_m );
-        }
-
-
-
         
     };
 
