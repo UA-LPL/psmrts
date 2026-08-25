@@ -34,7 +34,7 @@ TEST_CASE ( "Kernel File System Test - kernel_info description return", "[kernel
 TEST_CASE ( "Kernel File System Test - kernel_count return", "[kernel][directory][count]" ) {
     std::string file = psmrts_tracers_path( "/naifdsk/data/orx_ocams_v07.ti");
     
-    CHECK_NOTHROW ( naif::initKernelSystem() ); // Initializes the kernel system
+    CHECK_NOTHROW ( naif::initKernelSystem( true ) ); // Initializes the kernel system
     CHECK ( naif::KernelFileSystem::kernel_count() == 0 ); // Should be zero, as we have yet to load any
     CHECK_NOTHROW ( naif::load_kernel(file) ); // Load the file/directory to be used
     CHECK_NOTHROW( naif::check_naif_errors() ); // Check for loading errors

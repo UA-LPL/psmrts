@@ -162,7 +162,7 @@ namespace psmrts {
     // configuration of the shape  and the current passed one. Not this is
     // currently only possible because this is a .cpp file.
     SharedShape shape_t;
-    ProductCart::UIDType shape_uid = cart.get_shape_uid();
+    ProductCart::UIDType shape_uid = cart.get_uid();
     std::string name_t = cart.configuration().name();
     if ( shape ) {
       shape_t = shape;

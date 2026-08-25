@@ -117,9 +117,9 @@ namespace psmrts  {
       using ProductInfo     = ProductSpecification::ProductInfo;
       using ProductFeatures = ProductSpecification::ProductFeatures;
 
-      EllipsoidTracer( ) : PsmrtsProduct( "default", "tracer", "ellipsoid" ), 
+      EllipsoidTracer( ) : PsmrtsProduct( "ellipsoid", "tracer", "ellipsoid" ), 
                            m_radii{ 1.0, 1.0, 1.0 },
-                           m_config( init_config( "default", { 1.0 }, "sphere" ) ) {  }
+                           m_config( init_config( "ellipsoid", { 1.0 }, "ellipsoid" ) ) {  }
       EllipsoidTracer( const double radius,
                        const std::string &name = "sphere") :
                        PsmrtsProduct( name, "tracer", "sphere" ),
@@ -489,7 +489,7 @@ namespace psmrts  {
           throw std::runtime_error( mess );
         }
 
-        std::string name = name_t;
+        std::string name = "";
         if ( v_conf.contains( "name" ) ) {
           name = v_conf.find( "name" ).to_string();
         }
@@ -523,7 +523,7 @@ namespace psmrts  {
         ProductConfiguration config( "ellipsoid" );
         config.add( ProductOption( "tracer", model ) );
         config.add( ProductOption( "radii",  radii ) );
-        config.add( ProductOption( "name",   name ) );
+        if ( name.length() > 0 ) config.add( ProductOption( "name",   name ) );
 
         // Check to ensure none of the radii are invalid
         for ( const double &r : radii ) {

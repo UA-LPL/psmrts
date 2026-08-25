@@ -55,7 +55,7 @@ namespace psmrts {
   class PsmrtsInvoice : public PsmrtsErrors {
     public:
       using UIDType              = PsmrtsProduct::UIDType;
-      using ProductOrderList     = std::vector<SharedProductOrder>;
+      using ProductOrderList     = std::vector<SharedOrder>;
 
       PsmrtsInvoice( ) : PsmrtsErrors(),
                          m_name( "invoice" ),
@@ -151,7 +151,7 @@ namespace psmrts {
        * @return size_t Total number of tracers created from list of orders
        */
       inline size_t submit_order() {
-        m_tracers = PsmrtsFactory().make_product( m_orders, *m_inventory, *this );
+        m_tracers = PsmrtsFactory().process_order( m_orders, *m_inventory, *this );
         return ( m_tracers.size() );
       }
 

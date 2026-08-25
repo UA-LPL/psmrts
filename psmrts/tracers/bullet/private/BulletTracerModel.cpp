@@ -23,7 +23,9 @@ find files of those names at the top level of this repository. **/
 
 namespace psmrts::bullet {
 
-      BulletTracerModel::BulletTracerModel( ) {  }
+      BulletTracerModel::BulletTracerModel( ) {
+        m_bullet_model = make_shared_copy( PsmrtsBulletWorldModel() );
+      } 
       BulletTracerModel::BulletTracerModel( const PsmrtsBulletWorldModel &bt_model ) :
                                             m_bullet_model( ) {  
         m_bullet_model = make_shared_copy( PsmrtsBulletWorldModel( bt_model ) );

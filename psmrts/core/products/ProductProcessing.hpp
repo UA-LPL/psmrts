@@ -245,13 +245,13 @@ namespace psmrts {
        * 
        * @param config  Product configuration containing all options for tracers
        *                  and shapes
-       * @return SharedProductOrder Contains the processed options into carts
+       * @return SharedOrder Contains the processed options into carts
        *                              for searching for and creating new products
        */
-      inline SharedProductOrder process_order( const ProductConfiguration &config ) 
+      inline SharedOrder process_order( const ProductConfiguration &config ) 
                                                const {
 
-        SharedProductOrder order_t = make_shared_copy( ProductOrder( config, m_translator ) );
+        SharedOrder order_t = make_shared_copy( ProductOrder( config, m_translator ) );
         if ( config.size() == 0 ) {
           order_t->add_error( "process_order() - configuration has no options" ); 
           return ( order_t );
@@ -348,6 +348,8 @@ namespace psmrts {
       inline bool compare_product_config( const ProductConfiguration &config,
                                           const ProductCart &cart,
                                           PsmrtsErrors &errors ) const { 
+
+        errors.clear_errors();
 
         // Prepare the cart for comparisons of the product configuration
         ProductConfiguration config_new( config.name() );
@@ -501,6 +503,8 @@ namespace psmrts {
       inline bool process_cart( const ProductConfiguration &config,
                                 ProductCart &cart ) const {
        
+        cart.clear_errors();
+        
         std::vector<std::string> required_list;
         const ProductSpecification &specs_t = cart.specification();
         for ( const auto &option : config.options() ) {

@@ -85,7 +85,8 @@ namespace psmrts {
       PsmrtsFactory( ) = default;
       ~PsmrtsFactory() = default;
 
-
+      //*** Shape utilities ***//
+      
       /** Return the number of shapes in the inventory */
       inline size_t shape_count() const {
         std::shared_lock<std::shared_mutex> mylocker( m_mutex );
@@ -130,6 +131,13 @@ namespace psmrts {
         return;
       } 
 
+      inline std::vector<UIDType> shape_keys() const {
+        std::shared_lock<std::shared_mutex> mylocker( m_mutex );
+        return ( m_inventory.shapes()->keys() );
+      }
+
+      //*** Tracer utilities ***//
+
       /** Return the number of tracers in the inventory */
       inline size_t tracer_count() const {
         std::shared_lock<std::shared_mutex> mylocker( m_mutex );
@@ -172,7 +180,12 @@ namespace psmrts {
         std::unique_lock<std::shared_mutex> mylocker( m_mutex );
         m_inventory.tracers()->remove( uid );
         return;
-      }       
+      }     
+      
+      inline std::vector<UIDType> tracer_keys() const {
+        std::shared_lock<std::shared_mutex> mylocker( m_mutex );
+        return ( m_inventory.tracers()->keys() );
+      }
 
       /** Add a value to the cache - overwrites existing data */
       inline size_t add( const PsmrtsInventory &inventory ) {
@@ -212,9 +225,9 @@ namespace psmrts {
        *                     that priority is preserved if that is needed by
        *                      called
        */
-      inline std::vector<SharedTracer> make_product( const std::vector<SharedProductOrder> &orders,
-                                                     PsmrtsInventory &inventory,
-                                                     PsmrtsErrors &errors ) {
+      inline std::vector<SharedTracer> process_order( const std::vector<SharedOrder> &orders,
+                                                      PsmrtsInventory &inventory,
+                                                      PsmrtsErrors &errors ) {
 
         std::unique_lock<std::shared_mutex> mylocker( m_mutex );
 
@@ -233,6 +246,7 @@ namespace psmrts {
           SharedCart cart_s = order->find( "shape" );
           SharedCart cart_t = order->find( "tracer" );
 
+#if 1         
           // Run a search on the local inventory since we can be creating new
           // products there.
           auto [ success, tracer_p, shape_p ] = processor.search_inventory( *order, 
@@ -240,6 +254,8 @@ namespace psmrts {
                                                                             *inventory.shapes() );
           // We are done if the product is already in the inventory parameter!!
           if ( success == true ) {
+            this->update_cart( cart_s, shape_p );
+            this->update_cart( cart_t, tracer_p );
             tracer_list_t.push_back( tracer_p );
           }
           else {  // ( !success )
@@ -251,6 +267,8 @@ namespace psmrts {
             if ( success == true ) {
               inventory.add( f_tracer_p );
               inventory.add( f_shape_p );
+              this->update_cart( cart_s, f_shape_p );
+              this->update_cart( cart_t, f_tracer_p );              
               tracer_list_t.push_back( f_tracer_p );
             }
             else {
@@ -274,6 +292,7 @@ namespace psmrts {
                 }
     
                 inventory.add( f_shape_p );
+                this->update_cart( cart_s, f_shape_p );                
                 m_inventory.add( f_shape_p );
               }
             }
@@ -298,20 +317,22 @@ namespace psmrts {
               
               inventory.add( f_tracer_p );
               m_inventory.add( f_tracer_p );                
+              this->update_cart( cart_t, f_tracer_p );  
               tracer_list_t.push_back( f_tracer_p );
             }
           }
+#endif
         }
 
         return ( tracer_list_t );
       }  
       
       /** Create tracers from a single order */
-      inline std::vector<SharedTracer> make_product( SharedProductOrder &order,
+      inline std::vector<SharedTracer> process_order( SharedOrder &order,
                                                      PsmrtsInventory &inventory,
                                                      PsmrtsErrors &errors ) {
-        std::vector<SharedProductOrder> orders =  { order };
-        return ( make_product( orders, inventory, errors ) );
+        std::vector<SharedOrder> orders =  { order };
+        return ( process_order( orders, inventory, errors ) );
       }
 
       /**
@@ -357,6 +378,11 @@ namespace psmrts {
       // using FactoryInventory = InventoryCache;
       static inline PsmrtsInventory m_inventory{ "psmrts" };
       static inline std::shared_mutex  m_mutex{};
+
+      template <typename SharedT>
+        inline void update_cart( SharedCart &cart, const SharedT &data ) const {
+          if ( cart && data ) cart->set_uid( data->uid() );
+        }
   };
 
 } // namespace psmrts

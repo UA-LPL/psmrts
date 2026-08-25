@@ -125,7 +125,7 @@ TEST_CASE( "Bullet Tracer Test - Ray Trace / Values", "[bullet][tracer][values]"
     const std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
 
     // Beware the most vexing parse (see https://www.fluentcpp.com/2018/01/30/most-vexing-parse/)
-    psmrts::BulletTracer b_tracer( psmrts::PsmrtsShape{ objfile } );
+    psmrts::BulletTracer b_tracer( make_shared_copy( psmrts::PsmrtsShape{ objfile } ) );
     CHECK( b_tracer.minimum_radius()  < b_tracer.maximum_radius() );
 
     const double max_radius = b_tracer.maximum_radius();
@@ -226,7 +226,7 @@ TEST_CASE( "Bullet Tracer Ray Trace Array Test", "[bullet][tracer][raytrace][arr
     const double tolerance = 1.0e-6;
 
     std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" ); 
-    psmrts::BulletTracer b_tracer( psmrts::PsmrtsShape{ objfile } );
+    psmrts::BulletTracer b_tracer( make_shared_copy( psmrts::PsmrtsShape{ objfile } ) );
 
     // Max radius of object: 0.28306500000006685
     const double max_radius = b_tracer.maximum_radius();
@@ -319,7 +319,7 @@ TEST_CASE( "Bullet Tracer Photometric Values Test", "[bullet][tracer][photometri
     const double tolerance = 1.0e-9;
 
     std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
-    psmrts::BulletTracer b_tracer( psmrts::PsmrtsShape{ objfile } );
+    psmrts::BulletTracer b_tracer( make_shared_copy(  psmrts::PsmrtsShape{ objfile } ) );
 
     // Max radius of object: 0.28306500000006685
     const double max_radius = b_tracer.maximum_radius();
@@ -436,7 +436,7 @@ TEST_CASE( "Bullet Tracer Photometric Array Test", "[bullet][tracer][photometric
     const double tolerance = 1.0e-6;
 
     std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
-    psmrts::BulletTracer b_tracer( psmrts::PsmrtsShape{ objfile } );
+    psmrts::BulletTracer b_tracer( make_shared_copy( psmrts::PsmrtsShape{ objfile } ) );
 
     // Max radius of object: 0.28306500000006685
     const double max_radius = b_tracer.maximum_radius();

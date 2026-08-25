@@ -53,9 +53,9 @@ TEST_CASE( "Bullet Tracer Model - Ray Trace / Values Test", "[default][bullet][t
     CHECK( b_model.ray_trace(obs, lookdir, ray) == true );
     CHECK( ray.hasHit() == true );
 
-    psmrts::bullet::PsmrtsBulletWorldModel bw_model = b_model.model();
-    CHECK( bw_model.isValid() == true );
-    CHECK( bw_model.name()    == b_model.shapefile() );
+    psmrts::bullet::SharedBulletWorldModel bw_model = b_model.model();
+    CHECK( bw_model->isValid() == true );
+    CHECK( bw_model->name()    == b_model.shapefile() );
 
     psmrts::PsmrtsRayTrace::FacetDatum facet;
 

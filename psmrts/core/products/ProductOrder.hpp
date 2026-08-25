@@ -56,9 +56,7 @@ namespace psmrts {
                     PsmrtsErrors( ),
                     m_submitted( submitted ),
                     m_carts( submitted.name() ),
-                    m_translator( trans ) {
-
-      }
+                    m_translator( trans ) { }
       ProductOrder( const ProductConfiguration &submitted,
                     const ProductConfiguration &config,
                     const SharedTranslations &trans = SharedTranslations() ) : 
@@ -135,15 +133,18 @@ namespace psmrts {
         return ( m_translator->translate_path( filepath ) );
       }
 
-#if 0      
       inline ordered_json to_json() const {
         ordered_json order_j = ordered_json::object();
         order_j.update( json_utils::insert_object( "submitted", m_submitted.to_json() ) );
-        order_j.update( json_utils::insert_object( "product",   m_cart.to_json() )  );
+        
+        ordered_json cart_j = json::array();
+        for ( const auto &c : m_carts.values() ) {
+          cart_j.push_back( c->to_json() );
+        }
+        order_j.update( json_utils::insert_object( "products",  cart_j ) );
         // order_j["dependencies"] = m_dependencies;
         return ( order_j );
       }
-#endif
 
     private:
       ProductConfiguration m_submitted;
@@ -153,7 +154,7 @@ namespace psmrts {
 
   };
 
-  using SharedProductOrder = std::shared_ptr<ProductOrder>;
+  using SharedOrder = std::shared_ptr<ProductOrder>;
       
 } // namespace psmrts
 
