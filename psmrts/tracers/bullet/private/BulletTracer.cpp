@@ -29,15 +29,15 @@ namespace psmrts {
    * API. 
    * 
    */
-  class BulletTracer::BulletTracerImpl : public PsmrtsProduct {
+  // class BulletTracer::BulletTracerImpl : public PsmrtsProduct {
+  class BulletTracer::BulletTracerImpl {
     public:
-      BulletTracerImpl( ) : PsmrtsProduct( "none", "tracer", "bullet" ),
+      BulletTracerImpl( ) : 
                             m_shape(), 
                             m_bullet_model() { }
       BulletTracerImpl( const SharedShape &shape,
                         const bool useCompression = true,
                         const bool buildBvh = true   ) : 
-                        PsmrtsProduct( shape->name(), "tracer", "bullet" ),
                         m_shape( shape ),
                         m_bullet_model( bullet::PsmrtsBulletMeshMap( shape->get_mesh(), 
                                                                      shape->name(), 0), 
@@ -60,8 +60,8 @@ namespace psmrts {
       }
 
       inline bool ray_trace( PsmrtsRayTrace &ray ) const {
-        ray.set_tracer_id( this->uid() );
-        return ( m_bullet_model.ray_trace( ray ) );
+        bool status =  m_bullet_model.ray_trace( ray );
+        return ( status );
       }
 
       inline bool get_facet(  const PsmrtsRayTrace &ray, 
@@ -124,7 +124,7 @@ namespace psmrts {
 
   bool BulletTracer::ray_trace( PsmrtsRayTrace &ray ) const {
     bool status = m_model->ray_trace( ray );
-    ray.set_tracer_id( this->uid() );
+    if ( true == status ) ray.set_tracer_id( this->uid() );
     return ( status );
 
   }
