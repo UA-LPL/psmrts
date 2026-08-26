@@ -49,13 +49,21 @@ namespace psmrts {
    * shape. Each configuration that results in a tracer will be part of the
    * priority tracer. 
    * 
+   * Note that duplicate tracers are prevented from being in the priority tracer
+   * so the total count of tracers in the prioriy tracer may not be the same 
+   * as the number of sumbitted orders. Duplicate tracers will cause extended
+   * run times for traces that will not produce different results from previous
+   * traces in the priority tracer.
+   * 
    * @author Kris J. Becker, University of Arizona
    * @history 2026-01-31 Kris J. Becker  Original Version
+   * @history 2026-08-26 Kris J. Becker Refactored to use heap memory
    */
   class PsmrtsInvoice : public PsmrtsErrors {
     public:
-      using UIDType              = PsmrtsProduct::UIDType;
-      using ProductOrderList     = std::vector<SharedOrder>;
+      using UIDType          = PsmrtsProduct::UIDType;
+      using ProductOrderList = std::vector<SharedOrder>;
+      using TracerList       = std::vector<SharedTracer>;
 
       PsmrtsInvoice( ) : PsmrtsErrors(),
                          m_name( "invoice" ),
@@ -115,11 +123,12 @@ namespace psmrts {
       /**
        * @brief Process a product configuration, create product set (shape, tracer)
        * 
-       * This method processes a product configuration and creates a product set
-       * that may contain a shape and/or a tracer. 
+       * This method processes a product configuration and adds a product order
+       * to the invoice list.
        * 
-       * @param config      Product configuration
-       * @return ProductSet A product containing a shape/tracer
+       * This method does not create the tracer. See submit_order().
+       * 
+       * @param config Product configuration for the tracer
        */
       inline void add( const ProductConfiguration &config ) {
 
@@ -147,6 +156,8 @@ namespace psmrts {
        * Note this method is reetrant. Additional configurations can be added 
        * and submitted as the factory will check the local inventory for products
        * first and then its resources. A new priority tracer can then be generated
+       * at any time. If the number of tracers do not match the number of orders
+       * it is sent back the factory for an update.
        * 
        * @return size_t Total number of tracers created from list of orders
        */
@@ -166,13 +177,20 @@ namespace psmrts {
        * A new instance of a priority tracer is returned since order is maintained
        * in each priority tracer. 
        * 
+       * Note that the number of tracers in the priority tracer may not match
+       * the number of orders in the invoice. Redundent tracers are removed
+       * before the priority tracer is created. Each priority tracer is unique
+       * and does not share the same list (but tracer instances are shared).
+       * It would be quite inefficient and unnecessary to have duplicate tracers
+       * in the priorty tracer.
+       * 
        * @param name  Name of the priority tracer to create.
        * @return PsmrtsPriorityTracer A priority tracer from the order set
        */
       inline PsmrtsPriorityTracer make_priority_tracer( const std::string &name = "" ) {
         if ( !this->isvalid() ) this->submit_order();
         std::string name_t = ( name.length() > 0 ) ? name : m_name;
-        return ( PsmrtsPriorityTracer( name_t, m_tracers ) );
+        return ( PsmrtsPriorityTracer( name_t, remove_duplicates( m_tracers ) ) );
       }
 
       /** Returns a list of tracers in the order (priority) submitted */
@@ -191,10 +209,50 @@ namespace psmrts {
       }
 
     private:
-      std::string               m_name;
-      ProductOrderList          m_orders;
-      SharedInventory           m_inventory;
-      std::vector<SharedTracer> m_tracers;
+      std::string      m_name;
+      ProductOrderList m_orders;
+      SharedInventory  m_inventory;
+      TracerList       m_tracers;
+
+      /**
+       * @brief Removes redundant tracers from the list after submission
+       * 
+       * This method will check tracers after they are created to determine if
+       * they have already been added to the list. Under most circumstances, 
+       * there is no reason to have redundant tracers in the a priority tracer
+       * as it simply adds overhead. This because the first result of a trace
+       * will be the same in duplicates of other tracers. 
+       * 
+       * The determination of redundant tracers is made by checking for the
+       * same tracer pointers. 
+       * 
+       * @param  list_t
+       * @return TracerList List of unique tracers in ist_t
+       */
+      inline TracerList remove_duplicates( const TracerList &list_t ) const {
+        TracerList newlist_t;
+        newlist_t.reserve( list_t.size() );
+
+        /** Checks for duplicate except at index_t assumed to be t */
+        auto tracer_dup = [&]( auto &t, const size_t index_t ) -> bool {
+          for ( size_t i = 0 ; i < list_t.size() ; i++ ) {
+            if ( index_t != i ) {
+              if ( t.get() == list_t[i].get() ) return ( true );
+            }
+          }
+          return ( false );
+        };
+
+        // Check for duplicates and only return unique ones
+        for ( size_t i = 0 ; i < list_t.size() ; i++ ) {
+          if ( !tracer_dup( list_t[i], i ) ) {
+            newlist_t.push_back( list_t[i] );
+          }
+        }
+
+        return ( newlist_t );
+      }
+
   };
 
   // Declare a shared pointer type for tracers
