@@ -206,7 +206,8 @@ namespace psmrts {
   };
 
   // Declare a shared pointer type for tracers
-  using SharedTracer = std::shared_ptr<PsmrtsTracer>;
+  using SharedTracer      = std::shared_ptr<PsmrtsTracer>;
+  using ConstSharedTracer = std::shared_ptr<const PsmrtsTracer>;
 
 } // namespace psmrts
 

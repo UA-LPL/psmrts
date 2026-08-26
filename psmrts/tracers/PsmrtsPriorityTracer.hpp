@@ -33,7 +33,6 @@ namespace psmrts {
       using UIDType         = PsmrtsUID::UIDType;
       using TracerUIDList   = std::vector<UIDType>;
       using TracerInventory = PsmrtsSharedCache<UIDType, PsmrtsTracer>;
-      using SharedTracer    = TracerInventory::SharedType;
       using TracerList      = std::vector<SharedTracer>;
       using PriorityFunc    = std::function<TracerList(const TracerList &current,
                                                        const TracerInventory &inventory)>;
@@ -183,7 +182,7 @@ namespace psmrts {
 
       /** Find and return pointer to tracer in list, otherwise an invalid
        * tracer is returned */
-      inline SharedTracer get_tracer( const UIDType &uid ) const {
+      inline ConstSharedTracer get_tracer( const UIDType &uid ) const {
         if ( m_inventory_t.contains( uid ) ) {
           return( m_inventory_t.find( uid ) );
         }
@@ -193,7 +192,7 @@ namespace psmrts {
       }
 
       /** Find the tracer of a valid ray trace result */
-      inline SharedTracer get_tracer( const PsmrtsRayTrace &ray ) const {
+      inline ConstSharedTracer get_tracer( const PsmrtsRayTrace &ray ) const {
         return ( get_tracer( ray.get_tracer_id() ) );
       }
 

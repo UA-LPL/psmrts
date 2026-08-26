@@ -312,7 +312,8 @@ namespace psmrts {
   };
 
   // Declare a shared pointer type for translations
-  using SharedTranslations = std::shared_ptr<PsmrtsTranslations>;
+  using SharedTranslations      = std::shared_ptr<PsmrtsTranslations>;
+  using ConstSharedTranslations = std::shared_ptr<const PsmrtsTranslations>;
 
 } // namespace psmrts
 

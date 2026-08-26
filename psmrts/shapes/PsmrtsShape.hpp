@@ -161,7 +161,8 @@ namespace psmrts {
   };
 
     // Create a shared pointer type for shapes
-  using SharedShape = std::shared_ptr<PsmrtsShape>;  
+  using SharedShape      = std::shared_ptr<PsmrtsShape>;  
+  using ConstSharedShape = std::shared_ptr<const PsmrtsShape>;  
 
 
   /**
