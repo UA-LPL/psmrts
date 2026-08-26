@@ -131,6 +131,14 @@ namespace psmrts {
       PsmrtsErrors( ) : m_errors() { }
       virtual ~PsmrtsErrors() = default;
 
+      inline size_t error_count() const {
+        return ( m_errors.size() );
+      }
+
+      inline bool has_errors() const {
+        return ( m_errors.size() > 0 );
+      }      
+
       inline void add_error( const std::exception &e ) const {
       // Monitor the cache size of the error queue
         if ( m_errors.size() >= MaxQueuedErrors ) {
@@ -159,9 +167,7 @@ namespace psmrts {
         return;
       }
 
-      inline size_t error_count() const {
-        return ( m_errors.size() );
-      }
+
 
       inline const std::deque<std::string> &errors() const {
         return ( m_errors );
