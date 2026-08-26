@@ -46,26 +46,26 @@ namespace psmrts {
                         m_carts( ),
                         m_translator() { }
       ProductOrder( const std::string &name,
-                    const SharedTranslations &trans = SharedTranslations() ) : 
+                    const ConstSharedTranslations trans = ConstSharedTranslations() ) : 
                     PsmrtsErrors( ),
                     m_submitted( ),
                     m_carts( name ),
                     m_translator( trans ) { }
       ProductOrder( const ProductConfiguration &submitted,
-                    const SharedTranslations &trans = SharedTranslations() ) : 
+                    const ConstSharedTranslations trans = ConstSharedTranslations() ) : 
                     PsmrtsErrors( ),
                     m_submitted( submitted ),
                     m_carts( submitted.name() ),
                     m_translator( trans ) { }
       ProductOrder( const ProductConfiguration &submitted,
                     const ProductConfiguration &config,
-                    const SharedTranslations &trans = SharedTranslations() ) : 
+                    const ConstSharedTranslations trans = ConstSharedTranslations() ) : 
                     PsmrtsErrors( ),
                     m_submitted( submitted ),
                     m_carts( submitted.name() ),
                     m_translator( trans )  { }                    
       ProductOrder( const ProductCart &cart,
-                    const SharedTranslations &trans = SharedTranslations() ) : 
+                    const ConstSharedTranslations trans = ConstSharedTranslations() ) : 
                     PsmrtsErrors( ),
                     m_submitted( cart.configuration() ),
                     m_carts(  ),
@@ -74,7 +74,7 @@ namespace psmrts {
       }
       ProductOrder( const ProductConfiguration &submitted,
                     const ProductCart &cart,
-                    const SharedTranslations &trans = SharedTranslations() ) : 
+                    const ConstSharedTranslations trans = ConstSharedTranslations() ) : 
                     PsmrtsErrors( ),
                     m_submitted( submitted ),
                     m_carts( submitted.name() ),
@@ -120,11 +120,11 @@ namespace psmrts {
         return ( m_carts.values() );
       }
 
-      inline SharedTranslations translations() const {
+      inline ConstSharedTranslations translations() const {
         return ( m_translator );
       }
 
-      inline void set_translations( const SharedTranslations &translations ) {
+      inline void set_translations( const ConstSharedTranslations translations ) {
         m_translator = translations;
       }
 
@@ -136,7 +136,7 @@ namespace psmrts {
       inline ordered_json to_json() const {
         ordered_json order_j = ordered_json::object();
         order_j.update( json_utils::insert_object( "submitted", m_submitted.to_json() ) );
-        
+
         ordered_json cart_j = json::array();
         for ( const auto &c : m_carts.values() ) {
           cart_j.push_back( c->to_json() );
@@ -147,9 +147,9 @@ namespace psmrts {
       }
 
     private:
-      ProductConfiguration m_submitted;
-      CartCache            m_carts;
-      SharedTranslations   m_translator;
+      ProductConfiguration    m_submitted;
+      CartCache               m_carts;
+      ConstSharedTranslations m_translator;
       // PsmrtsInventory          m_inventory;
 
   };
