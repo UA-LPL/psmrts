@@ -160,7 +160,7 @@ namespace psmrts {
           return ( m_tracers->process( function ) );
         }
 
-      inline SharedTranslations translations() const {
+      inline ConstSharedTranslations translations() const {
         return ( m_translations );
       }
 
@@ -171,7 +171,6 @@ namespace psmrts {
       inline void set_translations( const SharedTranslations &translator ) {
         m_translations =  translator;
       }
-
 
       inline std::string translate_path( const std::string &filepath ) const {
         if ( !m_translations ) return ( filepath );
@@ -190,7 +189,6 @@ namespace psmrts {
         if ( this != &other ) {
           n_merged += m_shapes->merge( *other.m_shapes );
           n_merged += m_tracers->merge( *other.m_tracers );
-          n_merged += m_translations->merge( *other.m_translations );
         }
         return ( n_merged );
       }
@@ -213,14 +211,15 @@ namespace psmrts {
       }
 
     private:
-      std::string                              m_name;
-      std::shared_ptr<ShapeInventory>          m_shapes;
-      std::shared_ptr<TracerInventory>         m_tracers;
-      std::shared_ptr<PsmrtsTranslations>      m_translations;
+      std::string                      m_name;
+      std::shared_ptr<ShapeInventory>  m_shapes;
+      std::shared_ptr<TracerInventory> m_tracers;
+      ConstSharedTranslations          m_translations;
   };
 
   // Declare a shared pointer type for tracers
-  using SharedInventory = std::shared_ptr<PsmrtsInventory>;
+  using SharedInventory      = std::shared_ptr<PsmrtsInventory>;
+  using ConstSharedInventory = std::shared_ptr<const PsmrtsInventory>;
 
 } // namespace psmrts
 

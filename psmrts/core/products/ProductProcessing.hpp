@@ -70,13 +70,15 @@ namespace psmrts {
       ProductProcessing( ) : m_translator( ) { }
 
       /** Constructor with customized path translator */
-      ProductProcessing( const SharedTranslations &trans ) : 
-                         m_translator( trans ) { }       
+      ProductProcessing( const ConstSharedTranslations trans ) : 
+                         m_translator( trans ) { } 
+      ProductProcessing( const PsmrtsTranslations &trans ) : 
+                         m_translator( make_shared_copy( trans ) ) { }                                
       virtual ~ProductProcessing() = default;
 
 
       /** Returns the file path translator */
-      inline const SharedTranslations &translator() const {
+      inline const ConstSharedTranslations &translator() const {
         return ( m_translator );
       }
 
@@ -504,7 +506,7 @@ namespace psmrts {
                                 ProductCart &cart ) const {
        
         cart.clear_errors();
-        
+
         std::vector<std::string> required_list;
         const ProductSpecification &specs_t = cart.specification();
         for ( const auto &option : config.options() ) {
@@ -930,7 +932,7 @@ namespace psmrts {
       }
 
     private:
-      SharedTranslations m_translator;
+      ConstSharedTranslations m_translator;
   };
 
 } // namespace psmrts

@@ -378,7 +378,7 @@ namespace psmrts {
       }
 
       /** Returns reference to the ellipsoid tracer model  */
-      inline const PsmrtsTracer &get_ellipsoid_tracer() const {
+      inline const ConstSharedTracer get_ellipsoid_tracer() const {
         return ( m_ellipsoid_r );
       }
 
@@ -396,19 +396,18 @@ namespace psmrts {
        * @param ray   Ray intercept object that is assumed to contain a valid
        *              surface itercept. An invalid tracer will be returned if it
        *              is was not successful.
-       * @return psrts::PsmrtsTracer The tracer that intercepted the surface
+       * @return ConstSharedTracer The tracer that intercepted the surface
        *                             from the ray contained the ray object. If
        *                             the trace did not intercept the any
-       *                             surface, an invalid PsmrtsTracer is
-       *                             returned. Use PsmrtsTracer::isValid() to
-       *                             check status.
+       *                             surface, an empty ConstSharedTracer is
+       *                             returned.
        *                            
        */
-      inline SharedTracer get_tracer_from_intercept( const PRQRayTrace &ray ) 
+      inline ConstSharedTracer get_tracer_from_intercept( const PRQRayTrace &ray ) 
                                                      const {
         UIDType uid_t = ray.trace( ).get_tracer_id();
         if ( !PsmrtsUID::is_valid_uid( uid_t) ) {
-          return ( PsmrtsTracer() );
+          return ( ConstSharedTracer() );
         }
 
         if ( uid_t == m_ellipsoid_r->uid() ) {
