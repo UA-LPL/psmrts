@@ -279,6 +279,11 @@ namespace psmrts {
         return ( this->status() == "optional" );
       }
 
+      /** Checks if this feature is optional */
+      inline bool is_conflict() const {
+        return ( this->status() == "conflict" );
+      }
+
       /** Checks if this feature is an alias */
       inline bool isa_alias( const std::string &a_key ) const {
         for (const auto &alias_k : this->aliases()) {

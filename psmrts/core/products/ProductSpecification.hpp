@@ -269,6 +269,14 @@ namespace psmrts {
           }
         }
 
+        // Check for conflicting feature for this option
+        if ( feature.is_conflict() ) {
+          std::string mess = "ProductSpecification::validate option (" +
+                    option.name() + ") conflicts with this specification.";
+          validator.add_error( std::runtime_error( mess ) );
+          is_good = false;
+        }
+
         return ( is_good );
       }
 

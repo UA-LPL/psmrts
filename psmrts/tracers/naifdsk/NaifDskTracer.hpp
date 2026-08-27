@@ -232,6 +232,12 @@ namespace psmrts  {
                                  ProductOption( "status", "optional" ),
                                  ProductOption( "default", "naifdsk" ),
                                  ProductOption( "valid", "naifdsk" ) } );
+        ProductFeature shape( "shape", {
+                                 ProductOption( "name", "shape" ),
+                                 ProductOption( "type", "string" ),
+                                 ProductOption( "description", "Shape specs conflict with the naifdsk tracer" ),
+                                 ProductOption( "status", "conflict" ),
+                                 ProductOption( "default", "dsk" ) } );                                 
         ProductFeature dfile( "dsk_file", {
                                  ProductOption( "name", "dsk_file" ),
                                  ProductOption( "type", "file" ),
@@ -264,7 +270,7 @@ namespace psmrts  {
                                  ProductOption( "aliases", "required_kernels" ) } );
 #endif
         // This validates the JSON structure and provides product info to callers
-        return ( ProductSpecification( info, { product, dfile, bodyid, segid } ) );
+        return ( ProductSpecification( info, { product, shape, dfile, bodyid, segid } ) );
       }
       
       

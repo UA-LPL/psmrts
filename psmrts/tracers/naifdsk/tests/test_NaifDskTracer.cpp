@@ -526,8 +526,8 @@ TEST_CASE( "NAIF Dsk Shape Tracer Product Specification Test", "[naifdsk][shapet
 
     CHECK( spec.name()              == "naifdsk"     );
     CHECK( spec.product()           == "tracer" ); 
-    CHECK( spec.size()              == 4             );
-    CHECK( spec.features().size()   == 4             );
+    CHECK( spec.size()              == 5             );
+    CHECK( spec.features().size()   == 5             );
     CHECK( spec.required().size()   == 1             );
     CHECK( spec.optional().size()   == 3             );
 
