@@ -253,6 +253,8 @@ namespace psmrts {
       inline SharedOrder process_order( const ProductConfiguration &config ) 
                                                const {
 
+        // std::cout << "\n\nprocess_order: " << config.name() << std::endl;
+
         SharedOrder order_t = make_shared_copy( ProductOrder( config, m_translator ) );
         if ( config.size() == 0 ) {
           order_t->add_error( "process_order() - configuration has no options" ); 
@@ -264,18 +266,22 @@ namespace psmrts {
         ProductCart cart_t;
         auto tracer_specs_v = ProductMaker<PsmrtsTracer>().get_product_specs();
         for ( const auto &tracer_s : tracer_specs_v ) {
-           cart_t = ProductCart( tracer_s );
-
-          this->process_cart( config, cart_t );
+          cart_t = ProductCart( tracer_s );
+          // std::cout << "\nTracerSpecs: " << tracer_s.name() << std::endl;
+          bool status_c = this->process_cart( config, cart_t );
+          // std::cout << "proccess_cart status: " << status_c << ", errors: " << cart_t.errors_to_string() << std::endl;
+          
 
           // If this parse is successful, we are done and its a standalone tracer.
           if ( cart_t.has_valid_content() ) {
+            // std::cout << "cat is valid we are done!" << std::endl;
             order_t->add( cart_t );
             return ( order_t  );
           }
 
           // Check for errors. If none break for shape processing
           if ( cart_t.error_count() == 0 ) {
+            // std::cout << "cart has no errors - on to shapes!" << std::endl;
             break;
           }
           
@@ -292,24 +298,30 @@ namespace psmrts {
         ProductConfiguration config_t( config.name()  );
         if ( ( cart_t.error_count() > 0 ) || ( cart_t.size() == 0 )) {
           // Process as shape only, start over
+          // std::cout << "Shape only do over!" << std::endl;
           config_t = config;
           all_errors.clear_errors();
         }
         else {
           // cart_t content contains processed tracer, lets see if we have
           // shape to consume the remaining residual/dependencies
+          // std::cout << "Got tracer, checking for shape!" << std::endl;
           config_t = cart_t.residual_config();
           cart_t.clear_residuals();
+          // std::cout << "ShapeResidConfig: " << config_t.to_json().dump(-1) << std::endl;
         }
 
         ProductCart cart_s;
         auto shape_specs_v  = ProductMaker<PsmrtsShape>().get_product_specs();
         for ( const auto &shape_s : shape_specs_v ) {
+          // std::cout << "\nShapeSpecs: " << shape_s.name() << std::endl;
           cart_s = ProductCart( shape_s );
-          this->process_cart( config_t, cart_s );
+          bool status_c = this->process_cart( config_t, cart_s );
+          // std::cout << "proccess_cart status: " << status_c << ", errors: " << cart_s.errors_to_string() << std::endl;
           if ( cart_s.has_valid_content() ) {
             // Is there a tracer with this shape?
             if ( cart_t.has_valid_content() ) {
+               // std::cout << "Got a tracer and a shape" << std::endl;
               order_t->add( cart_t );
             }
             order_t->add( cart_s );
@@ -318,7 +330,8 @@ namespace psmrts {
           // Accumulate error conditions
           all_errors.append( cart_s );          
         }
-
+               
+        // std::cout << "All done..." << std::endl;
         order_t->append( all_errors );
         return ( order_t );        
 
@@ -375,6 +388,7 @@ namespace psmrts {
 
             // Compare the cart config option if it exists, otherwise ensure the
             // value is an option default value.
+            // std::cout << "Checking option: " << f_name << std::endl;
             if ( compare_feature_options( option_f, config_c, feature ) ) {
 
               if ( feature.is_path_type() ) {
@@ -390,7 +404,8 @@ namespace psmrts {
               }
             }
             else {
-              errors.add_error( "\"" + name_t + "\" option is invalid or isn't the default in specs " + specs_c.name() );              
+             // std::cout << "Bad key: " << f_name << std::endl;
+              errors.add_error( "\"" + name_t + "\" option is invalid, conflicts with, or isn't the default in specs " + specs_c.name() );              
             }
           }
           else {
@@ -461,6 +476,7 @@ namespace psmrts {
                                            const ProductFeature &feature ) const {
 
         if ( feature.is_dependency( ) ) return ( true );
+        if ( feature.is_conflict( ) ) return ( false );
 
         // Compare options
         if ( config.contains( option.name() ) ) {
@@ -567,7 +583,7 @@ namespace psmrts {
           }
         }
 
-        return ( cart.error_count() > 0 );
+        return ( cart.error_count() ==  0 );
       }
 
 
@@ -919,16 +935,6 @@ namespace psmrts {
         else {
           cart.add_residual( option );
         }          
-      }
-
-
-
-      /** Determine if a product is valid */
-      inline bool is_valid_order( const ProductOrder &product ) const {
-        if ( product.name() == "none"  ) return ( false );
-        if ( product.error_count() > 0 ) return ( false );
-        if ( product.size() == 0       ) return ( false );
-        return ( true );
       }
 
     private:
