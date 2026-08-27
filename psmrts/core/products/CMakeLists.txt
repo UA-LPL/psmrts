@@ -11,8 +11,7 @@ target_sources( psmrts PUBLIC
                                   ProductOrder.hpp
                                   ProductModelDispatch.hpp
                                   ProductProcessing.hpp
-                                  ProductSpecification.hpp
-                                  PRQProduct.hpp )
+                                  ProductSpecification.hpp )
  
 # Only add if requested
 if(PSMRTS_BUILD_TESTS)

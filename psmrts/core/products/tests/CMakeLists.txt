@@ -14,8 +14,7 @@ add_executable( products_test_suite  products_catch2_main.cpp
                                   test_ProductMaker.cpp
                                   test_ProductModelDispatch.cpp
                                   test_ProductSpecification.cpp
-                                  test_ProductVoidVariant.cpp
-                                  test_PRQProduct.cpp )
+                                  test_ProductVoidVariant.cpp )
 
 # Add required libraries as needed for conversions_test_suite
 target_link_libraries( products_test_suite PRIVATE psmrts::psmrts )
