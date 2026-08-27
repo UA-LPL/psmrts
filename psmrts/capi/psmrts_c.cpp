@@ -1756,7 +1756,9 @@ PSMRTS_Invoice *psmrts_create_invoice( const char* name,
 PSMRTS_BOOL psmrts_add_config_invoice( PSMRTS_ProductConfiguration *config,
                                        PSMRTS_Invoice *invoice ) {
 
-  return ( invoice->create_product( *config ) );
+  invoice->add( *config );
+  
+  return ( true );
 }
 
 /**
