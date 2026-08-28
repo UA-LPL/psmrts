@@ -163,6 +163,13 @@ namespace psmrts {
        */
       inline size_t submit_order() {
         m_tracers = PsmrtsFactory().process_order( m_orders, *m_inventory, *this );
+        if ( m_tracers.size() != m_orders.size() ) {
+          // this is an erorr
+          this->add_error( "PsmrtsInvoice::submit_order() - Number tracers returned (" +
+                           std::to_string( m_tracers.size() ) + ") not equal to orders (" +
+                           std::to_string( m_orders.size() ) + ")" );
+        }
+        if ( this->has_errors() ) this->throw_errors();
         return ( m_tracers.size() );
       }
 
@@ -234,11 +241,9 @@ namespace psmrts {
         newlist_t.reserve( list_t.size() );
 
         /** Checks for duplicate except at index_t assumed to be t */
-        auto tracer_dup = [&]( auto &t, const size_t index_t ) -> bool {
-          for ( size_t i = 0 ; i < list_t.size() ; i++ ) {
-            if ( index_t != i ) {
-              if ( t.get() == list_t[i].get() ) return ( true );
-            }
+        auto tracer_dup = [&]( auto &t, const size_t max_i ) -> bool {
+          for ( size_t j = 0 ; j < max_i ; j++ ) {
+            if ( t.get() == list_t[j].get() ) return ( true );
           }
           return ( false );
         };
