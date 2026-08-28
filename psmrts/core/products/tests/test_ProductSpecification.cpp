@@ -63,50 +63,111 @@ TEST_CASE ( "ProductSpecification Constructor / Base Function Test", "[product][
 
 TEST_CASE( "ProductSpecification Configuration Test", "[product][specification][configuration]") {
 
-  psmrts::PsmrtsTranslations trans_t = psmrts::PsmrtsTranslations::create();
-  trans_t.add_parameter("objdir", "obj/data");
+  auto trans_t = psmrts::make_shared_copy( psmrts::PsmrtsTranslations::create() );
+  trans_t->add_parameter("objdir", "obj/data");
 
-  std::string objfile = psmrts_shapes_path( trans_t.translate_path( "$objdir/bennu_20facets.obj" ) );
+  std::string objfile = psmrts_shapes_path( trans_t->translate_path( "$objdir/bennu_20facets.obj" ) );
   psmrts::PsmrtsShape shape_t( objfile );
   psmrts::ProductSpecification specs_t = shape_t.specs();
   psmrts::ProductConfiguration config_t = shape_t.config();
+
   psmrts::ProductCart cart_t( specs_t, config_t );
   CHECK( config_t.size() == 3 );
-  psmrts::ProductProcessing process_t( trans_t );
-  psmrts::ProductOrder order_t = process_t.process_cart( cart_t );
-  CHECK( order_t.isvalid()          == true );
-  CHECK( order_t.error_count()      == 0 );
-  CHECK( order_t.errors_to_string() == "" );
-  CHECK( order_t.config().size()    == 3 );
-  CHECK( order_t.residual().size()  == 0 );
 
-  trans_t.add_environment("PLYDIR", "ply/data");
+  psmrts::ProductProcessing process_t( trans_t );
+  psmrts::PsmrtsErrors errors;
+
+  CHECK( process_t.compare_product_config( config_t, cart_t, errors ) == true );
+  CHECK( errors.errors_to_string() == "" );
+  CHECK( process_t.process_cart( config_t, cart_t ) == true );
+  CHECK( cart_t.error_count() == 0 );
+  CHECK( cart_t.errors_to_string() == "" );
+
+  auto order_t = process_t.process_order( config_t );
+  CHECK( order_t->isvalid()          == true );
+  CHECK( order_t->error_count()      == 0 );
+  CHECK( order_t->errors_to_string() == "" );
+  CHECK( order_t->config().size()    == 3 );
+  REQUIRE( order_t->find( "shape") != nullptr );
+  CHECK( order_t->find( "shape")->residual().size()  == 0 );
+
+  trans_t->add_environment("PLYDIR", "ply/data");
   std::string plyfile = psmrts_shapes_path( "$PLYDIR/Bennu_Radar.ply" );
-  psmrts::PsmrtsShape shape_p( trans_t.translate_path( plyfile ) );
+  psmrts::PsmrtsShape shape_p( trans_t->translate_path( plyfile ) );
   psmrts::ProductSpecification specs_p  = shape_p.specs();
   psmrts::ProductConfiguration config_p = shape_p.config();
   psmrts::ProductCart cart_p( specs_p, config_p );
-  // CHECK( specs_p.to_json().dump(2) == "" );
 
-  CHECK( config_p.size() == 2 );
-  psmrts::ProductOrder order_p = process_t.process_cart( cart_p );
-  CHECK( order_p.isvalid()          == true );
-  CHECK( order_p.error_count()      == 0 );
-  CHECK( order_p.errors_to_string() == "" );
-  CHECK( order_p.config().size()    == 2 );
-  CHECK( order_p.residual().size()  == 0 );
+  CHECK( config_p.size() == 3 );
+  CHECK( process_t.compare_product_config( config_p, cart_p, errors ) == true );
+  CHECK( errors.errors_to_string() == "" );
+  CHECK( process_t.process_cart( config_p, cart_p ) == true );
+  CHECK( cart_p.error_count() == 0 );
+  CHECK( cart_p.errors_to_string() == "" );
+  auto order_p = process_t.process_order( config_p );
+  CHECK( order_p->isvalid()          == true );
+  CHECK( order_p->error_count()      == 0 );
+  CHECK( order_p->errors_to_string() == "" );
+  CHECK( order_p->config().size()    == 3);
+  REQUIRE( order_p->find( "shape") != nullptr );
+  CHECK( order_p->find("shape")->residual().size()  == 0 );
 
   std::string dskfile = psmrts_shapes_path( "dsk/data/bennu_20facets.bds" );
-  psmrts::PsmrtsShape shape_d( dskfile );
+  psmrts::PsmrtsShape shape_d(  dskfile );
   psmrts::ProductSpecification specs_d  = shape_d.specs();
   psmrts::ProductConfiguration config_d = shape_d.config();
+  psmrts::ProductCart cart_d( specs_d, config_d );
   CHECK( config_d.size() == 2 );
 
+  CHECK( process_t.compare_product_config( config_d, cart_d, errors ) == true );
+  CHECK( errors.errors_to_string() == "" );
+  CHECK( process_t.process_cart( config_d, cart_d ) == true );
+  CHECK( cart_d.size()        == 2 );
+  CHECK( cart_d.error_count() == 0 );
+  CHECK( cart_d.errors_to_string() == "" );
+
+  auto order_d = process_t.process_order( config_d );
+  CHECK( order_d->isvalid()          == true );
+  CHECK( order_d->size()             == 1 );
+  CHECK( order_d->error_count()      == 0 );
+  CHECK( order_d->errors_to_string() == "" );
+  CHECK( order_d->config().size()    == 2 );
+  CHECK( order_d->find( "shape") != nullptr );
+  CHECK( order_d->find("shape")->residual().size()  == 0 );  
+}
+
+
+TEST_CASE( "ProductSpecification DSK Shape Configuration Test", "[product][specification][configuration][dsk]") {
+
+  auto trans_t = psmrts::make_shared_copy( psmrts::PsmrtsTranslations::create() );
+  trans_t->add_parameter("objdir", "obj/data");
+
+  psmrts::ProductProcessing process_t( trans_t );
+  psmrts::PsmrtsErrors errors;
+
+  std::string dskfile = psmrts_shapes_path( "dsk/data/bennu_20facets.bds" );
+  psmrts::PsmrtsShape shape_d(  dskfile );
+  psmrts::ProductSpecification specs_d  = shape_d.specs();
+  psmrts::ProductConfiguration config_d = shape_d.config();
   psmrts::ProductCart cart_d( specs_d, config_d );
-  psmrts::ProductOrder order_d = process_t.process_cart( cart_d );
-  CHECK( order_d.isvalid()          == true );
-  CHECK( order_d.error_count()      == 0 );
-  CHECK( order_d.errors_to_string() == "" );
-  CHECK( order_d.config().size()    == 2 );
-  CHECK( order_d.residual().size()  == 0 );
+  CHECK( config_d.size() == 2 );
+
+  CHECK( process_t.compare_product_config( config_d, cart_d, errors ) == true );
+  CHECK( errors.errors_to_string() == "" );
+  psmrts::ProductCart cart_proc( specs_d );
+  CHECK( process_t.process_cart( config_d, cart_proc ) == true );
+  CHECK( cart_proc.size()          == 2 );
+  CHECK( cart_proc.residual_size() == 0 );
+  CHECK( cart_proc.error_count()   == 0 );
+  CHECK( cart_proc.errors_to_string() == "" );
+
+  auto order_d = process_t.process_order( config_d );
+  CHECK( order_d->isvalid()          == true );
+  CHECK( order_d->size()             == 1 );
+  CHECK( order_d->error_count()      == 0 );
+  CHECK( order_d->errors_to_string() == "" );
+  CHECK( order_d->config().size()    == 2 );
+  REQUIRE( order_d->find( "shape") != nullptr );
+  CHECK( order_d->find("shape")->residual().size()  == 0 );  
+  REQUIRE( order_d->find( "tracer") == nullptr );
 }

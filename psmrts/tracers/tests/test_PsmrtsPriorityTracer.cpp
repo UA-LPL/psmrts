@@ -36,7 +36,7 @@ TEST_CASE ( "NAIF DSK Priority Tracer Test", "[naif][shape][priority][tracer]") 
   std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
   
   psmrts::PsmrtsTracer dsk_tracer( psmrts::PsmrtsTracer::naifdsk( dskfile ) );
-  psmrts::PsmrtsPriorityTracer p_tracer( dsk_tracer );
+  psmrts::PsmrtsPriorityTracer p_tracer( make_shared_copy( dsk_tracer ) );
   CHECK( p_tracer.isValid() == true );
   CHECK( p_tracer.size()    == 1 );
   
@@ -94,8 +94,8 @@ TEST_CASE( "Naif Priority Tracer Default Test", "[priority][tracer][naif]") {
   psmrts::PsmrtsPriorityTracer test_tracers;
   CHECK( test_tracers.isValid() == false );
 
-  test_tracers.add_tracer( psmrts::PsmrtsTracer( s_ellipse ) );
-  test_tracers.add_tracer( psmrts::PsmrtsTracer( l_ellipse ) );
+  test_tracers.add( make_shared_copy( psmrts::PsmrtsTracer( s_ellipse ) ) );
+  test_tracers.add( make_shared_copy( psmrts::PsmrtsTracer( l_ellipse ) ) );
 
   CHECK( test_tracers.isValid() == true );
   CHECK( test_tracers.size()    == 2 );
@@ -134,10 +134,13 @@ TEST_CASE( "Priority Tracer Ray Trace Test", "[priority][tracer][dsk][naif]") {
   CHECK( lon == 90 );
   CHECK( lat == 0 );
 
+  psmrts::SharedTracer ellipsoid_t( make_shared_copy( psmrts::PsmrtsTracer( small_ellipsoid ) ) );
+  psmrts::SharedTracer dsk_t( make_shared_copy( psmrts::PsmrtsTracer( dsk ) ) );
+
   // Tracer settup
   psmrts::PsmrtsPriorityTracer test_tracers;
-  test_tracers.add_tracer( psmrts::PsmrtsTracer( small_ellipsoid ));
-  test_tracers.add_tracer( psmrts::PsmrtsTracer( dsk ) );
+  test_tracers.add( ellipsoid_t  );
+  test_tracers.add( dsk_t );
 
   psmrts::PRQRayTrace ray( obs, lkdr);
 
@@ -157,8 +160,8 @@ TEST_CASE( "Priority Tracer Ray Trace Test", "[priority][tracer][dsk][naif]") {
   std::vector<double> z_list = {0.05, 0.08, 0.10, 0.11, 0.12, 0.15, 0.20};
 
   psmrts::PsmrtsPriorityTracer next_tracer;
-  next_tracer.add_tracer( psmrts::PsmrtsTracer( small_ellipsoid ) );
-  next_tracer.add_tracer( psmrts::PsmrtsTracer( dsk ) );
+  next_tracer.add( ellipsoid_t );
+  next_tracer.add( dsk_t );
 
   for ( auto z_value: z_list ) {
       Eigen::Vector3d lkdr = -observer + Eigen::Vector3d({0.0, 0.0, z_value});
@@ -170,8 +173,8 @@ TEST_CASE( "Priority Tracer Ray Trace Test", "[priority][tracer][dsk][naif]") {
 
   next_tracer.clear();
   CHECK ( next_tracer.size() == 0 );
-  next_tracer.add_tracer( psmrts::PsmrtsTracer( dsk ) );
-  next_tracer.add_tracer( psmrts::PsmrtsTracer( small_ellipsoid ) );
+  next_tracer.add( dsk_t );
+  next_tracer.add( ellipsoid_t );
   
   for ( auto const &z_value: z_list ) {
       Eigen::Vector3d lkdr = -observer + Eigen::Vector3d({0.0, 0.0, z_value});

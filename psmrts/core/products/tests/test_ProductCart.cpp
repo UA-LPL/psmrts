@@ -60,5 +60,5 @@ TEST_CASE( "ProductCart Default Test", "[cart][default]") {
     CHECK( res_config.name() == cart.configuration().name() );
     
     ordered_json j_cart = cart.to_json();
-    CHECK( cart.to_json().size() == 3 );
+    CHECK( cart.to_json().size() == 4 );
 }
