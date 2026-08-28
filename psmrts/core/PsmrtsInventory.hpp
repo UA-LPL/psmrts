@@ -129,8 +129,11 @@ namespace psmrts {
 
       inline UIDType add( const SharedShape &shape ) {
         if ( !shape ) return ( psmrts::PsmrtsUID::null_uid() );
-        m_shapes->add(shape->uid(), shape );
-        return ( shape->uid() );
+        auto uid = shape->uid();
+        if ( PsmrtsUID::is_valid_uid( uid ) ) {
+          m_shapes->add( shape->uid(), shape );
+        }
+        return ( uid );
       }
 
 
@@ -144,8 +147,15 @@ namespace psmrts {
 
       inline UIDType add( const SharedTracer &tracer ) {
         if ( !tracer ) return ( psmrts::PsmrtsUID::null_uid() );
-        m_tracers->add( tracer->uid(), tracer );
-        return ( tracer->uid() );
+        auto uid = tracer->uid();
+        if ( PsmrtsUID::is_valid_uid( uid ) ) {
+          m_tracers->add( tracer->uid(), tracer );
+          PRQShape shape_t;
+          if ( tracer->process( shape_t ) ) {
+            this->add( shape_t.shape() );
+          }
+        }        
+        return ( uid );
       }
 
       /** Thread-safe process shapes with function/lambda/object */
