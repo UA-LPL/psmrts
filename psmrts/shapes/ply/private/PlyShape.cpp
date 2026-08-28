@@ -58,8 +58,8 @@ namespace psmrts {
                             " but found " + v_conf.find("shape").to_string();
         throw std::runtime_error( mess );
       }
-      m_config.add( ProductOption( "shape", "ply" ) );
     }
+    m_config.add( ProductOption( "shape", "ply" ) );
 
     std::string plyfile          = name_t;
     // Check for obj_file
