@@ -110,6 +110,8 @@ namespace psmrts {
           this->add_product( "file", file );
         }
 
+        // In this case, make the tracer immediately to catch errors!
+        (void) create_priority_tracer( name );
       }      
 
       // Destructor
