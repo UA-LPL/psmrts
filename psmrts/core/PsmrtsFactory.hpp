@@ -61,20 +61,13 @@ namespace psmrts {
    * 
    * PsrmtsFactory contains a cache of PsmrtsInventorys with the main default
    * 
-   * Here is a small example of the characteristics of PsmrtsFactory.
-   * 
-   * @code
-   * // State of an empty factory.
-   * psmrts::PsmrtsFactory factory1;
-   * factory1.liquidate();  // Start with empty factory, "psmrts" always exists
-   *  
-   * @endcode 
-   *
    * @author Kris J Becker, Univerisity of Arizona
    * @history 2025-09-07 Kris J. Becker  Original Version
    * @history 2026-01-01 Kris J. Becker  Add thread locking for merge, add and
    *                      remove operations
    * @history 2026-02-17 Kris J. Becker  Fix initialization and tests
+   * @history 2026-08-29 Kris J. Becker  Refactored to use shared products and 
+   *                       other PSMRTS data elements.
    */
   class PsmrtsFactory final {
     public:
@@ -255,10 +248,10 @@ namespace psmrts {
 
           // Run a search on the local inventory since we can be creating new
           // products there.
-          bool success = this->tracer_search( cart_t, cart_s, 
-                                              { inventory.tracers(), 
-                                                m_inventory.tracers() },
-                                              processor, tracer_p, shape_p );
+          bool success = this->tracer_search( *order, inventory, processor, tracer_p, shape_p );
+          if ( !success ) {
+            success = this->tracer_search( *order, m_inventory, processor, tracer_p, shape_p );
+          }
           
           // If we did not find an existing tracer, we must make one
           if ( !success ) {
@@ -277,7 +270,7 @@ namespace psmrts {
           this->update_cart( cart_t, tracer_p );  
           this->update_cart( cart_s, shape_p ); 
         
-          // Update the invertories
+          // Update the inventories
           inventory.add( tracer_p );
           inventory.add( shape_p );
 
@@ -296,6 +289,68 @@ namespace psmrts {
                                                      PsmrtsErrors &errors ) {
         std::vector<SharedOrder> orders =  { order };
         return ( process_order( orders, inventory, errors ) );
+      }
+
+      /**
+       * @brief Create a new product as defined by the order content
+       * 
+       * This method uses no factory resources but will create a new product
+       * based upon the carts contained in the order. It should be used when
+       * the product resources do not exist in the factory invoice.
+       * 
+       * The products created here are not added to the factory resources so
+       * if callers want to add this to the factory, it must be done so using one
+       * of the add() methods.
+       * 
+       * @param order   Order containing the product configurations
+       * @param tracer  Returns a tracer if a configuration exists in the order
+       * @param shape   Returns a shape if a configuration exists in the order
+       * @param errors  An error logger to return any errors that occured in the
+       *                 creation of the products. Note no errors are thrown 
+       *                 directly in this method but can be upon return by this
+       *                 object.
+       * @return true  If the product was successfully created
+       * @return false If the product could not be created
+       */
+      inline bool make_tracer_and_shape( const ProductOrder &order,
+                                         SharedTracer &tracer, 
+                                         SharedShape &shape,
+                                         PsmrtsErrors &errors ) const {
+
+        SharedCart cart_s = order.find("shape");
+        SharedCart cart_t = order.find("tracer");
+
+        bool success = true;
+        if ( cart_s && !shape ) {
+          ProductMaker<PsmrtsShape> maker_s( cart_s->name() );
+          if ( !maker_s.process_cart( *cart_s ) ) {
+            errors.add_error( "PsmrtsFactory::make_tracer_and_shape() - Failed to make shape: " + cart_s->name() );
+            return ( false );
+          }
+          shape = maker_s.product();     
+        }
+
+        if ( cart_t && !tracer ) {
+          ProductMaker<PsmrtsTracer> maker_t( cart_t->name() );
+          SharedTracer tracer_t;
+          if ( !shape ) {
+            tracer_t = maker_t.process_cart( *cart_t );
+          }
+          else {
+            tracer_t = maker_t.process_cart( *cart_t, shape );
+          }
+
+          // Check for success
+          if ( !tracer_t ) {
+            errors.add_error( "PsmrtsFactory::make_tracer_and_shape() - Failed to make tracer: " + cart_t->name() );
+            success = false;
+          }
+          else {
+            tracer = tracer_t;
+          }
+
+        } 
+        return ( success );
       }
 
       /**
@@ -338,57 +393,68 @@ namespace psmrts {
 
     private:
       // Definitions and cache of active product inventories.
-      // using FactoryInventory = InventoryCache;
-      static inline PsmrtsInventory m_inventory{ "psmrts" };
-      static inline std::shared_mutex  m_mutex{};
+      inline static PsmrtsInventory m_inventory{ "psmrts" };
+      inline static std::shared_mutex m_mutex;
 
+      /**
+       * @brief Update the cart with the product uid
+       * 
+       * @tparam SharedT Type of product to update
+       * @param cart     Cart to update
+       * @param data     Typically a PsmrtsTracer or PsmrtsShape
+       */
       template <typename SharedT>
         inline void update_cart( SharedCart &cart, const SharedT &data ) const {
           if ( cart && data ) cart->set_uid( data->uid() );
         }
 
-      inline bool tracer_search( const SharedCart &cart_t,
-                                 const SharedCart &cart_sptr, 
-                                 const std::initializer_list<SharedTracerInventory> &tracer_list,
+        /**
+         * @brief Run a tracer/shape search for a given order
+         * 
+         * This method will search a tracer/shape inventory for a match order.
+         * It will return a tracer and shape, if a shape is actually part of
+         * the tracer, upon a match found in the inventory.
+         * 
+         * This actually searches for a tracer and then compares the shape cart
+         * in the order, if given, to the shape in the tracer.
+         * 
+         * @param order     The order to fill containing a tracer configuration
+         * @param inventory The tracer/shape inventory to search to fullfil the order
+         * @param processor A product processor use to determine/validate products
+         * @param tracer Contains the tracer found in the search/compare
+         * @param shape  Contains the shape of the tracer if present
+         * @return true  If both the tracer and shape (if applicable) cart contents are 
+         *                 satisfied, true will be returned.
+         * @return false If the tracer or shape do not match any content in the
+         *                 inventory.
+         */
+      inline bool tracer_search( const ProductOrder &order,
+                                 const PsmrtsInventory &inventory,
                                  const ProductProcessing &processor,
                                  SharedTracer &tracer,
                                  SharedShape &shape ) const {
 
-        if ( !cart_t ) return ( false );
-
-        for ( const auto &tracer_inv : tracer_list ) {
-          auto tracer_p = processor.search_tracer_inventory( *cart_t, *tracer_inv );
-          if ( tracer_p ) {
-            // Got a tracer so check shape conditions
-            if ( cart_sptr ) {
-              PRQShape shape_extractor;
-              if ( tracer_p->process( shape_extractor ) ) {
-
-                // Check if the cart and shape specs are compatible
-                auto shape_p = shape_extractor.shape();
-                if ( cart_sptr->specification().name() == shape_p->specs().name() ) {
-
-                  // Compare the tracer's shape specs with the shape cart
-                  ProductCart cart_shape( shape_p->specs(), shape_p->config() );
-                  PsmrtsErrors errors;
-                  if ( processor.compare_product_config( cart_sptr->configuration(), cart_shape, errors ) ) {
-                    tracer = tracer_p;
-                    shape  = shape_p;
-                    return ( true );
-                  }
-                }
-              }
-            }
-            else {
-              tracer = tracer_p;
-              return ( tracer.get() != nullptr );
-            }
-          }
-       }
-
-        return ( false );
+        auto [ found, tracer_p, shape_p ] = processor.search_inventory( order, 
+                                                                    *inventory.tracers(), 
+                                                                    *inventory.shapes() );
+        tracer = tracer_p;
+        shape  = shape_p;
+        return ( found );
       } 
       
+      /**
+       * @brief Runs an inventory shape search to use in construction of new tracer
+       * 
+       * This method will return a shape if it is contained in the inventory
+       * 
+       * @param cart_s     Shape configuration to search for
+       * @param shape_list List of inventory pointers to search for a shape
+       * @param processor  Product processor to use in the evaluation of shapes 
+       *                     and the cart configuration
+       * @param shape      Returns a shape if found in the inventories
+       * @return true      If a shape was found in one of the inventories
+       * @return false     If a shape was not found
+       */
       inline bool shape_search( const SharedCart &cart_s, 
                                 const std::initializer_list<SharedShapeInventory> &shape_list,
                                 const ProductProcessing &processor,
@@ -405,46 +471,6 @@ namespace psmrts {
         return ( false );
       } 
 
-      inline bool make_tracer_and_shape( const ProductOrder &order,
-                                         SharedTracer &tracer, 
-                                         SharedShape &shape,
-                                         PsmrtsErrors &errors ) const {
-
-        SharedCart cart_s = order.find("shape");
-        SharedCart cart_t = order.find("tracer");
-
-        bool success = true;
-        if ( cart_s && !shape ) {
-          ProductMaker<PsmrtsShape> maker_s( cart_s->name() );
-          if ( !maker_s.process_cart( *cart_s ) ) {
-            errors.add_error( "PsmrtsFactory::make_tracer_and_shape() - Failed to make shape: " + cart_s->name() );
-            return ( false );
-          }
-          shape = maker_s.product();     
-        }
-
-        if ( cart_t && !tracer ) {
-          ProductMaker<PsmrtsTracer> maker_t( cart_t->name() );
-          SharedTracer tracer_t;
-          if ( !shape ) {
-            tracer_t = maker_t.process_cart( *cart_t );
-          }
-          else {
-            tracer_t = maker_t.process_cart( *cart_t, shape );
-          }
-
-          // Check for success
-          if ( !tracer_t ) {
-            errors.add_error( "PsmrtsFactory::make_tracer_and_shape() - Failed to make tracer: " + cart_t->name() );
-            success = false;
-          }
-          else {
-            tracer = tracer_t;
-          }
-
-        } 
-        return ( success );
-      } 
       
   };
 
