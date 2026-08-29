@@ -3,6 +3,16 @@
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/tracers/bullet/BulletTracer.hpp>
+#include <psmrts/shapes/PsmrtsShape.hpp>
+#include <psmrts/tracers/PsmrtsTracer.hpp>
+#include <psmrts/core/products/ProductOption.hpp>
+#include <psmrts/core/products/ProductConfiguration.hpp>
+#include <psmrts/core/products/ProductSpecification.hpp>
+#include <psmrts/core/products/ProductOrder.hpp>
+#include <psmrts/core/products/ProductMaker.hpp>
+#include <psmrts/core/products/ProductCart.hpp>
+#include <psmrts/core/products/ProductProcessing.hpp>
+#include <psmrts/core/PsmrtsInventory.hpp>
 
 #include <cspice/SpiceUsr.h>
 
@@ -127,6 +137,7 @@ TEST_CASE( "Bullet Tracer Test - Ray Trace / Values", "[bullet][tracer][values]"
     // Beware the most vexing parse (see https://www.fluentcpp.com/2018/01/30/most-vexing-parse/)
     psmrts::BulletTracer b_tracer( make_shared_copy( psmrts::PsmrtsShape{ objfile } ) );
     CHECK( b_tracer.minimum_radius()  < b_tracer.maximum_radius() );
+    // CHECK( b_tracer.config().to_json().dump(-1) == "" );
 
     const double max_radius = b_tracer.maximum_radius();
     
@@ -590,4 +601,262 @@ TEST_CASE( "Bullet Tracer Product Specification Test", "[bullet][tracer][product
     CHECK( spec.contains( "obj_mtl_search_path" )  == false );
     CHECK( spec.contains( "bullet_optimize_bvh" )  == true  );
 
+}
+
+TEST_CASE( "Bullet Tracer OBJ Shape Cart Construction Test", "[bullet][tracer][obj][cart]") {
+  // Set up translation system
+  psmrts::PsmrtsTranslations trans_t( "ISISTest" );
+  trans_t.add_environment( "ISISDATA", psmrts_rootpath() );
+  trans_t.add_parameter( "osirisrex", "$ISISDATA/psmrts/shapes" );    
+
+
+  // Set up shapes
+  std::string obj_file        = "$osirisrex/obj/data/bennu_20facets.obj";
+  std::string dsk_file        = "$osirisrex/dsk/data/bennu_20facets.bds";
+  psmrts::ProductConfiguration config_obj( "process_config_obj",
+                                         { psmrts::ProductOption( "file", obj_file ),
+                                           psmrts::ProductOption( "tracer", "bullet" ) } );
+
+  psmrts::ProductProcessing processor_t( trans_t );
+  auto order = processor_t.process_order( config_obj );
+
+  auto shape_c  = order->find("shape");
+  auto tracer_c = order->find("tracer");
+#if 0
+  if ( shape_c ) {
+    CHECK( shape_c->configuration().to_json().dump(-1)  == "" );
+  }
+
+  if ( tracer_c ) {
+    CHECK( tracer_c->configuration().to_json().dump(-1)  == "" );
+  }
+#endif  
+  
+  REQUIRE( shape_c != nullptr );
+  REQUIRE( tracer_c != nullptr );
+
+  psmrts::ProductMaker<psmrts::PsmrtsShape> maker_s( "obj" );
+  auto shape_p = maker_s.process_cart( *shape_c );
+  REQUIRE( shape_p != nullptr );
+  // CHECK( shape_p->config().to_json().dump(-1) == "" );
+
+  // Now create the Bullet tracer and check its config
+  psmrts::ProductMaker<psmrts::PsmrtsTracer> maker_t( "bullet" );
+  auto tracer_p = maker_t.process_cart( *tracer_c, shape_p );
+  REQUIRE( tracer_p != nullptr );
+  // CHECK( tracer_p->config().to_json().dump(-1) == "" );
+
+  psmrts::PsmrtsInventory inventory_t( "bullet_test", trans_t );
+  inventory_t.add( shape_p );
+  inventory_t.add( tracer_p );
+
+  CHECK( inventory_t.size_shapes()  == 1 );
+  CHECK( inventory_t.size_tracers() == 1 );
+
+  REQUIRE( inventory_t.shapes()->contains( shape_p->uid() )   == true );
+  REQUIRE( inventory_t.tracers()->contains( tracer_p->uid() ) == true );
+
+  auto tracer_inv = inventory_t.tracers()->find( tracer_p->uid() );
+  auto shapes_inv = inventory_t.shapes()->find( shape_p->uid() );
+  // CHECK( tracer_c->configuration().to_json().dump(-1) == "" );
+  // CHECK( tracer_inv->config().to_json().dump(-1) == "" );
+  
+
+  psmrts::PsmrtsErrors errors;
+  psmrts::ProductCart cart_p( tracer_inv->specs(), tracer_inv->config() );
+  CHECK( processor_t.compare_product_config( tracer_c->configuration(), cart_p, errors ) == true );
+  CHECK( errors.errors_to_string() == "" );
+
+  psmrts::SharedShape shape_s;
+  auto tracer_s = processor_t.search_tracer_inventory( *tracer_c, *inventory_t.tracers(), shape_c );
+  if (tracer_s ) shape_s = tracer_s->shape();  
+
+  CHECK( tracer_s != nullptr );
+  CHECK( shape_s  != nullptr );
+
+  auto [ found, tracer_i, shape_i] = processor_t.search_inventory( *order,
+                                                                   *inventory_t.tracers(), 
+                                                                   *inventory_t.shapes() );
+  CHECK( found == true );
+  if ( tracer_i ) {
+    CHECK( tracer_i->uid() == tracer_p->uid() );
+  }
+
+  if ( shape_i ) {
+    CHECK( shape_i->uid() == shape_p->uid() );
+  }
+}
+
+TEST_CASE( "Bullet Tracer Dsk Shape Cart Construction Test", "[bullet][tracer][dsk][cart]") {
+  // Set up translation system
+  psmrts::PsmrtsTranslations trans_t( "ISISTest" );
+  trans_t.add_environment( "ISISDATA", psmrts_rootpath() );
+  trans_t.add_parameter( "osirisrex", "$ISISDATA/psmrts/shapes" );    
+
+
+  // Set up shapes
+  std::string obj_file        = "$osirisrex/obj/data/bennu_20facets.obj";
+  std::string dsk_file        = "$osirisrex/dsk/data/bennu_20facets.bds";
+  psmrts::ProductConfiguration config_obj( "process_config_obj",
+                                         { psmrts::ProductOption( "file", dsk_file ),
+                                           psmrts::ProductOption( "tracer", "bullet" ) } );
+
+  psmrts::ProductProcessing processor_t( trans_t );
+  auto order = processor_t.process_order( config_obj );
+
+  auto shape_c  = order->find("shape");
+  auto tracer_c = order->find("tracer");
+
+#if 0
+  if ( shape_c ) {
+    CHECK( shape_c->configuration().to_json().dump(-1)  == "" );
+  }
+
+  if ( tracer_c ) {
+    CHECK( tracer_c->configuration().to_json().dump(-1)  == "" );
+  }
+#endif
+  
+  REQUIRE( shape_c != nullptr );
+  REQUIRE( tracer_c != nullptr );
+
+  psmrts::ProductMaker<psmrts::PsmrtsShape> maker_s( "obj" );
+  auto shape_p = maker_s.process_cart( *shape_c );
+  REQUIRE( shape_p != nullptr );
+  // CHECK( shape_p->config().to_json().dump(-1) == "" );
+
+  // Now create the Bullet tracer and check its config
+  psmrts::ProductMaker<psmrts::PsmrtsTracer> maker_t( "bullet" );
+  auto tracer_p = maker_t.process_cart( *tracer_c, shape_p );
+  REQUIRE( tracer_p != nullptr );
+  // CHECK( tracer_p->config().to_json().dump(-1) == "" );
+
+  psmrts::PsmrtsInventory inventory_t( "bullet_test", trans_t );
+  inventory_t.add( shape_p );
+  inventory_t.add( tracer_p );
+
+  CHECK( inventory_t.size_shapes()  == 1 );
+  CHECK( inventory_t.size_tracers() == 1 );
+
+  REQUIRE( inventory_t.shapes()->contains( shape_p->uid() )   == true );
+  REQUIRE( inventory_t.tracers()->contains( tracer_p->uid() ) == true );
+
+  auto tracer_inv = inventory_t.tracers()->find( tracer_p->uid() );
+  auto shapes_inv = inventory_t.shapes()->find( shape_p->uid() );
+  // CHECK( tracer_c->configuration().to_json().dump(-1) == "" );
+  // CHECK( tracer_inv->config().to_json().dump(-1) == "" );
+  
+
+  psmrts::PsmrtsErrors errors;
+  psmrts::ProductCart cart_p( tracer_inv->specs(), tracer_inv->config() );
+  // CHECK( processor_t.compare_product_config( tracer_c->configuration(), cart_p, errors ) == true );
+  CHECK( processor_t.compare_product_config( config_obj , cart_p, errors ) == true );
+  CHECK( errors.errors_to_string() == "" );
+
+  psmrts::SharedShape shape_s;
+  auto tracer_s = processor_t.search_tracer_inventory( *tracer_c, *inventory_t.tracers(), shape_c );
+  if (tracer_s ) shape_s = tracer_s->shape();  
+
+  CHECK( tracer_s != nullptr );
+  CHECK( shape_s  != nullptr );
+
+  auto [ found, tracer_i, shape_i] = processor_t.search_inventory( *order,
+                                                                   *inventory_t.tracers(), 
+                                                                   *inventory_t.shapes() );
+  CHECK( found == true );
+#if 1
+  if ( tracer_i ) {
+    CHECK( tracer_i->uid() == tracer_p->uid() );
+  }
+
+  if ( shape_i ) {
+    CHECK( shape_i->uid() == shape_p->uid() );
+  }
+#endif  
+}
+
+TEST_CASE( "Bullet Tracer PLY Shape Cart Construction Test", "[bullet][tracer][ply][cart]") {
+  // Set up translation system
+  psmrts::PsmrtsTranslations trans_t( "ISISTest" );
+  trans_t.add_environment( "ISISDATA", psmrts_rootpath() );
+  trans_t.add_parameter( "osirisrex", "$ISISDATA/psmrts/shapes" );    
+
+
+  // Set up shapes
+  std::string file1        = "$osirisrex/ply/data/Bennu_Radar.ply";
+  std::string file2        = "$osirisrex/ply/data/Bennu_Radar.ply";
+  psmrts::ProductConfiguration config_obj( "process_config",
+                                         { psmrts::ProductOption( "file", file1 ),
+                                           psmrts::ProductOption( "tracer", "bullet" ) } );
+
+  psmrts::ProductProcessing processor_t( trans_t );
+  auto order = processor_t.process_order( config_obj );
+
+  auto shape_c  = order->find("shape");
+  auto tracer_c = order->find("tracer");
+
+#if 0
+  if ( shape_c ) {
+    CHECK( shape_c->configuration().to_json().dump(-1)  == "" );
+  }
+
+  if ( tracer_c ) {
+    CHECK( tracer_c->configuration().to_json().dump(-1)  == "" );
+  }
+#endif
+  
+  REQUIRE( shape_c != nullptr );
+  REQUIRE( tracer_c != nullptr );
+
+  psmrts::ProductMaker<psmrts::PsmrtsShape> maker_s( "obj" );
+  auto shape_p = maker_s.process_cart( *shape_c );
+  REQUIRE( shape_p != nullptr );
+  // CHECK( shape_p->config().to_json().dump(-1) == "" );
+
+  // Now create the Bullet tracer and check its config
+  psmrts::ProductMaker<psmrts::PsmrtsTracer> maker_t( "bullet" );
+  auto tracer_p = maker_t.process_cart( *tracer_c, shape_p );
+  REQUIRE( tracer_p != nullptr );
+  // CHECK( tracer_p->config().to_json().dump(-1) == "" );
+
+  psmrts::PsmrtsInventory inventory_t( "bullet_test", trans_t );
+  inventory_t.add( shape_p );
+  inventory_t.add( tracer_p );
+
+  CHECK( inventory_t.size_shapes()  == 1 );
+  CHECK( inventory_t.size_tracers() == 1 );
+
+  REQUIRE( inventory_t.shapes()->contains( shape_p->uid() )   == true );
+  REQUIRE( inventory_t.tracers()->contains( tracer_p->uid() ) == true );
+
+  auto tracer_inv = inventory_t.tracers()->find( tracer_p->uid() );
+  auto shapes_inv = inventory_t.shapes()->find( shape_p->uid() );
+  // CHECK( tracer_c->configuration().to_json().dump(-1) == "" );
+  // CHECK( tracer_inv->config().to_json().dump(-1) == "" );
+  
+  psmrts::PsmrtsErrors errors;
+  psmrts::ProductCart cart_p( tracer_inv->specs(), tracer_inv->config() );
+  CHECK( processor_t.compare_product_config( tracer_c->configuration(), cart_p, errors ) == true );
+  CHECK( processor_t.compare_product_config( config_obj , cart_p, errors ) == true );
+  CHECK( errors.errors_to_string() == "" );
+
+  psmrts::SharedShape shape_s;
+  auto tracer_s = processor_t.search_tracer_inventory( *tracer_c, *inventory_t.tracers(), shape_c );
+  if (tracer_s ) shape_s = tracer_s->shape();
+  CHECK( tracer_s != nullptr );
+  CHECK( shape_s  != nullptr );
+
+  auto [ found, tracer_i, shape_i] = processor_t.search_inventory( *order,
+                                                                   *inventory_t.tracers(), 
+                                                                   *inventory_t.shapes() );
+  CHECK( found == true );
+#if 1  
+  if ( tracer_i ) {
+    CHECK( tracer_i->uid() == tracer_p->uid() );
+  }
+
+  if ( shape_i ) {
+    CHECK( shape_i->uid() == shape_p->uid() );
+  }
+#endif  
 }

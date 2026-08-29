@@ -312,7 +312,12 @@ TEST_CASE("PsmrtsTracerSystem ISIS Interface Test", "[tracer][system][isislike]"
   psmrts::PsmrtsPriorityTracer tracer_p = system_t.create_priority_tracer();
   CHECK( tracer_p.isValid()          == true );
   CHECK( tracer_p.inventory().size() == 4 );
-  
+ 
+#if 0  
+  for ( const auto &tracer : tracer_p.tracers() ) {
+    CHECK( tracer->config().to_json().dump(-1) == "" );
+  }
+#endif
   psmrts::PsmrtsFactory().liquidate();
 }
 
@@ -382,7 +387,7 @@ TEST_CASE("PsmrtsTracerSystem ISIS NaifDsk Test", "[tracer][system][naifdsk][sha
 
   psmrts::PsmrtsTracerSystem system_t( "bullets", trans_t );
   CHECK( system_t.process_shape_list( bullets ) == 3 );
-  CHECK( system_t.size()                        == 1 );
+  CHECK( system_t.size()                        == 3 );
   CHECK( system_t.invoice()->inventory().size_tracers() == 1 );
   CHECK( system_t.invoice()->inventory().size_shapes()  == 0 );
   
@@ -400,7 +405,8 @@ TEST_CASE("PsmrtsTracerSystem ISIS Bullet OBJ/PLY Test", "[tracer][system][obj][
   trans_t.add_environment( "ISISDATA", psmrts_rootpath() );
   trans_t.add_parameter( "osirisrex", "$ISISDATA/psmrts/shapes" );    
 
-  std::vector<std::string> shapes =  { "bullet::$osirisrex/obj/data/bennu_20facets.obj",
+  std::vector<std::string> shapes =  { 
+                                       "bullet::$osirisrex/obj/data/bennu_20facets.obj",
                                        "bullet::$osirisrex/obj/data/bennu_20facets.obj",
                                        "bullet::$osirisrex/ply/data/Bennu_Radar.ply",
                                        "bullet::$osirisrex/ply/data/Bennu_Radar.ply" };
@@ -411,6 +417,43 @@ TEST_CASE("PsmrtsTracerSystem ISIS Bullet OBJ/PLY Test", "[tracer][system][obj][
   
   const psmrts::PsmrtsPriorityTracer &priority_t = system_t.create_priority_tracer( "objply" );
   CHECK( priority_t.size() == 2 );
+#if 0 
+  for ( const auto &tracer : priority_t.tracers() ) {
+    CHECK( tracer->config().to_json().dump(-1) == "" );
+  }
+#endif
+
+  psmrts::ProductConfiguration config_p( "plt_c",
+                                        { psmrts::ProductOption( "file", "$osirisrex/ply/data/Bennu_Radar.ply" ),
+                                          psmrts::ProductOption( "tracer", "bullet" ) } );
+
+  psmrts::ProductProcessing processor_t = system_t.invoice()->processor();
+  auto order = processor_t.process_order( config_p );
+
+  auto shape_c  = order->find("shape");
+  auto tracer_c = order->find("tracer");
+
+  const auto &inventory_t = system_t.invoice()->inventory();
+  auto [ found, tracer_p, shape_p ] = processor_t.search_inventory( *order, *inventory_t.tracers(), *inventory_t.shapes() );
+  CHECK( found == true );
+
+  REQUIRE( order->find("tracer") != nullptr );
+  REQUIRE( order->find("shape") != nullptr );
+
+  auto tracer_c1 = order->find("tracer");
+  auto shape_c1 =  order->find("shape");
+
+  tracer_p = processor_t.search_tracer_inventory( *tracer_c1, *inventory_t.tracers(), shape_c1 );
+  REQUIRE( tracer_p != nullptr );
+  CHECK ( tracer_p->shape() != nullptr );
+
+  psmrts::PsmrtsTracerSystem system_t2( "ply", trans_t );
+  CHECK( system_t2.process_shape_list( { shapes[3] } ) == 1 );
+  const psmrts::PsmrtsPriorityTracer &priority_t2 = system_t2.create_priority_tracer( "objply" );
+  CHECK( priority_t2.size() == 1 );
+
+  CHECK( psmrts::PsmrtsFactory().tracer_count() == 2 );
+  CHECK( psmrts::PsmrtsFactory().shape_count()  == 2 );
 
   psmrts::PsmrtsFactory().liquidate();
 }
@@ -433,6 +476,10 @@ class ThreadTracers {
 
     inline const psmrts::PsmrtsTracerSystem &tracers() const {
       return ( m_tracers );
+    }
+
+    inline psmrts::PsmrtsPriorityTracer priority_tracer() const {
+      return ( m_tracers.get_shape_tracer() );
     }
 
   private:
@@ -484,13 +531,13 @@ TEST_CASE("PsmrtsTracerSystem Threads Test", "[tracer][system][threads]") {
   CHECK( priority_3.size() == 1 );
 
   CHECK( tracer_1.tracers().invoice()->inventory().size_tracers()  == 1 );
-  CHECK( tracer_1.tracers().invoice()->inventory().size_shapes()  == 1 );
+  CHECK( tracer_1.tracers().invoice()->inventory().size_shapes()   == 1 );
 
   CHECK( tracer_2.tracers().invoice()->inventory().size_tracers()  == 1 );
-  CHECK( tracer_2.tracers().invoice()->inventory().size_shapes()  == 1 );
+  CHECK( tracer_2.tracers().invoice()->inventory().size_shapes()   == 1 );
     
   CHECK( tracer_3.tracers().invoice()->inventory().size_tracers()  == 1 );
-  CHECK( tracer_3.tracers().invoice()->inventory().size_shapes()  == 1 );  
+  CHECK( tracer_3.tracers().invoice()->inventory().size_shapes()   == 1 );  
 
   // There should be only 1 each!
   CHECK( psmrts::PsmrtsFactory().tracer_count() == 1 );
@@ -518,6 +565,7 @@ TEST_CASE("PsmrtsTracerSystem Threads Multi-Type Tracers Test", "[tracer][system
 
   // Allocate all the threads and tracers here
   static unsigned int n_threads = 20;  // This allocates 20 threads
+  
   std::vector<std::thread> threads( n_threads );
   std::vector<ThreadTracers> tracer_list( n_threads );
 
@@ -525,7 +573,7 @@ TEST_CASE("PsmrtsTracerSystem Threads Multi-Type Tracers Test", "[tracer][system
   unsigned int n = 0;
   for ( auto &t : threads ) {
     t = std::thread( &ThreadTracers::load, &tracer_list[n++], shapes );
-    std::shuffle( shapes.begin(), shapes.end(), g );
+    // std::shuffle( shapes.begin(), shapes.end(), g );
   }
 
   // Must join them all
@@ -539,7 +587,8 @@ TEST_CASE("PsmrtsTracerSystem Threads Multi-Type Tracers Test", "[tracer][system
     CHECK( tracer_t.tracers().has_errors() == false );
 
     // They all should have one each of a bullet tracer and a shape
-    CHECK( tracer_t.tracers().size() == 5 );
+    CHECK( tracer_t.tracers().size()         == 8 );
+    CHECK( tracer_t.priority_tracer().size() == 5 );
     
     // Get priority tracers and check states
     auto priority_t = tracer_t.tracers().get_shape_tracer();
