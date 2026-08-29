@@ -93,6 +93,66 @@ namespace psmrts {
         return ( m_translator->translate_path( filepath ) );
       }
 
+      /**
+       * @brief Compare a shape cart configuration with a shape for a match
+       *       
+       * This method will run a comparison of a cart assumed to contain a
+       * shape configuration. It only validates the shape conifiguration and 
+       * not the shape if one exists in the tracer. See also compare_tracer().
+       * 
+       * @param cart    Shape configuration to compare against the shape
+       * @param tracer  A shape to compare with cart configuration
+       * @param errors  An error logger object that will return any errors
+       *                  encountered in the comparison
+       * @return true   If the cart configuration is valid for the shape
+       * @return false  If the configuration does not match shape
+       *  
+       * @param cart    Shape configuration to compare against the shape
+       * @param shape   A shape to compare with cart configuration
+       * @param errors  An error logger object that will return any errors
+       *                  encountered in the comparison
+       * @return true   If the cart configuration is valid for the shape
+       * @return false  If the configuration does not match shape
+       */
+      inline bool compare_shape( const ProductCart &cart,
+                                 const SharedShape &shape,
+                                 PsmrtsErrors &errors ) const {
+
+        if ( shape  ) {
+          if ( cart.specification().name() == shape->specs().name() ) {
+            ProductCart cart_s( shape->specs(), shape->config() );
+            return ( this->compare_product_config( cart.configuration(), cart_s, errors ) );
+          }
+        }                                  
+        return ( false );
+      }
+
+      /**
+       * @brief Compare a tracer cart configuration with a tracer for a match
+       * 
+       * This method will run a comparison of a cart assumed to contain a
+       * tracer configuration. It only validates the tracer conifiguration and 
+       * not the shape if one exists in the tracer. See also compare_shape().
+       * 
+       * @param cart    Tracer configuration to compare against the tracer
+       * @param tracer  A tracer to compare with cary configuration
+       * @param errors  An error logger object that will return any errors
+       *                  encountered in the comparison
+       * @return true   If the cart configuration is valid for the tracer
+       * @return false  If the configuration does not match tracer
+       */
+      inline bool compare_tracer( const ProductCart &cart,
+                                 const SharedTracer &tracer,
+                                 PsmrtsErrors &errors ) const {
+
+        if ( tracer  ) {
+          if ( cart.specification().name() == tracer->specs().name() ) {
+            ProductCart cart_t( tracer->specs(), tracer->config() );
+            return ( this->compare_product_config( cart.configuration(), cart_t, errors ) );
+          }
+        }                                  
+        return ( false );
+      }      
 
       /**
        * @brief Search a shape inventory that matches the validate product config
@@ -120,13 +180,11 @@ namespace psmrts {
         SharedShape shape_p;
         auto shape_search = [&]( const ShapeCacheMap &map_c ) -> bool {
           for ( const auto &[ uid, p ] : map_c ) {
-            ProductCart cart_s( p->specs(), p->config() );
-            if ( spec_t.name() == p->specs().name() ) {
-              if ( this->compare_product_config( config_t, cart_s, errors ) ) {
-                shape_p = p;
-                return ( true );
-              }
+            if ( this->compare_shape( cart, p, errors ) ) {
+              shape_p = p;
+              return ( true );
             }
+            errors.clear_errors();               
           }
           return ( false );
         };
@@ -149,11 +207,14 @@ namespace psmrts {
        * 
        * @param config       Processed/validated product configuration
        * @param inventory    Tracer inventory of active tracer products
+       * @param cart_s       Optional shape cart to additionally check against
+       *                       a tracer for complete validation
        * @return ShapeTracer Returns a valid shared pointer to the tracer that
        *                      matches the cart config.
        */
-      inline SharedTracer search_tracer_inventory( const ProductCart &cart, 
-                                                   const TracerInventory &inventory_t )
+      inline SharedTracer search_tracer_inventory( const ProductCart &cart,
+                                                   const TracerInventory &inventory_t, 
+                                                   const SharedCart &cart_s = nullptr )
                                                    const {
 
          // Create the shape search lambda method to run the search directly on
@@ -163,15 +224,22 @@ namespace psmrts {
 
         PsmrtsErrors errors;
         SharedTracer tracer_p;
+
         auto tracer_search = [&]( const TracerCacheMap &map_c ) -> bool {
           for ( const auto &[ uid, p ] : map_c ) {
-            ProductCart cart_t( p->specs(), p->config() );
-            if ( spec_t.name() == p->specs().name() ) {
-              if ( this->compare_product_config( config_t, cart_t, errors ) ) {
+            if ( this->compare_tracer( cart, p, errors ) ) {
+              if ( cart_s ) {
+                if ( this->compare_shape( *cart_s, p->shape(), errors ) ) {
+                  tracer_p = p;
+                  return ( true );   
+                }
+              }
+              else {
                 tracer_p = p;
                 return ( true );
               }
             }
+            errors.clear_errors();              
           }
           return ( false );
         };
@@ -201,9 +269,9 @@ namespace psmrts {
         *             pointers to the products.
         */
       inline std::tuple<bool, SharedTracer, SharedShape> search_inventory( const ProductOrder &order, 
-                                                                     const TracerInventory &inventory_t,
-                                                                     const ShapeInventory &inventory_s ) 
-                                                                     const {
+                                                                           const TracerInventory &inventory_t,
+                                                                           const ShapeInventory &inventory_s ) 
+                                                                           const {
 
         SharedTracer tracer_p;
         SharedShape  shape_p;
@@ -211,26 +279,14 @@ namespace psmrts {
 
         SharedCart tracer_c = order.find( "tracer" );
         SharedCart shape_c  = order.find( "shape" );
+
         bool success = false;  // fail condition is default
         if ( tracer_c ) {
-          auto tracer_t = this->search_tracer_inventory( *tracer_c, inventory_t );
+          auto tracer_t = this->search_tracer_inventory( *tracer_c, inventory_t, shape_c );
           if ( tracer_t ) {
-            // Now check if a shape exists and it matches the shape config
-            PRQShape shaper_t;
-            if ( shape_c && tracer_t->process( shaper_t ) ) {
-              auto shape_t = shaper_t.shape();
-              ProductCart cart_s( shape_t->specs(), shape_t->config() );
-              PsmrtsErrors errors;
-              if ( this->compare_product_config( shape_c->configuration(), cart_s, errors ) ) {
-                tracer_p = tracer_t;
-                shape_p  = shape_t;
-                success = true;
-              }
-            }
-            else if ( !shape_c ) {
-              tracer_p = tracer_t;
-              success = true;
-            }
+            tracer_p = tracer_t;
+            shape_p  = tracer_t->shape();
+            success = true;
           }
         }
         else if ( shape_c ) {
@@ -250,10 +306,7 @@ namespace psmrts {
        * @return SharedOrder Contains the processed options into carts
        *                              for searching for and creating new products
        */
-      inline SharedOrder process_order( const ProductConfiguration &config ) 
-                                               const {
-
-        // std::cout << "\n\nprocess_order: " << config.name() << std::endl;
+      inline SharedOrder process_order( const ProductConfiguration &config ) const {
 
         SharedOrder order_t = make_shared_copy( ProductOrder( config, m_translator ) );
         if ( config.size() == 0 ) {
@@ -267,21 +320,16 @@ namespace psmrts {
         auto tracer_specs_v = ProductMaker<PsmrtsTracer>().get_product_specs();
         for ( const auto &tracer_s : tracer_specs_v ) {
           cart_t = ProductCart( tracer_s );
-          // std::cout << "\nTracerSpecs: " << tracer_s.name() << std::endl;
           bool status_c = this->process_cart( config, cart_t );
-          // std::cout << "proccess_cart status: " << status_c << ", errors: " << cart_t.errors_to_string() << std::endl;
-          
 
           // If this parse is successful, we are done and its a standalone tracer.
           if ( cart_t.has_valid_content() ) {
-            // std::cout << "cat is valid we are done!" << std::endl;
             order_t->add( cart_t );
             return ( order_t  );
           }
 
           // Check for errors. If none break for shape processing
           if ( cart_t.error_count() == 0 ) {
-            // std::cout << "cart has no errors - on to shapes!" << std::endl;
             break;
           }
           
@@ -298,30 +346,25 @@ namespace psmrts {
         ProductConfiguration config_t( config.name()  );
         if ( ( cart_t.error_count() > 0 ) || ( cart_t.size() == 0 )) {
           // Process as shape only, start over
-          // std::cout << "Shape only do over!" << std::endl;
           config_t = config;
           all_errors.clear_errors();
         }
         else {
           // cart_t content contains processed tracer, lets see if we have
           // shape to consume the remaining residual/dependencies
-          // std::cout << "Got tracer, checking for shape!" << std::endl;
           config_t = cart_t.residual_config();
           cart_t.clear_residuals();
-          // std::cout << "ShapeResidConfig: " << config_t.to_json().dump(-1) << std::endl;
         }
 
         ProductCart cart_s;
         auto shape_specs_v  = ProductMaker<PsmrtsShape>().get_product_specs();
         for ( const auto &shape_s : shape_specs_v ) {
-          // std::cout << "\nShapeSpecs: " << shape_s.name() << std::endl;
           cart_s = ProductCart( shape_s );
           bool status_c = this->process_cart( config_t, cart_s );
-          // std::cout << "proccess_cart status: " << status_c << ", errors: " << cart_s.errors_to_string() << std::endl;
-          if ( cart_s.has_valid_content() ) {
+          if ( cart_s.isvalid() ) {
             // Is there a tracer with this shape?
-            if ( cart_t.has_valid_content() ) {
-               // std::cout << "Got a tracer and a shape" << std::endl;
+            if ( cart_t.isvalid() ) {
+              cart_t.clear_residuals();
               order_t->add( cart_t );
             }
             order_t->add( cart_s );
@@ -331,7 +374,6 @@ namespace psmrts {
           all_errors.append( cart_s );          
         }
                
-        // std::cout << "All done..." << std::endl;
         order_t->append( all_errors );
         return ( order_t );        
 
@@ -380,15 +422,16 @@ namespace psmrts {
 
             const ProductFeature &feature = specs_c.find( f_name );
             if ( feature.is_dependency() ) {
+              config_new.add_option( ProductOption( f_name, option ) );
               f_name = name_t;
             }
+
 
             ProductOption option_f( f_name, option );
             config_new.add_option( option_f );
 
             // Compare the cart config option if it exists, otherwise ensure the
             // value is an option default value.
-            // std::cout << "Checking option: " << f_name << std::endl;
             if ( compare_feature_options( option_f, config_c, feature ) ) {
 
               if ( feature.is_path_type() ) {
@@ -404,7 +447,6 @@ namespace psmrts {
               }
             }
             else {
-             // std::cout << "Bad key: " << f_name << std::endl;
               errors.add_error( "\"" + name_t + "\" option is invalid, conflicts with, or isn't the default in specs " + specs_c.name() );              
             }
           }
@@ -424,7 +466,8 @@ namespace psmrts {
         // not in the requested config. If they don't exist, see if they are the
         // default.
         for ( const ProductOption &option_c : config_c.options() ) {
-          if ( !config_new.contains( option_c.name() ) ) {
+          std::string f_name = specs_c.get_alias_feature_name( option_c.name(), option_c.name() );
+          if ( !config_new.contains( f_name ) ) {
             specs_c.validate_option_default( option_c, errors );
           }
         }
@@ -539,9 +582,9 @@ namespace psmrts {
               // tracers that require a shape. Not all do. But they are required
               // to exist.
               cart.add_residual( option );
+              cart.add_option( option );
             }
             else { 
-
               // Get the real name of the option
               ProductOption option_t( f_name, option );
               specs_t.valid_option_with_feature( option_t, feature, cart );          
