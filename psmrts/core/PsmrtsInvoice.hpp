@@ -243,7 +243,7 @@ namespace psmrts {
         /** Checks for duplicate except at index_t assumed to be t */
         auto tracer_dup = [&]( auto &t, const size_t max_i ) -> bool {
           for ( size_t j = 0 ; j < max_i ; j++ ) {
-            if ( t.get() == list_t[j].get() ) return ( true );
+            if ( t->uid() == list_t[j]->uid() ) return ( true );
           }
           return ( false );
         };
