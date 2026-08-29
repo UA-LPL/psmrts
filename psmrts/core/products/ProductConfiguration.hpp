@@ -78,7 +78,7 @@ namespace psmrts {
         return ( m_identifier );
       }
 
-      inline size_t isvalid() const {
+      inline bool isvalid() const {
         return ( m_options.size()  > 0 );
       }
 
