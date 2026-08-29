@@ -90,6 +90,12 @@ namespace psmrts {
   BulletTracer::BulletTracer( const SharedShape &shape ) : 
                               PsmrtsProduct( shape->config().name(), "tracer", "bullet"),
                               m_config("bullet") {
+
+    if ( !shape ) {
+      std::string mess = "BulletTracer - Invalid PsmrtsShape in constructor!";
+      throw std::runtime_error( mess );
+    }
+
     m_model = std::make_shared<BulletTracerImpl> ( shape );
     m_config.merge( shape->config() );
     m_config.add( ProductOption( "tracer", "bullet" ) );
@@ -206,30 +212,34 @@ namespace psmrts {
     }
 
 
-    m_config = cart.configuration();
-    if ( m_config.contains( "tracer" ) ) {
-      if ( m_config.find( "tracer" ).to_string() != "bullet" ) {
+    // Initialize with the shape configuration
+    m_config = shape->config();
+
+    if ( v_conf.contains( "tracer" ) ) {
+      if ( v_conf.find( "tracer" ).to_string() != "bullet" ) {
         std::string mess = "BulletTracer::create() - tracer type must be \"bullet\""
-                            " but found \"" + m_config.find("tracer").to_string() +
+                            " but found \"" + v_conf.find("tracer").to_string() +
                             "\"";
         throw std::runtime_error( mess );
       }
     }
+    m_config.add( v_conf.find("tracer") );
 
     // Add the tracer UID to the metadata
-    m_config.add_metadata( ProductOption( "shape_uid", PsmrtsUID::to_string( shape_t->uid() ) ) );
     m_config.add_metadata( ProductOption( "tracer_uid", PsmrtsUID::to_string( this->uid() ) ) );
 
     // Get defaults from specs
     ProductSpecification spec_b = cart.specification();
     bool useCompression = psmrts::is_bool( spec_b.find( "bullet_compression" ).find("default").to_string() );
-    if ( m_config.contains( "bullet_compression" ) ) {
-      useCompression  = psmrts::is_bool( OptionStringsExtractor( m_config.find( "bullet_compression" ) ).get() );
+    if ( v_conf.contains( "bullet_compression" ) ) {
+      useCompression  = psmrts::is_bool( OptionStringsExtractor( v_conf.find( "bullet_compression" ) ).get() );
+      m_config.add( ProductOption( "bullet_compression", useCompression) );
     }   
     
     bool useBuildBvh = psmrts::is_bool( spec_b.find( "bullet_optimize_bvh" ).find("default").to_string() );
-    if ( m_config.contains( "bullet_optimize_bvh" ) ) {
+    if ( v_conf.contains( "bullet_optimize_bvh" ) ) {
       useBuildBvh  = psmrts::is_bool( OptionStringsExtractor( m_config.find( "bullet_optimize_bvh" ) ).get() );
+      m_config.add( ProductOption( "bullet_optimize_bvh", useBuildBvh) );
     } 
 
     // Create the bullet tracer
