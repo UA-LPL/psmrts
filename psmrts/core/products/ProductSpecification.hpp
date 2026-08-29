@@ -321,7 +321,7 @@ namespace psmrts {
             is_good = false;
           }
         }
-        else { 
+        else {
           validator.add_error( name_t + " (" + alias_name + ") feature does not exist in specs." );
           is_good = false;
         }
