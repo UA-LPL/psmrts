@@ -74,6 +74,7 @@ namespace psmrts {
     }
     else {
       std::string mess = "PlyShape - ply_file not found in config";
+      throw std::runtime_error( mess );
     }
 
     this->set_name( name_t );
