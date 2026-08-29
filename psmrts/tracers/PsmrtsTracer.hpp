@@ -190,6 +190,12 @@ namespace psmrts {
         return ( std::visit(visitor, m_model ) ); 
       }
 
+      inline SharedShape shape( ) const {
+        PRQShape shaper_t;
+        this->process( shaper_t );
+        return ( shaper_t.shape() ); 
+      }
+
     private:
       PsmrtsProduct m_product;
 
