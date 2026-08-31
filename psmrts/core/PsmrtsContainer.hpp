@@ -64,7 +64,7 @@ namespace psmrts {
 
         /** Required copy constructor due to std::mutex */
         PsmrtsContainer( const PsmrtsContainer &other )  {
-          std::scoped_lock mylocker( other.mutex() );
+          std::unique_lock<std::shared_mutex> mylocker( m_mutex );
           m_name = other.m_name;
           m_data = other.m_data; 
         }
@@ -72,7 +72,7 @@ namespace psmrts {
         /** Required copy operator due to std::mutex */
         PsmrtsContainer &operator=( const PsmrtsContainer &other ) {
           if (this != &other) {
-            std::scoped_lock mylocker( m_mutex, other.mutex() );
+            std::unique_lock<std::shared_mutex> mylocker( m_mutex );
             m_name = other.m_name;
             m_data = other.m_data;
           }
@@ -88,7 +88,7 @@ namespace psmrts {
 
         /** Number of elements in container */
         inline size_t size() const {
-          std::scoped_lock mylocker( this->mutex() );
+          std::shared_lock<std::shared_mutex> mylocker( m_mutex );  
           return ( m_data.size() );
         }
 
@@ -104,7 +104,7 @@ namespace psmrts {
          *         False if the data is present and was not added to the container
          */
         inline bool add( const T &data ) {
-          std::scoped_lock mylocker( this->mutex() );
+          std::unique_lock<std::shared_mutex> mylocker( m_mutex );
           ContainerIter data_t = m_data.begin();
           while ( data_t != m_data.end() ) {
             if ( data.name() == data_t->name() ) {
@@ -129,7 +129,7 @@ namespace psmrts {
          *         False if it was appended 
          */
         inline bool replace( const T &data ) {
-          std::scoped_lock mylocker( this->mutex() );
+          std::unique_lock<std::shared_mutex> mylocker( m_mutex );
           ContainerIter data_t = iterator_find( data.name() );
           if ( data_t != m_data.end() ) {
             *data_t = data;
@@ -142,7 +142,7 @@ namespace psmrts {
 
         /** Remove the specified data object */
         inline bool remove( const std::string &key ) {
-          std::scoped_lock mylocker( this->mutex() );
+          std::unique_lock<std::shared_mutex> mylocker( m_mutex );
           ContainerIter data_t = iterator_find( key );
           if ( data_t != m_data.end() ) {
             m_data.erase( data_t );
@@ -153,7 +153,7 @@ namespace psmrts {
         
         /** Check for a particular key/value in the cache */
         inline bool contains( const std::string &key ) const {
-          std::scoped_lock mylocker( this->mutex() );
+          std::shared_lock<std::shared_mutex> mylocker( m_mutex );  
           for ( const T &d : m_data ) {
             if ( key == d.name() ) return ( true );
           }
@@ -162,7 +162,7 @@ namespace psmrts {
 
         /** Find and return a reference to the specified key value */
         inline const T &find( const std::string &key ) const {
-          std::scoped_lock mylocker( this->mutex() );
+          std::shared_lock<std::shared_mutex> mylocker( m_mutex );  
           for ( const T &d : m_data ) {
             if ( key == d.name() ) return ( d );
           }
@@ -175,7 +175,7 @@ namespace psmrts {
         /** Return a key value if it exits otherwise returns the default value */
         inline const T &find( const std::string &key, 
                               const T &default_t ) const {
-          std::scoped_lock mylocker( this->mutex() );
+          std::shared_lock<std::shared_mutex> mylocker( m_mutex );  
           for ( const T &d : m_data ) {
             if ( key == d.name() ) return ( d );
           }
@@ -184,19 +184,19 @@ namespace psmrts {
 
         /** Return the const begin iterator of the map */
         inline ContainerConstIter begin() const {
-          std::scoped_lock mylocker( this->mutex() );
+          std::shared_lock<std::shared_mutex> mylocker( m_mutex );  
           return ( m_data.cbegin() );
         }
 
         /** Return the const end iterator of the map */
         inline ContainerConstIter end() const {
-          std::scoped_lock mylocker( this->mutex() );
+          std::shared_lock<std::shared_mutex> mylocker( m_mutex );  
           return ( m_data.cend() );
         }
 
         /** Return the const end iterator of the map */
         inline const T operator()(const size_t index ) const {
-          std::scoped_lock mylocker( this->mutex() );
+          std::shared_lock<std::shared_mutex> mylocker( m_mutex );  
           if ( index > this->size() ) {
             std::ostringstream mess_s;
             mess_s << "*** Error - PsmrtsContainer:operator(index) - invalid index (" << index << ")";
@@ -207,13 +207,13 @@ namespace psmrts {
 
         /** Clear the contents, which invalidates references */
         inline void clear() {
-          std::scoped_lock mylocker( this->mutex() );
+          std::unique_lock<std::shared_mutex> mylocker( m_mutex );
           m_data.clear();
         }
 
         /** Return list of keys associated with the data objects */
         inline std::vector<std::string> keys() const {
-          std::scoped_lock mylocker( this->mutex() );
+          std::shared_lock<std::shared_mutex> mylocker( m_mutex );  
           std::vector<std::string> keys_m;
           keys_m.reserve( m_data.size() );
           std::transform( m_data.begin(), m_data.end(), std::back_inserter( keys_m ), 
@@ -223,25 +223,19 @@ namespace psmrts {
 
         /** Return reference to data object vector */
         inline const Container &data() const {
-          std::scoped_lock mylocker( this->mutex() );
+          std::shared_lock<std::shared_mutex> mylocker( m_mutex );  
           return ( m_data );
         }
 
         inline Container &data() {
-          std::scoped_lock mylocker( this->mutex() );
+          std::shared_lock<std::shared_mutex> mylocker( m_mutex );  
           return ( m_data );
         }
 
-      protected:
-        /** Mutex for thread locking use - local data only! */
-        inline std::mutex &mutex() const {
-          return ( m_mutex );
-        }
-
       private:
-        std::string        m_name;
-        Container          m_data;
-        mutable std::mutex m_mutex;
+        std::string               m_name;
+        Container                 m_data;
+        mutable std::shared_mutex m_mutex;
 
         /** Return an iterator (no mutex locking!) data position associated with the key */
         inline ContainerIter iterator_find( const std::string &key  ) {
