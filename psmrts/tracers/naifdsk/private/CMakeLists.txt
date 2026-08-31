@@ -5,7 +5,6 @@ target_sources(psmrts PUBLIC
                          FILE_SET psmrts_headers 
                            TYPE HEADERS 
                            FILES DskSegment.hpp
-                                 NaifUtilities.hpp
                                  DskKernelModel.hpp
                                  KernelFileSystem.hpp
 )
