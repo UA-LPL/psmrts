@@ -17,9 +17,10 @@ find files of those names at the top level of this repository. **/
 #include <vector>
 #include <map>
 #include <mutex>
+#include <shared_mutex>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
-#include "NaifUtilities.hpp"
+#include <cspice/SpiceUsr.h>
 
 namespace naif {
 
@@ -102,21 +103,8 @@ namespace naif {
        * @return KernelDescriptor  Structure containing results from NAIF file system
        */
       inline static KernelDescriptor kernel_info( const std::string &kernelfile ) {
-
-        SpiceChar filtyp[KernelDescriptor::K_MAX_STRING_LENGTH];
-        SpiceChar srcfil[KernelDescriptor::K_MAX_STRING_LENGTH];
-        SpiceInt  handle;
-        SpiceBoolean found;
-
-        (void) kinfo_c( kernelfile.c_str(), sizeof(filtyp), sizeof(srcfil), filtyp, srcfil, &handle, &found );
-
-        KernelDescriptor k_descriptor( kernelfile );
-        k_descriptor.m_source_file = std::string( srcfil );
-        k_descriptor.m_kernel_type = std::string( filtyp );
-        k_descriptor.m_handle      = handle;
-        k_descriptor.m_found       = found;
-
-        return ( k_descriptor );
+        std::unique_lock<std::shared_mutex> mylocker( s_mutex );
+        return ( KernelFileSystem::get_kernel_info( kernelfile) );
       }
 
       /**
@@ -138,6 +126,7 @@ namespace naif {
        * @return int Number of kernels
        */
       inline static int kernel_count( const std::string &ktype = "ALL" ) {
+        std::unique_lock<std::shared_mutex> mylocker( s_mutex );
         SpiceInt n_kernels;
         (void) ktotal_c( ktype.c_str(), &n_kernels );
         return ( n_kernels );
@@ -165,6 +154,8 @@ namespace naif {
         
         KernelFileList k_list;
         int n_kernels = kernel_count( kerneltypes );
+        std::unique_lock<std::shared_mutex> mylocker( s_mutex );
+
         for ( int which = 0; which < n_kernels ; which++ ) {
           (void) kdata_c( which, kerneltypes.c_str(), 
                           sizeof( file ), sizeof( filtyp ), sizeof( srcfil),
@@ -196,13 +187,17 @@ namespace naif {
        * This method is rentrant in that it will only initialize once.
        * Users can also call the initKernelSystem() directly at any point
        * to initialize as needed.
+       * 
+       * Below is the required flag to initialize at startup that must be in
+       * global scope.
        */
+      static inline std::once_flag naif_initialized;      
       inline static void initialize_naif_system( ) {
-        static bool naif_initialized = false;
-        if ( false == naif_initialized ) {
-          initKernelSystem( );
-          naif_initialized = true;
-        }
+        std::call_once( naif_initialized, [&]( ) { 
+             KernelFileSystem::initKernelSystem( );
+           } 
+        );
+
         return;
       }
 
@@ -212,9 +207,12 @@ namespace naif {
        * @param kfile 
        */
       inline static void open_kernel( const std::string &kfile ) {
-        initialize_naif_system();
-        if ( !KernelFileSystem::has_kernel( kfile ) ) {
-          load_kernel( kfile.c_str() );
+        std::unique_lock<std::shared_mutex> mylocker( s_mutex );
+
+        auto kern = s_kernel_inventory.find( kfile );
+        if ( kern == s_kernel_inventory.end() ) {
+          KernelFileSystem::load_kernel( kfile.c_str() );
+          KernelFileSystem::check_naif_status();
         }
       }
 
@@ -224,14 +222,19 @@ namespace naif {
        * @param kfile 
        */
       inline static void close_kernel( const std::string &kfile ) {
+        std::unique_lock<std::shared_mutex> mylocker( s_mutex );
+
         // If its not in the inventory, unload it
-        if ( !KernelFileSystem::has_kernel( kfile ) ) {
-          unload_kernel( kfile.c_str() );
+        auto kern = s_kernel_inventory.find( kfile );
+        if ( kern == s_kernel_inventory.end() ) {
+          KernelFileSystem::unload_kernel( kfile.c_str() );
+          KernelFileSystem::check_naif_status();
         }
       }
 
       //***** Shared Kernel Descriptor APi *****
       inline static size_t size( ) {
+        std::shared_lock<std::shared_mutex> mylocker( s_mutex );
         return ( s_kernel_inventory.size() );
       }
 
@@ -247,7 +250,7 @@ namespace naif {
        */
       inline static bool has_kernel( const std::string &kernelfile ) {
         // Lock up inventory access for thread safety ( >=c++17 )
-        // std::scoped_lock mylocker( s_mutex );  
+        std::shared_lock<std::shared_mutex> mylocker( s_mutex );  
 
         auto kern = s_kernel_inventory.find( kernelfile );
         return ( kern != s_kernel_inventory.end() );
@@ -256,7 +259,7 @@ namespace naif {
       inline static SharedDskDescriptor get_shared_descriptor( const std::string &kernelfile ) {
 
         // Lock up inventory access for thread safety ( >=c++17 )
-        std::scoped_lock mylocker( s_mutex );  
+        std::unique_lock<std::shared_mutex> mylocker( s_mutex );  
 
         // Check to see if it exists
         auto kern = s_kernel_inventory.find( kernelfile );
@@ -264,13 +267,15 @@ namespace naif {
         if ( s_kernel_inventory.end() == kern ) {
 
           // Not in inventory, see if its open and put a wrapper about it
-          KernelDescriptor kdescr = KernelFileSystem::kernel_info( kernelfile );
+          KernelDescriptor kdescr = KernelFileSystem::get_kernel_info( kernelfile );
           if ( !kdescr.isValid() ) {
             // Load it a get a new descriptor for it
-            KernelFileSystem::open_kernel( kernelfile );
-            check_naif_errors();
-
-            kdescr = KernelFileSystem::kernel_info( kernelfile );
+            auto kern = s_kernel_inventory.find( kernelfile );
+            if ( kern == s_kernel_inventory.end() ) {
+              KernelFileSystem::load_kernel( kernelfile );
+            }
+            KernelFileSystem::check_naif_status();
+            kdescr = KernelFileSystem::get_kernel_info( kernelfile );
           }
 
           // If its not valid here the file cannot be found
@@ -284,27 +289,28 @@ namespace naif {
           kern = kernresult.first;
         }
 
+
         return ( kern->second );
       }
 
       inline static bool safe_disposal_of( const std::string &kfile ) {
 
         // Lock up inventory access for thread safety ( >=c++17 )
-        std::scoped_lock mylocker( s_mutex );           
+        std::unique_lock<std::shared_mutex> mylocker( s_mutex );           
 
         // Check to see if it exists and unload only if there are no references
         auto kern = s_kernel_inventory.find( kfile );
         if ( kern != s_kernel_inventory.end() ) {
           if ( kern->second.use_count() == 1 ) {
             s_kernel_inventory.erase( kern );
-            KernelFileSystem::close_kernel( kfile );
+            KernelFileSystem::unload_kernel( kfile );
             return ( true );
           }
         }
         else {
-          auto file_info = naif::KernelFileSystem::kernel_info( kfile );
+          auto file_info = naif::KernelFileSystem::get_kernel_info( kfile );
           if ( file_info.found() == true ) {
-            KernelFileSystem::close_kernel( kfile );
+            KernelFileSystem::unload_kernel( kfile );
             return ( true );
           }
         }
@@ -313,23 +319,134 @@ namespace naif {
       }
 
       /** Reset the entire Kernel pool system, which closes all kernels and flushes pool */
-      inline static void reset_kernel_system() {
-
-        const bool ResetPoolSystem = true;
+      inline static void reset_kernel_system( const bool ResetPoolSystem = false ) {
 
         // Lock up inventory access for thread safety ( >=c++17 )
-        std::scoped_lock mylocker( s_mutex );
+        std::unique_lock<std::shared_mutex> mylocker( s_mutex );
 
         s_kernel_inventory.clear();
-        initKernelSystem( ResetPoolSystem );
+        KernelFileSystem::initKernelSystem( ResetPoolSystem );
 
         return;
       }
 
-    private:
-      inline static std::mutex      s_mutex = { };
-      inline static KernelInventory s_kernel_inventory =  { };
 
+      /**
+       * @brief Check for NAIF errors with behavior control
+       * 
+       * This function will check for a NAIF error and take requested action.
+       * 
+       * @see get_naif_error_msg()
+       * 
+       * @param b_reset        If an error has occurred, reset the error system
+       * @param throw_on_error Throw a runtime_error if an error occured
+       * @return true          If no errror occurs
+       * @return false         If an error occured
+       */
+      inline static bool check_naif_errors( const bool b_reset = true,
+                                            const bool throw_on_error = true ) {
+
+        std::unique_lock<std::shared_mutex> mylocker( s_mutex );
+        return ( KernelFileSystem::check_naif_status( b_reset, throw_on_error ) );
+      }
+      
+      
+    private:
+      inline static std::shared_mutex s_mutex{ };
+      inline static KernelInventory   s_kernel_inventory =  { };
+
+      inline static void setReturnMode( const std::string &u_retmode = "RETURN" ) {
+
+        int retmode_len = u_retmode.size();
+        constexpr int MAXLEN = 1024;
+        SpiceChar retmode[MAXLEN];
+
+        int maxchars = std::min( retmode_len+1, MAXLEN-1 );
+        std::strncpy( retmode, u_retmode.c_str(), maxchars );
+
+        erract_c( "SET", MAXLEN, retmode );
+        return;
+      }
+
+      inline static void setPrintMode( const std::string &u_prtmode = "NONE" ) {
+
+        int prtmode_len = u_prtmode.size();
+
+        constexpr int MAXLEN = 1024;
+        SpiceChar prtmode[MAXLEN];
+
+        int maxchars = std::min( prtmode_len+1, MAXLEN-1 );
+        std::strncpy( prtmode, u_prtmode.c_str(), maxchars );
+      
+        errprt_c( "SET", MAXLEN, prtmode );
+        return;
+      }
+
+      inline static std::string get_naif_error_msg( ) {
+        const int NAIF_ERROR_STRING_SIZE = 2000;
+        SpiceChar errmsg[NAIF_ERROR_STRING_SIZE];
+        getmsg_c("LONG", NAIF_ERROR_STRING_SIZE, errmsg );
+        return ( std::string( errmsg ) );
+      }
+
+      inline static bool check_naif_status( const bool b_reset = true,
+                                            const bool throw_on_error = true ) {
+        // Check for an error condition                                  
+        if ( !failed_c() ) return ( false );
+
+        // Reset the system
+        std::string naif_error = KernelFileSystem::get_naif_error_msg();
+        if ( b_reset ) {
+          reset_c();
+        }
+
+        if ( throw_on_error ) {
+          throw std::runtime_error( "*** NAIF::Error - " + naif_error + " ***" );
+        }
+
+        return ( true );        
+      }
+
+      inline static void clearKernelSystem() {
+        kclear_c();
+        return;
+      }
+
+      inline static void initKernelSystem( const bool clear_pool = false ) {
+        setReturnMode();
+        setPrintMode();
+        if ( clear_pool ) clearKernelSystem();
+        return;
+      }
+
+      inline static void load_kernel( const std::string &kfile ) {
+        initialize_naif_system();
+        furnsh_c( kfile.c_str() );
+      }
+
+      inline static void unload_kernel( const std::string &kfile ) {
+        unload_c( kfile.c_str() );
+      }    
+        
+      inline static KernelDescriptor get_kernel_info( const std::string &kernelfile ) {
+
+        SpiceChar filtyp[KernelDescriptor::K_MAX_STRING_LENGTH];
+        SpiceChar srcfil[KernelDescriptor::K_MAX_STRING_LENGTH];
+        SpiceInt  handle;
+        SpiceBoolean found;
+
+        (void) kinfo_c( kernelfile.c_str(), sizeof(filtyp), sizeof(srcfil), filtyp, srcfil, &handle, &found );
+
+        KernelDescriptor k_descriptor( kernelfile );
+        k_descriptor.m_source_file = std::string( srcfil );
+        k_descriptor.m_kernel_type = std::string( filtyp );
+        k_descriptor.m_handle      = handle;
+        k_descriptor.m_found       = found;
+
+        return ( k_descriptor );
+      }
+
+  
   };
 
 } // namespace naif

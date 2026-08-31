@@ -17,6 +17,7 @@ find files of those names at the top level of this repository. **/
 #include <vector>
 #include <map>
 #include <mutex>
+#include <shared_mutex>
 
 #include <Eigen/Geometry>
 
@@ -31,8 +32,8 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/AllOptionConversions.hpp>
 #include <psmrts/core/PsmrtsUID.hpp>
 
+#include <cspice/SpiceUsr.h>
 
-#include "NaifUtilities.hpp"
 #include "DskSegment.hpp"
 #include "KernelFileSystem.hpp"
 
@@ -434,7 +435,7 @@ namespace naif {
                              psmrts::PsmrtsRayTrace &ray ) const {                              
 
         // Lock up NAIF file I/O for thread safety ( >=c++17 )
-        std::scoped_lock mylocker( this->mutex() );
+        std::unique_lock<std::shared_mutex> mylocker( this->mutex() );
 
         psmrts::PsmrtsRayTrace::RayTraceDatum &datum_r = ray.datum();
         datum_r.m_segment  = segment.id();
@@ -445,7 +446,7 @@ namespace naif {
                          datum_r.m_observer.data(), datum_r.m_lookdir.data(),
                          &plateid, datum_r.m_xyz.data(), &found);
         datum_r.m_plateid = plateid;
-        check_naif_errors();
+        KernelFileSystem::check_naif_errors();
         
         datum_r.m_hit = ( SPICETRUE == found );
 
@@ -453,7 +454,7 @@ namespace naif {
         if ( datum_r.hasHit() ) {
            (void) dskn02_c( kernel().handle(), segment.dladsc_ptr(), 
                             datum_r.m_plateid, datum_r.m_normal.data() );
-            check_naif_errors();
+            KernelFileSystem::check_naif_errors();
         }
         // Return to 0-base index.
         datum_r.m_plateid -= 1;
@@ -504,6 +505,7 @@ namespace naif {
       inline bool get_facet( const psmrts::PsmrtsRayTrace &ray,
                              psmrts::PsmrtsRayTrace::FacetDatum &facet ) const {
                 
+
         // Sanity check validity of raytrace
         facet.m_has_facet = false;
         if ( ray.hasHit() ) {
@@ -511,7 +513,7 @@ namespace naif {
           const DskSegment *segment = get_segment_with_id( ray.segment_number() );
           if ( nullptr != segment ) {
             // Lock up NAIF file I/O for thread safety ( >=c++17 )
-            std::scoped_lock mylocker( this->mutex() );
+            std::unique_lock<std::shared_mutex> mylocker( this->mutex() );
 
             // Fetch the indexes of the facet vectors
             SpiceInt n;
@@ -520,7 +522,7 @@ namespace naif {
             // Adding 1 to m_plateid to return to 1-based index, consistent with dsk.
             (void) dskp02_c( kernel().handle(), segment->dladsc_ptr(),
                              ray.plateid()+1, 1, &n, ( SpiceInt (*)[3] ) ( indexes ) );
-            check_naif_errors();
+            KernelFileSystem::check_naif_errors();
 
             // set plateid and segment in facet
             facet.m_plateid = ray.plateid();
@@ -533,17 +535,17 @@ namespace naif {
             SpiceDouble vector[3];
             (void) dskv02_c( kernel().handle(), segment->dladsc_ptr(),
                              indexes[0], 1, &n, (SpiceDouble (*)[3]) ( vector ) ); 
-            check_naif_errors();
+            KernelFileSystem::check_naif_errors();
             facet.m_vector1 = { vector[0], vector[1], vector[2] };
 
             (void) dskv02_c( kernel().handle(), segment->dladsc_ptr(),
                              indexes[1], 1, &n, (SpiceDouble (*)[3]) ( vector ) ); 
-            check_naif_errors();
+            KernelFileSystem::check_naif_errors();
             facet.m_vector2 = { vector[0], vector[1], vector[2] };
 
             (void) dskv02_c( kernel().handle(), segment->dladsc_ptr(),
                              indexes[2], 1, &n, (SpiceDouble (*)[3]) ( vector ) ); 
-            check_naif_errors();
+            KernelFileSystem::check_naif_errors();
             facet.m_vector3 = { vector[0], vector[1], vector[2] };
 
             facet.m_normal = psmrts::compute_normal( facet.m_vector1,
@@ -590,14 +592,14 @@ namespace naif {
         DskIndexDataModel dskndx( segref.n_plates() );
 
         // Lock up NAIF file I/O for thread safety ( >=c++17 )
-        std::scoped_lock mylocker( this->mutex() );        
+        std::unique_lock<std::shared_mutex> mylocker( this->mutex() );
 
         SpiceInt n;
         SpiceInt start = 1;
         (void) dskp02_c( kernel().handle(), segref.dladsc_ptr(),
                          start, segref.n_plates(), &n, 
                          ( SpiceInt (*)[3] ) ( dskndx(0).data() ) );
-        check_naif_errors();
+        KernelFileSystem::check_naif_errors();
 
         // Sanity check on the return count
         if ( segref.n_plates() != n ) {
@@ -632,14 +634,14 @@ namespace naif {
         DskVectorDataModel dskvec( segref.n_vectors() );
 
         // Lock up NAIF file I/O for thread safety ( >=c++17 )
-        std::scoped_lock mylocker( this->mutex() );        
+        std::unique_lock<std::shared_mutex> mylocker( this->mutex() );
 
         SpiceInt n;
         SpiceInt start = 1;
         (void) dskv02_c( kernel().handle(), segref.dladsc_ptr(),
                          start, segref.n_vectors(), &n, 
                          ( SpiceDouble (*)[3] ) ( dskvec(0).data() ) );
-        check_naif_errors();
+        KernelFileSystem::check_naif_errors();
 
         // Sanity check on the return count
         if ( segref.n_vectors() != n ) {
@@ -735,7 +737,7 @@ namespace naif {
       }
 
       /** Return reference to shared mutex for strategic NAIF file I/O locking. See DskSegment.hpp */
-      inline std::mutex &mutex() const {
+      inline std::shared_mutex &mutex() const {
         return ( dskdsc().mutex() );
       }      
 
@@ -793,13 +795,15 @@ namespace naif {
         }
 
         // Lock up NAIF file I/O for thread safety ( >=c++17 )
-        std::scoped_lock mylocker( this->mutex() );
+        // std::scoped_lock mylocker( this->mutex() );
+        // std::unique_lock<std::shared_mutex> mylocker( s_mutex );
+
 
         // Get the first segment
         SpiceDLADescr v_dladsc;
         SpiceBoolean  v_found;
         dlabfs_c( kernel().handle(), &v_dladsc, &v_found );
-        check_naif_errors();
+        KernelFileSystem::check_naif_errors();
 
         // Check to ensure the file is open
         if ( !v_found ) {
@@ -816,11 +820,11 @@ namespace naif {
 
           // Get the DSK descriptor
           (void) dskgd_c( kernel().handle(), &v_dladsc, &v_dskdsc);
-          check_naif_errors();
+          KernelFileSystem::check_naif_errors();
 
           // Get the number of verticies and plates
           (void) dskz02_c( kernel().handle(), &v_dladsc, &v_vertices, &v_plates );
-          check_naif_errors();
+          KernelFileSystem::check_naif_errors();
 
           // Construct/add the segment
           DskSegment v_segment( v_dladsc, v_dskdsc, v_vertices, v_plates, segnum );
@@ -830,7 +834,7 @@ namespace naif {
           (void) dlafns_c( kernel().handle(),
                            v_segment.dladsc_ptr(),
                            &v_dladsc, &v_found );
-          check_naif_errors();
+          KernelFileSystem::check_naif_errors();
 
           segnum++;
         }
@@ -867,19 +871,19 @@ namespace naif {
     // that API
     private:
       typedef std::map<std::string, DskKernelModel>   DskShapeInventory;
-      inline static std::mutex        s_mutex = {};
+      inline static std::shared_mutex s_mutex = {};
       inline static DskShapeInventory s_dsk_shape_inventory = {};
 
     public:
 
       inline static bool has_dsk_shape( const std::string &dskfile ) {
-        std::scoped_lock mylocker( s_mutex );  
+        std::shared_lock<std::shared_mutex> mylocker( s_mutex );
         auto dsk = s_dsk_shape_inventory.find( dskfile );
         return ( dsk != s_dsk_shape_inventory.end() );        
       }
 
       inline static DskKernelModel get_dsk_shape( const std::string &dskfile ) {
-        std::scoped_lock mylocker( s_mutex );  
+        std::shared_lock<std::shared_mutex> mylocker( s_mutex );
         auto dsk = s_dsk_shape_inventory.find( dskfile );
         if ( s_dsk_shape_inventory.end() == dsk ) {
           DskKernelModel dskmodel( KernelFileSystem::get_shared_descriptor( dskfile ) );
@@ -896,7 +900,7 @@ namespace naif {
 
 
       inline static bool remove_dsk_shape( const std::string &dskfile ) {
-        std::scoped_lock mylocker( s_mutex );  
+        std::unique_lock<std::shared_mutex> mylocker( s_mutex );
         auto dsk = s_dsk_shape_inventory.find( dskfile );
         if  ( s_dsk_shape_inventory.end() != dsk ) {
           s_dsk_shape_inventory.erase( dskfile );
@@ -908,7 +912,7 @@ namespace naif {
 
       inline static std::vector<std::string> get_dsk_shape_inventory_list() {
         std::vector<std::string> v_dsk_files;
-        std::scoped_lock mylocker( s_mutex ); 
+        std::shared_lock<std::shared_mutex> mylocker( s_mutex );
         for ( const auto &dsk : s_dsk_shape_inventory ) {
           v_dsk_files.push_back( dsk.first );
         } 
@@ -938,7 +942,7 @@ namespace naif {
        * @history 2024-03-04 Kris J. Becker Original Version
        */
       inline static void reset_dsk_system( ) {
-        std::scoped_lock mylocker( s_mutex );  
+        std::unique_lock<std::shared_mutex> mylocker( s_mutex );
         s_dsk_shape_inventory.clear();
         return;
       }

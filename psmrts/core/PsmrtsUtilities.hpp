@@ -30,6 +30,7 @@ find files of those names at the top level of this repository. **/
 #include <locale>
 #include <memory>
 #include <mutex>
+#include <shared_mutex>
 #include <stdexcept>
 #include <string>
 #include <time.h>
@@ -705,14 +706,14 @@ struct CompareCaseInsensitive {
                           m_mutex( dmm.m_mutex),
                           m_datum( dmm.m_datum ) { }
 
-        DatumMutexWrapper( const std::shared_ptr<std::mutex> &p_mutex, 
+        DatumMutexWrapper( const std::shared_ptr<std::shared_mutex> &p_mutex, 
                           const Datum &p_datum ) :
                           m_mutex( p_mutex ), m_datum( p_datum ) { }
 
         ~DatumMutexWrapper()  { }
 
         /** Return a reference to the mutex for locking purposes */
-        inline std::mutex &mutex() const {
+        inline std::shared_mutex &mutex() const {
           return ( *m_mutex );
         }
 
@@ -733,12 +734,12 @@ struct CompareCaseInsensitive {
 
       private:
         // Needs to be mutable to lock in const methods
-        mutable std::shared_ptr<std::mutex> m_mutex;
+        mutable std::shared_ptr<std::shared_mutex> m_mutex;
         Datum  m_datum;
 
         /** Fundamental initialization of the object */
         void init( const Datum &datum = Datum() ) {
-          m_mutex.reset( new std::mutex() );
+          m_mutex.reset( new std::shared_mutex() );
           m_datum = datum;
           return;
         }
@@ -766,7 +767,7 @@ struct CompareCaseInsensitive {
         virtual ~PsmrtsThreadSafeCounter() { }
 
         inline size_t hitme() const {
-          std::scoped_lock mylocker( m_counter->mutex() );
+          std::unique_lock<std::shared_mutex> mylocker( m_counter->mutex());
           return ( m_counter->datum() += 1 );
         }
 
@@ -775,7 +776,7 @@ struct CompareCaseInsensitive {
         }
 
         inline size_t count() const {
-          std::scoped_lock mylocker( m_counter->mutex() );
+          std::shared_lock<std::shared_mutex> mylocker( m_counter->mutex() );
           return  ( m_counter->datum() );
         }
 
