@@ -1,10 +1,46 @@
 
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
-#include <psmrts/tracers/naifdsk/private/NaifUtilities.hpp>
 #include <psmrts/tracers/naifdsk/private/KernelFileSystem.hpp>
 
 
+
+TEST_CASE ( "NAIF Utilities Test - Basics", "[naif][utilities]" ) {
+
+    CHECK_NOTHROW( naif::KernelFileSystem::reset_kernel_system(true) );
+    
+}
+
+TEST_CASE ( "NAIF Utilities Test - loading IK Kernal", "[naif][kernel]" ) {
+    std::string file = psmrts_tracers_path( "/naifdsk/data/orx_ocams_v07.ti" );
+    CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system(true) );
+    CHECK_NOTHROW ( naif::KernelFileSystem::open_kernel(file) );
+    CHECK_NOTHROW ( naif::KernelFileSystem::check_naif_errors() );
+    CHECK_NOTHROW ( naif::KernelFileSystem::close_kernel(file) );
+    CHECK_NOTHROW ( naif::KernelFileSystem::check_naif_errors() );
+
+    std::string bad_file = psmrts_tracers_path( "/naifdsk/data/orx_ocams_v07.ti.DNE" );
+    CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() );
+    CHECK_THROWS ( naif::KernelFileSystem::open_kernel(bad_file) );
+
+    // Replace load / unload with open / close functions for files in KernelFileSystem.hpp class
+    // In KernelFileSystem:: - reference to methods, use size() to check for # of files in inventory
+
+}
+
+TEST_CASE ( "NAIF Utilities Test - isoc to ephemeris time ", "[naif][kernel][ephemeris]") {
+
+    //const double tolerance = 1.0e-6;
+
+    std::string file = psmrts_tracers_path( "/naifdsk/data/naif0012.tls" );
+
+    CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system(true) );
+    CHECK_NOTHROW ( naif::KernelFileSystem::open_kernel(file) );
+    CHECK_NOTHROW ( naif::KernelFileSystem::check_naif_errors() );
+    CHECK_NOTHROW( naif::KernelFileSystem::close_kernel(file) );
+    CHECK_NOTHROW( naif::KernelFileSystem::check_naif_errors() );
+
+}
 
 TEST_CASE ( "Kernel File System Test - kernel_info description return", "[kernel][info]" ) {
     std::string file = psmrts_tracers_path( "/naifdsk/data/orx_ocams_v07.ti" );
@@ -12,8 +48,8 @@ TEST_CASE ( "Kernel File System Test - kernel_info description return", "[kernel
     CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() ); // Reset/Initialize the kernel system
 
     CHECK ( naif::KernelFileSystem::kernel_count() == 0 ); // Should be zero, as we have yet to load any
-    CHECK_NOTHROW ( naif::load_kernel(file) ); // Load the file/directory to be used
-    CHECK_NOTHROW( naif::check_naif_errors() ); // Check for loading errors
+    CHECK_NOTHROW ( naif::KernelFileSystem::open_kernel(file) ); // Load the file/directory to be used
+    CHECK_NOTHROW( naif::KernelFileSystem::check_naif_errors() ); // Check for loading errors
 
     auto kdscr = naif::KernelFileSystem::kernel_info(file);
 
@@ -34,10 +70,10 @@ TEST_CASE ( "Kernel File System Test - kernel_info description return", "[kernel
 TEST_CASE ( "Kernel File System Test - kernel_count return", "[kernel][directory][count]" ) {
     std::string file = psmrts_tracers_path( "/naifdsk/data/orx_ocams_v07.ti");
     
-    CHECK_NOTHROW ( naif::initKernelSystem( true ) ); // Initializes the kernel system
+    CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system( true ) ); // Initializes the kernel system
     CHECK ( naif::KernelFileSystem::kernel_count() == 0 ); // Should be zero, as we have yet to load any
-    CHECK_NOTHROW ( naif::load_kernel(file) ); // Load the file/directory to be used
-    CHECK_NOTHROW( naif::check_naif_errors() ); // Check for loading errors
+    CHECK_NOTHROW ( naif::KernelFileSystem::open_kernel(file) ); // Load the file/directory to be used
+    CHECK_NOTHROW( naif::KernelFileSystem::check_naif_errors() ); // Check for loading errors
 
     CHECK ( naif::KernelFileSystem::kernel_count() == 1  ); // Ensure that single file is what was loaded
 
@@ -65,8 +101,8 @@ TEST_CASE ( "Kernel File System Test - kernel_filetype_info return", "[kernel][f
 
     CHECK_NOTHROW ( naif::KernelFileSystem::reset_kernel_system() ); // Reset/Initialize the kernel system
     CHECK ( naif::KernelFileSystem::kernel_count() == 0 ); // Should be zero, as we have yet to load any
-    CHECK_NOTHROW ( naif::load_kernel(file) ); // Load the file/directory to be used
-    CHECK_NOTHROW( naif::check_naif_errors() ); // Check for loading errors
+    CHECK_NOTHROW ( naif::KernelFileSystem::open_kernel(file) ); // Load the file/directory to be used
+    CHECK_NOTHROW( naif::KernelFileSystem::check_naif_errors() ); // Check for loading errors
 
     auto k_info = naif::KernelFileSystem::kernel_filetype_info( "ALL" );
 

@@ -10,7 +10,7 @@
 #include "../private/BulletTracerModel.hpp"
 #include <psmrts/shapes/obj/private/PsmrtsOBJFormat.hpp>
 
-#include <psmrts/tracers/naifdsk/private/NaifUtilities.hpp>
+#include <psmrts/tracers/naifdsk/private/KernelFileSystem.hpp>
 #include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
 
 TEST_CASE ( "Bullet World Test - Default Constructor", "[default][bullet][world]" ) {

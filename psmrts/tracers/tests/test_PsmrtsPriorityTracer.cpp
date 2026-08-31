@@ -6,7 +6,7 @@
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/core/PsmrtsFactory.hpp>
 
-#include <psmrts/tracers/naifdsk/private/NaifUtilities.hpp>
+#include <psmrts/tracers/naifdsk/private/KernelFileSystem.hpp>
 #include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
 #include <psmrts/tracers/naifdsk/NaifDskTracer.hpp>
 #include <psmrts/tracers/ellipsoid/EllipsoidTracer.hpp>

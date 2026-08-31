@@ -7,6 +7,7 @@
 #include "../private/BulletSystemModel.hpp"
 #include "../private/PsmrtsBulletMeshMap.hpp"
 
+#include <psmrts/tracers/naifdsk/private/KernelFileSystem.hpp>
 #include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
 
 TEST_CASE ( "Bullet Mesh Map Test - Default Constructor", "[default][bullet][mesh]" ) {
@@ -100,9 +101,9 @@ TEST_CASE ( "Bullet Mesh Map OBJ/DSK Comparison - Bullet == NaifDSK ", "[bullet]
 
     // Load the DSK compare size
     naif::DskKernelModel dsk( dskfile );
-    CHECK_NOTHROW( naif::check_naif_errors() );
+    CHECK_NOTHROW( naif::KernelFileSystem::check_naif_errors() );
     naif::DskSegment segment = dsk.segment();
-    CHECK_NOTHROW( naif::check_naif_errors() );
+    CHECK_NOTHROW( naif::KernelFileSystem::check_naif_errors() );
     CHECK( segment.n_plates() == bt_data.nfacets() );
     CHECK( segment.n_vertices() == bt_data.nvectors() );
 

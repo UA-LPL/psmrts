@@ -15,6 +15,7 @@
 #include <psmrts/shapes/obj/ObjShape.hpp>
 #include <psmrts/core/ISISDataDirectory.hpp>
 
+#include <psmrts/tracers/naifdsk/private/KernelFileSystem.hpp>
 #include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
 
 TEST_CASE("PsmrtsTracerSystem Default Test", "[tracer][system][default]") {
