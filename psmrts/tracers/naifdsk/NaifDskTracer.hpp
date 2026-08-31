@@ -277,10 +277,6 @@ namespace psmrts  {
       inline const ProductConfiguration &config() const {
         return ( m_config );
       }
-      
-      inline bool matches( const ProductConfiguration &conf ) const {
-        return ( this->config().matches( conf ) );
-      }
 
       inline double maximum_radius() const {
         return ( m_model->maximum_radius() );

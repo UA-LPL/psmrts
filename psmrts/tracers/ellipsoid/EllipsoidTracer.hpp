@@ -429,11 +429,6 @@ namespace psmrts  {
         return ( m_config );
       }
 
-      inline bool matches( const ProductConfiguration &conf ) const {
-        return ( this->config().matches( conf ) );
-      }
-
-
       /** Report all remaining features not available */
       PSMRTS_PROCESS_CATCHALL( "EllipsoidTracer" )
 

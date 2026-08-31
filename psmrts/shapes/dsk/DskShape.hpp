@@ -100,11 +100,6 @@ namespace psmrts {
         return ( m_config );
       }
 
-      inline bool matches( const ProductConfiguration &conf ) const {
-        return ( this->config().matches( conf ) );
-      }
-
-
     protected:
       SharedMeshData       m_mesh;
       ProductConfiguration m_config;

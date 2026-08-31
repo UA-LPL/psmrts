@@ -166,9 +166,6 @@ namespace psmrts {
         return ( std::visit(visitor, m_model ) ); 
       }        
 
-      inline bool matches( const ProductConfiguration &conf ) const {
-        return ( this->config().matches( conf ) );
-      }
 
       inline double maximum_radius() const {
         const auto visitor = overload{            

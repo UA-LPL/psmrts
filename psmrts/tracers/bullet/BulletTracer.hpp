@@ -261,13 +261,6 @@ namespace psmrts  {
         return ( m_config );
       }
 
-      inline bool matches( const ProductConfiguration &conf ) const {
-        if ( this->shape()->matches( conf ) && this->config().matches( conf ) ) {
-          return ( true );
-        }
-
-        return ( false );
-      }
                       
       /** Catcha nd report errors on all remaining processes not available */
       PSMRTS_PROCESS_CATCHALL( "BulletTracer" )

@@ -99,10 +99,6 @@ namespace psmrts {
            return m_config;
         }
 
-        inline bool matches( const ProductConfiguration &conf ) const {
-          return ( this->config().matches( conf ) );
-        }
-
         PSMRTS_PROCESS_CATCHALL( "MeshShape" )
 
       protected:
