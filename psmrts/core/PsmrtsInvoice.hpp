@@ -205,12 +205,12 @@ namespace psmrts {
         return ( m_tracers );
       }
 
-      /** Returns a list of tracers in the order (priority) submitted */
+      /** Returns a list of processed order confurations in the order (priority) submitted */
       inline const ProductOrderList &orders() const {
         return ( m_orders );
       }      
 
-      /** Construct and return a processor consistent with this object */
+      /** Construct and return a product processor consistent with this object */
       inline ProductProcessing processor() const {
         return ( ProductProcessing( m_inventory->translations() ) );
       }
