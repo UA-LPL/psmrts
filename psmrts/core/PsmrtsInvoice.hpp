@@ -174,6 +174,24 @@ namespace psmrts {
       }
 
       /**
+       * @brief Create list of PsmrtsTracers without duplicate tracers
+       * 
+       * User tracer configurations at times can result duplications of tracers.
+       * This will result in longer trace times as repeat traces on the same
+       * tracer will produce the same result. This method removes duplicate
+       * tracers produced after processing by submit_order().
+       * 
+       * BEWARE this method may return less tracers than the tracers() method!!
+       * The result of the tracers() method may contain duplicate tracers. This 
+       * method removes duplicate tracers by uids.
+       * 
+       * @return TracerList Optimized list of tracers without duplicates
+       */
+      inline TracerList optimized_tracer_list() const {
+        return ( remove_duplicates( m_tracers ) );
+      }
+
+      /**
        * @brief Get the priority tracer object generated from the product configs
        * 
        * This method will create a priority tracer from the results of the
@@ -197,7 +215,7 @@ namespace psmrts {
       inline PsmrtsPriorityTracer make_priority_tracer( const std::string &name = "" ) {
         if ( !this->isvalid() ) this->submit_order();
         std::string name_t = ( name.length() > 0 ) ? name : m_name;
-        return ( PsmrtsPriorityTracer( name_t, remove_duplicates( m_tracers ) ) );
+        return ( PsmrtsPriorityTracer( name_t, optimized_tracer_list() ) );
       }
 
       /** Returns a list of tracers in the order (priority) submitted */

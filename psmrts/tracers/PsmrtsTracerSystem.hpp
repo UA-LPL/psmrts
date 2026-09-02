@@ -105,13 +105,11 @@ namespace psmrts {
                           m_invoice( ), 
                           m_tracer_p( ), 
                           m_ellipsoid_r( ) {
-        m_invoice = make_shared_copy( PsmrtsInvoice( name, trans_t ) );
-        for ( const std::string &file :  shapes ) {
-          this->add_product( "file", file );
-        }
 
-        // In this case, make the tracer immediately to catch errors!
-        (void) create_priority_tracer( name );
+        // Construct the invoice and process the list
+        m_invoice = make_shared_copy( PsmrtsInvoice( name, trans_t ) );
+        this->process_shape_list( shapes, name );
+        (void) create_priority_tracer();
       }      
 
       // Destructor
@@ -195,7 +193,31 @@ namespace psmrts {
 
 
       /**
-       * @brief Expand the list of a shape files/parmeters
+       * @brief Expand the list of a shape files/parameters and create tracers
+       * 
+       * This method processes a list of shape files that my contain files that
+       * contain a list of files containing shapes. Each shape file may also 
+       * have a prefix of the form "tracer::" where "tracer" is one of the
+       * supported tracer systems in PSRMTS (see the psmrts_products_specs app).
+       * 
+       * The resulting lists of tracers are processed after validation in
+       * PsmrtsInvoice. The invoice is then passed on to PsmrtsFactory for
+       * processing. This includes determination and use of any existing tracer
+       * or creating of new tracers if no suitable tracer exists.
+       * 
+       * This results in a list of PsmrtsTracers that are used to create a
+       * PsmrtsPriorityTracer or you may use this class to apply ray traces.
+       * This class can create multiple priority tracers that are distinct,
+       * meaning the priority tracer is not shared in previous instances because
+       * their order/priority can change.
+       * 
+       * This method is reentrant and will add to previous calls. As such there
+       * is a potenital to create duplicate tracers that will greatly degrade
+       * performance in priority tracers. This is prevented by always removing
+       * duplicate tracers before creating a new priority tracer. See 
+       * PsmrtsInvoice::optimized_tracer_list(). However, the full list of
+       * tracers is retained as the counts of the orders should match the tracer
+       * count in order to be considered valid.
        * 
        * @param shapes List of psmrts shape file specifications
        * @return size_t Number of shapes added to the system
@@ -295,9 +317,8 @@ namespace psmrts {
         // Check for errors in tracer creation process and toss'em if they occur
         if ( nerrs > 0 ) m_invoice->throw_errors();
 
-        // Now set the priority tracer up and check for addtional errors
-        (void) create_priority_tracer( name );
-        if ( nerrs > 0 ) m_invoice->throw_errors();
+        // Now submit the order list, create the tracer and check for addtional errors
+        (void) create_priority_tracer();
 
         return ( n_shapes_added );
       }
@@ -361,6 +382,7 @@ namespace psmrts {
        */
       inline PsmrtsPriorityTracer create_priority_tracer( const std::string &name = "" ) {
         m_tracer_p =  m_invoice->make_priority_tracer( name );
+        if ( m_invoice->has_errors() ) m_invoice->throw_errors();
 
         // Check to ensure there is a reference ellipsoid for the system on
         // first instance of priority tracer. Users can reset this if desired.
