@@ -133,10 +133,6 @@ namespace psmrts {
         return ( std::visit(visitor, m_model) ); 
       }        
 
-       inline bool matches( const ProductConfiguration &conf ) const {
-        return ( this->config().matches( conf ) );
-      }
-      
       inline double minimum_radius() const {
         return this->get_mesh().minimum_radius();
       }
