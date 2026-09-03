@@ -32,38 +32,25 @@ namespace psmrts {
     public:
       using UIDType         = PsmrtsUID::UIDType;
       using TracerUIDList   = std::vector<UIDType>;
-      using TracerInventory = PsmrtsSharedCache<UIDType, PsmrtsTracer>;
       using TracerList      = std::vector<SharedTracer>;
-      using PriorityFunc    = std::function<TracerList(const TracerList &current,
-                                                       const TracerInventory &inventory)>;
+      using PriorityFunc    = std::function<TracerList(const TracerList &current)>;
 
 
-      PsmrtsPriorityTracer( ) : PsmrtsProduct("prioritytracer") { init(); }
-      PsmrtsPriorityTracer( const std::string &name ) : PsmrtsProduct( name ) { init(); }
+      PsmrtsPriorityTracer( ) : PsmrtsProduct("prioritytracer"), m_tracers() { }
+      PsmrtsPriorityTracer( const std::string &name ) : PsmrtsProduct( name ), 
+                                                        m_tracers() { }
       
       PsmrtsPriorityTracer( const SharedTracer &tracer,
                             const std::string &name = "" ) : 
-                            PsmrtsProduct( name ) { 
-        init();
+                            PsmrtsProduct( name ), m_tracers() { 
         if ( !tracer ) return;
         if ( name.length() == 0 ) set_name( tracer->name() );
         this->add( tracer );
       }
       PsmrtsPriorityTracer(  const std::string &name ,
                              const TracerList &tracers ) : 
-                             PsmrtsProduct( name ) { 
-        init();
-        for ( const auto &tracer : tracers ) {
-          this->add( tracer );
-        }
-      }
-      PsmrtsPriorityTracer(  const std::string &name ,
-                             const TracerInventory &tracers ) : 
-                             PsmrtsProduct( name ) { 
-        m_inventory_t = tracers;
-        m_uids_t      = tracers.keys();
-        m_tracers     = tracers.values();
-      }
+                             PsmrtsProduct( name ), 
+                             m_tracers( tracers ) { }
 
       virtual ~PsmrtsPriorityTracer() = default;
 
@@ -79,17 +66,12 @@ namespace psmrts {
 
       /** Adds a valid tracer to Priority Tracer list */
       inline void add( const SharedTracer &tracer ) {
-
-        // Sanity check
+        // Sanity check. Don't add empty, invalid tracers or exising tracers 
+        // (i.e., duplicates)
         if ( !tracer ) return;
-
-        if ( PsmrtsUID::is_valid_uid( tracer->uid() ) ) {
-          m_uids_t.push_back( tracer->uid() );
-          m_tracers.push_back( tracer );
-          if ( !m_inventory_t.contains( tracer->uid() ) ) {
-            m_inventory_t.add( tracer->uid(), tracer );
-          }
-        }
+        if ( !tracer->isValid() ) return;
+        if ( this->get_tracer( tracer->uid() ) ) return;
+        m_tracers.push_back( tracer );
       }
       
       inline bool process ( PRQRayTrace &ray ) const {
@@ -166,8 +148,13 @@ namespace psmrts {
       }
 
       /** Return list of tracer uids contained in the inventory */
-      inline const TracerUIDList &tracer_uids() const {
-        return ( m_uids_t );
+      inline const TracerUIDList tracer_uids() const {
+        TracerUIDList uids_t;
+        uids_t.reserve( m_tracers.size() );
+        for ( const auto &tracer : m_tracers ) {
+          uids_t.push_back( tracer->uid() );
+        }
+        return ( uids_t );
       }
 
       /** Return list of tracers in this object */
@@ -175,16 +162,13 @@ namespace psmrts {
         return ( m_tracers );
       }
 
-      /** Return list of tracers in this object */
-      inline const TracerInventory &inventory() const {
-        return ( m_inventory_t );
-      }
-
       /** Find and return pointer to tracer in list, otherwise an invalid
        * tracer is returned */
       inline ConstSharedTracer get_tracer( const UIDType &uid ) const {
-        if ( m_inventory_t.contains( uid ) ) {
-          return( m_inventory_t.find( uid ) );
+        for ( const auto &tracer : m_tracers ) {
+          if ( tracer->uid() == uid ) {
+            return ( tracer );
+          }
         }
 
         // Return an invalid shared tracer
@@ -216,7 +200,7 @@ namespace psmrts {
        * @return size_t   Number of tracers in the result of processor()
        */
       inline size_t prioritize( PriorityFunc processor ) {
-        m_tracers = processor( m_tracers, m_inventory_t );
+        m_tracers = processor( m_tracers );
         return ( m_tracers.size() );
       }
 
@@ -232,8 +216,7 @@ namespace psmrts {
        * @return size_t Number of tracers in the resulting list
        */
       inline size_t reverse_priority() {
-        auto reverse_tracers = []( const TracerList &current_order, 
-                                   const TracerInventory &inventory ) -> TracerList {
+        auto reverse_tracers = []( const TracerList &current_order ) -> TracerList {
           TracerList reversed;
           reversed.reserve( current_order.size() );
           std::transform( current_order.rbegin(), current_order.rend(), 
@@ -275,14 +258,10 @@ namespace psmrts {
 
       
     private:
-      TracerUIDList   m_uids_t;
       TracerList      m_tracers;
-      TracerInventory m_inventory_t;
 
       inline void init( ) {
-        m_uids_t.clear();
         m_tracers.clear();
-        m_inventory_t.clear();
       }
   };
 

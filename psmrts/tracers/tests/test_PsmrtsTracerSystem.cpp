@@ -22,8 +22,9 @@ TEST_CASE("PsmrtsTracerSystem Default Test", "[tracer][system][default]") {
    psmrts::PsmrtsFactory().liquidate();
 
     psmrts::PsmrtsTracerSystem sys1;
-    CHECK( sys1.get_ellipsoid_tracer().get() == nullptr ); 
-    CHECK( sys1.get_shape_tracer().isValid() == false ); 
+    CHECK( sizeof( psmrts::PsmrtsTracerSystem ) >  0 );
+    CHECK( sys1.get_ellipsoid_tracer().get()    == nullptr ); 
+    CHECK( sys1.get_shape_tracer().isValid()    == false ); 
 
     psmrts::PsmrtsTracerSystem sys2("test");
     CHECK( sys2.name() == "test" );
@@ -312,7 +313,6 @@ TEST_CASE("PsmrtsTracerSystem ISIS Interface Test", "[tracer][system][isislike]"
 
   psmrts::PsmrtsPriorityTracer tracer_p = system_t.create_priority_tracer();
   CHECK( tracer_p.isValid()          == true );
-  CHECK( tracer_p.inventory().size() == 4 );
  
 #if 0  
   for ( const auto &tracer : tracer_p.tracers() ) {
