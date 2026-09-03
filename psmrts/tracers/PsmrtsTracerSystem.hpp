@@ -75,6 +75,11 @@ namespace psmrts {
    * by default. It can be added easily by getting a copy of the priority tracer
    * created here and appending it to the copy. The copy can then be used to
    * make traces.
+   * 
+   * A defeault reference ellipsoid, which is actually a spheroid, can be set
+   * initially with the set_reference_ellipsoid(). This requires the priority
+   * tracer to be created otherwise, a reference ellipsoid must be set explicitly
+   * using one of the other set_reference_ellipsoid(..) methods.
    *
    * @author 2026-03-05 Kris J. Becker
    * @history 2026-03-05 - Kris J. Becker - Original Version
@@ -368,6 +373,37 @@ namespace psmrts {
       }
 
       /**
+       * @brief Set the reference ellipsoid object based upon priority tracer
+       * 
+       * If an generic shape ellipsoid is needed, create one here from the
+       * contents of the priority tracer. If the priority does not exist yet
+       * this routine will not produce an ellipsoid and users should create
+       * one explicity using one of the other forms of set_reference_ellipsoid().
+       * 
+       * This method will create a spheriod from using the minimum and maximum
+       * radii available from all shape tracers.
+       * 
+       * If an ellipsoid has already been set by a previous call and the priority
+       * tracer is not valid, it will not reset the current ellipsoid model and
+       * true will be returned.
+       * 
+       * @return true   If a priority tracer exists and it an ellipsoid is created.
+       * @return false  If the proirity tracer does not exist.
+       */
+      inline bool set_reference_ellipsoid() {
+        if ( m_tracer_p.isValid() ) {
+          // Check to ensure there is a reference ellipsoid for the system on
+          // first instance of priority tracer. Users can reset this if desired.
+            EllipsoidTracer e_t( m_tracer_p.minimum_radius(), 
+                                 m_tracer_p.maximum_radius(),
+                                 m_tracer_p.name() );
+            this->set_reference_ellipsoid( PsmrtsTracer( e_t ) );
+        }
+
+        return ( m_ellipsoid_r.get() != nullptr );
+      }
+
+      /**
        * @brief Create a priority tracer object from the products in this system
        * 
        * This step is required to generate the initial prioirity trace from the
@@ -383,16 +419,6 @@ namespace psmrts {
       inline PsmrtsPriorityTracer create_priority_tracer( const std::string &name = "" ) {
         m_tracer_p =  m_invoice->make_priority_tracer( name );
         if ( m_invoice->has_errors() ) m_invoice->throw_errors();
-
-        // Check to ensure there is a reference ellipsoid for the system on
-        // first instance of priority tracer. Users can reset this if desired.
-        if ( !m_ellipsoid_r ) {
-          EllipsoidTracer e_t( m_tracer_p.minimum_radius(), 
-                               m_tracer_p.maximum_radius(),
-                               m_tracer_p.name() );
-          this->set_reference_ellipsoid( PsmrtsTracer( e_t ) );
-        }
-
         return ( m_tracer_p );
       }
 
@@ -428,14 +454,16 @@ namespace psmrts {
        *                            
        */
       inline ConstSharedTracer get_tracer_from_intercept( const PRQRayTrace &ray ) 
-                                                     const {
+                                                          const {
         UIDType uid_t = ray.trace( ).get_tracer_id();
         if ( !PsmrtsUID::is_valid_uid( uid_t) ) {
-          return ( ConstSharedTracer() );
+          return ( nullptr );
         }
 
-        if ( uid_t == m_ellipsoid_r->uid() ) {
-          return ( m_ellipsoid_r );
+        if ( m_ellipsoid_r ) {
+          if ( uid_t == m_ellipsoid_r->uid() ) {
+            return ( m_ellipsoid_r );
+          }
         }
 
         return ( m_tracer_p.get_tracer( uid_t ) );
@@ -514,8 +542,12 @@ namespace psmrts {
                                           const {
 
         PRQRayTrace ray_t( Eigen::Vector3d( observer_km.data() ), 
-                           Eigen::Vector3d( lookdir_km.data() ) );
-        (void) this->ellipsoid_trace( ray_t );
+                          Eigen::Vector3d( lookdir_km.data() ) );
+                    
+        if ( m_ellipsoid_r ) {
+          (void) m_ellipsoid_r->process( ray_t );
+        }
+
         return ( ray_t );
       }
 
@@ -526,8 +558,10 @@ namespace psmrts {
                                           const {
 
         PRQRayTrace ray_t( observer_km, lookdir_km );
+        if ( m_ellipsoid_r ) {
+          m_ellipsoid_r->process( ray_t );
+        }
 
-        m_ellipsoid_r->process( ray_t );
         return ( ray_t );
       }  
 
@@ -557,8 +591,12 @@ namespace psmrts {
        * @return true  If the trace intercepted the ellipsoid model
        * @return false If the trace did not intercept the ellipsoid
        */
-      inline bool ellipsoid_trace( PRQRayTrace &ray ) const {      
-        return ( m_ellipsoid_r->process( ray ) );
+      inline bool ellipsoid_trace( PRQRayTrace &ray ) const {
+        bool success = false;
+        if ( m_ellipsoid_r ) {
+          success = m_ellipsoid_r->process( ray );
+        }            
+        return ( success );
       }
 
 
@@ -691,8 +729,12 @@ namespace psmrts {
        * @return false If one or both traces fail.
        */      
       inline bool ellipsoid_photometric_trace( PRQPhotometricTrace &ray_p ) 
-                                               const {      
-        return ( m_ellipsoid_r->process( ray_p ) );
+                                               const {
+        bool success = false;
+        if ( m_ellipsoid_r ) {
+          success = m_ellipsoid_r->process( ray_p );
+        }                                                       
+        return ( success );
       }
 
       inline const SharedInvoice &invoice() const { 

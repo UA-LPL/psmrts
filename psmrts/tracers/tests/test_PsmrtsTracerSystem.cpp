@@ -157,6 +157,8 @@ TEST_CASE("PsmrtsTracerSystem Priority Tracer Test", "[tracer][system][priority]
     TracerList tracers = pt.tracers();
     REQUIRE( tracers.size() == 1 );
 
+    CHECK( sys.get_ellipsoid_tracer().get() == nullptr );
+    sys.set_reference_ellipsoid();
     CHECK( sys.get_ellipsoid_tracer().get() != nullptr );
 
     std::vector<double> obs  = { 100.0, 0.0, 0.0 };
