@@ -53,7 +53,7 @@ namespace psmrts {
    * so the total count of tracers in the prioriy tracer may not be the same 
    * as the number of sumbitted orders. Duplicate tracers will cause extended
    * run times for traces that will not produce different results from previous
-   * traces in the priority tracer.
+   * traces in the priority tracer, so they are excluded.
    * 
    * @author Kris J. Becker, University of Arizona
    * @history 2026-01-31 Kris J. Becker  Original Version
@@ -112,10 +112,12 @@ namespace psmrts {
         return ( m_tracers.size() == m_orders.size() );
       }
 
+      /** Returns the file path translator  */
       inline const PsmrtsTranslations &translations() const {
         return ( *m_inventory->translations() );
       }
 
+      /** Returns the inventory for this invoice after submit_order() */
       inline const PsmrtsInventory &inventory() const {
         return ( *m_inventory );
       }
@@ -223,7 +225,7 @@ namespace psmrts {
         return ( m_tracers );
       }
 
-      /** Returns a list of processed order confurations in the order (priority) submitted */
+      /** Returns a list of processed order configurations in the order (priority) submitted */
       inline const ProductOrderList &orders() const {
         return ( m_orders );
       }      
