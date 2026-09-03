@@ -112,6 +112,7 @@ inline PSMRTS_Tracer *create_tracer_for_capi ( const std::string &filename ) {
     auto tracer_list = tracer_s.create_priority_tracer( filename ).tracers();
     if ( tracer_list.size() != 1 ) {
       psmrts_capi_errors.add_error( "create_tracer_for_capi - Did not get the expected tracer for file " + filename );
+      std::cout << "Tracer Error occured: " << psmrts_capi_errors.errors_to_string() << std::endl;
     }
     else {
       tracer_p = new PSMRTS_Tracer( tracer_list[0] );
@@ -121,6 +122,7 @@ inline PSMRTS_Tracer *create_tracer_for_capi ( const std::string &filename ) {
   catch ( const std::exception &e ) {
     psmrts_capi_errors.add_error( e );
     psmrts_capi_errors.add_error( "create_tracer_for_capi - Error creating tracer for file " + filename );
+    std::cout << "Tracer Error occured: " << psmrts_capi_errors.errors_to_string() << std::endl;
   }
 
   return ( tracer_p );
