@@ -14,10 +14,11 @@ find files of those names at the top level of this repository. **/
 
 #include <string>
 #include <deque>
+#include <memory>
+
 #include <Eigen/Geometry>
 
 #include <psmrts/core/psmrts_version.h>
-
 #include <psmrts/core/products/ProductConfiguration.hpp> 
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsContainer.hpp>
@@ -29,27 +30,155 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsRequest.hpp>
 #include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/tracers/PsmrtsTracer.hpp>
+#include <psmrts/tracers/PsmrtsTracerSystem.hpp>
 #include <psmrts/tracers/PsmrtsPriorityTracer.hpp>
 #include <psmrts/core/PsmrtsInvoice.hpp>
+
+using namespace psmrts;
+
+/**
+ * @brief Shared pointer C wrappper
+ * 
+ * This class provides the C object that wraps a shared pointer of PSMRTS
+ * types.
+ * 
+ * This class accepts any std::shared_ptr<T> type and provides this allocated
+ * structure to the C API environment where T == std::shared_ptr<T>::element_type.
+ * 
+ * @tparam SharePtr std::shared_ptr<T> type to wrap.
+ */
+template <typename T>
+  class SharedWrapper {
+    public:
+      using SharedPointer      = std::shared_ptr<T>;
+      
+      SharedWrapper() : m_ptr_s( nullptr ) { }
+      SharedWrapper( const SharedPointer &sptr ) : m_ptr_s( sptr ) { }
+      SharedWrapper( const T &data ) {
+        m_ptr_s = make_shared_copy( data );
+      } 
+      ~SharedWrapper() = default;
+
+      inline bool isvalid() const {
+        return ( m_ptr_s.get() != nullptr );
+      }
+
+      inline const T *operator->() const {
+        return ( m_ptr_s.get() );
+      }
+
+      inline T *operator->() {
+        return ( m_ptr_s.get() );
+      }      
+
+      inline SharedPointer &shared_pointer() const {
+        return ( m_ptr_s );
+      }
+
+    private:
+     SharedPointer m_ptr_s;
+  };
 
 /*============ PSMRTS C API type definitions ============*/
 /* Must be defined before including psmrts_c.h */
 #define PSMRTS_POINTERS 1
-using PSMRTS_Invoice               = psmrts::PsmrtsInvoice;
-using PSMRTS_Translations          = psmrts::PsmrtsTranslations;
-using PSMRTS_ProductConfiguration  = psmrts::ProductConfiguration;
+using PSMRTS_Invoice               = PsmrtsInvoice;
+using PSMRTS_Translations          = PsmrtsTranslations;
+using PSMRTS_ProductConfiguration  = ProductConfiguration;
 using PSMRTS_String                = std::string;
 using PSMRTS_StringArray           = std::deque<PSMRTS_String>;
-using PSMRTS_RayTrace              = psmrts::PRQRayTrace;
-using PSMRTS_Shape                 = psmrts::PsmrtsShape;
-using PSMRTS_Tracer                = psmrts::PsmrtsTracer;
-using PSMRTS_PriorityTracer        = psmrts::PsmrtsPriorityTracer;
-using PSMRTS_PhotometricRayTrace   = psmrts::PRQPhotometricTrace;
-using PSMRTS_TraceArray            = psmrts::PRQRayTraceArray;
-using PSMRTS_PhotometricTraceArray = psmrts::PRQPhotometricTraceArray;
+using PSMRTS_RayTrace              = PRQRayTrace;
+using PSMRTS_Shape                 = SharedWrapper<PsmrtsShape>;
+using PSMRTS_Tracer                = SharedWrapper<PsmrtsTracer>;
+using PSMRTS_PriorityTracer        = PsmrtsPriorityTracer;
+using PSMRTS_PhotometricRayTrace   = PRQPhotometricTrace;
+using PSMRTS_TraceArray            = PRQRayTraceArray;
+using PSMRTS_PhotometricTraceArray = PRQPhotometricTraceArray;
 
 /* Include the PSMRTS C api include */
 #include <psmrts/capi/psmrts_c.h>
+
+
+static PsmrtsErrors psmrts_capi_errors{};
+
+inline PSMRTS_Tracer *create_tracer_for_capi ( const std::string &filename ) {
+
+  PSMRTS_Tracer *tracer_p = NULL;
+  psmrts_capi_errors.clear_errors();
+
+  try {
+    PsmrtsTracerSystem tracer_s( "create_tracer_for_capi" );
+    size_t nshapes = tracer_s.process_shape_list( { filename }, filename );
+    auto tracer_list = tracer_s.create_priority_tracer( filename ).tracers();
+    if ( tracer_list.size() != 1 ) {
+      psmrts_capi_errors.add_error( "create_tracer_for_capi - Did not get the expected tracer for file " + filename );
+    }
+    else {
+      tracer_p = new PSMRTS_Tracer( tracer_list[0] );
+    }
+
+  }
+  catch ( const std::exception &e ) {
+    psmrts_capi_errors.add_error( e );
+    psmrts_capi_errors.add_error( "create_tracer_for_capi - Error creating tracer for file " + filename );
+  }
+
+  return ( tracer_p );
+}
+
+inline PSMRTS_Tracer *create_tracer_for_capi ( const ProductConfiguration &config ) {
+
+  PSMRTS_Tracer *tracer_p = NULL;
+  psmrts_capi_errors.clear_errors();
+
+  try {
+    PsmrtsTracerSystem tracer_s( "create_tracer_for_capi" );
+    size_t nshapes = tracer_s.make_product( config );
+    auto tracer_list = tracer_s.create_priority_tracer( config.name() ).tracers();
+    if ( tracer_list.size() != 1 ) {
+      psmrts_capi_errors.add_error( "create_tracer_for_capi - Did not get the expected tracer for config " + config.name() );
+      psmrts_capi_errors.throw_errors();
+    }
+    else {
+      tracer_p = new PSMRTS_Tracer( tracer_list[0] );
+    }
+
+  }
+  catch ( const std::exception &e ) {
+    psmrts_capi_errors.add_error( e );
+    psmrts_capi_errors.add_error( "create_tracer_for_capi - Error creating tracer for config " + config.name() );
+  }
+
+  return ( tracer_p );
+}
+
+inline PSMRTS_Shape *create_shape_for_capi ( const ProductConfiguration &config ) {
+
+  PSMRTS_Shape *shape_p = NULL;
+  psmrts_capi_errors.clear_errors();
+
+  try {
+
+    PsmrtsInvoice invoice_t( "create_shape_for_capi", PsmrtsFactory().translator() );
+    invoice_t.add( config );
+    invoice_t.submit_order();
+    auto shape_list = invoice_t.inventory().shapes()->values();
+    if ( shape_list.size() != 1 ) {
+      psmrts_capi_errors.add_error( "create_shape_for_capi - Errors processing shape config " + config.name() );
+    }
+    else {
+      shape_p = new PSMRTS_Shape( shape_list[0] );
+    }
+
+  }
+  catch ( const std::exception &e ) {
+    psmrts_capi_errors.add_error( e );
+    psmrts_capi_errors.add_error( "psmrts_create_dsk_shape - Failed to create shape config " + config.name() );
+  }  
+
+  return ( shape_p );
+}
+
 
 /**
  * @brief vector_to_eigen_d - Converts a PSMRTS_Vector3d of doubles to an
@@ -110,14 +239,14 @@ inline PSMRTS_Vector3i eigen_to_vector_i( const Eigen::Vector3i &v ) {
 }
 
 /**
- * @brief psmrts_facet_to_capi - Converts psmrts::PRQFacet to a c api facet.
+ * @brief psmrts_facet_to_capi - Converts PRQFacet to a c api facet.
  *
- * This function converts an input psmrts::PRQFacet to a c api facet structure.
+ * This function converts an input PRQFacet to a c api facet structure.
  *
- * @param prq_facet psmrts::PRQFacet.
- * @return PSMRTS_Facet C api facet converted from psmrts::PRQFacet.
+ * @param prq_facet PRQFacet.
+ * @return PSMRTS_Facet C api facet converted from PRQFacet.
  */
-inline PSMRTS_Facet psmrts_facet_to_capi( const psmrts::PRQFacet &prq_facet ) {
+inline PSMRTS_Facet psmrts_facet_to_capi( const PRQFacet &prq_facet ) {
   PSMRTS_Facet facet;
 
   facet.m_has_facet = prq_facet.m_facet.m_has_facet;
@@ -133,15 +262,15 @@ inline PSMRTS_Facet psmrts_facet_to_capi( const psmrts::PRQFacet &prq_facet ) {
 }
 
 /**
- * @brief capi_facet_to_psmrts - Converts a c api facet to a psmrts::PRQFacet.
+ * @brief capi_facet_to_psmrts - Converts a c api facet to a PRQFacet.
  *
- * This function converts an input c api facet to a psmrts::PRQFacet.
+ * This function converts an input c api facet to a PRQFacet.
  *
  * @param facet C api facet.
- * @return psmrts::PRQFacet converted from c api facet.
+ * @return PRQFacet converted from c api facet.
  */
-inline psmrts::PRQFacet capi_facet_to_psmrts( const PSMRTS_Facet &facet ) {
-  psmrts::PRQFacet prq_facet;
+inline PRQFacet capi_facet_to_psmrts( const PSMRTS_Facet &facet ) {
+  PRQFacet prq_facet;
 
   prq_facet.m_facet.m_has_facet = facet.m_has_facet;
   prq_facet.m_facet.m_plateid = facet.m_plateid;
@@ -542,7 +671,7 @@ PSMRTS_RayTrace *psmrts_ray_trace( PSMRTS_RayTrace *ray,
                                    const PSMRTS_Tracer *tracer ) {
 
   assert( ray != nullptr && "psmrts_ray_trace::PSMRTS_RayTrace is null" );
-  tracer->process( *ray );
+  (*tracer)->process( *ray );
 
   return ( ray );
 }
@@ -725,7 +854,7 @@ double psmrts_ray2ray_distance( const PSMRTS_RayTrace *ray1,
 double psmrts_separation_angle_radians( const PSMRTS_Vector3d *v1,
                                         const PSMRTS_Vector3d *v2 ) {
 
-  return ( psmrts::PsmrtsRayTrace::separation_angle( vector_to_eigen_d( *v1 ),
+  return ( PsmrtsRayTrace::separation_angle( vector_to_eigen_d( *v1 ),
                                                      vector_to_eigen_d( *v2 ) ) );
 }
 
@@ -849,7 +978,7 @@ size_t psmrts_trace_array_add_trace( PSMRTS_TraceArray *tracearray,
  */
 extern PSMRTS_BOOL psmrts_trace_array_trace( PSMRTS_TraceArray *tracearray,
                                              const PSMRTS_Tracer *tracer) {
-  return ( tracer->process( *tracearray ) );
+  return ( (*tracer)->process( *tracearray ) );
 }
 
 /**
@@ -910,7 +1039,7 @@ PSMRTS_PhotometricRayTrace *psmrts_create_photometric_ray( const PSMRTS_Vector3d
                                                            const PSMRTS_Vector3d *lookdir,
                                                            const PSMRTS_Vector3d *sunpos) {
 
-  return ( new psmrts::PRQPhotometricTrace( vector_to_eigen_d( *observer ),
+  return ( new PRQPhotometricTrace( vector_to_eigen_d( *observer ),
                                             vector_to_eigen_d( *lookdir ),
                                             vector_to_eigen_d( *sunpos ) ) );
 }
@@ -968,7 +1097,7 @@ PSMRTS_PhotometricRayTrace *psmrts_photo_ray_trace( PSMRTS_PhotometricRayTrace *
                                                     const PSMRTS_Tracer *tracer ) {
 
     assert( photoray != nullptr && "psmrts_photo_ray_trace::PSMRTS_PhotometricRayTrace is null" );
-    tracer->process( *photoray );
+    (*tracer)->process( *photoray );
 
     return ( photoray );
 }
@@ -1103,7 +1232,7 @@ size_t psmrts_photometric_trace_array_add_trace( PSMRTS_PhotometricTraceArray *t
  */
 extern PSMRTS_BOOL psmrts_photometric_trace_array_trace( PSMRTS_PhotometricTraceArray *tracearray,
                                                          const PSMRTS_Tracer *tracer) {
-  return ( tracer->process( *tracearray ) );
+  return ( (*tracer)->process( *tracearray ) );
 }
 
 /**
@@ -1152,7 +1281,7 @@ const PSMRTS_PhotometricRayTrace *psmrts_photometric_trace_array_get_trace( cons
  */
 PSMRTS_Vector3d psmrts_lonlatrad_to_xyz_d( const PSMRTS_Vector3d *v ) {
 
-  return ( eigen_to_vector_d( psmrts::lonlatrad_to_xyz_d( vector_to_eigen_d(*v) ) ) );
+  return ( eigen_to_vector_d( lonlatrad_to_xyz_d( vector_to_eigen_d(*v) ) ) );
 }
 
 /**
@@ -1168,7 +1297,7 @@ PSMRTS_Vector3d psmrts_lonlatrad_to_xyz_d( const PSMRTS_Vector3d *v ) {
  */
 PSMRTS_Vector3d psmrts_xyz_to_lonlatrad_d( const PSMRTS_Vector3d *v ) {
 
-  return ( eigen_to_vector_d( psmrts::xyz_to_lonlatrad_d( vector_to_eigen_d( *v ) ) ) );
+  return ( eigen_to_vector_d( xyz_to_lonlatrad_d( vector_to_eigen_d( *v ) ) ) );
 }
 
 /**
@@ -1180,7 +1309,7 @@ PSMRTS_Vector3d psmrts_xyz_to_lonlatrad_d( const PSMRTS_Vector3d *v ) {
  * @return double Input converted to radians.
  */
 double psmrts_degrees_to_radians( const double d ) {
-  return ( psmrts::degrees_to_radians( d ) );
+  return ( degrees_to_radians( d ) );
 }
 
 /**
@@ -1192,7 +1321,7 @@ double psmrts_degrees_to_radians( const double d ) {
  * @return double Input converted to degrees.
  */
 double psmrts_radians_to_degrees( const double d ) {
-  return ( psmrts::radians_to_degrees( d ) );
+  return ( radians_to_degrees( d ) );
 }
 
 /**
@@ -1250,7 +1379,11 @@ PSMRTS_Vector3d psmrts_vector3d_to_degrees( const PSMRTS_Vector3d *v ) {
 PSMRTS_Tracer *psmrts_create_sphere( const double radius_km,
                                      const char *name ) {
 
-  return ( new PSMRTS_Tracer ( psmrts::PsmrtsTracer::sphere( radius_km, name ) ) );
+  ProductConfiguration config( std::string( name ), 
+                               { ProductOption( "tracer", "sphere" ),
+                                 ProductOption( "radii", radius_km ),
+                                 ProductOption( "name", std::string( name ) ) } );
+  return ( create_tracer_for_capi( config ) );   
 }
 
 /**
@@ -1273,9 +1406,11 @@ PSMRTS_Tracer *psmrts_create_spheroid( const double a_radius_km,
                                        const double c_radius_km,
                                        const char *name ) {
 
-  return ( new PSMRTS_Tracer ( psmrts::PsmrtsTracer::spheroid( a_radius_km,
-                                                               c_radius_km,
-                                                               name ) ) );
+  ProductConfiguration config( std::string( name ), 
+                               { ProductOption( "tracer", "spheroid" ),
+                                 ProductOption( "radii", { a_radius_km, c_radius_km } ),
+                                 ProductOption( "name", std::string( name ) ) } );
+  return ( create_tracer_for_capi( config ) );                                        
 }
 
 /**
@@ -1297,10 +1432,12 @@ PSMRTS_Tracer *psmrts_create_ellipsoid( const double a_radius_km,
                                         const double c_radius_km,
                                         const char *name ) {
 
-  return ( new PSMRTS_Tracer ( psmrts::PsmrtsTracer::ellipsoid( a_radius_km,
-                                                                b_radius_km,
-                                                                c_radius_km,
-                                                                name ) ) );
+  std::string name_t( name );
+  ProductConfiguration config( std::string( name_t ), 
+                               { ProductOption( "tracer", "ellipsoid" ),
+                                 ProductOption( "radii", { a_radius_km, b_radius_km, c_radius_km } ),
+                                 ProductOption( "name", std::string( name_t ) ) } );
+  return ( create_tracer_for_capi( config ) );  
 }
 
 /**
@@ -1319,8 +1456,12 @@ PSMRTS_Tracer *psmrts_create_ellipsoid( const double a_radius_km,
 PSMRTS_Tracer *psmrts_create_ellipsoid_v( const PSMRTS_Vector3d *radii,
                                           const char *name ) {
 
-  return ( new PSMRTS_Tracer( psmrts::PsmrtsTracer::ellipsoid( vector_to_eigen_d(*radii),
-                                                               name ) ) );
+  std::string name_t( name );
+  ProductConfiguration config( std::string( name_t ), 
+                               { ProductOption( "tracer", "ellipsoid" ),
+                                 ProductOption( "radii", vector_to_eigen_d(*radii) ),
+                                 ProductOption( "name", std::string( name_t ) ) } );
+  return ( create_tracer_for_capi( config ) );                                                                
 }
 
 /**
@@ -1335,14 +1476,15 @@ PSMRTS_Tracer *psmrts_create_ellipsoid_v( const PSMRTS_Vector3d *radii,
  * @return Pointer to the resulting PSMRTS_Tracer object.
  */
 PSMRTS_Tracer *psmrts_create_bullet( const char *objfile ) {
-  return ( new PSMRTS_Tracer( psmrts::PsmrtsTracer::bullet( objfile ) ) );
+  return ( create_tracer_for_capi( "bullet::" + std::string( objfile ) ) );
 }
 
 /**
  * @brief psmrts_create_naifdsk - Creates a PSMRTS Naif DSK tracer
  *
  * Given a shapefile, this function creates a PSMRTS tracer object that can be
- * used to trace on an meshfile via the Naif DSK ray trace engine.
+ * used to trace on an meshfile via the Naif DSK ray trace engine. The filename
+ * must be an absolute path where all variabes are resolved. 
  *
  * It is the responsibility of the caller to check for valid pointer return.
  *
@@ -1350,14 +1492,14 @@ PSMRTS_Tracer *psmrts_create_bullet( const char *objfile ) {
  * @return Pointer to the resulting PSMRTS_Tracer object.
  */
 PSMRTS_Tracer *psmrts_create_naifdsk( const char *dskfile ) {
-  return ( new PSMRTS_Tracer( psmrts::PsmrtsTracer::naifdsk( dskfile ) ) );
+  return ( create_tracer_for_capi( "naifdsk::" + std::string( dskfile ) ) );
 }
 
 /**
- * @brief psmrts_get_facet - Creates and processes a psmrts::PRQFacet.
+ * @brief psmrts_get_facet - Creates and processes a PRQFacet.
  *
  * Given PSMRTS_Tracer, PSMRTS_RayTrace, and PSMRTS_Facet objects, the tracer is used to
- * process the psmrts::PRQFacet. The PRQFacet data is copied to a PSMRTS_Facet structure
+ * process the PRQFacet. The PRQFacet data is copied to a PSMRTS_Facet structure
  * and returned.
  *
  * The input ray is required to have a valid observer and look direction. It is
@@ -1375,10 +1517,10 @@ PSMRTS_BOOL psmrts_get_facet( PSMRTS_RayTrace *ray, const PSMRTS_Tracer *tracer,
   assert( tracer != nullptr && "psmrts_tracer::PSMRTS_Tracer is null" );
 
   // construct PRQFacet with PsmrtsRayTrace from PSMRTS_RayTrace argument
-  psmrts::PRQFacet prqFacet( ray->trace() );
+  PRQFacet prqFacet( ray->trace() );
 
   // process facet
-  PSMRTS_BOOL b = ( tracer->process( prqFacet ) ? PSMRTS_TRUE : PSMRTS_FALSE);
+  PSMRTS_BOOL b = ( (*tracer)->process( prqFacet ) ? PSMRTS_TRUE : PSMRTS_FALSE);
 
   // copy PRQFacet data to PSMRTS_FACET
   *facet = psmrts_facet_to_capi( prqFacet );
@@ -1395,7 +1537,12 @@ PSMRTS_BOOL psmrts_get_facet( PSMRTS_RayTrace *ray, const PSMRTS_Tracer *tracer,
  * @return PSMRTS_Shape*.
  */
 PSMRTS_Shape *psmrts_create_obj_shape( const char *objfile ) {
-  return ( new PSMRTS_Shape( psmrts::PsmrtsShape( psmrts::ObjShape( objfile ) ) ) );
+  std::string objfile_t( objfile );
+
+  ProductConfiguration config( objfile_t,
+                              { ProductOption( "shape", "obj" ),
+                                ProductOption( "obj_file", objfile_t ) } );
+  return ( create_shape_for_capi( config ) );
 }
 
 /**
@@ -1407,7 +1554,12 @@ PSMRTS_Shape *psmrts_create_obj_shape( const char *objfile ) {
  * @return PSMRTS_Shape*.
  */
 PSMRTS_Shape *psmrts_create_dsk_shape( const char *dskfile ) {
-  return ( new PSMRTS_Shape( psmrts::PsmrtsShape( psmrts::DskShape( dskfile ) ) ) );
+  std::string dskfile_t( dskfile );
+
+  ProductConfiguration config( dskfile_t,
+                              { ProductOption( "shape", "dsk" ),
+                                ProductOption( "dsk_file", dskfile_t ) } );
+  return ( create_shape_for_capi( config ) );
 }
 
 /**
@@ -1419,7 +1571,12 @@ PSMRTS_Shape *psmrts_create_dsk_shape( const char *dskfile ) {
  * @return PSMRTS_Shape*.
  */
 PSMRTS_Shape *psmrts_create_ply_shape( const char *plyfile ) {
-  return ( new PSMRTS_Shape( psmrts::PsmrtsShape( psmrts::PlyShape( plyfile ) ) ) );
+  std::string plyfile_t( plyfile );
+
+  ProductConfiguration config( plyfile_t,
+                              { ProductOption( "shape", "ply" ),
+                                ProductOption( "ply_file", plyfile_t ) } );
+  return ( create_shape_for_capi( config ) );
 }  
 
 /**
@@ -1433,8 +1590,8 @@ PSMRTS_Shape *psmrts_create_ply_shape( const char *plyfile ) {
  */
 double psmrts_facet_surface_area( const PSMRTS_Facet *facet ) {
 
-  // convert PSMRTS_Facet to psmrts::PRQFacet
-  psmrts::PRQFacet prqfacet = capi_facet_to_psmrts( *facet );
+  // convert PSMRTS_Facet to PRQFacet
+  PRQFacet prqfacet = capi_facet_to_psmrts( *facet );
 
   return ( prqfacet.facet().surface_area() );
 }
@@ -1457,8 +1614,8 @@ double psmrts_facet_surface_area( const PSMRTS_Facet *facet ) {
  */
 double psmrts_facet_volume( const PSMRTS_Facet *facet ) {
 
-  // convert PSMRTS_Facet to psmrts::PRQFacet
-  psmrts::PRQFacet prqfacet = capi_facet_to_psmrts( *facet );
+  // convert PSMRTS_Facet to PRQFacet
+  PRQFacet prqfacet = capi_facet_to_psmrts( *facet );
 
   return ( prqfacet.facet().volume() );
 }
@@ -1472,7 +1629,7 @@ double psmrts_facet_volume( const PSMRTS_Facet *facet ) {
  * @return double Shape surface area.
  */
 extern double psmrts_mesh_surface_area( const PSMRTS_Shape *shape ) {
-  return ( shape->get_mesh().mesh_surface_area() );
+  return ( (*shape)->get_mesh().mesh_surface_area() );
 }
 
 /**
@@ -1484,7 +1641,7 @@ extern double psmrts_mesh_surface_area( const PSMRTS_Shape *shape ) {
  * @return double Shape volume.
  */
 extern double psmrts_mesh_volume( const PSMRTS_Shape *shape ) {
-  return ( shape->get_mesh().mesh_volume() );
+  return ( (*shape)->get_mesh().mesh_volume() );
 }
 
 /**
@@ -1497,7 +1654,7 @@ extern double psmrts_mesh_volume( const PSMRTS_Shape *shape ) {
 PSMRTS_Translations *psmrts_create_translation() {
   
   // create translation
-  PSMRTS_Translations *trans_t = new PSMRTS_Translations( psmrts::PsmrtsTranslations::create() );
+  PSMRTS_Translations *trans_t = new PSMRTS_Translations( PsmrtsTranslations::create() );
 
   return trans_t;
 }
@@ -1528,7 +1685,7 @@ void psmrts_add_translation_parameter( PSMRTS_Translations *translations, const 
  * @return PSMRTS_ProductConfiguration*.
  */
 PSMRTS_ProductConfiguration *psmrts_create_product_config( const char *id ) {  
-  return ( new PSMRTS_ProductConfiguration( psmrts::ProductConfiguration( id ) ) );
+  return ( new PSMRTS_ProductConfiguration( ProductConfiguration( id ) ) );
 }
 
 /**
@@ -1556,7 +1713,7 @@ PSMRTS_ProductConfiguration *psmrts_create_config( const char *producttype, cons
     config = psmrts_create_product_config( producttype );
   }
 
-  config->add( psmrts::ProductOption( producttype, productname ) );
+  config->add( ProductOption( producttype, productname ) );
 
   return config;
 }
@@ -1610,7 +1767,7 @@ PSMRTS_C_EXPORT void psmrts_product_config_to_string( PSMRTS_ProductConfiguratio
 void psmrts_add_product_string( PSMRTS_ProductConfiguration *config,
                                 const char *name, const char *text ) {
                                           
-  config->add( psmrts::ProductOption( name, text ) );
+  config->add( ProductOption( name, text ) );
 }
 
 /**
@@ -1628,7 +1785,7 @@ void psmrts_add_product_string( PSMRTS_ProductConfiguration *config,
 void psmrts_add_product_bool( PSMRTS_ProductConfiguration *config,
                               const char *name, const PSMRTS_BOOL b ) {
                                           
-  config->add( psmrts::ProductOption( name, b ) );
+  config->add( ProductOption( name, b ) );
 }
 
 /**
@@ -1646,7 +1803,7 @@ void psmrts_add_product_bool( PSMRTS_ProductConfiguration *config,
 void psmrts_add_product_int( PSMRTS_ProductConfiguration *config,
                              const char *name, const int i ) {
                                           
-  config->add( psmrts::ProductOption( name, i ) );
+  config->add( ProductOption( name, i ) );
 }
 
 /**
@@ -1664,7 +1821,7 @@ void psmrts_add_product_int( PSMRTS_ProductConfiguration *config,
 void psmrts_add_product_sizet( PSMRTS_ProductConfiguration *config,
                                const char *name, const size_t szt ) {
                                           
-  config->add( psmrts::ProductOption( name, szt ) );
+  config->add( ProductOption( name, szt ) );
 }
 
 /**
@@ -1682,7 +1839,7 @@ void psmrts_add_product_sizet( PSMRTS_ProductConfiguration *config,
 void psmrts_add_product_double( PSMRTS_ProductConfiguration *config,
                                 const char *name, const double d ) {
                                           
-  config->add( psmrts::ProductOption( name, d ) );
+  config->add( ProductOption( name, d ) );
 }
 
 /**
@@ -1707,7 +1864,7 @@ void psmrts_add_product_double_vector( PSMRTS_ProductConfiguration *config,
   std::vector<double> cpp_vector(count);
   std::copy_n( d_vector, count, cpp_vector.begin() );
                                                                                           
-  config->add( psmrts::ProductOption( name, cpp_vector ) );
+  config->add( ProductOption( name, cpp_vector ) );
 }
 
 /**
