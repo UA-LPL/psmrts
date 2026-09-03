@@ -66,23 +66,7 @@ namespace psmrts  {
       virtual ~ObjShape() { }
 
 
-      /**
-       * @brief OBJ Features Processor
-       * 
-       * This method accepts a PRQFeatures, and stores into it all the 
-       * relevant Bullet information using JSON.
-       * 
-       * @param features PRQFeatures that holds tracer-relevant information
-       *                  in a JSON format
-       * @return true    If features were added successfully
-       * @return false   If any issues during processing
-       */
-      inline bool process( PRQFeatures &features ) const {
-        features.add_feature( this->product_specifications().to_json() );
-        return ( true );
-      }
-        
-
+      /** Product specifications for the OBJ shape */
       static inline ProductSpecification product_specifications() {
         ProductInfo  info( "obj", { 
                                  ProductOption( "name", "obj"),

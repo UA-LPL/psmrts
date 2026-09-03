@@ -162,26 +162,6 @@ namespace psmrts  {
         return ( algorithms::process_basic_photometric_trace_array( *this, tracelist ) );
       }
 
-       /**
-       * @brief NAIF Dsk Features Processor
-       * 
-       * This method accepts a PRQFeatures, and stores into it all the 
-       * relevant DSK information using JSON.
-       * 
-       * @param features PRQFeatures that holds tracer-relevant information
-       *                  in a JSON format
-       * @return true    If features were added successfully
-       * @return false   If any issues during processing
-       */
-      inline bool process( PRQFeatures &features ) const {
-        psmrts_json f_e;
-        f_e += { "name" , "naifdsk" };
-        f_e += { "product" , "shapetracer" };
-        f_e += { "mesh" , true };
-        features.add_feature( f_e );
-        return ( true );
-      }
-
       /**
        * @brief NAIF NaifDsk Ray Trace Method
        * 

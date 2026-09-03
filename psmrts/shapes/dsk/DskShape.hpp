@@ -41,11 +41,6 @@ namespace psmrts {
       virtual ~DskShape() = default;
      
 
-      inline bool process( PRQFeatures &features ) const {
-        features.add_feature( this->product_specifications().to_json() );
-        return ( true );
-      }
-
       static inline ProductSpecification product_specifications() {
         ProductInfo  info( "dsk", { 
                                  ProductOption( "name", "dsk"),

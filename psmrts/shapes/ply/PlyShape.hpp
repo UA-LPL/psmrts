@@ -42,19 +42,6 @@ namespace psmrts {
       PlyShape( const ProductCart &processed_cart );
       virtual ~PlyShape() = default;
       
-      /**
-      * @brief PRQFeatures holding Format-relevant specification data
-      *  - Possibly needs removal
-      * @param features 
-      * @return true 
-      * @return false 
-      */
-      inline bool process( PRQFeatures &features ) const {
-        features.add_feature( this->product_specifications().to_json() );
-        return ( true );
-      }
-      
-
       static inline ProductSpecification product_specifications() {
         ProductInfo  info( "ply", { 
                       ProductOption( "name", "ply"),

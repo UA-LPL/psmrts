@@ -148,28 +148,6 @@ namespace psmrts  {
         return ( algorithms::process_basic_photometric_trace_array( *this, tracelist ) );
       }
 
-      /**
-       * @brief Bullet Features Processor
-       * 
-       * This method accepts a PRQFeatures, and stores into it all the 
-       * relevant Bullet information using JSON.
-       * 
-       * @param features PRQFeatures that holds tracer-relevant information
-       *                  in a JSON format
-       * @return true    If features were added successfully
-       * @return false   If any issues during processing
-       */
-      inline bool process( PRQFeatures &features ) const {
-        psmrts_json f_e;
-        f_e["name"]        = "bullet";
-        f_e["product"]     = "tracer";
-        f_e["mesh"]        = true;
-        f_e["optimizebvh"] = false;
-        f_e["vectortype"]  = { "double", "float" };
-        features.add_feature( f_e );
-        return ( true );
-      }
-
       inline bool process( PRQShape &shaper ) const {
         shaper.set_shape( this->shape() );
         return ( true );

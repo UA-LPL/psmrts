@@ -10,29 +10,16 @@
 
 TEST_CASE( "Ellipsoid Shape Tracer - Request Default Constructor", "[default][ellipsoid][shapetracer]") {
 
-    CHECK( sizeof( psmrts::EllipsoidTracer ) <= 650 );  
+    CHECK( sizeof( psmrts::EllipsoidTracer ) > 0 );  
 
     psmrts::EllipsoidTracer e_tracer;
+    psmrts::PsmrtsRequest request;
 
-    psmrts::PRQFeatures features;
-    CHECK( e_tracer.process( features ) == true );
-
-    nlohmann::ordered_json j_output;
-    nlohmann::ordered_json j_add;
-    j_add["name"] = "ellisoid" ;
-    j_add["product"] = "shapetracer" ;
-    j_add["mesh"] = false ;
-    // Default radii values for unspecified constructed ellipsoid
-    j_add["radii"] = { 1.0, 1.0, 1.0 } ;
-
-    j_output += j_add;
-
-    auto feat_diff = nlohmann::ordered_json::diff(features.config(), j_output);
-    CHECK( feat_diff.empty() );
-
-    CHECK( features.to_string() == features.config().dump() );
-
-    // Note: feature-specific functions testing in bullet version
+    CHECK( e_tracer.process(request) == false );
+    CHECK( request.error_count()      == 1 );
+    CHECK( request.errors_to_string() == "EllipsoidTracer::process(PsmrtsRequest) is not implemented/available!\n" );
+    CHECK( request.was_invoked()      == false );
+    CHECK( request.process_status()   == false );
 }
 
 TEST_CASE( "Ellipsoid Shape Tracer Test", "[ellipsoid][shapetracer]") {

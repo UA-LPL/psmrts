@@ -49,18 +49,6 @@ namespace psmrts {
         }                      
         virtual ~MeshShape() = default;
          
-        /**
-          * @brief PRQFeatures holding Format-relevant specification data
-          *  - Possibly needs removal
-          * @param features 
-          * @return true 
-          * @return false 
-          */
-        inline bool process( PRQFeatures &features ) const {
-            features.add_feature( this->product_specifications().to_json() );
-            return ( true );
-        }
-          
         static inline ProductSpecification product_specifications() {
           ProductInfo  info( "mesh", { 
                         ProductOption( "name",        "mesh"),

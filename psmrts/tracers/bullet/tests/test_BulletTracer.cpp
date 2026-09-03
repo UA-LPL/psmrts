@@ -22,46 +22,6 @@ TEST_CASE ( "Bullet Tracer - Default Constructor", "[default][bullet][tracer]" )
 
     psmrts::BulletTracer b_tracer;
 
-    psmrts::PRQFeatures features;
-    CHECK( b_tracer.process( features ) == true );
-
-    nlohmann::ordered_json j_output;
-    nlohmann::ordered_json j_add;
-    j_add["name"]        = "bullet";
-    j_add["product"]     = "tracer";
-    j_add["mesh"]        = true;
-    j_add["optimizebvh"] = false;
-    j_add["vectortype"]  = { "double", "float" };
-    j_output += j_add;
-
-    auto feat_diff = nlohmann::ordered_json::diff(features.config(), j_output);
-
-    CHECK( feat_diff.empty() );
-
-    CHECK( features.to_string() == features.config().dump() );
-    
-    j_output += "tracer";
-    psmrts_json add = "tracer";
-    CHECK_NOTHROW(features.add_feature(add));
-    
-    auto feat_add = nlohmann::ordered_json::diff(features.config(), j_output );
-
-    CHECK( feat_add.empty() );
-
-    // Base Request Functions
-    CHECK( features.name() == "PRQFeatures" ); 
-
-    CHECK_NOTHROW( features.process_running() );
-    CHECK_NOTHROW( features.process_complete() );
- 
-    CHECK( features.run_count()     == 1 );
-    CHECK( features.was_invoked()   == true );
-    CHECK( features.error_count()   == 0 );
-    CHECK( features.errors().size() == 0 ); 
-
-    CHECK_NOTHROW( features.throw_errors() ); 
-    CHECK_NOTHROW( features.clear_errors() );
-
     psmrts::PRQPhotometricTrace photoTrace;
     CHECK( b_tracer.process( photoTrace )          == false ); 
     CHECK( photoTrace.isValid()                    == false );

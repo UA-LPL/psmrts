@@ -304,59 +304,6 @@ namespace psmrts {
       }
   };
 
-
-
-
-  class PRQVersion : public PsmrtsRequest {
-    public:
-      PRQVersion( ) : PsmrtsRequest( "PsmrtsVersion" ), 
-                         m_version(  ) {  }
-      virtual ~PRQVersion() { }
-
-      inline const std::string &system_version ( ) const {
-        return ( psmrts::psmrts_version() );
-      }
-
-      inline const std::string &version() const {
-        return ( m_version );
-      }
-
-      inline bool set_version ( const std::string &v ) {
-        m_version = v;
-        return ( true );
-      }
-
-    public:
-      /** This scope may be changed if necessary */
-      std::string m_version;
-  };
-
-  class PRQFeatures : public PsmrtsRequest {
-    public:
-      PRQFeatures( ) : PsmrtsRequest( "PRQFeatures" ), 
-                      m_features(  ) {  }
-      virtual ~PRQFeatures() { }
-
-      inline void add_feature ( const psmrts_json &feature ) {
-        m_features += feature;
-        return;
-      }
-
-      inline std::string to_string( ) const {
-        return ( std::string( m_features.dump() ) );
-      }
-
-      inline const psmrts_json &config() const {
-        return ( m_features );
-      }
-
-    public:
-      /** This scope may be changed if necessary */
-      psmrts_json  m_features;
-  };
-
-
-
   class PRQRayTrace : public PsmrtsRequest {
     public:
     /** default constructable */

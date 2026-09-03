@@ -12,29 +12,15 @@ TEST_CASE("NAIF Dsk Shape Tracer - Default Constructor", "[default][naifdsk][sha
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
     psmrts::NaifDskTracer dsk_string_tracer( dskfile );
     
-    psmrts::PRQFeatures features_string;
-    CHECK( dsk_string_tracer.process( features_string ) == true ); 
-
-    nlohmann::ordered_json j_output;
-    nlohmann::ordered_json j_add;
-    j_add += { "name" , "naifdsk" };
-    j_add += { "product" , "shapetracer" };
-    j_add += { "mesh" , true };
-    j_output += j_add;
-
-    auto feat_diff = nlohmann::ordered_json::diff(features_string.config(), j_output);
-    CHECK( feat_diff.empty() );
-    
-    CHECK( features_string.to_string() == features_string.config().dump());
-
     naif::DskKernelModel dsk( dskfile );
     psmrts::NaifDskTracer dsk_model_tracer( dsk );
+    psmrts::PsmrtsRequest request;
 
-    psmrts::PRQFeatures features_model;
-    CHECK( dsk_model_tracer.process (features_model) == true );
-
-    CHECK( features_model.to_string() == features_string.to_string() );
-    CHECK( features_model.config().dump() == features_string.config().dump() );
+    CHECK( dsk_model_tracer.process(request) == false );
+    CHECK( request.error_count()      == 1 );
+    CHECK( request.errors_to_string() == "NaifDskTracer::process(PsmrtsRequest) is not implemented/available!\n" );
+    CHECK( request.was_invoked()      == false );
+    CHECK( request.process_status()   == false );
 }
 
 TEST_CASE("NAIF Dsk Shape Tracer Test", "[naifdsk][shapetracer]") {
