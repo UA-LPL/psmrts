@@ -187,12 +187,6 @@ namespace psmrts {
         return ( m_translations->translate_path( filepath ) );
       }
 
-      inline PsmrtsPriorityTracer create_priority_tracer( const std::string &name = "" ) const {
-        std::string name_p( name );
-        if ( name_p.length() == 0 ) name_p = this->name();
-        return ( PsmrtsPriorityTracer( name, *m_tracers ) );
-      }
-
       /** Merge a PsmrtsInventory into another inventory */
       inline size_t merge( const PsmrtsInventory &other ) {
         size_t n_merged = 0;
