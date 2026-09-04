@@ -1,6 +1,8 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 #include <psmrts/capi/psmrts_c.h>
 
+#include <psmrts/core/PsmrtsFactory.hpp>
+
 #include <cmath>
 #include <cstring>
 #include <string>
@@ -455,6 +457,7 @@ TEST_CASE_METHOD ( bulletTraceFixture, "PSMRTS C API - One Trace", "[capi][c++][
               Catch::Matchers::WithinAbs( 0.019405, tolerance ) );
   CHECK_THAT( psmrts_facet_volume( &facet ),
               Catch::Matchers::WithinAbs( 0.001455, tolerance ) );
+
 }
 
 /**
@@ -585,6 +588,9 @@ TEST_CASE_METHOD ( bulletTraceFixture,  "PSMRTS C API - Two Traces", "[capi][c++
 
   // free memory allocated for ray2
   psmrts_free_ray( ray2 );
+
+  psmrts::PsmrtsFactory().liquidate();
+
 }
 
 /**
@@ -696,6 +702,9 @@ TEST_CASE_METHOD ( bulletTraceFixture, "PSMRTS C API - NAIF vs Bullet", "[capi][
                Catch::Matchers::WithinAbs( dsk_facet.m_normal.y, tolerance ) );
     CHECK_THAT( facet.m_normal.z,
                Catch::Matchers::WithinAbs( dsk_facet.m_normal.z, tolerance ) );
+
+    psmrts::PsmrtsFactory().liquidate();
+    
 }
 
 /**
@@ -789,6 +798,9 @@ TEST_CASE ( "PSMRTS C API - Bullet Trace Array", "[capi][c++][BulletTraceArray]"
   psmrts_free_ray( ray3 );
   psmrts_trace_array_clear( tracearray );
   psmrts_free_trace_array( tracearray );
+
+  psmrts::PsmrtsFactory().liquidate();
+
 }
 
 /**
@@ -867,6 +879,8 @@ TEST_CASE ( "PSMRTS C API - Photometric Trace", "[capi][c++][photometric][trace]
   psmrts_free_tracer( ellipse );
   psmrts_free_ray( observer_ray );
   psmrts_free_photometric_ray( p_ray );
+  psmrts::PsmrtsFactory().liquidate();
+
 }
 
 /**
@@ -926,6 +940,7 @@ TEST_CASE ( "PSMRTS C API - Photometric Array", "[capi][c++][photometric][array]
   psmrts_free_photometric_trace_array( p_array );
   psmrts_free_photometric_ray( p_ray1 );
   psmrts_free_photometric_ray( p_ray2 );
+  psmrts::PsmrtsFactory().liquidate();
 }  
 
 /**
@@ -1215,6 +1230,7 @@ TEST_CASE( "PSMRTS C API - Sphere Shape Tracer Test", "[capi][c++][sphere][shape
   psmrts_free_tracer( sphere_tracer );
   psmrts_free_ray( trace_45_50_02 );
   psmrts_free_ray( trace_45_45_10 );
+  psmrts::PsmrtsFactory().liquidate();
 }
 
 /**
@@ -1311,6 +1327,7 @@ TEST_CASE( "PSMRTS C API - Spheroid Shape Tracer Test", "[capi][c++][spheroid][s
   psmrts_free_tracer( spheroid_tracer );
   psmrts_free_ray( trace_45_50_02 );
   psmrts_free_ray( trace_45_45_10 );
+  psmrts::PsmrtsFactory().liquidate();
 }
 
 /**
@@ -1406,7 +1423,9 @@ TEST_CASE( "PSMRTS C API - Ellipsoid Shape Tracer Test", "[capi][c++][ellipsoid]
   psmrts_free_tracer( e_tracer );
   psmrts_free_ray( trace_45_50_02 );
   psmrts_free_ray( trace_45_45_10 );
+  psmrts::PsmrtsFactory().liquidate();
 }
+
 
 /**
  * @brief Tests PSMRTS C API Ellipsoid V Shape Tracer.
@@ -1504,6 +1523,7 @@ TEST_CASE( "PSMRTS C API - Ellipsoid V Shape Tracer Test", "[capi][c++][ellipsoi
   psmrts_free_tracer( ev_tracer );
   psmrts_free_ray( trace_45_50_02 );
   psmrts_free_ray( trace_45_45_10 );
+  psmrts::PsmrtsFactory().liquidate();
 }
 
 /**
@@ -1554,6 +1574,7 @@ TEST_CASE( "PSMRTS C API - Mesh Test", "[capi][c++][mesh][obj]" ) {
   psmrts_free_shape( objshape );
   psmrts_free_shape( dskshape );
   psmrts_free_shape( plyshape );
+  psmrts::PsmrtsFactory().liquidate();
 }
 
 /**
@@ -1678,6 +1699,7 @@ TEST_CASE( "C API Invoice & Translations Tracer Test", "[capi][c++][invoice][tra
   psmrts_free_invoice( bulletinvoice );
   psmrts_free_string( errorstr );
   psmrts_free_priority_tracer( ptracer );  
+  psmrts::PsmrtsFactory().liquidate();
 }
 
 
