@@ -1485,7 +1485,12 @@ PSMRTS_Tracer *psmrts_create_ellipsoid_v( const PSMRTS_Vector3d *radii,
  * @return Pointer to the resulting PSMRTS_Tracer object.
  */
 PSMRTS_Tracer *psmrts_create_bullet( const char *objfile ) {
-  return ( create_tracer_for_capi( "bullet::" + std::string( objfile ) ) );
+  std::string name_t( objfile );
+  ProductConfiguration config( std::string( name_t ), 
+                               { ProductOption( "tracer", "bullet" ),
+                                 ProductOption( "file", name_t ) } );  
+  return ( create_tracer_for_capi( config ) );
+  // return ( create_tracer_for_capi( "bullet::" + std::string( objfile ) ) );
 }
 
 /**
