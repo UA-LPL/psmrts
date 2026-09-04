@@ -116,8 +116,7 @@ TEST_CASE( "PSMRTS Make Path Test", "[utilities][path]") {
 
   const std::string path_w( "bullet::D:/a/path/to/file/myshape.obj" );
   auto parts_t = psmrts::string_tokenizer_substring( path_w, "::" );
-  REQUIRE( parts_t.size() >= 2 );
-  CHECK( parts_t.size()   == 2 );
+  REQUIRE( parts_t.size() == 2 );
   CHECK( parts_t[0]       == "bullet" );
   CHECK( parts_t[1]       == "D:/a/path/to/file/myshape.obj" );
 
