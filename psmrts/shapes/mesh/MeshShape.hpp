@@ -73,6 +73,7 @@ namespace psmrts {
                                   ProductOption( "description", "Type of mesh vector data provided" ),
                                   ProductOption( "status", "optional"),
                                   ProductOption( "aliases", "data_type" ), 
+                                  ProductOption( "default", "double" ),
                                   ProductOption( "valid", { "double", "float" } ) });
 
           // This validates the JSON structure and provides product info to callers
@@ -96,7 +97,7 @@ namespace psmrts {
         inline ProductConfiguration init_mesh( const std::string &name ) {
           ProductConfiguration config( name, PsmrtsMeshData().config() );
           config.add( ProductOption( "shape", "mesh" ) );
-          config.add( ProductOption( "file", "mesh" ) );
+          config.add( ProductOption( "mesh_name", "mesh" ) );
           return ( config );
         }
 
@@ -104,6 +105,10 @@ namespace psmrts {
           ProductConfiguration config( name, mesh.config() );
           config.add( ProductOption( "shape", "mesh" ) );
           config.add( ProductOption( "file", "mesh" ) );
+          if ( mesh.config().contains( "mesh_data_type" ) ) {
+            config.add( mesh.config().find( "mesh_data_type") );
+          }
+          config.add_metadata( mesh.config().metadata() );
           return ( config );
         }
 
