@@ -270,7 +270,7 @@ namespace psmrts {
           ProductConfiguration tracer_c( shape_t );
 
           std::string name_t;
-          auto parts_t = psmrts::string_tokenizer( shape_t, "::" );
+          auto parts_t = psmrts::string_tokenizer_substring( shape_t, "::" );
           if ( parts_t.size() > 1 ) {
             std::string tracer_t = psmrts_tolower( psmrts_trim( parts_t[0] ) );
             tracer_c.add_option( ProductOption( "tracer", tracer_t ) );

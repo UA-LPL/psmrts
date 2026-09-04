@@ -57,87 +57,102 @@ TEST_CASE( "PSMRTS Clock Time Tests", "[utilities][time]" ) {
 }
 
 TEST_CASE( "PSMRTS String Functions Test", "[utilities][string]" ) {
-    CHECK( psmrts::psmrts_tolower( "tHiS iS A LOWERcasE strINg") == "this is a lowercase string" );
-    CHECK( psmrts::psmrts_tolower( "1. THIS? is *ALSO* lowerCASE&") == "1. this? is *also* lowercase&" );
-    CHECK( psmrts::psmrts_toupper( "tHiS iS A upPErcasE strINg") == "THIS IS A UPPERCASE STRING" );
-    CHECK( psmrts::psmrts_toupper("2. this *IS* also --UPPER--case!!") == "2. THIS *IS* ALSO --UPPER--CASE!!" );
+  CHECK( psmrts::psmrts_tolower( "tHiS iS A LOWERcasE strINg") == "this is a lowercase string" );
+  CHECK( psmrts::psmrts_tolower( "1. THIS? is *ALSO* lowerCASE&") == "1. this? is *also* lowercase&" );
+  CHECK( psmrts::psmrts_toupper( "tHiS iS A upPErcasE strINg") == "THIS IS A UPPERCASE STRING" );
+  CHECK( psmrts::psmrts_toupper("2. this *IS* also --UPPER--case!!") == "2. THIS *IS* ALSO --UPPER--CASE!!" );
 
-    std::string ellipsoid1 = "ellipsoid:0.298,0.1,0.3";
-    std::string ellipsoid2 = "ellipsoid:0.298";
-    std::string ellipsoid3 = "ellipsoid:0.298,0.1";
-    std::string empty_e    = "ellipsoid:";
-    std::string empty_all  = "";
-    
+  std::string ellipsoid1 = "ellipsoid:0.298,0.1,0.3";
+  std::string ellipsoid2 = "ellipsoid:0.298";
+  std::string ellipsoid3 = "ellipsoid:0.298,0.1";
+  std::string empty_e    = "ellipsoid:";
+  std::string empty_all  = "";
+  
 
-    CHECK( psmrts::string_tokenizer(ellipsoid1)       == std::vector<std::string> {"ellipsoid:0.298", "0.1", "0.3"} );
-    CHECK( psmrts::string_tokenizer(ellipsoid2)       == std::vector<std::string> {"ellipsoid:0.298"} );
-    CHECK( psmrts::string_tokenizer(ellipsoid3)       == std::vector<std::string> {"ellipsoid:0.298", "0.1"} );
-    CHECK( psmrts::string_tokenizer(ellipsoid1, ":,") == std::vector<std::string> {"ellipsoid", "0.298", "0.1", "0.3"} );
-    CHECK( psmrts::string_tokenizer(ellipsoid2, ":,") == std::vector<std::string> {"ellipsoid", "0.298"} );
-    CHECK( psmrts::string_tokenizer(ellipsoid3, ":,") == std::vector<std::string> {"ellipsoid", "0.298", "0.1"} );
-    CHECK( psmrts::string_tokenizer(empty_e)          == std::vector<std::string> {"ellipsoid:"} );
-    CHECK( psmrts::string_tokenizer(empty_all)        == std::vector<std::string> { "" } );
+  CHECK( psmrts::string_tokenizer(ellipsoid1)       == std::vector<std::string> {"ellipsoid:0.298", "0.1", "0.3"} );
+  CHECK( psmrts::string_tokenizer(ellipsoid2)       == std::vector<std::string> {"ellipsoid:0.298"} );
+  CHECK( psmrts::string_tokenizer(ellipsoid3)       == std::vector<std::string> {"ellipsoid:0.298", "0.1"} );
+  CHECK( psmrts::string_tokenizer(ellipsoid1, ":,") == std::vector<std::string> {"ellipsoid", "0.298", "0.1", "0.3"} );
+  CHECK( psmrts::string_tokenizer(ellipsoid2, ":,") == std::vector<std::string> {"ellipsoid", "0.298"} );
+  CHECK( psmrts::string_tokenizer(ellipsoid3, ":,") == std::vector<std::string> {"ellipsoid", "0.298", "0.1"} );
+  CHECK( psmrts::string_tokenizer(empty_e)          == std::vector<std::string> {"ellipsoid:"} );
+  CHECK( psmrts::string_tokenizer(empty_all)        == std::vector<std::string> { "" } );
 
-    CHECK( psmrts::is_bool( "T" )     == true );
-    CHECK( psmrts::is_bool( "F" )     == false );
-    CHECK( psmrts::is_bool( "yEs" )   == true );
-    CHECK( psmrts::is_bool( "nO" )    == false );
-    CHECK_THROWS( psmrts::is_bool( "invalid" ) );
+  CHECK( psmrts::is_bool( "T" )     == true );
+  CHECK( psmrts::is_bool( "F" )     == false );
+  CHECK( psmrts::is_bool( "yEs" )   == true );
+  CHECK( psmrts::is_bool( "nO" )    == false );
+  CHECK_THROWS( psmrts::is_bool( "invalid" ) );
 
 }
 
 
 TEST_CASE( "PSMRTS Make Path Test", "[utilities][path]") {
-// Test psmrts_make_path --> string conversion for complete path
+  // Test psmrts_make_path --> string conversion for complete path
 
-std::string path = psmrts::psmrts_make_path( "tests", "test_PsmrtsUtilities.cpp" );
-std::string directory = psmrts::psmrts_make_path( "tests" );
-std::string path_only = psmrts::psmrts_make_path( "", "test_PsmrtsUtilities.cpp" );
-CHECK ( path == "tests/test_PsmrtsUtilities.cpp" );
-CHECK ( directory == "tests" );
-CHECK ( path_only == "test_PsmrtsUtilities.cpp" );
+  std::string path = psmrts::psmrts_make_path( "tests", "test_PsmrtsUtilities.cpp" );
+  std::string directory = psmrts::psmrts_make_path( "tests" );
+  std::string path_only = psmrts::psmrts_make_path( "", "test_PsmrtsUtilities.cpp" );
+  CHECK ( path == "tests/test_PsmrtsUtilities.cpp" );
+  CHECK ( directory == "tests" );
+  CHECK ( path_only == "test_PsmrtsUtilities.cpp" );
 
-std::string path_ext = psmrts::psmrts_file_extension( path );
-CHECK ( path_ext == "cpp" );
+  std::string path_ext = psmrts::psmrts_file_extension( path );
+  CHECK ( path_ext == "cpp" );
 
-std::string path_file = psmrts::psmrts_file_path( path );
-CHECK ( path_file == "tests" ); // Should be tests? 
+  std::string path_file = psmrts::psmrts_file_path( path );
+  CHECK ( path_file == "tests" ); // Should be tests? 
 
-std::string path_base = psmrts::psmrts_filename( path );
-CHECK ( path_base == "test_PsmrtsUtilities.cpp" );
+  std::string path_base = psmrts::psmrts_filename( path );
+  CHECK ( path_base == "test_PsmrtsUtilities.cpp" );
+
+  const std::string test_1( "Tracer:value1,value2,value3" );
+  auto parts_1 = psmrts::string_tokenizer( test_1, ":," );
+  REQUIRE( parts_1.size() == 4 );
+  CHECK( parts_1[0]       == "Tracer" );
+  CHECK( parts_1[1]       == "value1" );
+  CHECK( parts_1[2]       == "value2" );
+  CHECK( parts_1[3]       == "value3" );
+
+  const std::string path_w( "bullet::D:/a/path/to/file/myshape.obj" );
+  auto parts_t = psmrts::string_tokenizer_substring( path_w, "::" );
+  REQUIRE( parts_t.size() >= 2 );
+  CHECK( parts_t.size()   == 2 );
+  CHECK( parts_t[0]       == "bullet" );
+  CHECK( parts_t[1]       == "D:/a/path/to/file/myshape.obj" );
 
 }
 
 TEST_CASE( "PSMRTS Longitude Domain Test - 360 to 180", "[utilities][longitude][180Domain]" ) {
 
-    const double tolerance = 1.0e-6;
+  const double tolerance = 1.0e-6;
 
-    CHECK_THAT( psmrts::to180LongitudeDomain_d( -700.0 ), Catch::Matchers::WithinAbs( 20, tolerance ));
-    CHECK_THAT( psmrts::to180LongitudeDomain_d( -360.0 ), Catch::Matchers::WithinAbs( 0.0, tolerance ));
-    CHECK_THAT( psmrts::to180LongitudeDomain_d( -300.0 ), Catch::Matchers::WithinAbs( 60.0, tolerance ));
-    CHECK_THAT( psmrts::to180LongitudeDomain_d( -190.0 ), Catch::Matchers::WithinAbs( 170.0, tolerance ));
-    CHECK_THAT( psmrts::to180LongitudeDomain_d( -185.0 ), Catch::Matchers::WithinAbs( 175.0, tolerance ));
-    CHECK_THAT( psmrts::to180LongitudeDomain_d( -180.0 ), Catch::Matchers::WithinAbs( -180.0, tolerance ));
-    CHECK_THAT( psmrts::to180LongitudeDomain_d( -90.0 ), Catch::Matchers::WithinAbs( -90.0, tolerance ));
-    CHECK_THAT( psmrts::to180LongitudeDomain_d(   0.0 ), Catch::Matchers::WithinAbs( 0.0, tolerance ));
-    CHECK_THAT( psmrts::to180LongitudeDomain_d(  90.0 ), Catch::Matchers::WithinAbs( 90.0, tolerance ));
-    CHECK_THAT( psmrts::to180LongitudeDomain_d( 180.0 ), Catch::Matchers::WithinAbs( -180.0, tolerance )); // 180 -> -180
-    CHECK_THAT( psmrts::to180LongitudeDomain_d( 190.0 ), Catch::Matchers::WithinAbs( -170.0, tolerance ));
-    CHECK_THAT( psmrts::to180LongitudeDomain_d( 300.0 ), Catch::Matchers::WithinAbs( -60.0, tolerance ));
-    CHECK_THAT( psmrts::to180LongitudeDomain_d( 360.0 ), Catch::Matchers::WithinAbs( 0.0, tolerance ));
-    CHECK_THAT( psmrts::to180LongitudeDomain_d( 700.0 ), Catch::Matchers::WithinAbs( -20, tolerance ));
+  CHECK_THAT( psmrts::to180LongitudeDomain_d( -700.0 ), Catch::Matchers::WithinAbs( 20, tolerance ));
+  CHECK_THAT( psmrts::to180LongitudeDomain_d( -360.0 ), Catch::Matchers::WithinAbs( 0.0, tolerance ));
+  CHECK_THAT( psmrts::to180LongitudeDomain_d( -300.0 ), Catch::Matchers::WithinAbs( 60.0, tolerance ));
+  CHECK_THAT( psmrts::to180LongitudeDomain_d( -190.0 ), Catch::Matchers::WithinAbs( 170.0, tolerance ));
+  CHECK_THAT( psmrts::to180LongitudeDomain_d( -185.0 ), Catch::Matchers::WithinAbs( 175.0, tolerance ));
+  CHECK_THAT( psmrts::to180LongitudeDomain_d( -180.0 ), Catch::Matchers::WithinAbs( -180.0, tolerance ));
+  CHECK_THAT( psmrts::to180LongitudeDomain_d( -90.0 ), Catch::Matchers::WithinAbs( -90.0, tolerance ));
+  CHECK_THAT( psmrts::to180LongitudeDomain_d(   0.0 ), Catch::Matchers::WithinAbs( 0.0, tolerance ));
+  CHECK_THAT( psmrts::to180LongitudeDomain_d(  90.0 ), Catch::Matchers::WithinAbs( 90.0, tolerance ));
+  CHECK_THAT( psmrts::to180LongitudeDomain_d( 180.0 ), Catch::Matchers::WithinAbs( -180.0, tolerance )); // 180 -> -180
+  CHECK_THAT( psmrts::to180LongitudeDomain_d( 190.0 ), Catch::Matchers::WithinAbs( -170.0, tolerance ));
+  CHECK_THAT( psmrts::to180LongitudeDomain_d( 300.0 ), Catch::Matchers::WithinAbs( -60.0, tolerance ));
+  CHECK_THAT( psmrts::to180LongitudeDomain_d( 360.0 ), Catch::Matchers::WithinAbs( 0.0, tolerance ));
+  CHECK_THAT( psmrts::to180LongitudeDomain_d( 700.0 ), Catch::Matchers::WithinAbs( -20, tolerance ));
 }
 
 TEST_CASE( "PSMRTS Longitude Domain Test - 180 to 360", "[utilities][longitude][360Domain]") {
 
-    const double tolerance = 1.0e-6;
+  const double tolerance = 1.0e-6;
 
-    CHECK_THAT( psmrts::to360LongitudeDomain_d( 0.0 ), Catch::Matchers::WithinAbs( 0.0, tolerance ));
-    CHECK_THAT( psmrts::to360LongitudeDomain_d( 180.0 ), Catch::Matchers::WithinAbs( 180.0, tolerance ));
-    CHECK_THAT( psmrts::to360LongitudeDomain_d( -170.0 ), Catch::Matchers::WithinAbs( 190.0, tolerance ));
-    CHECK_THAT( psmrts::to360LongitudeDomain_d( -90.0 ), Catch::Matchers::WithinAbs( 270.0, tolerance ));
-    CHECK_THAT( psmrts::to360LongitudeDomain_d( -60.0 ), Catch::Matchers::WithinAbs( 300.0, tolerance ));
-    CHECK_THAT( psmrts::to360LongitudeDomain_d( 1000.0 ), Catch::Matchers::WithinAbs( 280.0, tolerance ));
+  CHECK_THAT( psmrts::to360LongitudeDomain_d( 0.0 ), Catch::Matchers::WithinAbs( 0.0, tolerance ));
+  CHECK_THAT( psmrts::to360LongitudeDomain_d( 180.0 ), Catch::Matchers::WithinAbs( 180.0, tolerance ));
+  CHECK_THAT( psmrts::to360LongitudeDomain_d( -170.0 ), Catch::Matchers::WithinAbs( 190.0, tolerance ));
+  CHECK_THAT( psmrts::to360LongitudeDomain_d( -90.0 ), Catch::Matchers::WithinAbs( 270.0, tolerance ));
+  CHECK_THAT( psmrts::to360LongitudeDomain_d( -60.0 ), Catch::Matchers::WithinAbs( 300.0, tolerance ));
+  CHECK_THAT( psmrts::to360LongitudeDomain_d( 1000.0 ), Catch::Matchers::WithinAbs( 280.0, tolerance ));
  
 }
 

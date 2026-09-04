@@ -521,6 +521,56 @@ struct CompareCaseInsensitive {
   }
 
   /**
+   * @brief Tokenize a string with a substring delimiter
+   * 
+   * While the string_tokenizer() function takes a string of individual
+   * delimiters, this function treats the string as a substring to tokenize
+   * a string. This is neccessary for finding tracer type specifications as
+   * used in the PsrmtsTracerSystem class. The form of strings this is useful
+   * for have the following form:
+   * 
+   * @code
+   *  std::string input( "bullet::D:/a/path/to/file/myshape.obj" );
+   *  auto tokens = string_tokenizer_substring( input, "::" );
+   *  // tokens = { "bullet", "D:/a/path/to/file/myshape.obj"};
+   * @endcode
+   * 
+   * 
+   * @param input     String to tokenize presumeably containing the delimiter
+   * @param delimiter The substring to find, create a token and remove from input
+   * @param dropEmpty If true, it will drop empty tokens with delimiters occuring
+   *                    contiguously with no separation.
+   * @return std::vector<std::string> A list of the tokens found in input
+   */
+  inline std::vector<std::string> string_tokenizer_substring( const std::string& input,
+                                                              const std::string& delimiter,
+                                                              bool dropEmpty = true) {
+      std::vector<std::string> tokens;
+
+      if (delimiter.empty()) {
+          tokens.push_back(input);
+          return tokens;
+      }
+
+      size_t start = 0;
+      while (true) {
+          size_t pos = input.find(delimiter, start);
+          std::string token = (pos == std::string::npos)
+                                  ? input.substr(start)
+                                  : input.substr(start, pos - start);
+
+          if (!dropEmpty || !token.empty()) {
+              tokens.push_back(token);
+          }
+
+          if (pos == std::string::npos) break;
+          start = pos + delimiter.size();
+      }
+
+      return tokens;
+  }  
+
+  /**
    * @brief Constructs a path that is OS sensitive
    * 
    * @param directory    Top level directory 
