@@ -1506,7 +1506,12 @@ PSMRTS_Tracer *psmrts_create_bullet( const char *objfile ) {
  * @return Pointer to the resulting PSMRTS_Tracer object.
  */
 PSMRTS_Tracer *psmrts_create_naifdsk( const char *dskfile ) {
-  return ( create_tracer_for_capi( "naifdsk::" + std::string( dskfile ) ) );
+  std::string name_t( dskfile );
+  ProductConfiguration config( std::string( name_t ), 
+                               { ProductOption( "tracer", "naifdsk" ),
+                                 ProductOption( "file", name_t ) } );  
+  return ( create_tracer_for_capi( config ) );  
+  // return ( create_tracer_for_capi( "naifdsk::" + std::string( dskfile ) ) );
 }
 
 /**
