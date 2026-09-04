@@ -105,14 +105,16 @@ inline PSMRTS_Tracer *create_tracer_for_capi ( const std::string &filename ) {
 
   PSMRTS_Tracer *tracer_p = NULL;
   psmrts_capi_errors.clear_errors();
+  
+  PsmrtsTracerSystem tracer_s( "create_tracer_for_capi" );
 
   try {
-    PsmrtsTracerSystem tracer_s( "create_tracer_for_capi" );
     size_t nshapes = tracer_s.process_shape_list( { filename }, filename );
     auto tracer_list = tracer_s.create_priority_tracer( filename ).tracers();
     if ( tracer_list.size() != 1 ) {
       psmrts_capi_errors.add_error( "create_tracer_for_capi - Did not get the expected tracer for file " + filename );
       std::cout << "Tracer Error occured: " << psmrts_capi_errors.errors_to_string() << std::endl;
+      std::cout << "Config: " << tracer_s.invoice()->orders()[0]->find("tracer")->configuration().to_json().dump(-1) << std::endl;
     }
     else {
       tracer_p = new PSMRTS_Tracer( tracer_list[0] );
@@ -123,6 +125,8 @@ inline PSMRTS_Tracer *create_tracer_for_capi ( const std::string &filename ) {
     psmrts_capi_errors.add_error( e );
     psmrts_capi_errors.add_error( "create_tracer_for_capi - Error creating tracer for file " + filename );
     std::cout << "Tracer Error occured: " << psmrts_capi_errors.errors_to_string() << std::endl;
+    std::cout << "Config: " << tracer_s.invoice()->orders()[0]->find("tracer")->configuration().to_json().dump(-1) << std::endl;
+
   }
 
   return ( tracer_p );
@@ -160,7 +164,6 @@ inline PSMRTS_Shape *create_shape_for_capi ( const ProductConfiguration &config 
   psmrts_capi_errors.clear_errors();
 
   try {
-
     PsmrtsInvoice invoice_t( "create_shape_for_capi", PsmrtsFactory().translator() );
     invoice_t.add( config );
     invoice_t.submit_order();
