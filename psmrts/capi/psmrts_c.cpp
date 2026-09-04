@@ -110,6 +110,10 @@ inline PSMRTS_Tracer *create_tracer_for_capi ( const std::string &filename ) {
 
   try {
     size_t nshapes = tracer_s.process_shape_list( { filename }, filename );
+    std::cout << "Total Orders: " << nshapes << ", " << tracer_s.size() << std::endl;
+    for ( const auto &order : tracer_s.invoice()->orders() ) {
+      std::cout << "\nOrder " << order->name() << ": " << order->to_json().dump(-1) << std::endl;
+    }
     auto tracer_list = tracer_s.create_priority_tracer( filename ).tracers();
     if ( tracer_list.size() != 1 ) {
       psmrts_capi_errors.add_error( "create_tracer_for_capi - Did not get the expected tracer for file " + filename );
