@@ -27,8 +27,7 @@ TEST_CASE ("MESH SHAPE - Default Test", "[mesh][shape][default]") {
     psmrts_json mesh_json = mesh_config.to_json();
 
     CHECK( mesh_config.name()                      == "mesh" ); // possible constructor error in PConfig file?
-    CHECK( mesh_config.size()                      == 4 );
-    CHECK( mesh_json["options"]["name"]            == "mesh" );
+    CHECK( mesh_config.size()                      == 3 );
     CHECK( mesh_json["options"]["shape"]           == "mesh" );
     CHECK( mesh_json["options"]["mesh_name"]       == "mesh" );
     CHECK( mesh_json["options"]["mesh_data_type"]  == "undefined" );
@@ -75,8 +74,9 @@ TEST_CASE( "MESH SHAPE - Values Test", "[mesh][shape][values]") {
     psmrts_json meta_json = mesh_config.to_json( mesh_config.metadata() );
 
     CHECK( mesh_config.name()                     == "mesh" );
-    CHECK( mesh_config.size()                     == 2 );
-    CHECK( mesh_json["options"]["name"]           == "mesh" ); 
+    CHECK( mesh_config.size()                     == 3 );
+    CHECK( mesh_json["options"]["shape"]          == "mesh" );
+    CHECK( mesh_json["options"]["mesh_name"]      == "mesh" ); 
     CHECK( mesh_json["options"]["mesh_data_type"] == "double" ); 
     CHECK( mesh_json["metadata"]["n_vertices"]    == 10 );
     CHECK( mesh_json["metadata"]["n_facets"]      == 10 );

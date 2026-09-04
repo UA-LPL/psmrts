@@ -288,8 +288,9 @@ namespace psmrts {
 
       inline ProductConfiguration config() const {
         ProductConfiguration config( "mesh" );
-
-        config.add( ProductOption( "name", "mesh") );
+        
+        // Consistent with MeshShape
+        config.add( ProductOption( "mesh_name", "mesh") );
         config.add( ProductOption( "mesh_data_type", this->vector_type_string() ) );
 
         config.add_metadata( ProductOption( "n_vertices",     this->nvectors() ) );

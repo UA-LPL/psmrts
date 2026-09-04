@@ -42,7 +42,7 @@ namespace psmrts {
                    const std::string &name = "mesh") : 
                    PsmrtsProduct( name, "shape", "mesh" ),
                    m_mesh( make_shared_copy( mesh ) ),
-                   m_config( mesh.config() ) { }
+                   m_config( init_mesh(  mesh, name ) ) { }
         MeshShape( const ProductCart &processed_cart ) :
                    PsmrtsProduct( processed_cart.name(), "shape", "mesh" ) {
           this->create( processed_cart );
@@ -97,18 +97,14 @@ namespace psmrts {
         inline ProductConfiguration init_mesh( const std::string &name ) {
           ProductConfiguration config( name, PsmrtsMeshData().config() );
           config.add( ProductOption( "shape", "mesh" ) );
-          config.add( ProductOption( "mesh_name", "mesh" ) );
+          config.add( ProductOption( "mesh_name", name ) );
           return ( config );
         }
 
         inline ProductConfiguration init_mesh( const PsmrtsMeshData &mesh, const std::string &name ) {
           ProductConfiguration config( name, mesh.config() );
           config.add( ProductOption( "shape", "mesh" ) );
-          config.add( ProductOption( "file", "mesh" ) );
-          if ( mesh.config().contains( "mesh_data_type" ) ) {
-            config.add( mesh.config().find( "mesh_data_type") );
-          }
-          config.add_metadata( mesh.config().metadata() );
+          config.add( ProductOption( "mesh_name", name) );
           return ( config );
         }
 
