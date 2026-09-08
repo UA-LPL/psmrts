@@ -109,7 +109,7 @@ inline PSMRTS_Tracer *create_tracer_for_capi ( const std::string &filename ) {
 
   try {
     PsmrtsTracerSystem tracer_s( "create_tracer_for_capi" );
-    size_t nshapes = tracer_s.process_shape_list( { filename }, filename );
+    (void) tracer_s.process_shape_list( { filename }, filename );
     auto tracer_list = tracer_s.create_priority_tracer( filename ).tracers();
     if ( tracer_list.size() != 1 ) {
       psmrts_capi_errors.add_error( "create_tracer_for_capi - Did not get the expected tracer for file " + filename );
@@ -134,7 +134,7 @@ inline PSMRTS_Tracer *create_tracer_for_capi ( const ProductConfiguration &confi
 
   try {
     PsmrtsTracerSystem tracer_s( "create_tracer_for_capi" );
-    size_t nshapes = tracer_s.make_product( config );
+    (void) tracer_s.make_product( config );
     auto tracer_list = tracer_s.create_priority_tracer( config.name() ).tracers();
     if ( tracer_list.size() != 1 ) {
       psmrts_capi_errors.add_error( "create_tracer_for_capi - Did not get the expected tracer for config " + config.name() );

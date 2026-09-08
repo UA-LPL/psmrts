@@ -171,11 +171,9 @@ namespace psmrts {
       inline SharedShape search_shape_inventory( const ProductCart &cart, 
                                                   const ShapeInventory &inventory ) 
                                                   const {
+
         // Create the shape search lambda method to run the search directly on
         // the shape cache map using thread-safe techniques
-        const ProductSpecification &spec_t   = cart.specification();
-        const ProductConfiguration &config_t = cart.configuration();
-
         PsmrtsErrors errors;
         SharedShape shape_p;
         auto shape_search = [&]( const ShapeCacheMap &map_c ) -> bool {
@@ -219,9 +217,6 @@ namespace psmrts {
 
          // Create the shape search lambda method to run the search directly on
         // the shape cache map using thread-safe techniques
-        const ProductSpecification &spec_t   = cart.specification();
-        const ProductConfiguration &config_t = cart.configuration();
-
         PsmrtsErrors errors;
         SharedTracer tracer_p;
 
@@ -320,7 +315,7 @@ namespace psmrts {
         auto tracer_specs_v = ProductMaker<PsmrtsTracer>().get_product_specs();
         for ( const auto &tracer_s : tracer_specs_v ) {
           cart_t = ProductCart( tracer_s );
-          bool status_c = this->process_cart( config, cart_t );
+          (void) this->process_cart( config, cart_t );
 
           // If this parse is successful, we are done and its a standalone tracer.
           if ( cart_t.has_valid_content() ) {
@@ -360,7 +355,7 @@ namespace psmrts {
         auto shape_specs_v  = ProductMaker<PsmrtsShape>().get_product_specs();
         for ( const auto &shape_s : shape_specs_v ) {
           cart_s = ProductCart( shape_s );
-          bool status_c = this->process_cart( config_t, cart_s );
+          (void) this->process_cart( config_t, cart_s );
           if ( cart_s.isvalid() ) {
             // Is there a tracer with this shape?
             if ( cart_t.isvalid() ) {

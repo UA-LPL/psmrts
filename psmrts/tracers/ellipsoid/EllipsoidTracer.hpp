@@ -349,8 +349,6 @@ namespace psmrts  {
         if (s0 > s1) std::swap(s0, s1);
 
         datum_r.m_hit = true;
-        double t0_l = center_e + s0;
-        double t1_l = center_e + s1;
 
         // Convert back to original scale to get surface intercept point
         Eigen::Vector3d point_scaled = center_m + ( lookdir_t * s0 );
