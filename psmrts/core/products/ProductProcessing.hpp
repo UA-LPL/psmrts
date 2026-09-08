@@ -314,7 +314,7 @@ namespace psmrts {
         ProductCart cart_t;
         auto tracer_specs_v = ProductMaker<PsmrtsTracer>().get_product_specs();
         for ( const auto &tracer_s : tracer_specs_v ) {
-          cart_t = ProductCart( tracer_s );
+          cart_t = ProductCart( tracer_s, config.name() );
           (void) this->process_cart( config, cart_t );
 
           // If this parse is successful, we are done and its a standalone tracer.
@@ -354,7 +354,7 @@ namespace psmrts {
         ProductCart cart_s;
         auto shape_specs_v  = ProductMaker<PsmrtsShape>().get_product_specs();
         for ( const auto &shape_s : shape_specs_v ) {
-          cart_s = ProductCart( shape_s );
+          cart_s = ProductCart( shape_s, config.name() );
           (void) this->process_cart( config_t, cart_s );
           if ( cart_s.isvalid() ) {
             // Is there a tracer with this shape?

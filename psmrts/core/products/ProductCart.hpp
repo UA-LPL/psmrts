@@ -65,13 +65,14 @@ namespace psmrts {
       ProductCart( const std::string &name ) : 
                    PsmrtsErrors(), 
                    m_specs(  ),
-                   m_config( ),
+                   m_config( name ),
                    m_residual( "residualoptions" ),
                    m_uid( PsmrtsUID::null_uid() ) { }
-      ProductCart( const ProductSpecification &specs ) :
+      ProductCart( const ProductSpecification &specs,
+                   const std::string &name = "cart"  ) :
                    PsmrtsErrors(), 
                    m_specs( specs ),
-                   m_config(  ),
+                   m_config( name ),
                    m_residual( "residualoptions" ),
                    m_uid( PsmrtsUID::null_uid() ) { }
       ProductCart( const ProductSpecification &specs,
@@ -115,14 +116,19 @@ namespace psmrts {
                  ( this->residual_size() == 0 ) );
       }
 
-      /** The product name such as "obj", "bullet" as defined in the specs */
+      /** Name of the product as specified in the configuration */
       inline const std::string &name () const {
-        return ( this->specification().name() );
+        return ( this->configuration().name() );
       }
 
       /** The product type, "tracer" or "shape", as defined in the specs */
-      inline const std::string &product() const {
+      inline const std::string &type() const {
         return ( this->specification().product() );
+      }
+
+      /** The product type such as "obj", "bullet" as defined in the specs */
+      inline const std::string &model () const {
+        return ( this->specification().name() );
       }
 
       inline size_t residual_size() const {

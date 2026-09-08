@@ -114,7 +114,6 @@ typedef struct psmrts_shape                    PSMRTS_Shape;
 typedef struct psmrts_tracer                   PSMRTS_Tracer;
 typedef struct psmrts_priority_tracer          PSMRTS_PriorityTracer;
 typedef struct psmrts_photometric_raytrace     PSMRTS_PhotometricRayTrace;
-
 typedef struct psmrts_trace_array              PSMRTS_TraceArray;
 typedef struct psmrts_photometric_trace_array  PSMRTS_PhotometricTraceArray;
 #endif

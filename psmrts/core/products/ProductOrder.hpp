@@ -70,7 +70,7 @@ namespace psmrts {
                     m_submitted( cart.configuration() ),
                     m_carts(  ),
                     m_translator( trans )  { 
-        m_carts.add( cart.product(), cart );
+        m_carts.add( cart.type(), cart );
       }
       ProductOrder( const ProductConfiguration &submitted,
                     const ProductCart &cart,
@@ -79,7 +79,7 @@ namespace psmrts {
                     m_submitted( submitted ),
                     m_carts( submitted.name() ),
                     m_translator( trans )  { 
-        m_carts.add( cart.product(), cart );
+        m_carts.add( cart.type(), cart );
       }                    
       virtual ~ProductOrder() = default;
 
@@ -104,7 +104,7 @@ namespace psmrts {
       }
 
       inline void add( const ProductCart &cart ) {
-        m_carts.add( cart.product(), cart );
+        m_carts.add( cart.type(), cart );
         return;
       }
 

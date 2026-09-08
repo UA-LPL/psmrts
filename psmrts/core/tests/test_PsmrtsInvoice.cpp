@@ -146,14 +146,15 @@ TEST_CASE( "PsmrtsInvoice Priority Tracer Test 1", "[product][invoice][priorityt
   auto shape_t = set_b3->find( "shape" );
   REQUIRE( shape_t.get() != nullptr );
 
-  CHECK( shape_t->product() == "shape" );
+  CHECK( shape_t->type() == "shape" );
   CHECK( shape_t->residual_size()  == 0 );
 
   auto tracer_t = set_b3->find( "tracer" );
   CHECK( set_b3->errors_to_string() == ""  );
   REQUIRE( tracer_t.get()    != nullptr );
-  CHECK( tracer_t->product() == "tracer" );
-  CHECK( tracer_t->name()    == "bullet" );
+  CHECK( tracer_t->name()    == "bulletmaker3" );
+  CHECK( tracer_t->type()    == "tracer" );
+  CHECK( tracer_t->model()   == "bullet" );
 
  
   CHECK_NOTHROW( invoice_t.add( bullet_t3 ) );

@@ -308,19 +308,24 @@ TEST_CASE("PsmrtsTracerSystem ISIS Interface Test", "[tracer][system][isislike]"
 
   size_t n_shapes = system_t.process_shape_list( shapes, "mycube_shapes" );
 
-  CHECK( system_t.invoice()->error_count()                == 0 );
-  CHECK( system_t.invoice()->errors_to_string()           == "" );
+  CHECK( system_t.invoice()->error_count()              == 0 );
+  CHECK( system_t.invoice()->errors_to_string()         == "" );
   CHECK( system_t.invoice()->inventory().size_shapes()  == 2 );
   CHECK( system_t.invoice()->inventory().size_tracers() == 4 );
 
   psmrts::PsmrtsPriorityTracer tracer_p = system_t.create_priority_tracer();
-  CHECK( tracer_p.isValid()          == true );
+  CHECK( tracer_p.isValid()            == true );
+  REQUIRE( tracer_p.size()             == 4 );
+  CHECK( tracer_p.tracers()[0]->name() == "$osirisrex/obj/data/bennu_20facets.obj" );
+  CHECK( tracer_p.tracers()[1]->name() == "$osirisrex/dsk/data/bennu_20facets.bds" );
+  CHECK( tracer_p.tracers()[2]->name() == "$osirisrex/dsk/data/bennu_20facets.bds");
+  CHECK( tracer_p.tracers()[3]->name() == "ellipsoid::0.28306,0.24972" );
+
+  CHECK( system_t.invoice()->orders()[0]->find("tracer")->name() == tracer_p.tracers()[0]->name() );
+  CHECK( system_t.invoice()->orders()[0]->find("shape")->name()  == tracer_p.tracers()[0]->name() );
+  CHECK( system_t.invoice()->orders()[1]->find("tracer")->name() == tracer_p.tracers()[1]->name() );
+  CHECK( system_t.invoice()->orders()[1]->find("shape")->name()  == tracer_p.tracers()[1]->name() );
  
-#if 0  
-  for ( const auto &tracer : tracer_p.tracers() ) {
-    CHECK( tracer->config().to_json().dump(-1) == "" );
-  }
-#endif
   psmrts::PsmrtsFactory().liquidate();
 }
 

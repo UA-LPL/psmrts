@@ -283,7 +283,7 @@ namespace psmrts {
             static std::vector<std::string> ellipsoid_types = { "ellipsoid", "spheroid", "sphere" };
             if ( psmrts_contains_string( tracer_t, ellipsoid_types ) == true ) {
               name_t = "ellipsoid";
-              tracer_c = ProductConfiguration( tracer_t, tracer_c );
+              tracer_c = ProductConfiguration( shape_t, tracer_c );
               ProductOption radii_s( "radii_string", string_tokenizer( parts_t[1], "," ) );
               tracer_c.add_option( ProductOption( "radii", ProductOption::DoublesExtractor( radii_s ).get_all() ) );
               tracer_c.add_metadata( ProductOption( "identifier", shape_t ) );

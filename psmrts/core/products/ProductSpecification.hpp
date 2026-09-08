@@ -348,7 +348,7 @@ namespace psmrts {
       inline ProductConfiguration extract( const ProductConfiguration &config,
                                            ResidualList &residuals, 
                                            PsmrtsErrors &validator ) const {
-        ProductConfiguration config_t( this->name() );
+        ProductConfiguration config_t( config.name() );
         std::vector<std::string> required_list;   
 
         for ( const auto &option : config.options() ) {

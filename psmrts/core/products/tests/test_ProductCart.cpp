@@ -13,7 +13,8 @@ TEST_CASE( "ProductCart Default Test", "[cart][default]") {
     CHECK( cart.has_valid_content()    == false );
     CHECK( cart.size()                 == 0 );
     CHECK( cart.name()                 == "none" );
-    CHECK( cart.product()              == "none" );
+    CHECK( cart.type()                 == "none" );
+    CHECK( cart.model()                == "none" );
     CHECK( cart.residual_size()        == 0 );
     CHECK( cart.configuration().size() == 0 );
     CHECK_NOTHROW( cart.set_configuration() );
