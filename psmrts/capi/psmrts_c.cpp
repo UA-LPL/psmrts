@@ -1595,6 +1595,76 @@ PSMRTS_Tracer *psmrts_create_naifdsk( const char *dskfile ) {
 }
 
 /**
+ * @brief psmrts_create_priority_tracer - Create a priority tracer from a file list
+ * 
+ * This method will create a priority tracer from a list of files that may contain
+ * special PSMRTS tracer prefix specifications. The form of the filenames are 
+ * "tracer::filename.ext" where "tracer" can be "bullet", "naifdsk", "ellipsoid"
+ * and its derivates. Here is an example:
+ * 
+ * @code
+ * #include "psmrts_c.h"
+ * 
+ * PSMRTS_StringArray *array_s = psmrts_create_string_array();
+ * psmrts_string_array_add_string( "bullet::$osirisrex/kernels/dsk/bennu_g_00880mm_alt_obj_0000n00000_v021a.obj" );
+ * psmrts_string_array_add_string( "naifdsk::$osirisrex/kernels/dsk/bennu_g_00880mm_alt_obj_0000n00000_v021a.bds"; );
+ * psmrts_string_array_add_string( "ellipsoid::0.283065,0.271215,0.249720"  );
+ * 
+ * PSMRTS_Translations *trans_t = psmrts_create_translation();
+ * psmrts_add_translation_parameter( trans_t, "ISISDATA", "/usgs/isis/data" );
+ * psmrts_add_translation_parameter( trans_t, "osirisrex", "$ISISDATA/osirisrex" );
+ * 
+ * PSMRTS_PriorityTracer *tracer_p = psmrts_create_priority_tracer( "mycube", array_s, tramns_t ); 
+ * .
+ * .
+ * .
+ * PSMRTS_free_string_array( array_s );
+ * PSMRTS_free_translations( trans_t );
+ * PSMRTS_free_priority_tracer( tracer_p );
+ * @endcode
+ * 
+ * Note that there may not be the same number of tracers in the priority tracer
+ * as the list specifies if there are redundant tracers encountered for efficiency
+ * reasons.
+ * 
+ * Errors could result which will result in a NULL pointer returned. Use the PSMRTS
+ * error functions to determine the nature of the errors.
+ * 
+ * @param name         Name of the priority tracer (typically the image file name)
+ * @param filelist     List of files with PSMRTS formatting
+ * @param translations Specialized file path translations proccessor
+ * @return PSMRTS_PriorityTracer* A priority tracer with 3 tracers if created
+ *                       succesfully otherwise NULL on failure. Use psrmts_errors_to_string()
+ *                       to see errors.
+ */
+PSMRTS_PriorityTracer *psmrts_create_priority_tracer ( const char *name,
+                                                       const PSMRTS_StringArray *filelist,
+                                                       const PSMRTS_Translations *translations  ) {
+
+  assert( filelist != NULL && "psmrts_create_priority_tracer::PSMRTS_StringArray is null" );
+
+
+  PSMRTS_PriorityTracer *tracer_p = NULL;
+  psmrts_capi_errors.clear_errors();
+  
+  std::string name_t = ( NULL == name ) ? "psmrts_create_priority_tracer" : name;
+  const PSMRTS_Translations *trans_t = ( translations != NULL ) ? translations : &PsmrtsFactory().translator();
+
+  try {
+    PsmrtsTracerSystem tracer_s( name_t, *trans_t );
+    std::vector<std::string> files( filelist->begin(), filelist->end() );
+    (void) tracer_s.process_shape_list( files, name_t );
+    tracer_p = new PsmrtsPriorityTracer( tracer_s.create_priority_tracer( name_t ) );
+  }
+  catch ( const std::exception &e ) {
+    psmrts_capi_errors.add_error( e );
+    psmrts_capi_errors.add_error( "psmrts_create_priority_tracer - Error creating priority tracer for files with name " + name_t );
+  }
+
+  return ( tracer_p );
+}
+
+/**
  * @brief psmrts_get_facet - Creates and processes a PRQFacet.
  *
  * Given PSMRTS_Tracer, PSMRTS_RayTrace, and PSMRTS_Facet objects, the tracer is used to

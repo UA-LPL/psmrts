@@ -259,6 +259,9 @@ PSMRTS_C_EXPORT PSMRTS_Tracer *psmrts_create_ellipsoid_v( const PSMRTS_Vector3d 
                                                           const char *name );
 PSMRTS_C_EXPORT PSMRTS_Tracer *psmrts_create_bullet( const char *objfile );
 PSMRTS_C_EXPORT PSMRTS_Tracer *psmrts_create_naifdsk( const char *dskfile );
+PSMRTS_C_EXPORT PSMRTS_PriorityTracer *psmrts_create_priority_tracer( const char *name,
+                                                                      const PSMRTS_StringArray *filelist,
+                                                                      const PSMRTS_Translations *translations );
 PSMRTS_C_EXPORT PSMRTS_BOOL psmrts_tracer_valid( const PSMRTS_Tracer *trace );
 
 /*============ PSMRTS Facet functions ===================*/
@@ -309,7 +312,7 @@ PSMRTS_C_EXPORT void psmrts_add_product_double_vector( PSMRTS_ProductConfigurati
 /*============ PSMRTS_Translations functions ================*/
 PSMRTS_C_EXPORT PSMRTS_Translations *psmrts_create_translation();
 PSMRTS_C_EXPORT void psmrts_add_translation_parameter( PSMRTS_Translations *translations,
-                                                  const char* name, const char* value ); 
+                                                       const char* name, const char* value ); 
 
 /*============ PSMRTS_Invoice functions =====================*/
 PSMRTS_C_EXPORT PSMRTS_Invoice *psmrts_create_invoice( const char* name,
