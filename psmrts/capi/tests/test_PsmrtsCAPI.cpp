@@ -1807,7 +1807,7 @@ TEST_CASE( "C API Error System Test", "[capi][c++][errors]" ) {
 
   // attempt to create bullet tracer with an invalid file name
   const char* objfile = "fred";
-  psmrts_create_bullet( objfile );
+  PSMRTS_Tracer* bulletTracer = psmrts_create_bullet( objfile );
 
   // confirm still no tracers
   CHECK( psmrts_factory_tracer_count() == 0 );
@@ -1815,22 +1815,44 @@ TEST_CASE( "C API Error System Test", "[capi][c++][errors]" ) {
   // confirm error count
   CHECK( psmrts_error_count() == 2 );
 
-    // get errors in single string and verify
-  PSMRTS_String *errorstr = psmrts_create_string( "" );
-  psmrts_errors_to_string ( errorstr );
+  // get errors in single string and verify
+  PSMRTS_String *errorstr1 = psmrts_create_string( "" );
+  psmrts_errors_to_string ( errorstr1 );
 
-  std::string result = psmrts_string_content( errorstr );
-  std::string chkstr = "PsmrtsFactory::make_product() - Invalid product order: fred\n"
+  std::string result1 = psmrts_string_content( errorstr1 );
+  std::string chkstr1 = "PsmrtsFactory::make_product() - Invalid product order: fred\n"
                        "PsmrtsInvoice::submit_order() - Number tracers returned (0) not equal to orders (1)\n\n"
                        "create_tracer_for_capi - Error creating tracer for config fred\n";
-  CHECK( result == chkstr );
+  CHECK( result1 == chkstr1 );
 
   // clear errors and confirm
   psmrts_clear_errors();
   CHECK( psmrts_error_count() == 0 );
 
+  // now attempt to create shape with an invalid file name
+  PSMRTS_Shape* objShape = psmrts_create_obj_shape( objfile );
+
+  // confirm still no shapes
+  CHECK( psmrts_factory_shape_count() == 0 );
+
+  // confirm error count
+  CHECK( psmrts_error_count() == 2 );
+
+  // get errors in single string and verify
+  PSMRTS_String *errorstr2 = psmrts_create_string( "" );
+  psmrts_errors_to_string ( errorstr2 );
+
+  std::string result2 = psmrts_string_content( errorstr2 );
+  std::string chkstr2 = "PsmrtsFactory::make_product() - Invalid product order: fred\n"
+                        "PsmrtsInvoice::submit_order() - Number tracers returned (0) not equal to orders (1)\n\n"
+                        "create_shape_for_capi - Failed to create shape config fred\n";
+  CHECK( result2 == chkstr2 );
+
   // free memory
-  psmrts_free_string( errorstr );
+  psmrts_free_tracer( bulletTracer );
+  psmrts_free_shape( objShape );
+  psmrts_free_string( errorstr1 );
+  psmrts_free_string( errorstr2 );
 
   // liquidate factory
   psmrts_factory_liquidate();

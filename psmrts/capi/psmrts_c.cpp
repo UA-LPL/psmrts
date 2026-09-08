@@ -37,7 +37,7 @@ find files of those names at the top level of this repository. **/
 using namespace psmrts;
 
 /**
- * @brief Shared pointer C wrappper
+ * @brief Shared pointer C wrapper
  * 
  * This class provides the C object that wraps a shared pointer of PSMRTS
  * types.
@@ -173,7 +173,7 @@ inline PSMRTS_Shape *create_shape_for_capi ( const ProductConfiguration &config 
   }
   catch ( const std::exception &e ) {
     psmrts_capi_errors.add_error( e );
-    psmrts_capi_errors.add_error( "psmrts_create_dsk_shape - Failed to create shape config " + config.name() );
+    psmrts_capi_errors.add_error( "create_shape_for_capi - Failed to create shape config " + config.name() );
   }  
 
   return ( shape_p );
