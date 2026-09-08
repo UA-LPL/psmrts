@@ -179,7 +179,6 @@ inline PSMRTS_Shape *create_shape_for_capi ( const ProductConfiguration &config 
   return ( shape_p );
 }
 
-
 /**
  * @brief vector_to_eigen_d - Converts a PSMRTS_Vector3d of doubles to an
  *                            Eigen Vector3d.
@@ -300,6 +299,86 @@ inline PSMRTS_BOOL to_psmrts_bool( const bool b ) {
 
 extern "C" {
 
+/*=============== PSMRTS error functions ================*/
+
+/**
+ * @brief psmrts_error_count - Returns number of errors from last call.
+ *
+ * This function returns number of errors from last call.
+ *
+ * @return size_t
+ */
+const size_t psmrts_error_count () {
+  return psmrts_capi_errors.error_count();
+}
+
+/**
+ * @brief psmrts_errors_to_string - Returns all errors in single string.
+ *
+ * This function returns errors in a single string.
+ * 
+ * Note: String pointer argument is allocated if NULL. Caller is responsible for
+ *       freeing string pointer.
+ *
+ * @param s PSMRTS_String*
+ * @return PSMRTS_String*
+ */
+PSMRTS_String *psmrts_errors_to_string ( PSMRTS_String *s ) {
+  if ( s == NULL ) {
+    s = new PSMRTS_String();
+  }
+
+  *s = psmrts_capi_errors.errors_to_string();
+
+  return s;
+}
+
+/**
+ * @brief psmrts_clear_errors - Clears c api errors.
+ *
+ * This function clears c api errors from last call.
+ *
+ * @return void
+ */
+void psmrts_clear_errors () {
+  psmrts_capi_errors.clear_errors();
+}
+
+/*============== PSMRTS factory functions ==============*/
+
+/**
+ * @brief psmrts_factory_liquidate - Clears PsmrtsFactory.
+ *
+ * This function clears the PsmrtsFactory.
+ *
+ * @return void
+ */
+void psmrts_factory_liquidate () {
+  PsmrtsFactory().liquidate();
+}
+
+/**
+ * @brief psmrts_factory_shape_count - Returns number of shapes in the PsmrtsFactory.
+ *
+ * This function returns the number of shapes in the PsmrtsFactory.
+ *
+ * @return size_t
+ */
+const size_t psmrts_factory_shape_count () {
+  return PsmrtsFactory().shape_count();
+}
+
+/**
+ * @brief psmrts_factory_tracer_count - Returns number of tracers in the PsmrtsFactory.
+ *
+ * This function returns the number of tracers in the PsmrtsFactory.
+ *
+ * @return size_t
+ */
+const size_t psmrts_factory_tracer_count () {
+  return PsmrtsFactory().tracer_count();
+}
+
 /*============ PSMRTS information functions ============*/
 
 /**
@@ -336,7 +415,11 @@ const char *psmrts_info() {
  */
 PSMRTS_String *psmrts_create_string( const char* sbuf ) {
 
-  PSMRTS_String *pstr = new PSMRTS_String( sbuf );
+  PSMRTS_String *pstr = new PSMRTS_String();
+
+  if ( sbuf != NULL ) {
+    pstr->assign( sbuf );
+  }
 
   return pstr;
 }
@@ -671,6 +754,8 @@ PSMRTS_RayTrace *psmrts_ray_trace( PSMRTS_RayTrace *ray,
                                    const PSMRTS_Tracer *tracer ) {
 
   assert( ray != nullptr && "psmrts_ray_trace::PSMRTS_RayTrace is null" );
+  assert( tracer != nullptr && "psmrts_ray_trace::PSMRTS_Trace is null" );
+
   (*tracer)->process( *ray );
 
   return ( ray );
@@ -1040,8 +1125,8 @@ PSMRTS_PhotometricRayTrace *psmrts_create_photometric_ray( const PSMRTS_Vector3d
                                                            const PSMRTS_Vector3d *sunpos) {
 
   return ( new PRQPhotometricTrace( vector_to_eigen_d( *observer ),
-                                            vector_to_eigen_d( *lookdir ),
-                                            vector_to_eigen_d( *sunpos ) ) );
+                                    vector_to_eigen_d( *lookdir ),
+                                    vector_to_eigen_d( *sunpos ) ) );
 }
 
 /**
@@ -1471,6 +1556,9 @@ PSMRTS_Tracer *psmrts_create_ellipsoid_v( const PSMRTS_Vector3d *radii,
  * used to trace on an meshfile via the bullet ray trace engine.
  *
  * It is the responsibility of the caller to check for valid pointer return.
+ * 
+ * If return pointer is NULL, error has likely occurred and can be checked
+ * through the error_string routine.
  *
  * @param objfile const char*, mesh filename.
  * @return Pointer to the resulting PSMRTS_Tracer object.
@@ -1491,6 +1579,9 @@ PSMRTS_Tracer *psmrts_create_bullet( const char *objfile ) {
  * must be an absolute path where all variabes are resolved. 
  *
  * It is the responsibility of the caller to check for valid pointer return.
+ *
+ * If return pointer is NULL, error has likely occurred and can be checked
+ * through the error_string routine.
  *
  * @param dskfile const char*, mesh filename.
  * @return Pointer to the resulting PSMRTS_Tracer object.
@@ -1540,6 +1631,9 @@ PSMRTS_BOOL psmrts_get_facet( PSMRTS_RayTrace *ray, const PSMRTS_Tracer *tracer,
  * @brief psmrts_create_obj_shape - Creates obj PSMRTS_Shape.
  *
  * Given a const char* obj filename, this method creates a PSMRTS_Shape.
+ * 
+ * If return pointer is NULL, error has likely occurred and can be checked
+ * through the error_string routine.
  *
  * @param objfile const char*.
  * @return PSMRTS_Shape*.
@@ -1557,6 +1651,9 @@ PSMRTS_Shape *psmrts_create_obj_shape( const char *objfile ) {
  * @brief psmrts_create_dsk_shape - Creates dsk PSMRTS_Shape.
  *
  * Given a const char* dsk filename, this method creates a PSMRTS_Shape.
+ * 
+ * If return pointer is NULL, error has likely occurred and can be checked
+ * through the error_string routine.
  *
  * @param objfile const char*.
  * @return PSMRTS_Shape*.
@@ -1574,6 +1671,10 @@ PSMRTS_Shape *psmrts_create_dsk_shape( const char *dskfile ) {
  * @brief psmrts_create_ply_shape - Creates ply PSMRTS_Shape.
  *
  * Given a const char* ply filename, this method creates a PSMRTS_Shape.
+ * 
+ * If return pointer is NULL, error has likely occurred and can be checked
+ * through the error_string routine.
+
  *
  * @param objfile const char*.
  * @return PSMRTS_Shape*.

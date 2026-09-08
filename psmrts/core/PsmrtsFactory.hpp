@@ -43,7 +43,7 @@ namespace psmrts {
    * This class contains a persistent inventory of all PSMRTS products.
    * Inventories can be created for most any situation and copied
    * freely as standalone resources. Using this class for all PSMRTS
-   * product quieries will centralize the caching of all products during
+   * product queries will centralize the caching of all products during
    * systematic processing. 
    * 
    * PsmrtsFactory behaves very much like a singleton class object with
@@ -52,16 +52,16 @@ namespace psmrts {
    * this class where each resulting instance contains the same exact
    * data. With any instance of PsmrtsFactory, you can alter the contents
    * of the internal inventory cache for all PSMRTS products. You can
-   * even completety empty the cache which clearly impacts all users
+   * even completely empty the cache which clearly impacts all users
    * of the factory.
    * 
-   * If you need an enviroment that does not have this type of dynamic, then
+   * If you need an environment that does not have this type of dynamic, then
    * PsmrtsInventory is what you need. See PsmrtsInventory.hpp for details
    * of its characteristics. 
    * 
-   * PsrmtsFactory contains a cache of PsmrtsInventorys with the main default
+   * PsmrtsFactory contains a cache of PsmrtsInventorys with the main default
    * 
-   * @author Kris J Becker, Univerisity of Arizona
+   * @author Kris J Becker, University of Arizona
    * @history 2025-09-07 Kris J. Becker  Original Version
    * @history 2026-01-01 Kris J. Becker  Add thread locking for merge, add and
    *                      remove operations

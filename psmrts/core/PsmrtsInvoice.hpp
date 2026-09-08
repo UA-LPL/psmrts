@@ -50,8 +50,8 @@ namespace psmrts {
    * priority tracer. 
    * 
    * Note that duplicate tracers are prevented from being in the priority tracer
-   * so the total count of tracers in the prioriy tracer may not be the same 
-   * as the number of sumbitted orders. Duplicate tracers will cause extended
+   * so the total count of tracers in the priority tracer may not be the same 
+   * as the number of submitted orders. Duplicate tracers will cause extended
    * run times for traces that will not produce different results from previous
    * traces in the priority tracer, so they are excluded.
    * 

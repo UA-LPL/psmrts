@@ -119,6 +119,16 @@ typedef struct psmrts_trace_array              PSMRTS_TraceArray;
 typedef struct psmrts_photometric_trace_array  PSMRTS_PhotometricTraceArray;
 #endif
 
+/*=============== PSMRTS error functions ================*/
+PSMRTS_C_EXPORT const size_t psmrts_error_count ();
+PSMRTS_C_EXPORT void psmrts_clear_errors ();
+PSMRTS_C_EXPORT PSMRTS_String *psmrts_errors_to_string ( PSMRTS_String *s );
+
+/*============== PSMRTS factory functions ===============*/
+PSMRTS_C_EXPORT void psmrts_factory_liquidate ();
+PSMRTS_C_EXPORT const size_t psmrts_factory_shape_count ();
+PSMRTS_C_EXPORT const size_t psmrts_factory_tracer_count ();
+
 /*============ PSMRTS information functions =============*/
 PSMRTS_C_EXPORT const char PSMRTS_DLL *psmrts_version();
 PSMRTS_C_EXPORT const char PSMRTS_DLL *psmrts_info();
