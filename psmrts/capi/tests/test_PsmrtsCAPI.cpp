@@ -1858,3 +1858,48 @@ TEST_CASE( "C API Error System Test", "[capi][c++][errors]" ) {
   psmrts_factory_liquidate();
 }
 
+/**
+ * @brief Tests PsmrtsTracerSystem Priority Tracer functionality.
+ *
+ * Methods tested...
+ *   psmrts_create_priority_tracer
+ *   psmrts_error_count
+ *   psmrts_factory_shape_count
+ *   psmrts_factory_tracer_count
+ *   
+ */
+TEST_CASE("PsmrtsTracerSystem Priority Tracer Test", "[capi][prioritytracer][system]") {
+  // liquidate factory
+  psmrts_factory_liquidate();
+
+  // Set up translation system
+  PSMRTS_Translations *trans_t = psmrts_create_translation();
+  psmrts_add_translation_parameter( trans_t, "ISISDATA", psmrts_rootpath().c_str() );
+  psmrts_add_translation_parameter( trans_t, "osirisrex", "$ISISDATA/psmrts/shapes" );
+
+  // Set up shapes
+  PSMRTS_StringArray *array_s = psmrts_create_string_array();
+  psmrts_string_array_add_string( array_s, "bullet::$osirisrex/obj/data/bennu_20facets.obj" );
+  psmrts_string_array_add_string( array_s, "naifdsk::$osirisrex/dsk/data/bennu_20facets.bds" );
+  psmrts_string_array_add_string( array_s, "ellipsoid::0.283065,0.271215,0.249720" );
+  psmrts_string_array_add_string( array_s, "$osirisrex/obj/data/bennu_20facets.obj" );
+  psmrts_string_array_add_string( array_s, "$osirisrex/dsk/data/bennu_20facets.bds" );
+
+  PSMRTS_PriorityTracer *tracer_p = psmrts_create_priority_tracer( "mycube", array_s, trans_t ); 
+
+  REQUIRE( tracer_p != NULL );
+
+  CHECK( psmrts_error_count() == 0 );
+
+  CHECK( psmrts_factory_shape_count() == 2 );
+  CHECK( psmrts_factory_tracer_count() == 4 );
+
+  // free memory
+  psmrts_free_string_array( array_s );
+  psmrts_free_translations( trans_t );
+  psmrts_free_priority_tracer( tracer_p );
+
+  // liquidate factory
+  psmrts_factory_liquidate();
+}
+

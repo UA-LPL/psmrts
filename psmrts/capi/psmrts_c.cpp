@@ -1558,7 +1558,7 @@ PSMRTS_Tracer *psmrts_create_naifdsk( const char *dskfile ) {
  * This method will create a priority tracer from a list of files that may contain
  * special PSMRTS tracer prefix specifications. The form of the filenames are 
  * "tracer::filename.ext" where "tracer" can be "bullet", "naifdsk", "ellipsoid"
- * and its derivates. Here is an example:
+ * "sphere", or "spheroid". Here is an example:
  * 
  * @code
  * #include "psmrts_c.h"
@@ -1572,13 +1572,13 @@ PSMRTS_Tracer *psmrts_create_naifdsk( const char *dskfile ) {
  * psmrts_add_translation_parameter( trans_t, "ISISDATA", "/usgs/isis/data" );
  * psmrts_add_translation_parameter( trans_t, "osirisrex", "$ISISDATA/osirisrex" );
  * 
- * PSMRTS_PriorityTracer *tracer_p = psmrts_create_priority_tracer( "mycube", array_s, tramns_t ); 
+ * PSMRTS_PriorityTracer *tracer_p = psmrts_create_priority_tracer( "mycube", array_s, trans_t ); 
  * .
  * .
  * .
- * PSMRTS_free_string_array( array_s );
- * PSMRTS_free_translations( trans_t );
- * PSMRTS_free_priority_tracer( tracer_p );
+ * psmrts_free_string_array( array_s );
+ * psmrts_free_translations( trans_t );
+ * psmrts_free_priority_tracer( tracer_p );
  * @endcode
  * 
  * Note that there may not be the same number of tracers in the priority tracer
@@ -1590,9 +1590,9 @@ PSMRTS_Tracer *psmrts_create_naifdsk( const char *dskfile ) {
  * 
  * @param name         Name of the priority tracer (typically the image file name)
  * @param filelist     List of files with PSMRTS formatting
- * @param translations Specialized file path translations proccessor
- * @return PSMRTS_PriorityTracer* A priority tracer with 3 tracers if created
- *                       succesfully otherwise NULL on failure. Use psrmts_errors_to_string()
+ * @param translations Specialized file path translations processor
+ * @return PSMRTS_PriorityTracer* A priority tracer with one or more tracers if created
+ *                       successfully otherwise NULL on failure. Use psrmts_errors_to_string()
  *                       to see errors.
  */
 PSMRTS_PriorityTracer *psmrts_create_priority_tracer ( const char *name,
@@ -1605,8 +1605,8 @@ PSMRTS_PriorityTracer *psmrts_create_priority_tracer ( const char *name,
   PSMRTS_PriorityTracer *tracer_p = NULL;
   psmrts_capi_errors.clear_errors();
   
-  std::string name_t = ( NULL == name ) ? "psmrts_create_priority_tracer" : name;
-  const PSMRTS_Translations *trans_t = ( translations != NULL ) ? translations : &PsmrtsFactory().translator();
+  std::string name_t = ( NULL != name ) ? name : "psmrts_create_priority_tracer";
+  const PSMRTS_Translations *trans_t = ( NULL != translations ) ? translations : &PsmrtsFactory().translator();
 
   try {
     PsmrtsTracerSystem tracer_s( name_t, *trans_t );
@@ -1879,7 +1879,7 @@ PSMRTS_Translations *psmrts_add_data_directory( const char *pvlfile,
  * @brief Translates a filepath containing environment/parameter keywords
  * 
  * The "filepath" parameter can contain a combination of environment variables
- * or paramater keywords (from DataDirectory datasets) embedded in the string.
+ * or parameter keywords (from DataDirectory datasets) embedded in the string.
  * This function will translate the filepath string using the content of the
  * translations object to ultimately product an absolute file path.
  * 
@@ -1904,7 +1904,6 @@ PSMRTS_String *psmrts_translate_path( const char *filepath,
   *string_t = filename_t;
   return ( string_t );
 }
-
 
 /**
  * @brief psmrts_create_product_config - Creates PSMRTS_ProductConfiguration from the given id.
