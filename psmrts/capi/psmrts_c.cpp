@@ -25,6 +25,7 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/PsmrtsTranslations.hpp>
 #include <psmrts/core/PsmrtsBufferData.hpp>
 #include <psmrts/core/PsmrtsBuffer.hpp>
+#include <psmrts/core/ISISDataDirectory.hpp>
 #include <psmrts/core/PsmrtsMeshData.hpp>
 #include <psmrts/core/PsmrtsRayTrace.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
@@ -1811,6 +1812,99 @@ void psmrts_add_translation_parameter( PSMRTS_Translations *translations, const 
                                        const char* value ) {  
   translations->add_parameter( name, value );
 }
+
+/**
+ * @brief Read/parse an IsisPreferences-like DataDirectory PVL file and add to translations
+ * 
+ * This function will add a parameter data set like those contained in 
+ * IsisPreferences file to assist in determining the absolute file paths to files
+ * within the ISIS system. The "pvlfile" parameter can specify a file called
+ * "IsisPrefereneces" and it will read and parse a group contained in this file
+ * called "DataDirectory". In the DataDirectory group are PVL "keyword = value"
+ * pairs on single lines where "keyword" is a symbol name and "value" contains
+ * a file path. The "value" may also contain other symbols, put PSMRTS defaults
+ * to 5 iterations of substitutions by default to fully resolve absolute file
+ * paths to prevent infinite looping.
+ * 
+ * The DataDirectory group has the following form:
+ * 
+ * @code 
+ *  Group = DataDirectory
+ *   # Backwards compatability for versions prior to 4.1.0
+ *     ISIS3DATA    = $ISISDATA
+ *
+ *     Apollo15     = $ISISDATA/apollo15
+ *     Base         = $ISISDATA/base
+ *     OsirisRex    = $ISISDATA/osirisrex* 
+ *     Mro          = $ISISDATA/mro
+ * EndGroup
+ * End
+ * @endcode
+ * 
+ * The keywords ISIS3DATA, Apollo15, Base, Osirisrex and Mro are added to the
+ * "translations" object.
+ * 
+ * If you pass NULL for "translations" a default translations object is created
+ * initialized with a set of your shell environment with the contents of the
+ * DataDirectory group added to the 
+ * 
+ * @param pvlfile      Required name of the file containing the DataDirectory group
+ * @param translations Optional translation object. If NULL, one will be created
+ *                       and returned with populated environment and parameters.
+ * @return PSMRTS_Translations* If NULL, an error occurred and you can check the
+ *                       psmsrts_errors_to_strings() content.
+ */
+PSMRTS_Translations *psmrts_add_data_directory( const char *pvlfile,
+                                                PSMRTS_Translations *translations ) {
+
+  assert( pvlfile != nullptr && "psmrts_add_data_directory - data directory file name is NULL" );
+  psmrts_capi_errors.clear_errors();
+
+  PSMRTS_Translations *trans_t = ( NULL != translations ) ? translations : psmrts_create_translation();
+  std::string name_t = pvlfile;
+  try {
+    ISISDataDirectory data_t( name_t );
+    trans_t->merge_parameters( data_t.translations().parameters() );
+  }
+  catch ( const std::exception &e ) {
+    psmrts_capi_errors.add_error( e.what() );
+    psmrts_capi_errors.add_error( " psmrts_add_data_directory - failed to load data directory file " + name_t );
+    return ( NULL );
+  }
+ 
+  return ( trans_t );
+}
+
+/**
+ * @brief Translates a filepath containing environment/parameter keywords
+ * 
+ * The "filepath" parameter can contain a combination of environment variables
+ * or paramater keywords (from DataDirectory datasets) embedded in the string.
+ * This function will translate the filepath string using the content of the
+ * translations object to ultimately product an absolute file path.
+ * 
+ * @param filepath     String containing a path with environment and/or parameter
+ *                       symbols
+ * @param translations File path translation object
+ * @param path_t       Optional PSMRTS string you can reuse or NULL and one will
+ *                       be created (which you must free in this case).
+ * @return PSMRTS_String* PSMRTS string containing the expanded path
+ */
+PSMRTS_String *psmrts_translate_path( const char *filepath, 
+                                      const PSMRTS_Translations *translations,
+                                      PSMRTS_String *path_t ) {
+
+  assert( filepath != nullptr && "psmrts_translate_path - filepath is NULL" );
+  assert( translations != nullptr && "psmrts_translate_path - translations is NULL" );
+
+  std::string filepath_t( filepath );
+  std::string filename_t = translations->translate_path( filepath_t );
+
+  PSMRTS_String *string_t = ( NULL != path_t ) ? path_t : psmrts_create_string( "" );
+  *string_t = filename_t;
+  return ( string_t );
+}
+
 
 /**
  * @brief psmrts_create_product_config - Creates PSMRTS_ProductConfiguration from the given id.

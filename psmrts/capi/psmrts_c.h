@@ -312,7 +312,12 @@ PSMRTS_C_EXPORT void psmrts_add_product_double_vector( PSMRTS_ProductConfigurati
 /*============ PSMRTS_Translations functions ================*/
 PSMRTS_C_EXPORT PSMRTS_Translations *psmrts_create_translation();
 PSMRTS_C_EXPORT void psmrts_add_translation_parameter( PSMRTS_Translations *translations,
-                                                       const char* name, const char* value ); 
+                                                       const char* name, const char* value );
+PSMRTS_C_EXPORT PSMRTS_Translations *psmrts_add_data_directory( const char *pvlfile,
+                                                                PSMRTS_Translations *translations );
+PSMRTS_C_EXPORT PSMRTS_String *psmrts_translate_path( const char *name, 
+                                                      const PSMRTS_Translations *translations,
+                                                      PSMRTS_String *path_t );                                                                                                            
 
 /*============ PSMRTS_Invoice functions =====================*/
 PSMRTS_C_EXPORT PSMRTS_Invoice *psmrts_create_invoice( const char* name,
