@@ -36,49 +36,6 @@ find files of those names at the top level of this repository. **/
 
 using namespace psmrts;
 
-/**
- * @brief Shared pointer C wrapper
- * 
- * This class provides the C object that wraps a shared pointer of PSMRTS
- * types.
- * 
- * This class accepts any std::shared_ptr<T> type and provides this allocated
- * structure to the C API environment where T == std::shared_ptr<T>::element_type.
- * 
- * @tparam SharePtr std::shared_ptr<T> type to wrap.
- */
-template <typename T>
-  class SharedWrapper {
-    public:
-      using SharedPointer      = std::shared_ptr<T>;
-      
-      SharedWrapper() : m_ptr_s( nullptr ) { }
-      SharedWrapper( const SharedPointer &sptr ) : m_ptr_s( sptr ) { }
-      SharedWrapper( const T &data ) {
-        m_ptr_s = make_shared_copy( data );
-      } 
-      ~SharedWrapper() = default;
-
-      inline bool isvalid() const {
-        return ( m_ptr_s.get() != nullptr );
-      }
-
-      inline const T *operator->() const {
-        return ( m_ptr_s.get() );
-      }
-
-      inline T *operator->() {
-        return ( m_ptr_s.get() );
-      }      
-
-      inline SharedPointer &shared_pointer() const {
-        return ( m_ptr_s );
-      }
-
-    private:
-     SharedPointer m_ptr_s;
-  };
-
 /*============ PSMRTS C API type definitions ============*/
 /* Must be defined before including psmrts_c.h */
 #define PSMRTS_POINTERS 1
@@ -88,8 +45,8 @@ using PSMRTS_ProductConfiguration  = ProductConfiguration;
 using PSMRTS_String                = std::string;
 using PSMRTS_StringArray           = std::deque<PSMRTS_String>;
 using PSMRTS_RayTrace              = PRQRayTrace;
-using PSMRTS_Shape                 = SharedWrapper<PsmrtsShape>;
-using PSMRTS_Tracer                = SharedWrapper<PsmrtsTracer>;
+using PSMRTS_Shape                 = SharedShape;
+using PSMRTS_Tracer                = SharedTracer;
 using PSMRTS_PriorityTracer        = PsmrtsPriorityTracer;
 using PSMRTS_PhotometricRayTrace   = PRQPhotometricTrace;
 using PSMRTS_TraceArray            = PRQRayTraceArray;
