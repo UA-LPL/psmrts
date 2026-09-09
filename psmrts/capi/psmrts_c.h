@@ -313,11 +313,17 @@ PSMRTS_C_EXPORT void psmrts_add_product_double_vector( PSMRTS_ProductConfigurati
 PSMRTS_C_EXPORT PSMRTS_Translations *psmrts_create_translation();
 PSMRTS_C_EXPORT void psmrts_add_translation_parameter( PSMRTS_Translations *translations,
                                                        const char* name, const char* value );
-PSMRTS_C_EXPORT PSMRTS_Translations *psmrts_add_data_directory( const char *pvlfile,
-                                                                PSMRTS_Translations *translations );
-PSMRTS_C_EXPORT PSMRTS_String *psmrts_translate_path( const char *name, 
-                                                      const PSMRTS_Translations *translations,
-                                                      PSMRTS_String *path_t );                                                                                                            
+PSMRTS_C_EXPORT PSMRTS_Translations *psmrts_translation_add_data_directory( PSMRTS_Translations *translations,
+                                                                            const char *pvlfile );
+PSMRTS_C_EXPORT size_t psmrts_translation_environment_count( const PSMRTS_Translations *translations );
+PSMRTS_C_EXPORT size_t psmrts_translation_parameters_count( const PSMRTS_Translations *translations );
+PSMRTS_C_EXPORT PSMRTS_BOOL psmrts_translation_environment_contains( const PSMRTS_Translations *translations,
+                                                                      const char *name );
+PSMRTS_C_EXPORT PSMRTS_BOOL psmrts_translation_parameters_contains( const PSMRTS_Translations *translations,
+                                                                     const char *name  );
+PSMRTS_C_EXPORT PSMRTS_String *psmrts_translate_path( const PSMRTS_Translations *translations,
+                                                      const char *filepath, 
+                                                      PSMRTS_String *expanded_path );                                                                                                            
 
 /*============ PSMRTS_Invoice functions =====================*/
 PSMRTS_C_EXPORT PSMRTS_Invoice *psmrts_create_invoice( const char* name,

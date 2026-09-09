@@ -1706,6 +1706,7 @@ TEST_CASE( "C API Invoice & Translations Shape Test", "[capi][c++][invoice][tran
   psmrts_free_priority_tracer( ptracer );
 }
 
+
 /**
  * @brief Tests PSMRTS C API PSMRTS_Invoice and PSMRTS_Translations methods for bullet tracer.
  *
@@ -1901,5 +1902,127 @@ TEST_CASE("PsmrtsTracerSystem Priority Tracer Test", "[capi][prioritytracer][sys
 
   // liquidate factory
   psmrts_factory_liquidate();
+}
+
+/**
+ * @brief Tests to validate path translations given custom path configurations
+ * 
+* Methods tested...
+ *   psmrts_create_translation
+ *   psmrts_translation_environment_count
+ *   psmrts_translation_parameters_count
+ *   psmrts_translation_parameters_contains
+ *   psmrts_add_translation_parameter
+ *   psmrts_translate_path*
+ *   psmrts_string_content
+ *   psmrts_free_translations
+ * 
+ */
+TEST_CASE( "C API Translations Environment/Parameters Test", "[capi][c++][translations][environment][parameters]" ) {
+
+  PSMRTS_Translations *trans_t = psmrts_create_translation();
+
+  CHECK ( psmrts_translation_environment_count( trans_t ) > 0 );
+  CHECK ( psmrts_translation_parameters_count( trans_t ) == 0 );
+
+  psmrts_add_translation_parameter( trans_t, "ISISDATA", "/opt/isis/data" );
+  psmrts_add_translation_parameter( trans_t, "ISIS3DATA", "$ISISDATA" );
+
+  psmrts_add_translation_parameter( trans_t, "OsirisRex", "$ISISDATA/osirisrex" );
+  psmrts_add_translation_parameter( trans_t, "mRo", "$ISIS3DATA/mro" );
+
+  CHECK ( psmrts_translation_parameters_count( trans_t ) == 4 );
+
+#ifdef _WIN32
+  CHECK ( psmrts_translation_environment_contains( trans_t, "USERNAME" ) == PSMRTS_TRUE );
+#else
+  CHECK ( psmrts_translation_environment_contains( trans_t, "USER" )     == PSMRTS_TRUE );
+#endif
+
+  CHECK ( psmrts_translation_parameters_contains( trans_t, "isisdata" )  == PSMRTS_TRUE );
+  CHECK ( psmrts_translation_parameters_contains( trans_t, "Isis3Data" ) == PSMRTS_TRUE );
+  CHECK ( psmrts_translation_parameters_contains( trans_t, "osirisrex" ) == PSMRTS_TRUE );
+  CHECK ( psmrts_translation_parameters_contains( trans_t, "mro" )       == PSMRTS_TRUE );
+  CHECK ( psmrts_translation_parameters_contains( trans_t, "nada" )      == PSMRTS_FALSE );
+
+  PSMRTS_String *value = psmrts_translate_path( trans_t, "$osirisrex", NULL );
+  CHECK( std::string( psmrts_string_content( value ) ) == "/opt/isis/data/osirisrex" );
+
+  value = psmrts_translate_path( trans_t, "$osirisrex/kernels/dsk", value);
+  CHECK( std::string( psmrts_string_content( value ) ) == "/opt/isis/data/osirisrex/kernels/dsk" );
+
+  value = psmrts_translate_path( trans_t, "$mro", value);
+  CHECK( std::string( psmrts_string_content( value ) ) == "/opt/isis/data/mro" );
+
+  value = psmrts_translate_path( trans_t, "$MRO/kernels/dsk", value);
+  CHECK( std::string( psmrts_string_content( value ) ) == "/opt/isis/data/mro/kernels/dsk" );
+
+ value = psmrts_translate_path( trans_t, "$NOTHERE/kernels/dsk", value);
+ CHECK( std::string( psmrts_string_content( value ) ) == "$NOTHERE/kernels/dsk" );
+
+ psmrts_free_string( value );
+ psmrts_free_translations( trans_t );
+
+}
+
+/**
+ * @brief Tests to validate path translations DataDirectory integration
+ * 
+* Methods tested...
+ *   psmrts_create_translation
+ *   psmrts_add_data_directory
+ *   psmrts_translate_path 
+ *   psmrts_string_content
+ *   psmrts_free_translations
+ * 
+ */
+TEST_CASE( "C API Translations DataDirectory Test", "[capi][c++][translations][datadirectory]" ) {
+
+  PSMRTS_Translations *trans_t = psmrts_create_translation();
+
+  std::string isisdata_t = psmrts_core_path( "tests/data/IsisPreferences" );
+  psmrts_translation_add_data_directory(trans_t, isisdata_t.c_str() );
+
+  CHECK ( psmrts_translation_environment_count( trans_t ) > 0 );
+  CHECK ( psmrts_translation_parameters_count( trans_t ) == 38 );
+
+  PSMRTS_Translations *trans_dd_t = psmrts_translation_add_data_directory( NULL, isisdata_t.c_str() );
+  CHECK ( psmrts_translation_environment_count( trans_t ) ==  psmrts_translation_environment_count( trans_dd_t ) );
+  CHECK ( psmrts_translation_parameters_count( trans_t )  ==  psmrts_translation_parameters_count( trans_dd_t ) );
+
+  CHECK ( psmrts_translation_parameters_contains( trans_t, "isisdata" )     == PSMRTS_FALSE );
+  CHECK ( psmrts_translation_parameters_contains( trans_t, "Isis3Data" )    == PSMRTS_TRUE );
+  CHECK ( psmrts_translation_parameters_contains( trans_t, "osirisrex" )    == PSMRTS_TRUE );
+  CHECK ( psmrts_translation_parameters_contains( trans_t, "mro" )          == PSMRTS_TRUE );
+  CHECK ( psmrts_translation_parameters_contains( trans_t, "nada" )         == PSMRTS_FALSE );
+
+  CHECK ( psmrts_translation_parameters_contains( trans_dd_t, "isisdata" )  == PSMRTS_FALSE );
+  CHECK ( psmrts_translation_parameters_contains( trans_dd_t, "Isis3Data" ) == PSMRTS_TRUE );
+  CHECK ( psmrts_translation_parameters_contains( trans_dd_t, "osirisrex" ) == PSMRTS_TRUE );
+  CHECK ( psmrts_translation_parameters_contains( trans_dd_t, "mro" )       == PSMRTS_TRUE );
+  CHECK ( psmrts_translation_parameters_contains( trans_dd_t, "nada" )      == PSMRTS_FALSE );
+
+  PSMRTS_String *value = psmrts_translate_path( trans_t, "$osirisrex", NULL );
+  CHECK( std::string( psmrts_string_content( value ) ) == "$ISISDATA/osirisrex" );
+
+  psmrts_add_translation_parameter( trans_t, "ISISDATA","/opt/isis/data" );
+  CHECK ( psmrts_translation_parameters_contains( trans_t, "isisdata" )     == PSMRTS_TRUE );
+
+  value = psmrts_translate_path( trans_t, "$osirisrex/kernels/dsk", value);
+  CHECK( std::string( psmrts_string_content( value ) ) == "/opt/isis/data/osirisrex/kernels/dsk" );
+
+  value = psmrts_translate_path( trans_t, "$mro", value);
+  CHECK( std::string( psmrts_string_content( value ) ) == "/opt/isis/data/mro" );
+
+  value = psmrts_translate_path( trans_t, "$MRO/kernels/dsk", value);
+  CHECK( std::string( psmrts_string_content( value ) ) == "/opt/isis/data/mro/kernels/dsk" );
+
+ value = psmrts_translate_path( trans_t, "$NOTHERE/kernels/dsk", value);
+ CHECK( std::string( psmrts_string_content( value ) ) == "$NOTHERE/kernels/dsk" );
+
+ psmrts_free_string( value );
+ psmrts_free_translations( trans_t );
+ psmrts_free_translations( trans_dd_t );
+ 
 }
 

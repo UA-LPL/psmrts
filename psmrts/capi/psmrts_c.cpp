@@ -1848,23 +1848,22 @@ void psmrts_add_translation_parameter( PSMRTS_Translations *translations, const 
  * initialized with a set of your shell environment with the contents of the
  * DataDirectory group added to the 
  * 
- * @param pvlfile      Required name of the file containing the DataDirectory group
  * @param translations Optional translation object. If NULL, one will be created
  *                       and returned with populated environment and parameters.
+ * @param pvlfile      Required name of the file containing the DataDirectory group
  * @return PSMRTS_Translations* If NULL, an error occurred and you can check the
  *                       psmsrts_errors_to_strings() content.
  */
-PSMRTS_Translations *psmrts_add_data_directory( const char *pvlfile,
-                                                PSMRTS_Translations *translations ) {
+PSMRTS_Translations *psmrts_translation_add_data_directory( PSMRTS_Translations *translations ,
+                                                            const char *pvlfile ) {
 
-  assert( pvlfile != nullptr && "psmrts_add_data_directory - data directory file name is NULL" );
+  assert( pvlfile != nullptr && "psmrts_translation_add_data_directory - data directory file name is NULL" );
   psmrts_capi_errors.clear_errors();
 
   PSMRTS_Translations *trans_t = ( NULL != translations ) ? translations : psmrts_create_translation();
   std::string name_t = pvlfile;
   try {
-    ISISDataDirectory data_t( name_t );
-    trans_t->merge_parameters( data_t.translations().parameters() );
+    ISISDataDirectory::import_data_directory( *trans_t, name_t );
   }
   catch ( const std::exception &e ) {
     psmrts_capi_errors.add_error( e.what() );
@@ -1876,6 +1875,70 @@ PSMRTS_Translations *psmrts_add_data_directory( const char *pvlfile,
 }
 
 /**
+ * @brief Return number of environment variables in the translations environment
+ * 
+ * This function returns the number of environment variables contained in the 
+ * PSMRTS_Translations object that were extracted from the user shell environment.
+ * 
+ * @param translations  PSMRTS_Translations object 
+ * @return size_t       Number of environment variables contained in object
+ */
+size_t psmrts_translation_environment_count( const PSMRTS_Translations *translations ) {
+  assert( translations != nullptr && "psmrts_translation_environment_count - translations is NULL" );
+
+  return ( translations->environment().size() );
+}
+
+/**
+ * @brief Return number of parameters variables in the translations object
+ * 
+ * This function returns the number of parameter/value pairs contained in the 
+ * PSMRTS_Translations object.
+ * 
+ * @param translations  PSMRTS_Translations object 
+ * @return size_t       Number of parameter variables contained in object
+ */
+size_t psmrts_translation_parameters_count( const PSMRTS_Translations *translations ) {
+  assert( translations != nullptr && "psmrts_translation_parameters_count - translations is NULL" );
+
+  return ( translations->parameters().size() );
+}
+
+/**
+ * @brief Determine if an environment variable exists in the translation object
+ * 
+ * The function checks the environment variable cache for a named variable.
+ * 
+ * @param translations PSMRTS_Translations object to check for environment variable 
+ * @param name 
+ * @return PSMRTS_BOOL PSMRTS_TRUE if it exists, otherwise PSMRTS_FALSE
+ */
+PSMRTS_BOOL psmrts_translation_environment_contains( const PSMRTS_Translations *translations,
+                                                      const char *name ) {
+  assert( translations != nullptr && "psmrts_translation_environment_contains - translations is NULL" );
+  assert( name != nullptr && "psmrts_translation_environment_contains - name is NULL" );
+
+  return ( to_psmrts_bool( translations->environment().contains( std::string( name ) ) ) );
+}
+
+/**
+ * @brief Determine if a parameter variable exists in the translation object
+ * 
+ * The function checks the parameter variable cache for a named variable.
+ * 
+ * @param translations PSMRTS_Translations object to check for parameter variable 
+ * @param name 
+ * @return PSMRTS_BOOL PSMRTS_TRUE if it exists, otherwise PSMRTS_FALSE
+ */
+PSMRTS_BOOL psmrts_translation_parameters_contains( const PSMRTS_Translations *translations,
+                                                     const char *name  ) {
+  assert( translations != nullptr && "psmrts_translation_parameters_contains - translations is NULL" );
+  assert( name != nullptr && "psmrts_translation_parameters_contains - name is NULL" );
+
+  return ( to_psmrts_bool( translations->parameters().contains( std::string( name ) ) ) );
+ }
+
+/**
  * @brief Translates a filepath containing environment/parameter keywords
  * 
  * The "filepath" parameter can contain a combination of environment variables
@@ -1883,16 +1946,16 @@ PSMRTS_Translations *psmrts_add_data_directory( const char *pvlfile,
  * This function will translate the filepath string using the content of the
  * translations object to ultimately product an absolute file path.
  * 
- * @param filepath     String containing a path with environment and/or parameter
- *                       symbols
- * @param translations File path translation object
- * @param path_t       Optional PSMRTS string you can reuse or NULL and one will
- *                       be created (which you must free in this case).
+ * @param translations  File path translation object
+ * @param filepath      String containing a path with environment and/or parameter
+ *                        symbols
+ * @param expanded_path Optional PSMRTS string you can reuse or NULL and one will
+ *                        be created (which you must free in this case).
  * @return PSMRTS_String* PSMRTS string containing the expanded path
  */
-PSMRTS_String *psmrts_translate_path( const char *filepath, 
-                                      const PSMRTS_Translations *translations,
-                                      PSMRTS_String *path_t ) {
+PSMRTS_String *psmrts_translate_path( const PSMRTS_Translations *translations,
+                                      const char *filepath, 
+                                      PSMRTS_String *expanded_path ) {
 
   assert( filepath != nullptr && "psmrts_translate_path - filepath is NULL" );
   assert( translations != nullptr && "psmrts_translate_path - translations is NULL" );
@@ -1900,7 +1963,7 @@ PSMRTS_String *psmrts_translate_path( const char *filepath,
   std::string filepath_t( filepath );
   std::string filename_t = translations->translate_path( filepath_t );
 
-  PSMRTS_String *string_t = ( NULL != path_t ) ? path_t : psmrts_create_string( "" );
+  PSMRTS_String *string_t = ( NULL != expanded_path ) ? expanded_path : psmrts_create_string( "" );
   *string_t = filename_t;
   return ( string_t );
 }
