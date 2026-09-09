@@ -43,6 +43,12 @@ namespace psmrts {
    * provided that accepts a function, lambda or functor object that is called
    * with a const reference to the cache map.
    * 
+   * NOTE: Function/lamda cache processing functors cannot make direct calls
+   * back into the cache or deadlock will occur, even for read-only methods
+   * (this is undefined behavior). The functors should also be lightweight and
+   * quick operations (such as no I/O). The reason for this is the cache is
+   * mutex locked prior to call the process(functor) method.
+   * 
    * @tparam K Key to use in the cache map
    * @tparam T Type stored in the cache map
    */
