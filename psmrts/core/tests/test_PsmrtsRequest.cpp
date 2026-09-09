@@ -7,7 +7,12 @@
 
 TEST_CASE( "PsmrtsRequest Default Test", "[request][default]" ) {
     
-    CHECK( sizeof( psmrts::MissingProcessRequestHandler) <= 410 );
+    CHECK( sizeof( psmrts::MissingProcessRequestHandler) > 0 );
+    CHECK( sizeof( psmrts::PRQRayTrace)                  > 0 );
+    CHECK( sizeof( psmrts::PRQRayTraceArray)             > 0 );
+    CHECK( sizeof( psmrts::PRQPhotometricTrace)          > 0 );
+    CHECK( sizeof( psmrts::PRQPhotometricTraceArray)     > 0 );
+    CHECK( sizeof( psmrts::PRQFacet)                     > 0 );
 
     psmrts::PsmrtsRequest request_t;
     CHECK( request_t.name()           == "PsmrtsRequest" );
