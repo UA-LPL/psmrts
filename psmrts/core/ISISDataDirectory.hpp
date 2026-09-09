@@ -128,7 +128,11 @@ public:
         parse_file(filename);
     }
 
-
+    /** Parse and return DataDirectory contents from an IsisPreferences file  */
+    static PsmrtsTranslations &import_data_directory( PsmrtsTranslations &translation, const std::string &isispreffile ) {
+      ISISDataDirectory dd_t( isispreffile );
+      return ( dd_t.extract_group( "DataDirectory", translation) );
+    }
 
     /**
      * @brief Parse an ISIS preferences file.
@@ -317,6 +321,14 @@ public:
         return oss.str();
     }
 
+  /** Extract the contents of a specific group into a parameter set of a PsmrtsTranslations object */
+    PsmrtsTranslations &extract_group( const std::string &group,  PsmrtsTranslations &translation ) {
+      for ( const auto &[ key, value ] : this->group( group ) ) {
+        translation.add_parameter( key, value );
+      }
+      return ( translation );
+    }
+
     /**
      * @brief Write the ISIS PVL serialization to a file.
      *
@@ -345,6 +357,8 @@ public:
                 "ISISDataDirectory::to_file_flat: cannot open for writing: " + filename);
         ofs << to_string_flat();
     }
+
+
 
 private:
     std::vector<Block>  m_blocks;
