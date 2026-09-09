@@ -59,6 +59,24 @@ using PSMRTS_PhotometricTraceArray = PRQPhotometricTraceArray;
 
 static PsmrtsErrors psmrts_capi_errors{};
 
+/**
+ * @brief Internal function to create a tracer for capi object from a tracer string
+ * 
+ * This function ensures consistent use of the PSMRTS factory to search for and 
+ * or create a tracer for the given file. This particular file is expected to 
+ * contain PSMRTS tracer prefixes to the filename that follows the pattern
+ * "tracer::filename.ext" where "tracer" is one of the supported types.
+ * A variation of this pattern can also use the ellipsoid pattern that may look
+ * like "sphere::0.345".
+ * 
+ * This function will return NULL if an error has occured. Users can then
+ * query the psrmts_error*() functions to determine the the nature of the error.
+ * The error status is cleared at start of this function processing sequence.
+ * 
+ * @param filename       PSMRTS tracer/file pattern string to convert to tracer
+ * @return PSMRTS_Tracer* A tracer object is returned if succesful otherwise 
+ *                           NULL is returned.
+ */
 inline PSMRTS_Tracer *create_tracer_for_capi ( const std::string &filename ) {
 
   PSMRTS_Tracer *tracer_p = NULL;
@@ -85,6 +103,20 @@ inline PSMRTS_Tracer *create_tracer_for_capi ( const std::string &filename ) {
   return ( tracer_p );
 }
 
+/**
+ * @brief Internal function to create a tracer for capi object from a config object
+ * 
+ * This function ensures consistent use of the PSMRTS factory to search for and 
+ * or create a tracer for the given product configuration.
+ * 
+ * This function will return NULL if an error has occured. Users can then
+ * query the psrmts_error*() functions to determine the the nature of the error.
+ * The error status is cleared at start of this function processing sequence.
+ * 
+ * @param filename       PSMRTS tracer/file pattern string to convert to tracer
+ * @return PSMRTS_Tracer* A tracer object is returned if succesful otherwise 
+ *                           NULL is returned.
+ */
 inline PSMRTS_Tracer *create_tracer_for_capi ( const ProductConfiguration &config ) {
 
   PSMRTS_Tracer *tracer_p = NULL;
@@ -111,6 +143,20 @@ inline PSMRTS_Tracer *create_tracer_for_capi ( const ProductConfiguration &confi
   return ( tracer_p );
 }
 
+/**
+ * @brief Internal function to create a shape for capi object from a config object
+ * 
+ * This function ensures consistent use of the PSMRTS factory to search for and 
+ * or create a tracer for the given product configuration.
+ * 
+ * This function will return NULL if an error has occured. Users can then
+ * query the psrmts_error*() functions to determine the the nature of the error.
+ * The error status is cleared at start of this function processing sequence.
+ * 
+ * @param filename       PSMRTS tracer/file pattern string to convert to shape
+ * @return PSMRTS_Shape* A shape object is returned if succesful otherwise 
+ *                           NULL is returned.
+ */
 inline PSMRTS_Shape *create_shape_for_capi ( const ProductConfiguration &config ) {
 
   PSMRTS_Shape *shape_p = NULL;
