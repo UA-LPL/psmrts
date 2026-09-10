@@ -36,20 +36,53 @@ release.
 
 - See [TODO](TODO.md)
 
-## [0.9.0] 2026-07-30
+## [0.9.0] 2026-09-09
 
-This PR addresses thread-safety and is in response to issue [#42](https://github.com/UA-LPL/psmrts/issues/42).
+**This PR address both issues [#42](https://github.com/UA-LPL/psmrts/issues/42) and [#45](https://github.com/UA-LPL/psmrts/issues/45). PSMRTS has been refactored to convert much of the stack memory to heap memory to better scale the system. Thread-safety implementation has been refactored to limit its scope for better efficiency. PR [#44](https://github.com/UA-LPL/psmrts/pull/44) has been superceded in favor of this PR due to the inter-related processes of the heap memory conversion and thread-safety. Below is the summary highlights of the refactor modifications.**
 
-- Add mutexes to ProductProcessing.hpp and PsmrtsTracerSystem.hpp to address conflicts during searches and creations of objects.
-- Fixed OBJ configurations to better adherer to ObjShape specifications. This also fixes search comparisons for resource reuse.
-- Fixed PLY configurations to better adherer to PlyShape specifications. This also fixes search comparisons for resource reuse.
-- Fix return type (bool) of PsmrtsTracerSystem::has_errors() method.
-- The PsmrtsTracerSystem class has a static std::mutex that is locked in the PsmrtsTracerSystem::load_shape_list() method that ensures no redundancy loads of the same shape from different invocations of PsmrtsTracerSystem and/or simultaneous threads of this class.
-- The ProductProcessor contains a static std::mutex that is locked during product searches/creations when they are requested on shapes and tracers. This does not prevent conflicts at the actual product cache level, but the implementation uses a lambda function that is scoped locked in the methods running the product searches invoking the lambda functions that are provided direct access to the product cache std::map.
-- The cache map, using std::map as its container, provides a PsmrtsCache::process() template method that accepts a function, lambda or function object containing an operator()/function that accepts a `const &std::map<K,P>` parameter of the requested type you can use as desired, typically product comparisons during searches.
-- The PsmrtsInventory and ProductInventory classes have template methods that pass these function methods to the requested inventories which create a top-to-bottom thread-safe creation and search infrastructure within PSMRTS using these classes.
-- Thread tests have been added to test_PsmrtsTracerSystem.cpp to validate these changes.
-- Change CMakeLists.txt version to [0.9.0]
+- PsmrtsTracer, PsmrtsShape, PsmrtsTranslations, PsmrtsInventory, PsmrtsInvoice, ProductOrders and ProductCarts have all been converted to shared pointer types throughout PSMRTS. These are the largest objects and significantly reduces stack memory use in the system.
+- Added a new shared cache called PsmrtsSharedCache to store PsmrtsTracer and PsmrtsShape objects in the PsmrtsInventory. Improve adding a PsmrtsTracer and PsmrtsShape to preserve UID integrity and ensure tracers with shapes also add the shape. PsmrtsInventory now uses a std::shared_mutex to manage thread-safety access and allow for concurrent read access and write protection.
+- Remove ProductInventory from PSMRTS. With the new addition of the PsmrtsSharedCache and adding of the merge option in the cache classes, this makes ProductInventory obsolete.
+- The error utility in PsmrtsRequest has been moved to its own class called PsmrtsErrors to extend its use to tracking errors in isolated conditions without the overhead (for both classes)
+- The PsmrtsTracerSystem has been modified/simplified to eliminate mutex locking, removed search and creation processes and moved them to PsmrtsFactory. Don't automatically create a shape ellipsoid and require users to initiate its creation/addition to the system. You must call one of the PsmrtsTracerSystem::set_reference_ellipsoid() methods to activate its subsequent use.
+- Fixed bug in parsing of shortened PSMRTS tracer file shape specifications of the form "tracer::filename". Implemented psmrts::string_tokenizer_substring() method to use a substring delimeter to ensure proper parsing of other special PSMRTS file predicate specifications.
+- Simplified PsmrtsPriorityTracer implementation by only storing vector of PsmrtsTracers.
+- PsmrtsProcessing was modified to provide search functionality of PsmrtsInventorys using ProductOrders containing ProductCart specifications for PsmrtsTracers and PsmrtsShapes. Product search issues for PsmrtsTracers was fixed to accomodate PsmrtsShape comparisons if they exist and are provided in ProductCart configurations. The process of creating tracers and shapes have been removed and now is part of the PsmrtsFactory. There is no longer any mutex locking in this class.
+- Improved PsmrtsCache to use shared mutexes for better concurrent access.
+- Refactored PsmrtsFactory to eliminate storing of multiple inventories, uses std::shared_mutexs, search and create PsmrtsTracers and PsmrtsShapes using ProductOrders and ProductProcessing with thread-safe techniques.
+- PsmrtsInvoice contains a list of ProductOrders that specify tracer/shape configurations. The ProductSet internal class has been removed in favor of ProductOrders. This class interacts with the PsmrtsFactory to fulfill orders as submitted to the invoice. Ensures that creation of priority tracers do not allow duplicate tracers as this causes major inefficiencies. It now uses heap memory for submitted orders.
+- DskShape, ObjShape, PlyShape, BulletTracer, and NaifDskTracer and their private implementations now use heap allocations rather than stack memory.
+- ProductCart has been modified to simplify the API and store generic configurations such as PsmrtsTracer or PsmrtsShapes.
+- EllipsoidTracer has been completely reimplemented with assistance from Claude to handle long distance observers by using techniques that uses scaling algorithms.
+- Fixed bug in TracingBasics that erroneously set the tracer uid whereas it should occur in individual tracer implementations.
+- Fixed bug in BulletTracer to properly set the tracer uid for successful traces. Fix configurations to be consistent for different constructor use cases.
+- Removed the PRQProduct class as it was not being utilized.
+- Removed PRQVersion and PRQFeature as they were not used and functionality is provded in other classes.
+- Fixed conflict in DskShape and NaifDskTracer to distinguish product specifications and resolve product configuration matching. This creates a new "status=conflict" to distinguis between the two in ProductConfigurations (NaifDskTracer does load the complete shape and interacts within the NAIF toolkit - DskShape loads the full shape in the file to memory).
+- Fix issues in PlyShape configurations that were incomplete/inconsistent causing search failures.
+- Fix PsmrtsMeshData configuration to be consistent with MeshShape configuration.
+- Added PsmrtsTracer::shape() to optionally return a PsmrtsShape if the tracer has a shape mesh buffer associated with it - some do not like EllipsoidTracers and NaifDskTracers.
+- Remove NaifUtilities.hpp and incorporate functionality into KernelFileSystem class.
+- Removed matches(config) methods from all PsmrtsTracer and PsmrtsShape implementations and provide this capability in ProductProcessing.
+- Remove PsmrtsInventory::create_priority_tracer(), defer to PsmrtsInvoice/PsmrtsTracerSystem.
+- Reduce stack memory with heap allocations in PsmrtsProduct classes.
+- Refactored PSMRTS CAPI to use the C++ API heap memory modifications. Fixed creations of PsmrtsTracers and PsmrtsShapes to use existing objects consistent with C++ API design. Added better error management and improved string handling.
+- Added new functions to the PSMRTS CAPI and improved/fixed others:
+  - psmrt_error_count() - returns the count of errors that occurred in last sequence.
+  - psmrts_clear_error() - clears the content of the accumulated error status state.
+  - psmrts_errors_to_string() - converts errors to string for reporting to caller
+  - psmrts_factory_shape_count() - returns the current count of shapes in the PSMRTS system factory
+  - psmrts_factory_tracer_count() - returns the current count of tracers in the PSMRTS system factory
+  - psmrts_factory_liquidate() - clears the factory of all current tracers and shapes. This will reset the factory to an empty state and all subsquent requests for tracers or shapes will recreate them. However, this action does not affect any active tracers, shapes or priority tracers in use. USE WITH CAUTION!
+  - psmrts_create_priority_tracer_from_file() - Creates a priority tracer from a list of files using the PsmrtsTracerSystem::process_shape_list() method and must conform to its file path format/specs.
+  - PSMRTS_Tracer and PSMRTS_Shape creation functions, psmrts_create_sphere(), psmrts_create_spheroid(), psmrts_create_ellipsoid(), psmrts_create_bullet() and psmrts_create_naifdsk(), now utilize managed resources from the factory for efficient resuse of exising products.
+  - psmrts_translation_environment_count() - return the number of environment variable in the translation object
+  - psmrts_translation_parameters_count() - return the number of parameters variable in the translation object.
+  - psmrts_translation_environment_contains() - checks for the existance of an environment variable in a translation object.
+  - psmrts_translation_parameters_contains() - checks for the existance of a parameter variable in a translation object.
+  - psmrts_add_data_directory() - added to read an IsisPreferences-like file containing a DataDirectory group to the PSMRTS_Translations object to complete file path substitution capabilites.
+  - psmrts_translate_path() - will apply the translation object to produce an absolute file path.
+- Update CMakeLists.txt to version [0.9.0]
 - Update CHANGELOG.md
 
 ## [0.8.0] 2026-07-30
