@@ -156,6 +156,9 @@ static void test_psmrts_ray(void **state) {
 
 static void test_psmrts_raytrace(void **state) {
     (void)state;
+
+    psmrts_factory_liquidate();
+
     const char *name = "test";
     PSMRTS_Tracer *sphere = psmrts_create_sphere(1.0, name);
 
@@ -221,11 +224,15 @@ static void test_psmrts_raytrace(void **state) {
     psmrts_free_tracer( sphere );
     psmrts_free_ray( ray );
     psmrts_free_ray( ray2 );
+
+    psmrts_factory_liquidate();
 }
 
 // --- PSMRTS TraceArray Functions ---
 static void test_psmrts_trace_array(void **state) {
     (void)state;
+
+    psmrts_factory_liquidate();
 
     PSMRTS_TraceArray *t_array = psmrts_create_trace_array();
     int size = psmrts_trace_array_size(t_array);
@@ -270,11 +277,15 @@ static void test_psmrts_trace_array(void **state) {
     psmrts_free_ray( ray );
     psmrts_free_tracer( ellipse );
     psmrts_free_trace_array( t_array);
+    
+    psmrts_factory_liquidate();
 }
 
 // --- PSMRTS Photometric Trace/Array Functions ---
 static void test_psmrts_photometric_trace(void **state) {
     (void)state;
+
+    psmrts_factory_liquidate();
 
     const char *name = "test";
     PSMRTS_Tracer *ellipse = psmrts_create_sphere(1.0, name);
@@ -344,6 +355,8 @@ static void test_psmrts_photometric_trace(void **state) {
     psmrts_free_tracer( ellipse );
     psmrts_free_ray( observer_ray );
     psmrts_free_photometric_ray( p_ray );
+    
+    psmrts_factory_liquidate();
 }
 
 static void test_psmrts_photometric_array(void **state) {
@@ -431,6 +444,8 @@ static void test_psmrts_conversions(void **state) {
 static void test_psmrts_tracers(void **state) {
     (void)state;
 
+    psmrts_factory_liquidate();
+
     PSMRTS_Tracer *sphere = psmrts_create_sphere(1.0, "sphere");
     PSMRTS_BOOL sphere_valid = psmrts_tracer_valid( sphere );
     assert_int_equal(sphere_valid, 1);
@@ -462,6 +477,8 @@ static void test_psmrts_tracers(void **state) {
     psmrts_free_tracer( ellipsoid_v );
     psmrts_free_tracer( bullet );
     psmrts_free_tracer( naifdsk );
+
+    psmrts_factory_liquidate();
 }
 
 int main(void) {
