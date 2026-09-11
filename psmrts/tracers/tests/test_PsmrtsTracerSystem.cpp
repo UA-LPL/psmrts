@@ -318,10 +318,10 @@ TEST_CASE( "PsmrtsTracerSystem ISIS Interface Test", "[tracer][system][isislike]
   CHECK( tracer_p.tracers()[2]->name() == "$osirisrex/dsk/data/bennu_20facets.bds");
   CHECK( tracer_p.tracers()[3]->name() == "ellipsoid::0.28306,0.24972" );
 
-  CHECK( system_t.invoice()->orders()[0]->find("tracer")->name() == tracer_p.tracers()[0]->name() );
-  CHECK( system_t.invoice()->orders()[0]->find("shape")->name()  == tracer_p.tracers()[0]->name() );
-  CHECK( system_t.invoice()->orders()[1]->find("tracer")->name() == tracer_p.tracers()[1]->name() );
-  CHECK( system_t.invoice()->orders()[1]->find("shape")->name()  == tracer_p.tracers()[1]->name() );
+  CHECK( system_t.invoice()->orders()[0]->find( "tracer" )->name() == tracer_p.tracers()[0]->name() );
+  CHECK( system_t.invoice()->orders()[0]->find( "shape" )->name()  == tracer_p.tracers()[0]->name() );
+  CHECK( system_t.invoice()->orders()[1]->find( "tracer" )->name() == tracer_p.tracers()[1]->name() );
+  CHECK( system_t.invoice()->orders()[1]->find( "shape" )->name()  == tracer_p.tracers()[1]->name() );
  
   psmrts::PsmrtsFactory().liquidate();
 }

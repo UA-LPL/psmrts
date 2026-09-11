@@ -32,7 +32,7 @@ TEST_CASE( "PSMRTS Translation Environment", "[translations][inventory][environm
 
 #ifdef _WIN32
   if ( translations.environment().contains( "USERNAME" ) ) {
-    CHECK( translations.environment().find( "USERNAME ").empty() == false );
+    CHECK( translations.environment().find( "USERNAME").empty() == false );
   }
 #else
   if ( translations.environment().contains( "USER" ) ) {
@@ -61,7 +61,7 @@ TEST_CASE( "PSMRTS Translation Environment", "[translations][inventory][environm
 }
 
 
-TEST_CASE( "PSMRTS Translation Environment", "[translations][inventory][parameters]" ) {
+TEST_CASE( "PSMRTS Translation Parameters", "[translations][inventory][parameters]" ) {
 
   psmrts::PsmrtsTranslations translations = psmrts::PsmrtsTranslations::create();
 
