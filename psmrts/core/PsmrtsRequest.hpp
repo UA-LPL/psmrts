@@ -173,12 +173,14 @@ namespace psmrts {
         return ( m_errors );
       }
 
+      // Print errors in reverse order
       inline std::string errors_to_string() const {
         std::string mess("");
+        std::string line_f("");
         if ( this->error_count() > 0 ) {
-          // mess = "*** " + this->name() + " has encountered errors!\n";
-          for ( const auto &e_string : this->errors() ) {
-            mess += e_string + "\n"; 
+          for ( auto it_s = m_errors.crbegin() ; it_s != m_errors.crend() ; ++it_s ) {
+            mess += line_f + *it_s; 
+            line_f = "\n";
           }
         }
         return ( mess );
