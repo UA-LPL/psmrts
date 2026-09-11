@@ -16,6 +16,9 @@ find files of those names at the top level of this repository. **/
 #include <cstring>
 
 #include <psmrts/capi/psmrts_c.h>
+#include <psmrts/core/PsmrtsUtilities.hpp>
+#include <psmrts/core/PsmrtsJson.hpp>
+
 
 /**
  * @brief Main function of the psmrts_capi_features application.
@@ -61,6 +64,13 @@ int main( int argc, char *argv[] ) {
     printf("\n*** PSMRTS-C - errors: create bullet tracer failed\n exiting..." );
     exit ( 1 );
   }
+
+  // Get the JSON string and report it to the user
+  PSMRTS_String *tracer_string = psmrts_tracer_json_string( bulletTracer );
+  std::string json_t( psmrts_string_content( tracer_string ) );
+  psmrts_json tracer_json = ordered_json::parse( json_t );
+  std::cout << "\n***Tracer Configuration:\n" << tracer_json.dump(2) << std::endl;
+
 
   PSMRTS_RayTrace *sunray = nullptr;
   PSMRTS_Vector3d xyz, raypt, normal, llr, sunpos, sundir;
@@ -268,6 +278,7 @@ int main( int argc, char *argv[] ) {
   psmrts_destroy_ray( ray2 );
   psmrts_destroy_ray( sunray );
   psmrts_destroy_tracer( bulletTracer );
+  psmrts_destroy_string( tracer_string );
 
   return ( 0 );
 }
