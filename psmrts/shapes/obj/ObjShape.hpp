@@ -39,7 +39,7 @@ namespace psmrts  {
       using SharedOBJFormat = std::shared_ptr<PsmrtsOBJFormat>;
 
       ObjShape( ) : PsmrtsProduct( "none", "shape", "obj" ), 
-                    m_mesh(), m_config("obj" ) { 
+                    m_mesh(), m_config( "obj" ) { 
         m_mesh = make_shared_copy ( PsmrtsMeshData() );                      
       }
       ObjShape( const psmrts::PsmrtsOBJFormat &obj_t ) :
@@ -71,7 +71,7 @@ namespace psmrts  {
         ProductInfo  info( "obj", { 
                                  ProductOption( "name", "obj"),
                                  ProductOption( "product", "shape"),
-                                 ProductOption( "description", "Reads Wavefront OBJ mesh files and creates a PMRTS mesh object") } );
+                                 ProductOption( "description", "Reads Wavefront OBJ mesh files and creates a PMRTS mesh object" ) } );
         ProductFeature product( "shape", {
                                 ProductOption( "name", "shape" ),
                                 ProductOption( "type", "string" ),
@@ -82,9 +82,9 @@ namespace psmrts  {
         ProductFeature ofile( "obj_file", {
                                  ProductOption( "name", "obj_file"),
                                  ProductOption( "type", "file"),
-                                 ProductOption( "description", "Name of OBJ file/string to read"),
+                                 ProductOption( "description", "Name of OBJ file/string to read" ),
                                  ProductOption( "status", "required"),
-                                 ProductOption( "aliases", {"file", "filename", "obj_mesh", "mesh_file", "shapefile"} ),
+                                 ProductOption( "aliases", { "file", "filename", "obj_mesh", "mesh_file", "shapefile" } ),
                                  ProductOption( "file_suffixes", { "obj", "OBJ" } ) } );
         ProductFeature ostr( "obj_string", {
                                  ProductOption( "name", "obj_string"),
@@ -94,18 +94,18 @@ namespace psmrts  {
                                  ProductOption( "aliases", "obj_mesh_string" ),
                                 ProductOption( "default", "" ) } );
         ProductFeature dtype( "obj_data_type", {
-                                 ProductOption( "name", "obj_data_type"),
-                                 ProductOption( "type", "string"),
-                                 ProductOption( "description", "Type of mesh vector data requested/read"),
-                                 ProductOption( "status", "optional"),
+                                 ProductOption( "name", "obj_data_type" ),
+                                 ProductOption( "type", "string" ),
+                                 ProductOption( "description", "Type of mesh vector data requested/read" ),
+                                 ProductOption( "status", "optional" ),
                                  ProductOption( "aliases", { "data_type", "mesh_data_type" } ), 
-                                 ProductOption( "valid", { "double", "float"} ),
+                                 ProductOption( "valid", { "double", "float" } ),
                                  ProductOption( "default", "double" ) } );
         ProductFeature mtld( "obj_mtl_search_path", {
-                                 ProductOption( "name", "obj_mtl_search_path"),
-                                 ProductOption( "type", "directory"),
-                                 ProductOption( "description", "Directory path to OBJ materials files"),
-                                 ProductOption( "status", "optional"),
+                                 ProductOption( "name", "obj_mtl_search_path" ),
+                                 ProductOption( "type", "directory" ),
+                                 ProductOption( "description", "Directory path to OBJ materials files" ),
+                                 ProductOption( "status", "optional" ),
                                  ProductOption( "aliases", { "obj_materials_dir", "obj_materials_directory" } ),
                                  ProductOption( "default", "" ) } );
 
@@ -170,10 +170,10 @@ namespace psmrts  {
         auto extract_materials_path = [&]( const ProductConfiguration &c ) {
           if ( c.contains( "obj_mtl_search_path" ) ) {
             materials_path  = c.find( "obj_mtl_search_path" ).to_string();
-            m_config.add( ProductOption( "obj_mtl_search_path", materials_path) );
+            m_config.add( ProductOption( "obj_mtl_search_path", materials_path ) );
             if ( c.metadata().contains( "obj_mtl_search_path_expanded" ) ) {
               materials_path = c.metadata().find( "obj_mtl_search_path_expanded" ).to_string();
-              m_config.add_metadata( ProductOption( "obj_mtl_search_path_extended", materials_path) );
+              m_config.add_metadata( ProductOption( "obj_mtl_search_path_extended", materials_path ) );
             }
           }
         };
@@ -182,27 +182,27 @@ namespace psmrts  {
         SharedOBJFormat obj_t;
         if ( v_conf.contains( "obj_file" ) ) {
           objfile  = v_conf.find( "obj_file" ).to_string();
-          m_config.add( ProductOption( "obj_file", objfile) );
+          m_config.add( ProductOption( "obj_file", objfile ) );
 
           if ( v_conf.metadata().contains( "obj_file_expanded" ) ) {
             objfile =  v_conf.metadata().find( "obj_file_expanded" ).to_string();
             m_config.add_metadata( ProductOption( "obj_file_expanded", objfile) );
           }
           extract_materials_path( v_conf );
-          obj_t = make_shared_copy (PsmrtsOBJFormat( objfile, materials_path ) );
+          obj_t = make_shared_copy( PsmrtsOBJFormat( objfile, materials_path ) );
         }
         else if ( v_conf.contains( "obj_string" ) ) {
           text_q = v_conf.find( "obj_string" ).to_string();
           m_config.add( ProductOption( "obj_string", text_q) );
           extract_materials_path( v_conf );
-          obj_t = make_shared_copy ( PsmrtsOBJFormat( PsmrtsOBJFormat::load_obj_string( text_q, materials_path,
-                                                      PsmrtsOBJFormat::obj_config( materials_path ) ),
-                                                      "obj_string" ) );
+          obj_t = make_shared_copy( PsmrtsOBJFormat( PsmrtsOBJFormat::load_obj_string( text_q, materials_path,
+                                                     PsmrtsOBJFormat::obj_config( materials_path ) ),
+                                                     "obj_string" ) );
         }
 
-        if ( v_conf.contains( "obj_data_type") && 
+        if ( v_conf.contains( "obj_data_type" ) && 
              ( v_conf.find( "obj_data_type" ).to_string() == "float" ) ) {
-          m_config.add( ProductOption( "obj_data_type", "float") );
+          m_config.add( ProductOption( "obj_data_type", "float" ) );
           m_mesh = make_shared_copy( PsmrtsMeshData( obj_t->get_indexes(), obj_t->get_float_vectors() ) );
         }
         else {

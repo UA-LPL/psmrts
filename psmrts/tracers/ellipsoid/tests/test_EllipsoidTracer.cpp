@@ -17,7 +17,7 @@ TEST_CASE( "Ellipsoid Shape Tracer - Request Default Constructor", "[default][el
 
     CHECK( e_tracer.process(request) == false );
     CHECK( request.error_count()      == 1 );
-    CHECK( request.errors_to_string() == "EllipsoidTracer::process(PsmrtsRequest) is not implemented/available!\n" );
+    CHECK( request.errors_to_string() == "EllipsoidTracer::process(PsmrtsRequest) is not implemented/available!" );
     CHECK( request.was_invoked()      == false );
     CHECK( request.process_status()   == false );
 }

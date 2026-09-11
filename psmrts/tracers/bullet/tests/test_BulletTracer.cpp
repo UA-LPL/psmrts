@@ -55,14 +55,14 @@ TEST_CASE ( "Bullet Tracer - Default Constructor", "[default][bullet][tracer]" )
     pt_list.push_back( photoTrace2 );
 
     psmrts::PRQPhotometricTraceArray pt_array2 ( pt_list );
-    CHECK( pt_array2.size() == 2 );
+    CHECK( pt_array2.size()           == 2 );
     CHECK( pt_array2.traces().empty() == false );
 
     CHECK( b_tracer.process( pt_array2 ) == false ); 
 
     // Ray Trace Array Default
     psmrts::PRQRayTraceArray rt_array;
-    CHECK( rt_array.size() == 0 );
+    CHECK( rt_array.size()           == 0 );
     CHECK( rt_array.traces().empty() == true );
 
     psmrts::PRQRayTrace ray;
@@ -83,9 +83,8 @@ TEST_CASE ( "Bullet Tracer - Default Constructor", "[default][bullet][tracer]" )
     rt_list.push_back( ray2 );
 
     psmrts::PRQRayTraceArray rt_array2( rt_list );
-    CHECK( rt_array2.size() == 2 );
-    CHECK( rt_array2.traces().empty() == false  );
-
+    CHECK( rt_array2.size()              == 2 );
+    CHECK( rt_array2.traces().empty()    == false  );
     CHECK( b_tracer.process( rt_array2 ) == false ); 
 }
 
@@ -97,7 +96,6 @@ TEST_CASE( "Bullet Tracer Test - Ray Trace / Values", "[bullet][tracer][values]"
     // Beware the most vexing parse (see https://www.fluentcpp.com/2018/01/30/most-vexing-parse/)
     psmrts::BulletTracer b_tracer( make_shared_copy( psmrts::PsmrtsShape{ objfile } ) );
     CHECK( b_tracer.minimum_radius()  < b_tracer.maximum_radius() );
-    // CHECK( b_tracer.config().to_json().dump(-1) == "" );
 
     const double max_radius = b_tracer.maximum_radius();
     
@@ -117,14 +115,14 @@ TEST_CASE( "Bullet Tracer Test - Ray Trace / Values", "[bullet][tracer][values]"
 
     // Find the real surface point using bullet
     Eigen::Vector3d surf_obs = surf * (max_radius + 1.5);
-    psmrts::PRQRayTrace prq_ray(surf_obs, -surf_obs );
+    psmrts::PRQRayTrace prq_ray( surf_obs, -surf_obs );
     REQUIRE( b_tracer.process( prq_ray ) == true );
 
     // Now compute expected/precise look vector from observer to surface intercept point
     Eigen::Vector3d lookdir = prq_ray.trace().xyz() - obs;
 
     // Trace it from observer to surface point to confirm
-    psmrts::PRQRayTrace prq_spt(obs, lookdir );
+    psmrts::PRQRayTrace prq_spt( obs, lookdir );
     REQUIRE( b_tracer.process( prq_spt ) );
     
     Eigen::Vector3d normal = prq_spt.trace().normal();
@@ -134,35 +132,35 @@ TEST_CASE( "Bullet Tracer Test - Ray Trace / Values", "[bullet][tracer][values]"
     CHECK( prq_ray.isValid() == true );
     CHECK( prq_spt.isValid() == prq_spt.trace().hasHit() );
 
-    CHECK_THAT( normal[0], Catch::Matchers::WithinAbs(0.0,                tolerance_km ));
-    CHECK_THAT( normal[1], Catch::Matchers::WithinAbs(0.5257310881115882, tolerance_km ));
-    CHECK_THAT( normal[2], Catch::Matchers::WithinAbs(0.85065082318951801, tolerance_km ));
+    CHECK_THAT( normal[0], Catch::Matchers::WithinAbs(0.0,                tolerance_km ) );
+    CHECK_THAT( normal[1], Catch::Matchers::WithinAbs(0.5257310881115882, tolerance_km ) );
+    CHECK_THAT( normal[2], Catch::Matchers::WithinAbs(0.85065082318951801, tolerance_km ) );
 
     // Compute radius/lon/lat from intercept surface point (body-fixed)
     double bt_lat, bt_lon, bt_radius;
-    reclat_c( xyz.data(), &bt_radius, &bt_lon, &bt_lat);
+    reclat_c( xyz.data(), &bt_radius, &bt_lon, &bt_lat );
     
-    CHECK_THAT( bt_lon,    Catch::Matchers::WithinAbs( 45.0 * rpd_c(), tolerance_km ));    
-    CHECK_THAT( bt_lat,    Catch::Matchers::WithinAbs( 50.0 * rpd_c(), tolerance_km ));  
+    CHECK_THAT( bt_lon,    Catch::Matchers::WithinAbs( 45.0 * rpd_c(), tolerance_km ) );    
+    CHECK_THAT( bt_lat,    Catch::Matchers::WithinAbs( 50.0 * rpd_c(), tolerance_km ) );  
 
-    CHECK_THAT( bt_radius, Catch::Matchers::WithinAbs( prq_spt.trace().radius(), tolerance_km ));    
-    CHECK_THAT( bt_lon,    Catch::Matchers::WithinAbs( surf_lon,     tolerance_km ));    
-    CHECK_THAT( bt_lat,    Catch::Matchers::WithinAbs( surf_lat,     tolerance_km ));    
+    CHECK_THAT( bt_radius, Catch::Matchers::WithinAbs( prq_spt.trace().radius(), tolerance_km ) );    
+    CHECK_THAT( bt_lon,    Catch::Matchers::WithinAbs( surf_lon,     tolerance_km ) );    
+    CHECK_THAT( bt_lat,    Catch::Matchers::WithinAbs( surf_lat,     tolerance_km ) );    
 
     CHECK_THAT( xyz[0], Catch::Matchers::WithinAbs( prq_ray.trace().xyz()[0], tolerance_km ) );
     CHECK_THAT( xyz[1], Catch::Matchers::WithinAbs( prq_ray.trace().xyz()[1], tolerance_km ) );
     CHECK_THAT( xyz[2], Catch::Matchers::WithinAbs( prq_ray.trace().xyz()[2], tolerance_km ) );
 
     psmrts::PRQFacet prq_facet( prq_ray.trace() );
-    CHECK( prq_facet.isValid() == true );
+    CHECK( prq_facet.isValid()              == true );
     CHECK( b_tracer.process( prq_facet ) );
-    CHECK( prq_facet.facet().isValid() == true ); 
+    CHECK( prq_facet.facet().isValid()      == true ); 
     CHECK( prq_facet.prq_trace().emission() == prq_ray.emission() ); 
 
     Eigen::Vector3d facet_xyz( prq_facet.trace().xyz() );
-    CHECK_THAT( facet_xyz[0], Catch::Matchers::WithinAbs( xyz[0], tolerance_km));
-    CHECK_THAT( facet_xyz[1], Catch::Matchers::WithinAbs( xyz[1], tolerance_km));
-    CHECK_THAT( facet_xyz[2], Catch::Matchers::WithinAbs( xyz[2], tolerance_km));
+    CHECK_THAT( facet_xyz[0], Catch::Matchers::WithinAbs( xyz[0], tolerance_km ) );
+    CHECK_THAT( facet_xyz[1], Catch::Matchers::WithinAbs( xyz[1], tolerance_km ) );
+    CHECK_THAT( facet_xyz[2], Catch::Matchers::WithinAbs( xyz[2], tolerance_km ) );
 
     // verify facet and trace segment and plate ids are identical
     CHECK( prq_facet.facet().m_segment == prq_ray.trace().segment_number() );
@@ -175,9 +173,9 @@ TEST_CASE( "Bullet Tracer Test - Ray Trace / Values", "[bullet][tracer][values]"
     CHECK( prq_facet.facet().m_indexes[1]     == 14 );
     CHECK( prq_facet.facet().m_indexes[2]     == 5 );
 
-    CHECK_THAT( prq_facet.facet().m_normal[0], Catch::Matchers::WithinAbs( 0.00000002599305449, tolerance_km));
-    CHECK_THAT( prq_facet.facet().m_normal[1], Catch::Matchers::WithinAbs( 0.52573108811158831, tolerance_km));
-    CHECK_THAT( prq_facet.facet().m_normal[2], Catch::Matchers::WithinAbs( 0.85065082318951801, tolerance_km));
+    CHECK_THAT( prq_facet.facet().m_normal[0], Catch::Matchers::WithinAbs( 0.00000002599305449, tolerance_km ) );
+    CHECK_THAT( prq_facet.facet().m_normal[1], Catch::Matchers::WithinAbs( 0.52573108811158831, tolerance_km ) );
+    CHECK_THAT( prq_facet.facet().m_normal[2], Catch::Matchers::WithinAbs( 0.85065082318951801, tolerance_km ) );
     
     CHECK_THAT( prq_facet.facet().m_vector1[0], Catch::Matchers::WithinAbs( 0.10100385653540001, tolerance_km ) );
     CHECK_THAT( prq_facet.facet().m_vector1[1], Catch::Matchers::WithinAbs( 0.0, tolerance_km ) );
@@ -193,7 +191,7 @@ TEST_CASE( "Bullet Tracer Test - Ray Trace / Values", "[bullet][tracer][values]"
 
 }
 
-TEST_CASE( "Bullet Tracer Ray Trace Array Test", "[bullet][tracer][raytrace][array]") {
+TEST_CASE( "Bullet Tracer Ray Trace Array Test", "[bullet][tracer][raytrace][array]" ) {
     const double tolerance = 1.0e-6;
 
     std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" ); 
@@ -215,8 +213,8 @@ TEST_CASE( "Bullet Tracer Ray Trace Array Test", "[bullet][tracer][raytrace][arr
     double surf_lat1 = 50.0 * rpd_c();
     latrec_c ( radius1, surf_lon1, surf_lat1, surf1.data() );
 
-    Eigen::Vector3d surf_obs1 = surf1 * (max_radius + 1.5);
-    psmrts::PRQRayTrace prq_ray1(surf_obs1, -surf_obs1 );
+    Eigen::Vector3d surf_obs1 = surf1 * ( max_radius + 1.5 );
+    psmrts::PRQRayTrace prq_ray1( surf_obs1, -surf_obs1 );
     REQUIRE( b_tracer.process( prq_ray1 ) == true );
 
     Eigen::Vector3d lookdir1 = prq_ray1.trace().xyz() - obs1;
@@ -244,7 +242,7 @@ TEST_CASE( "Bullet Tracer Ray Trace Array Test", "[bullet][tracer][raytrace][arr
 
     Eigen::Vector3d lookdir2 = prq_ray2.trace().xyz() - obs2;
 
-    psmrts::PRQRayTrace prq_spt2(obs2, lookdir2 );
+    psmrts::PRQRayTrace prq_spt2( obs2, lookdir2 );
     REQUIRE( b_tracer.process( prq_spt2 ) );
     CHECK( prq_spt2.trace().hasHit() == true ); 
 
@@ -265,28 +263,28 @@ TEST_CASE( "Bullet Tracer Ray Trace Array Test", "[bullet][tracer][raytrace][arr
 
     // Check to see where the fail intercepts on the surface
     // These tests should be true, but are not
-    psmrts::PRQRayTrace prq_spt3(obs3, lookdir3 );
+    psmrts::PRQRayTrace prq_spt3( obs3, lookdir3 );
     CHECK( b_tracer.process( prq_spt3 ) == false );
-    CHECK( prq_spt3.trace().hasHit() == false ); 
+    CHECK( prq_spt3.trace().hasHit()    == false ); 
 
     psmrts::PRQRayTraceArray ray_array;
     // empty, no hits
     CHECK( b_tracer.process( ray_array ) == false );
 
     // add one miss - should still be false
-    ray_array.add_trace(prq_spt3);
+    ray_array.add_trace( prq_spt3 );
     CHECK( b_tracer.process( ray_array ) == false );
 
     // add two hits
-    ray_array.add_trace(prq_spt1);
-    ray_array.add_trace(prq_spt2);
+    ray_array.add_trace( prq_spt1 );
+    ray_array.add_trace( prq_spt2 );
 
     // needs at least one hit to be true
     CHECK ( b_tracer.process( ray_array ) == true );
 
 }
 
-TEST_CASE( "Bullet Tracer Photometric Values Test", "[bullet][tracer][photometric]") {
+TEST_CASE( "Bullet Tracer Photometric Values Test", "[bullet][tracer][photometric]" ) {
     const double tolerance = 1.0e-9;
 
     std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
@@ -310,8 +308,8 @@ TEST_CASE( "Bullet Tracer Photometric Values Test", "[bullet][tracer][photometri
     latrec_c ( radius, surf_lon, surf_lat, surf.data() );
 
     // Find the real surface point using bullet surf_obs( 45d, 50d, 1.5 km)
-    Eigen::Vector3d surf_obs = surf * (max_radius + 1.5);
-    psmrts::PRQRayTrace prq_surf(surf_obs, -surf_obs );
+    Eigen::Vector3d surf_obs = surf * ( max_radius + 1.5 );
+    psmrts::PRQRayTrace prq_surf( surf_obs, -surf_obs );
     CHECK( b_tracer.process( prq_surf ) == true );
     CHECK( surf_obs == prq_surf.trace().observer() ); 
 
@@ -344,15 +342,15 @@ TEST_CASE( "Bullet Tracer Photometric Values Test", "[bullet][tracer][photometri
     Eigen::Vector3d po_raypt = prq_obs.trace().raypt();
     Eigen::Vector3d pr_raypt = prq_ray.trace().raypt();
 
-    CHECK_THAT( po_raypt[0], Catch::Matchers::WithinAbs( pr_raypt[0], tolerance ));
-    CHECK_THAT( po_raypt[1], Catch::Matchers::WithinAbs( pr_raypt[1], tolerance ));
-    CHECK_THAT( po_raypt[2], Catch::Matchers::WithinAbs( pr_raypt[2], tolerance ));
+    CHECK_THAT( po_raypt[0], Catch::Matchers::WithinAbs( pr_raypt[0], tolerance ) );
+    CHECK_THAT( po_raypt[1], Catch::Matchers::WithinAbs( pr_raypt[1], tolerance ) );
+    CHECK_THAT( po_raypt[2], Catch::Matchers::WithinAbs( pr_raypt[2], tolerance ) );
 
     // Set up a sun position
     Eigen::Vector3d sun_pos;
     double sun_lon = psmrts::degrees_to_radians( 20.0 );
     double sun_lat = psmrts::degrees_to_radians( 20.0 );
-    latrec_c( radius, sun_lon, sun_lat, sun_pos.data());
+    latrec_c( radius, sun_lon, sun_lat, sun_pos.data() );
     sun_pos = sun_pos * 50.0;
 
     // Angle between the observer and sun
@@ -364,13 +362,12 @@ TEST_CASE( "Bullet Tracer Photometric Values Test", "[bullet][tracer][photometri
     psmrts::PRQRayTrace prq_sun(sun_pos, lookdir_s );
     CHECK( b_tracer.process( prq_sun ) == true );
     CHECK( prq_sun.trace().hasHit()    == true );
-    // CHECK( prq_sun.trace().lookdir()   == lookdir_s ); - lookdir being recalculated in PsmrtsBulletWorldModel
 
     // Compute/check photometric angles
-    CHECK_THAT( psmrts::radians_to_degrees( prq_obs.emission(  ) ), Catch::Matchers::WithinAbs( 30.27681520779734825, tolerance) );
-    CHECK_THAT( psmrts::radians_to_degrees( prq_sun.emission(  ) ), Catch::Matchers::WithinAbs( 62.78856867179433721, tolerance) );
-    CHECK_THAT( psmrts::radians_to_degrees( prq_obs.incidence( prq_sun.trace() ) ), Catch::Matchers::WithinAbs( 62.78856867179433721, tolerance) );
-    CHECK_THAT( psmrts::radians_to_degrees( prq_obs.phase( prq_sun.trace() ) ),     Catch::Matchers::WithinAbs( 32.51215667308787971, tolerance) );
+    CHECK_THAT( psmrts::radians_to_degrees( prq_obs.emission(  ) ), Catch::Matchers::WithinAbs( 30.27681520779734825, tolerance ) );
+    CHECK_THAT( psmrts::radians_to_degrees( prq_sun.emission(  ) ), Catch::Matchers::WithinAbs( 62.78856867179433721, tolerance ) );
+    CHECK_THAT( psmrts::radians_to_degrees( prq_obs.incidence( prq_sun.trace() ) ), Catch::Matchers::WithinAbs( 62.78856867179433721, tolerance ) );
+    CHECK_THAT( psmrts::radians_to_degrees( prq_obs.phase( prq_sun.trace() ) ),     Catch::Matchers::WithinAbs( 32.51215667308787971, tolerance ) );
 
     // FINALLY create the Photometric trace and run it!
     psmrts::PRQPhotometricTrace prq_photo( observer, lookdir, sun_pos );
@@ -381,29 +378,27 @@ TEST_CASE( "Bullet Tracer Photometric Values Test", "[bullet][tracer][photometri
     CHECK( prq_photo.sun_trace().hasHit()        == true );
 
     CHECK( prq_photo.observer_trace().observer() == observer ); 
-    // CHECK( prq_photo.observer_trace().lookdir()  == lookdir  ); - lookdir being recalculated in PsmrtsBulletWorldModel
     CHECK( prq_photo.observer_trace().observer() == prq_ray.trace().observer() );
     CHECK( prq_photo.observer_trace().lookdir()  == prq_ray.trace().lookdir()  );
 
     CHECK( prq_photo.sun_trace().observer()      == sun_pos   );
-    // CHECK( prq_photo.sun_trace().lookdir()       == lookdir_s ); - lookdir being recalculated in PsmrtsBulletWorldModel
     CHECK( prq_photo.sun_trace().observer()      == prq_sun.trace().observer() );
     CHECK( prq_photo.sun_trace().lookdir()       == prq_sun.trace().lookdir()  );
 
     // Compare surface intercept points of observer and sun
     Eigen::Vector3d o_xyz = prq_photo.observer_trace().xyz();
     Eigen::Vector3d s_xyz = prq_photo.sun_trace().xyz();
-    CHECK_THAT( o_xyz[0], Catch::Matchers::WithinAbs( s_xyz[0], tolerance) );
+    CHECK_THAT( o_xyz[0], Catch::Matchers::WithinAbs( s_xyz[0], tolerance ) );
     CHECK_THAT( o_xyz[1], Catch::Matchers::WithinAbs( s_xyz[1], tolerance ) );
     CHECK_THAT( o_xyz[2], Catch::Matchers::WithinAbs( s_xyz[2], tolerance ) );
 
    // Compute/check photometric angles compared to prt_obs above
-    CHECK_THAT( psmrts::radians_to_degrees( prq_photo.emission(  ) ), Catch::Matchers::WithinAbs( 30.27681520779735536, tolerance) );
-    CHECK_THAT( psmrts::radians_to_degrees( prq_photo.incidence( ) ), Catch::Matchers::WithinAbs( 62.78856867179433721, tolerance) );
-    CHECK_THAT( psmrts::radians_to_degrees( prq_photo.phase( ) ),     Catch::Matchers::WithinAbs( 32.5121566730878726, tolerance) );    
+    CHECK_THAT( psmrts::radians_to_degrees( prq_photo.emission(  ) ), Catch::Matchers::WithinAbs( 30.27681520779735536, tolerance ) );
+    CHECK_THAT( psmrts::radians_to_degrees( prq_photo.incidence( ) ), Catch::Matchers::WithinAbs( 62.78856867179433721, tolerance ) );
+    CHECK_THAT( psmrts::radians_to_degrees( prq_photo.phase( ) ),     Catch::Matchers::WithinAbs( 32.5121566730878726, tolerance ) );    
 }
 
-TEST_CASE( "Bullet Tracer Photometric Array Test", "[bullet][tracer][photometric][array]") {
+TEST_CASE( "Bullet Tracer Photometric Array Test", "[bullet][tracer][photometric][array]" ) {
     const double tolerance = 1.0e-6;
 
     std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
@@ -425,8 +420,8 @@ TEST_CASE( "Bullet Tracer Photometric Array Test", "[bullet][tracer][photometric
     double surf_lat1 = psmrts::degrees_to_radians( 50.0 );
     latrec_c ( radius, surf_lon1, surf_lat1, surf1.data() );
 
-    Eigen::Vector3d surf_obs1 = surf1 * (max_radius + 1.5);
-    psmrts::PRQRayTrace prq_surf1(surf_obs1, -surf_obs1 );
+    Eigen::Vector3d surf_obs1 = surf1 * ( max_radius + 1.5 );
+    psmrts::PRQRayTrace prq_surf1( surf_obs1, -surf_obs1 );
     CHECK( b_tracer.process( prq_surf1 ) == true );
     CHECK( surf_obs1 == prq_surf1.trace().observer() );
 
@@ -438,7 +433,7 @@ TEST_CASE( "Bullet Tracer Photometric Array Test", "[bullet][tracer][photometric
     Eigen::Vector3d sun_pos1;
     double sun_lon1 = psmrts::degrees_to_radians( 20.0 );
     double sun_lat1 = psmrts::degrees_to_radians( 20.0 );
-    latrec_c( radius, sun_lon1, sun_lat1, sun_pos1.data());
+    latrec_c( radius, sun_lon1, sun_lat1, sun_pos1.data() );
     sun_pos1 = sun_pos1 * 50.0;
 
     Eigen::Vector3d lookdir_s1 = prq_ray1.trace().xyz() - sun_pos1;
@@ -464,8 +459,8 @@ TEST_CASE( "Bullet Tracer Photometric Array Test", "[bullet][tracer][photometric
     double surf_lat2 = psmrts::degrees_to_radians( 45.0 );
     latrec_c ( radius, surf_lon2, surf_lat2, surf2.data() );
 
-    Eigen::Vector3d surf_obs2 = surf2 * (max_radius + 1.5);
-    psmrts::PRQRayTrace prq_surf2(surf_obs2, -surf_obs2 );
+    Eigen::Vector3d surf_obs2 = surf2 * ( max_radius + 1.5 );
+    psmrts::PRQRayTrace prq_surf2( surf_obs2, -surf_obs2 );
     CHECK( b_tracer.process( prq_surf2 ) == true );
     CHECK( surf_obs2 == prq_surf2.trace().observer() );
 
@@ -477,11 +472,11 @@ TEST_CASE( "Bullet Tracer Photometric Array Test", "[bullet][tracer][photometric
     Eigen::Vector3d sun_pos2;
     double sun_lon2 = psmrts::degrees_to_radians( 20.0 );
     double sun_lat2 = psmrts::degrees_to_radians( 20.0 );
-    latrec_c( radius, sun_lon2, sun_lat2, sun_pos2.data());
+    latrec_c( radius, sun_lon2, sun_lat2, sun_pos2.data() );
     sun_pos2 = sun_pos2 * 50.0;
 
     Eigen::Vector3d lookdir_s2 = prq_ray2.trace().xyz() - sun_pos2;
-    psmrts::PRQRayTrace prq_sun2(sun_pos2, lookdir_s2 );
+    psmrts::PRQRayTrace prq_sun2( sun_pos2, lookdir_s2 );
     CHECK( b_tracer.process( prq_sun2 ) == true );
     CHECK( prq_sun2.trace().hasHit()    == true );
 
@@ -512,19 +507,19 @@ TEST_CASE( "Bullet Tracer Photometric Array Test", "[bullet][tracer][photometric
     Eigen::Vector3d sun_pos3;
     double sun_lon3 = psmrts::degrees_to_radians( 20.0 );
     double sun_lat3 = psmrts::degrees_to_radians( 20.0 );
-    latrec_c( radius, sun_lon3, sun_lat3, sun_pos3.data());
+    latrec_c( radius, sun_lon3, sun_lat3, sun_pos3.data() );
     sun_pos3 = sun_pos3 * 50.0;
 
     // Even though the prq_ray3 failed, this should still succeed as xyz == 0
     // (This trace computes the subsolar lat/lon)
     Eigen::Vector3d lookdir_s3 = prq_ray3.trace().xyz() - sun_pos3; 
-    psmrts::PRQRayTrace prq_sun3(sun_pos3, lookdir_s3 );
+    psmrts::PRQRayTrace prq_sun3( sun_pos3, lookdir_s3 );
     CHECK( b_tracer.process( prq_sun3 ) == true );
     CHECK( prq_sun3.trace().hasHit()    == true );
 
-    Eigen::Vector3d sunllr = psmrts::xyz_to_lonlatrad_d(prq_sun3.trace().xyz());
-    CHECK_THAT( sunllr[0], Catch::Matchers::WithinAbs( 20.0, tolerance ));
-    CHECK_THAT( sunllr[1], Catch::Matchers::WithinAbs( 20.0, tolerance ));
+    Eigen::Vector3d sunllr = psmrts::xyz_to_lonlatrad_d( prq_sun3.trace().xyz() );
+    CHECK_THAT( sunllr[0], Catch::Matchers::WithinAbs( 20.0, tolerance ) );
+    CHECK_THAT( sunllr[1], Catch::Matchers::WithinAbs( 20.0, tolerance ) );
 
 
     psmrts::PRQPhotometricTrace prq_photo3( observer3, lookdir3, sun_pos3 );
@@ -547,23 +542,22 @@ TEST_CASE( "Bullet Tracer Photometric Array Test", "[bullet][tracer][photometric
 
 }
 
-TEST_CASE( "Bullet Tracer Product Specification Test", "[bullet][tracer][product][specification]") {
+TEST_CASE( "Bullet Tracer Product Specification Test", "[bullet][tracer][product][specification]" ) {
     psmrts::ProductSpecification spec = psmrts::BulletTracer::product_specifications();
 
-    CHECK( spec.name()              == "bullet"      );
+    CHECK( spec.name()              == "bullet" );
     CHECK( spec.product()           == "tracer" ); 
     CHECK( spec.size()              == 5 );
     CHECK( spec.features().size()   == 5 );
     CHECK( spec.required().size()   == 1 );
     CHECK( spec.optional().size()   == 3 );
-    CHECK( spec.dependency().size()  == 1 );
+    CHECK( spec.dependency().size() == 1 );
 
     CHECK( spec.contains( "obj_mtl_search_path" )  == false );
     CHECK( spec.contains( "bullet_optimize_bvh" )  == true  );
-
 }
 
-TEST_CASE( "Bullet Tracer OBJ Shape Cart Construction Test", "[bullet][tracer][obj][cart]") {
+TEST_CASE( "Bullet Tracer OBJ Shape Cart Construction Test", "[bullet][tracer][obj][cart]" ) {
   // Set up translation system
   psmrts::PsmrtsTranslations trans_t( "ISISTest" );
   trans_t.add_environment( "ISISDATA", psmrts_rootpath() );
@@ -580,17 +574,8 @@ TEST_CASE( "Bullet Tracer OBJ Shape Cart Construction Test", "[bullet][tracer][o
   psmrts::ProductProcessing processor_t( trans_t );
   auto order = processor_t.process_order( config_obj );
 
-  auto shape_c  = order->find("shape");
-  auto tracer_c = order->find("tracer");
-#if 0
-  if ( shape_c ) {
-    CHECK( shape_c->configuration().to_json().dump(-1)  == "" );
-  }
-
-  if ( tracer_c ) {
-    CHECK( tracer_c->configuration().to_json().dump(-1)  == "" );
-  }
-#endif  
+  auto shape_c  = order->find( "shape" );
+  auto tracer_c = order->find( "tracer" );
   
   REQUIRE( shape_c != nullptr );
   REQUIRE( tracer_c != nullptr );
@@ -598,13 +583,11 @@ TEST_CASE( "Bullet Tracer OBJ Shape Cart Construction Test", "[bullet][tracer][o
   psmrts::ProductMaker<psmrts::PsmrtsShape> maker_s( "obj" );
   auto shape_p = maker_s.process_cart( *shape_c );
   REQUIRE( shape_p != nullptr );
-  // CHECK( shape_p->config().to_json().dump(-1) == "" );
 
   // Now create the Bullet tracer and check its config
   psmrts::ProductMaker<psmrts::PsmrtsTracer> maker_t( "bullet" );
   auto tracer_p = maker_t.process_cart( *tracer_c, shape_p );
   REQUIRE( tracer_p != nullptr );
-  // CHECK( tracer_p->config().to_json().dump(-1) == "" );
 
   psmrts::PsmrtsInventory inventory_t( "bullet_test", trans_t );
   inventory_t.add( shape_p );
@@ -618,8 +601,6 @@ TEST_CASE( "Bullet Tracer OBJ Shape Cart Construction Test", "[bullet][tracer][o
 
   auto tracer_inv = inventory_t.tracers()->find( tracer_p->uid() );
   auto shapes_inv = inventory_t.shapes()->find( shape_p->uid() );
-  // CHECK( tracer_c->configuration().to_json().dump(-1) == "" );
-  // CHECK( tracer_inv->config().to_json().dump(-1) == "" );
   
 
   psmrts::PsmrtsErrors errors;
@@ -634,9 +615,9 @@ TEST_CASE( "Bullet Tracer OBJ Shape Cart Construction Test", "[bullet][tracer][o
   CHECK( tracer_s != nullptr );
   CHECK( shape_s  != nullptr );
 
-  auto [ found, tracer_i, shape_i] = processor_t.search_inventory( *order,
-                                                                   *inventory_t.tracers(), 
-                                                                   *inventory_t.shapes() );
+  auto [ found, tracer_i, shape_i ] = processor_t.search_inventory( *order,
+                                                                    *inventory_t.tracers(), 
+                                                                    *inventory_t.shapes() );
   CHECK( found == true );
   if ( tracer_i ) {
     CHECK( tracer_i->uid() == tracer_p->uid() );
@@ -647,7 +628,7 @@ TEST_CASE( "Bullet Tracer OBJ Shape Cart Construction Test", "[bullet][tracer][o
   }
 }
 
-TEST_CASE( "Bullet Tracer Dsk Shape Cart Construction Test", "[bullet][tracer][dsk][cart]") {
+TEST_CASE( "Bullet Tracer Dsk Shape Cart Construction Test", "[bullet][tracer][dsk][cart]" ) {
   // Set up translation system
   psmrts::PsmrtsTranslations trans_t( "ISISTest" );
   trans_t.add_environment( "ISISDATA", psmrts_rootpath() );
@@ -664,32 +645,20 @@ TEST_CASE( "Bullet Tracer Dsk Shape Cart Construction Test", "[bullet][tracer][d
   psmrts::ProductProcessing processor_t( trans_t );
   auto order = processor_t.process_order( config_obj );
 
-  auto shape_c  = order->find("shape");
-  auto tracer_c = order->find("tracer");
+  auto shape_c  = order->find( "shape" );
+  auto tracer_c = order->find( "tracer" );
 
-#if 0
-  if ( shape_c ) {
-    CHECK( shape_c->configuration().to_json().dump(-1)  == "" );
-  }
-
-  if ( tracer_c ) {
-    CHECK( tracer_c->configuration().to_json().dump(-1)  == "" );
-  }
-#endif
-  
-  REQUIRE( shape_c != nullptr );
+  REQUIRE( shape_c  != nullptr );
   REQUIRE( tracer_c != nullptr );
 
   psmrts::ProductMaker<psmrts::PsmrtsShape> maker_s( "obj" );
   auto shape_p = maker_s.process_cart( *shape_c );
   REQUIRE( shape_p != nullptr );
-  // CHECK( shape_p->config().to_json().dump(-1) == "" );
 
   // Now create the Bullet tracer and check its config
   psmrts::ProductMaker<psmrts::PsmrtsTracer> maker_t( "bullet" );
   auto tracer_p = maker_t.process_cart( *tracer_c, shape_p );
   REQUIRE( tracer_p != nullptr );
-  // CHECK( tracer_p->config().to_json().dump(-1) == "" );
 
   psmrts::PsmrtsInventory inventory_t( "bullet_test", trans_t );
   inventory_t.add( shape_p );
@@ -703,13 +672,9 @@ TEST_CASE( "Bullet Tracer Dsk Shape Cart Construction Test", "[bullet][tracer][d
 
   auto tracer_inv = inventory_t.tracers()->find( tracer_p->uid() );
   auto shapes_inv = inventory_t.shapes()->find( shape_p->uid() );
-  // CHECK( tracer_c->configuration().to_json().dump(-1) == "" );
-  // CHECK( tracer_inv->config().to_json().dump(-1) == "" );
-  
 
   psmrts::PsmrtsErrors errors;
   psmrts::ProductCart cart_p( tracer_inv->specs(), tracer_inv->config() );
-  // CHECK( processor_t.compare_product_config( tracer_c->configuration(), cart_p, errors ) == true );
   CHECK( processor_t.compare_product_config( config_obj , cart_p, errors ) == true );
   CHECK( errors.errors_to_string() == "" );
 
@@ -720,11 +685,11 @@ TEST_CASE( "Bullet Tracer Dsk Shape Cart Construction Test", "[bullet][tracer][d
   CHECK( tracer_s != nullptr );
   CHECK( shape_s  != nullptr );
 
-  auto [ found, tracer_i, shape_i] = processor_t.search_inventory( *order,
-                                                                   *inventory_t.tracers(), 
-                                                                   *inventory_t.shapes() );
+  auto [ found, tracer_i, shape_i ] = processor_t.search_inventory( *order,
+                                                                    *inventory_t.tracers(), 
+                                                                    *inventory_t.shapes() );
   CHECK( found == true );
-#if 1
+
   if ( tracer_i ) {
     CHECK( tracer_i->uid() == tracer_p->uid() );
   }
@@ -732,10 +697,10 @@ TEST_CASE( "Bullet Tracer Dsk Shape Cart Construction Test", "[bullet][tracer][d
   if ( shape_i ) {
     CHECK( shape_i->uid() == shape_p->uid() );
   }
-#endif  
+ 
 }
 
-TEST_CASE( "Bullet Tracer PLY Shape Cart Construction Test", "[bullet][tracer][ply][cart]") {
+TEST_CASE( "Bullet Tracer PLY Shape Cart Construction Test", "[bullet][tracer][ply][cart]" ) {
   // Set up translation system
   psmrts::PsmrtsTranslations trans_t( "ISISTest" );
   trans_t.add_environment( "ISISDATA", psmrts_rootpath() );
@@ -752,32 +717,20 @@ TEST_CASE( "Bullet Tracer PLY Shape Cart Construction Test", "[bullet][tracer][p
   psmrts::ProductProcessing processor_t( trans_t );
   auto order = processor_t.process_order( config_obj );
 
-  auto shape_c  = order->find("shape");
-  auto tracer_c = order->find("tracer");
+  auto shape_c  = order->find( "shape" );
+  auto tracer_c = order->find( "tracer" );
 
-#if 0
-  if ( shape_c ) {
-    CHECK( shape_c->configuration().to_json().dump(-1)  == "" );
-  }
-
-  if ( tracer_c ) {
-    CHECK( tracer_c->configuration().to_json().dump(-1)  == "" );
-  }
-#endif
-  
-  REQUIRE( shape_c != nullptr );
+  REQUIRE( shape_c  != nullptr );
   REQUIRE( tracer_c != nullptr );
 
   psmrts::ProductMaker<psmrts::PsmrtsShape> maker_s( "obj" );
   auto shape_p = maker_s.process_cart( *shape_c );
   REQUIRE( shape_p != nullptr );
-  // CHECK( shape_p->config().to_json().dump(-1) == "" );
 
   // Now create the Bullet tracer and check its config
   psmrts::ProductMaker<psmrts::PsmrtsTracer> maker_t( "bullet" );
   auto tracer_p = maker_t.process_cart( *tracer_c, shape_p );
   REQUIRE( tracer_p != nullptr );
-  // CHECK( tracer_p->config().to_json().dump(-1) == "" );
 
   psmrts::PsmrtsInventory inventory_t( "bullet_test", trans_t );
   inventory_t.add( shape_p );
@@ -791,8 +744,6 @@ TEST_CASE( "Bullet Tracer PLY Shape Cart Construction Test", "[bullet][tracer][p
 
   auto tracer_inv = inventory_t.tracers()->find( tracer_p->uid() );
   auto shapes_inv = inventory_t.shapes()->find( shape_p->uid() );
-  // CHECK( tracer_c->configuration().to_json().dump(-1) == "" );
-  // CHECK( tracer_inv->config().to_json().dump(-1) == "" );
   
   psmrts::PsmrtsErrors errors;
   psmrts::ProductCart cart_p( tracer_inv->specs(), tracer_inv->config() );
@@ -806,11 +757,11 @@ TEST_CASE( "Bullet Tracer PLY Shape Cart Construction Test", "[bullet][tracer][p
   CHECK( tracer_s != nullptr );
   CHECK( shape_s  != nullptr );
 
-  auto [ found, tracer_i, shape_i] = processor_t.search_inventory( *order,
-                                                                   *inventory_t.tracers(), 
-                                                                   *inventory_t.shapes() );
+  auto [ found, tracer_i, shape_i ] = processor_t.search_inventory( *order,
+                                                                    *inventory_t.tracers(), 
+                                                                    *inventory_t.shapes() );
   CHECK( found == true );
-#if 1  
+
   if ( tracer_i ) {
     CHECK( tracer_i->uid() == tracer_p->uid() );
   }
@@ -818,5 +769,5 @@ TEST_CASE( "Bullet Tracer PLY Shape Cart Construction Test", "[bullet][tracer][p
   if ( shape_i ) {
     CHECK( shape_i->uid() == shape_p->uid() );
   }
-#endif  
+
 }

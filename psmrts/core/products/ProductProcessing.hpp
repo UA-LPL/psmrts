@@ -17,7 +17,6 @@ find files of those names at the top level of this repository. **/
 #include <vector>
 #include <exception>
 #include <optional>
-#include <mutex>
 #include <tuple>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
@@ -102,13 +101,6 @@ namespace psmrts {
        * 
        * @param cart    Shape configuration to compare against the shape
        * @param tracer  A shape to compare with cart configuration
-       * @param errors  An error logger object that will return any errors
-       *                  encountered in the comparison
-       * @return true   If the cart configuration is valid for the shape
-       * @return false  If the configuration does not match shape
-       *  
-       * @param cart    Shape configuration to compare against the shape
-       * @param shape   A shape to compare with cart configuration
        * @param errors  An error logger object that will return any errors
        *                  encountered in the comparison
        * @return true   If the cart configuration is valid for the shape
@@ -244,17 +236,16 @@ namespace psmrts {
         return ( tracer_p );
       }
 
-      /**
-       * @brief Search inventories for a product that satisifies the configuration
-       * 
-       * @param set_p      Prodoct set containing configurations and specs
-       * @param inventory  PSMRTS inventory to search for products
-       * @return true      If the product set was fully resolved in the search
-       * @return false     If the search failed
-       */
-
        /**
         * @brief Searches for products specified in the product order
+        * 
+        * The ProductOrder may contain a tracer and/or shape configuration that
+        * has been validated with the specifications. This method searches
+        * the given inventories for matches of the carts contained in the
+        * order and returns status and matches found. If the first value in the
+        * tuple is true then at least one of the two following tracer and shape
+        * shared pointers will contain the match. If the status is false,
+        * the shared pointer contents are unreliable.
         * 
         * @param order       Order containing tracers and/or shape configurations
         * @param inventory_t Tracer inventory to search
@@ -270,7 +261,7 @@ namespace psmrts {
 
         SharedTracer tracer_p;
         SharedShape  shape_p;
-        if ( !order.isvalid() ) return ( std::make_tuple( false, tracer_p, shape_p) );
+        if ( !order.isvalid() ) return ( std::make_tuple( false, tracer_p, shape_p ) );
 
         SharedCart tracer_c = order.find( "tracer" );
         SharedCart shape_c  = order.find( "shape" );
@@ -518,11 +509,11 @@ namespace psmrts {
 
         // Compare options
         if ( config.contains( option.name() ) ) {
-          return ( compare_options( option, config.find( option.name() ), feature) );
+          return ( compare_options( option, config.find( option.name() ), feature ) );
         }
         else {
-          if ( feature.contains( "default") ) {
-            return ( compare_options( option, feature.find( "default" ), feature) );
+          if ( feature.contains( "default" ) ) {
+            return ( compare_options( option, feature.find( "default" ), feature ) );
           }
         } 
 
@@ -662,7 +653,7 @@ namespace psmrts {
           cart.add_option( option );
           std::string expanded_f = this->translate_path( option.to_string() );
           if ( option.to_string() != expanded_f ) {
-            cart.add_metadata( ProductOption( option.name()+"_expanded", expanded_f) );
+            cart.add_metadata( ProductOption( option.name()+"_expanded", expanded_f ) );
           }
         }
         else {
@@ -693,7 +684,7 @@ namespace psmrts {
        */
       inline void process_doubles( const ProductOption &option, 
                                    const ProductFeature &feature,
-                                   ProductCart &cart) const {
+                                   ProductCart &cart ) const {
         std::vector<double> d_values;
         psmrts::optvis::DoublesVisitor visitor_d = OptionDoublesExtractor( option ).create_visitor( d_values, option );
         option.visit( visitor_d );
@@ -710,11 +701,11 @@ namespace psmrts {
         
         // Check for valid values if present in feature
         if ( feature.contains( "valid" ) ) {
-          std::vector<double> valids_d = OptionDoublesExtractor(feature.find("valid"), visitor_d.traits() ).get_all();
+          std::vector<double> valids_d = OptionDoublesExtractor( feature.find( "valid" ), visitor_d.traits() ).get_all();
           for ( size_t opt_nth = 0  ; opt_nth < d_values.size() ; opt_nth++  ) {
             bool is_valid = false;
             for ( size_t vld_nth = 0 ; vld_nth < valids_d.size() ; vld_nth++ ) {
-              if ( visitor_d.isequal( d_values[opt_nth], valids_d[vld_nth]) ) {
+              if ( visitor_d.isequal( d_values[opt_nth], valids_d[vld_nth] ) ) {
                 is_valid = true;
                 break;
               }
@@ -757,7 +748,7 @@ namespace psmrts {
        */
       inline void process_integers( const ProductOption &option, 
                                     const ProductFeature &feature,
-                                    ProductCart &cart) const {     
+                                    ProductCart &cart ) const {     
         std::vector<int> i_values;
         psmrts::optvis::IntegersVisitor visitor_i = OptionIntegersExtractor( option ).create_visitor( i_values, option );
         option.visit( visitor_i );
@@ -775,11 +766,11 @@ namespace psmrts {
 
         // Check for valid values if present in feature
         if ( feature.contains( "valid" ) ) {
-          std::vector<int> valids_i = OptionIntegersExtractor( feature.find("valid"), visitor_i.traits() ).get_all();
+          std::vector<int> valids_i = OptionIntegersExtractor( feature.find( "valid" ), visitor_i.traits() ).get_all();
           for ( size_t opt_nth = 0  ; opt_nth < i_values.size() ; opt_nth++  ) {
             bool is_valid = false;
             for ( size_t vld_nth = 0 ; vld_nth < valids_i.size() ; vld_nth++ ) {
-              if ( visitor_i.isequal( i_values[opt_nth], valids_i[vld_nth]) ) {
+              if ( visitor_i.isequal( i_values[opt_nth], valids_i[vld_nth] ) ) {
                 is_valid = true;
                 break;
               }
@@ -820,7 +811,7 @@ namespace psmrts {
        */
       inline void process_size_t( const ProductOption &option, 
                                     const ProductFeature &feature,
-                                    ProductCart &cart) const {     
+                                    ProductCart &cart ) const {     
         std::vector<size_t> st_values;
         psmrts::optvis::SizetsVisitor visitor_st = OptionSizetsExtractor( option ).create_visitor( st_values, option );
         option.visit( visitor_st );
@@ -838,11 +829,11 @@ namespace psmrts {
 
         // Check for valid values if present in feature
         if ( feature.contains( "valid" ) ) {
-          std::vector<size_t> valids_st = OptionSizetsExtractor( feature.find("valid"), visitor_st.traits() ).get_all();
+          std::vector<size_t> valids_st = OptionSizetsExtractor( feature.find( "valid" ), visitor_st.traits() ).get_all();
           for ( size_t opt_nth = 0  ; opt_nth < st_values.size() ; opt_nth++  ) {
             bool is_valid = false;
             for ( size_t vld_nth = 0 ; vld_nth < valids_st.size() ; vld_nth++ ) {
-              if ( visitor_st.isequal( st_values[opt_nth], valids_st[vld_nth]) ) {
+              if ( visitor_st.isequal( st_values[opt_nth], valids_st[vld_nth] ) ) {
                 is_valid = true;
                 break;
               }
@@ -883,7 +874,7 @@ namespace psmrts {
        */
       inline void process_booleans( const ProductOption &option, 
                                     const ProductFeature &feature,
-                                    ProductCart &cart) const {   
+                                    ProductCart &cart ) const {   
         // Process these as strings for better error detection
         std::vector<std::string> b_values;
         psmrts::optvis::StringsVisitor visitor_b = OptionStringsExtractor( option ).create_visitor( b_values, option );
@@ -928,7 +919,7 @@ namespace psmrts {
        */
       inline void process_strings( const ProductOption &option, 
                                    const ProductFeature &feature,
-                                   ProductCart &cart) const { 
+                                   ProductCart &cart ) const { 
         std::vector<std::string> s_values;
         psmrts::optvis::StringsVisitor visitor_s = OptionStringsExtractor( option ).create_visitor( s_values, option );
         option.visit( visitor_s );
@@ -946,11 +937,11 @@ namespace psmrts {
         
         // Check for valid values if present in feature
         if ( feature.contains( "valid" ) ) {
-          std::vector<std::string> valids_s = OptionStringsExtractor( feature.find("valid"), visitor_s.traits() ).get_all();
+          std::vector<std::string> valids_s = OptionStringsExtractor( feature.find( "valid" ), visitor_s.traits() ).get_all();
           for ( size_t opt_nth = 0  ; opt_nth < s_values.size() ; opt_nth++  ) {
             bool is_valid = false;
             for ( size_t vld_nth = 0 ; vld_nth < valids_s.size() ; vld_nth++ ) {
-              if ( visitor_s.isequal( s_values[opt_nth], valids_s[vld_nth]) ) {
+              if ( visitor_s.isequal( s_values[opt_nth], valids_s[vld_nth] ) ) {
                 is_valid = true;
                 break;
               }

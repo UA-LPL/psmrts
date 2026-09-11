@@ -37,9 +37,9 @@ namespace psmrts {
 
         MeshShape() : PsmrtsProduct( "mesh", "shape", "mesh"),
                       m_mesh( make_shared_copy( PsmrtsMeshData() ) ),
-                      m_config( init_mesh( "mesh") )  { }
+                      m_config( init_mesh( "mesh" ) )  { }
         MeshShape( const PsmrtsMeshData &mesh, 
-                   const std::string &name = "mesh") : 
+                   const std::string &name = "mesh" ) : 
                    PsmrtsProduct( name, "shape", "mesh" ),
                    m_mesh( make_shared_copy( mesh ) ),
                    m_config( init_mesh(  mesh, name ) ) { }
@@ -51,8 +51,8 @@ namespace psmrts {
          
         static inline ProductSpecification product_specifications() {
           ProductInfo  info( "mesh", { 
-                        ProductOption( "name",        "mesh"),
-                        ProductOption( "product",     "shape"),
+                        ProductOption( "name",        "mesh" ),
+                        ProductOption( "product",     "shape" ),
                         ProductOption( "description", "Provides support for a genric user defined shape" ) } );
           ProductFeature product( "shape", {
                                   ProductOption( "name", "shape" ),
@@ -62,16 +62,16 @@ namespace psmrts {
                                   ProductOption( "default", "mesh" ),
                                   ProductOption( "valid", "mesh" ) } );                          
           ProductFeature source( "mesh_name", {
-                                  ProductOption( "name", "mesh_name"),
-                                  ProductOption( "type", "string"),
+                                  ProductOption( "name", "mesh_name" ),
+                                  ProductOption( "type", "string" ),
                                   ProductOption( "description", "Name of mesh data" ),
-                                  ProductOption( "status", "required"),
+                                  ProductOption( "status", "required" ),
                                   ProductOption( "aliases", { "mesh", "source", "shapefile" } ) } );
           ProductFeature dtype( "mesh_data_type", {
-                                  ProductOption( "name", "mesh_data_type"),
-                                  ProductOption( "type", "string"),
+                                  ProductOption( "name", "mesh_data_type" ),
+                                  ProductOption( "type", "string" ),
                                   ProductOption( "description", "Type of mesh vector data provided" ),
-                                  ProductOption( "status", "optional"),
+                                  ProductOption( "status", "optional" ),
                                   ProductOption( "aliases", "data_type" ), 
                                   ProductOption( "default", "double" ),
                                   ProductOption( "valid", { "double", "float" } ) });
@@ -104,7 +104,7 @@ namespace psmrts {
         inline ProductConfiguration init_mesh( const PsmrtsMeshData &mesh, const std::string &name ) {
           ProductConfiguration config( name, mesh.config() );
           config.add( ProductOption( "shape", "mesh" ) );
-          config.add( ProductOption( "mesh_name", name) );
+          config.add( ProductOption( "mesh_name", name ) );
           return ( config );
         }
 
@@ -113,7 +113,7 @@ namespace psmrts {
             std::string name_t = cart.configuration().name();
 
             // Check for valid shape type
-            if (cart.error_count() > 0 ) {
+            if ( cart.error_count() > 0 ) {
               std::string mess = "MeshShape::create(" + name_t + 
                                 ") has config/spec processing errors: \n" +
                                   cart.errors_to_string();
@@ -121,7 +121,7 @@ namespace psmrts {
             }
 
             ProductConfiguration v_conf = cart.configuration();
-            if (cart.error_count() > 0 ) {
+            if ( cart.error_count() > 0 ) {
               std::string mess = "MeshShape::create(" + name_t + ") has errors: " +
                                   cart.errors_to_string();
               throw std::runtime_error( mess );          
@@ -140,7 +140,7 @@ namespace psmrts {
             this->set_name( m_config.find( "mesh_name" ).to_string() );
 
             // Create an empty mesh
-            if ( m_config.contains( "mesh_data_type") && 
+            if ( m_config.contains( "mesh_data_type" ) && 
                 ( m_config.find( "mesh_data_type" ).to_string() == "float" ) ) {
               m_mesh = make_shared_copy( PsmrtsMeshData( PsmrtsVector3i(), PsmrtsVector3f() ) );
             }

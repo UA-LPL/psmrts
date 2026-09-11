@@ -104,7 +104,7 @@ namespace naif {
        */
       inline static KernelDescriptor kernel_info( const std::string &kernelfile ) {
         std::unique_lock<std::shared_mutex> mylocker( s_mutex );
-        return ( KernelFileSystem::get_kernel_info( kernelfile) );
+        return ( KernelFileSystem::get_kernel_info( kernelfile ) );
       }
 
       /**
@@ -158,7 +158,7 @@ namespace naif {
 
         for ( int which = 0; which < n_kernels ; which++ ) {
           (void) kdata_c( which, kerneltypes.c_str(), 
-                          sizeof( file ), sizeof( filtyp ), sizeof( srcfil),
+                          sizeof( file ), sizeof( filtyp ), sizeof( srcfil ),
                           file, filtyp, srcfil, 
                           &handle, &found );
                       
@@ -184,7 +184,7 @@ namespace naif {
        * the check_naif_error() method to check and report occurances of
        * errors.
        * 
-       * This method is rentrant in that it will only initialize once.
+       * This method is re-entrant in that it will only initialize once.
        * Users can also call the initKernelSystem() directly at any point
        * to initialize as needed.
        * 
@@ -353,7 +353,7 @@ namespace naif {
       
     private:
       inline static std::shared_mutex s_mutex{ };
-      inline static KernelInventory   s_kernel_inventory =  { };
+      inline static KernelInventory   s_kernel_inventory{ };
 
       inline static void setReturnMode( const std::string &u_retmode = "RETURN" ) {
 
@@ -445,7 +445,6 @@ namespace naif {
 
         return ( k_descriptor );
       }
-
   
   };
 

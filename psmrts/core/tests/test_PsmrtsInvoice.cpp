@@ -28,7 +28,7 @@ TEST_CASE( "PsmrtsInvoice Priority Tracer Test 1", "[product][invoice][priorityt
   psmrts::PsmrtsInvoice invoice_t( "invoice", trans_t );
   CHECK( invoice_t.size() == 0 );
 
-  psmrts::ProductConfiguration bullet_t("bulletmaker1");
+  psmrts::ProductConfiguration bullet_t( "bulletmaker1" );
   bullet_t.add( psmrts::ProductOption( "shape", "obj" ) );
   bullet_t.add( psmrts::ProductOption( "obj_file", psmrts_shapes_path( "obj/data/bennu_20facets.obj")  ) );
   bullet_t.add( psmrts::ProductOption( "tracer", "bullet" ) );
@@ -46,7 +46,7 @@ TEST_CASE( "PsmrtsInvoice Priority Tracer Test 1", "[product][invoice][priorityt
   CHECK( factory.tracer_count()     == invoice_t.inventory().size_tracers() );
   CHECK( factory.shape_count()      == invoice_t.inventory().size_shapes() );
 
-  psmrts::ProductConfiguration naifdsk_t("naifdskmaker0");
+  psmrts::ProductConfiguration naifdsk_t( "naifdskmaker0" );
   naifdsk_t.add( psmrts::ProductOption( "tracer", "naifdsk" ) );
   naifdsk_t.add( psmrts::ProductOption( "dsk_file", psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds")  ) );
 
@@ -58,17 +58,17 @@ TEST_CASE( "PsmrtsInvoice Priority Tracer Test 1", "[product][invoice][priorityt
   CHECK( factory.tracer_count()     == invoice_t.inventory().size_tracers() );
   CHECK( factory.shape_count()      == invoice_t.inventory().size_shapes() );
 
-  psmrts::ProductConfiguration ellipsoid_t("ellipsoidmaker0");
+  psmrts::ProductConfiguration ellipsoid_t( "ellipsoidmaker0" );
   ellipsoid_t.add( psmrts::ProductOption( "tracer", "ellipsoid" ) );
   ellipsoid_t.add( psmrts::ProductOption( "radii", { 0.283065, 0.271215, 0.249720 } ) );
 
-  psmrts::ProductCart cart_e( "ellipsoid");
+  psmrts::ProductCart cart_e( "ellipsoid" );
   psmrts::ProductOrder order_t ( ellipsoid_t, trans_t );
   auto processor = psmrts::ProductProcessing( trans_t );
   auto order     =  processor.process_order( ellipsoid_t );
 
-  auto ellipsoid_tracer = psmrts::EllipsoidTracer( *order->find("tracer") );
-  CHECK( ellipsoid_tracer.a() == 0.283065);
+  auto ellipsoid_tracer = psmrts::EllipsoidTracer( *order->find( "tracer" ) );
+  CHECK( ellipsoid_tracer.a() == 0.283065 );
   CHECK( ellipsoid_tracer.b() == 0.271215 );
   CHECK( ellipsoid_tracer.c() == 0.249720 );
 
@@ -105,18 +105,18 @@ TEST_CASE( "PsmrtsInvoice Priority Tracer Test 1", "[product][invoice][priorityt
 
   psmrts::ProductConfiguration bullet_t2( "bulletmaker2" );
   bullet_t2.add( psmrts::ProductOption( "shape", "obj" ) );
-  bullet_t2.add( psmrts::ProductOption( "obj_file", psmrts_shapes_path( "obj/data/bennu_20facets.obj")  ) );
+  bullet_t2.add( psmrts::ProductOption( "obj_file", psmrts_shapes_path( "obj/data/bennu_20facets.obj" )  ) );
   bullet_t2.add( psmrts::ProductOption( "tracer", "bullet" ) );
   bullet_t2.add( psmrts::ProductOption( "bullet_compression", false ) );
 
   CHECK_NOTHROW( invoice_t.add( bullet_t2 ) );
-  CHECK( invoice_t.error_count() == 0 );
-  CHECK( invoice_t.errors_to_string() == "" );  
-  CHECK( invoice_t.size()                       == 4);
-  CHECK( invoice_t.tracers().size()             == 3);
-  CHECK( invoice_t.isvalid()                    == false );
+  CHECK( invoice_t.error_count()                 == 0 );
+  CHECK( invoice_t.errors_to_string()            == "" );  
+  CHECK( invoice_t.size()                        == 4);
+  CHECK( invoice_t.tracers().size()              == 3);
+  CHECK( invoice_t.isvalid()                     == false );
   CHECK( invoice_t.inventory().tracers()->size() == 3 );
-  CHECK( invoice_t.inventory().shapes()->size()  == 1);
+  CHECK( invoice_t.inventory().shapes()->size()  == 1 );
 
   auto orders = invoice_t.orders();
   CHECK( orders.size()              == 4 );
@@ -129,9 +129,9 @@ TEST_CASE( "PsmrtsInvoice Priority Tracer Test 1", "[product][invoice][priorityt
   CHECK( invoice_t.inventory().tracers()->size() == 4 );
 
   auto tracers = invoice_t.tracers();
-  CHECK( tracers.size() == 4 );
+  CHECK( tracers.size()                         == 4 );
   CHECK( psmrts::PsmrtsFactory().tracer_count() == 4 );
-  CHECK( tracers[0].get() != nullptr );
+  CHECK( tracers[0].get()                      != nullptr );
 
   psmrts::ProductConfiguration bullet_t3( "bulletmaker3" );
   bullet_t3.add( psmrts::ProductOption( "shape", "obj" ) );
@@ -139,32 +139,31 @@ TEST_CASE( "PsmrtsInvoice Priority Tracer Test 1", "[product][invoice][priorityt
   bullet_t3.add( psmrts::ProductOption( "tracer", "bullet" ) );
 
   auto set_b3 = invoice_t.processor().process_order( bullet_t3 );
-  REQUIRE( set_b3.get() != nullptr );
-  CHECK( set_b3->errors_to_string()           == "" );
-  CHECK( set_b3->cart_keys() == std::vector<std::string>( { "shape", "tracer" } ) );
-  CHECK( set_b3->size() == 2 );
-  auto shape_t = set_b3->find( "shape" );
-  REQUIRE( shape_t.get() != nullptr );
+  REQUIRE( set_b3.get()             != nullptr );
+  CHECK( set_b3->errors_to_string() == "" );
+  CHECK( set_b3->cart_keys()        == std::vector<std::string>( { "shape", "tracer" } ) );
+  CHECK( set_b3->size()             == 2 );
 
-  CHECK( shape_t->type() == "shape" );
-  CHECK( shape_t->residual_size()  == 0 );
+  auto shape_t = set_b3->find( "shape" );
+  REQUIRE( shape_t.get()            != nullptr );
+  CHECK( shape_t->type()            == "shape" );
+  CHECK( shape_t->residual_size()   == 0 );
 
   auto tracer_t = set_b3->find( "tracer" );
   CHECK( set_b3->errors_to_string() == ""  );
-  REQUIRE( tracer_t.get()    != nullptr );
-  CHECK( tracer_t->name()    == "bulletmaker3" );
-  CHECK( tracer_t->type()    == "tracer" );
-  CHECK( tracer_t->model()   == "bullet" );
-
+  REQUIRE( tracer_t.get()           != nullptr );
+  CHECK( tracer_t->name()           == "bulletmaker3" );
+  CHECK( tracer_t->type()           == "tracer" );
+  CHECK( tracer_t->model()          == "bullet" );
  
   CHECK_NOTHROW( invoice_t.add( bullet_t3 ) );
-  CHECK( invoice_t.size()                        == 5);
-  CHECK( invoice_t.isvalid()                     == false );
+  CHECK( invoice_t.size()       == 5);
+  CHECK( invoice_t.isvalid()    == false );
 
   invoice_t.submit_order();
   auto priority_t4 = invoice_t.make_priority_tracer();
 
-  CHECK( invoice_t.size()                        == 5);
+  CHECK( invoice_t.size()                        == 5 );
   CHECK( invoice_t.inventory().tracers()->size() == 4 );
   CHECK( invoice_t.inventory().shapes()->size()  == 1 );
   CHECK( psmrts::PsmrtsFactory().tracer_count()  == 4 );

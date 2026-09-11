@@ -186,7 +186,7 @@ namespace psmrts  {
         ProductInfo  info( "bullet", { 
                                  FeatureOption( "name", "bullet" ),
                                  FeatureOption( "product", "tracer" ),
-                                 FeatureOption( "description", "The Bullet Physics ray tracing system specification") } );
+                                 FeatureOption( "description", "The Bullet Physics ray tracing system specification" ) } );
         ProductFeature product( "tracer", {
                                  ProductOption( "name", "tracer" ),
                                  ProductOption( "type", "string" ),

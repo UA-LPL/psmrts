@@ -261,7 +261,7 @@ namespace psmrts {
                                 { inventory.shapes(), m_inventory.shapes() },
                                 processor, shape_p );
 
-            if ( !this->make_tracer_and_shape( *order, tracer_p, shape_p, errors) ) {
+            if ( !this->make_tracer_and_shape( *order, tracer_p, shape_p, errors ) ) {
               errors.throw_errors();
             }
 
@@ -317,8 +317,8 @@ namespace psmrts {
                                          SharedShape &shape,
                                          PsmrtsErrors &errors ) const {
 
-        SharedCart cart_s = order.find("shape");
-        SharedCart cart_t = order.find("tracer");
+        SharedCart cart_s = order.find( "shape" );
+        SharedCart cart_t = order.find( "tracer" );
 
         bool success = true;
         if ( cart_s && !shape ) {
@@ -378,11 +378,6 @@ namespace psmrts {
       inline const PsmrtsTranslations &translator() const {
         return ( *m_inventory.translations() );
       }
-      
-      /** Get the current state of the parameter/environment variable system */
-      static inline PsmrtsTranslations getenv( ) {
-        return ( PsmrtsTranslations::create() );
-      }
 
       /** Liquidate/empty all PSRMTS factory inventory - affects all instances of PsmrtsFactory! */
       inline static void liquidate( ) {
@@ -394,7 +389,7 @@ namespace psmrts {
     private:
       // Definitions and cache of active product inventories.
       inline static PsmrtsInventory m_inventory{ "psmrts" };
-      inline static std::shared_mutex m_mutex;
+      inline static std::shared_mutex m_mutex{};
 
       /**
        * @brief Update the cart with the product uid
@@ -470,7 +465,6 @@ namespace psmrts {
         }
         return ( false );
       } 
-
       
   };
 
