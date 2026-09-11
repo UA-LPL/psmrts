@@ -166,7 +166,7 @@ namespace psmrts {
       inline size_t submit_order() {
         m_tracers = PsmrtsFactory().process_order( m_orders, *m_inventory, *this );
         if ( m_tracers.size() != m_orders.size() ) {
-          // this is an erorr
+          // This is an error and indicates at least one order failed processing
           this->add_error( "PsmrtsInvoice::submit_order() - Number tracers returned (" +
                            std::to_string( m_tracers.size() ) + ") not equal to orders (" +
                            std::to_string( m_orders.size() ) + ")" );
@@ -205,7 +205,7 @@ namespace psmrts {
        * in each priority tracer. 
        * 
        * Note that the number of tracers in the priority tracer may not match
-       * the number of orders in the invoice. Redundent tracers are removed
+       * the number of orders in the invoice. Redundant tracers are removed
        * before the priority tracer is created. Each priority tracer is unique
        * and does not share the same list (but tracer instances are shared).
        * It would be quite inefficient and unnecessary to have duplicate tracers

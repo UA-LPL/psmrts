@@ -142,7 +142,6 @@ namespace psmrts {
           cart_j.push_back( c->to_json() );
         }
         order_j.update( json_utils::insert_object( "products",  cart_j ) );
-        // order_j["dependencies"] = m_dependencies;
         return ( order_j );
       }
 
@@ -150,7 +149,6 @@ namespace psmrts {
       ProductConfiguration    m_submitted;
       CartCache               m_carts;
       ConstSharedTranslations m_translator;
-      // PsmrtsInventory          m_inventory;
 
   };
 

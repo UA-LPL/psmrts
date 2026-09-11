@@ -136,7 +136,7 @@ namespace psmrts {
   } 
 
   /** 
-   * @brief Create an efficicient shared copy of a data value
+   * @brief Create an efficient shared copy of a data value
    * 
    * This template function creates a copy of a data value using an efficient
    * management technique of heap memory. The data value must be copyable
