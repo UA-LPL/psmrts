@@ -217,6 +217,7 @@ namespace psmrts {
           ProductConfiguration meta( "ply" );
           meta.add( ProductOption( "ply_file", this->ply_source() ) );
           meta.add( ProductOption( "ply_data_type", m_data_type ) );
+          meta.add( ProductOption( "shape", "ply" ) );
           meta.add_metadata( ProductOption( "ply_file_type", m_file_type ) );
           meta.add_metadata( ProductOption( "n_vertices", (int) this->nVertexes() ) );
           meta.add_metadata( ProductOption( "n_facets", (int) this->nIndexes() ) );

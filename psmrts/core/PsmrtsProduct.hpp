@@ -45,28 +45,21 @@ namespace psmrts {
     public:
       using UIDType = PsmrtsUID::UIDType;
 
-      PsmrtsProduct( ) : m_tracker(), 
-                         m_name( "void" ),
-                         m_type( "void" ), 
-                         m_model( "void" ) ,
-                         m_product_id( PsmrtsUID::null_uid() ) { }
-      PsmrtsProduct( const std::string &pname ):
-                     m_tracker(), 
-                     m_name( pname ), 
-                     m_type( "type" ), 
-                     m_model( "model" ),     
-                     m_product_id( PsmrtsUID::get_uid() )  { }
+      PsmrtsProduct( ) : m_data( nullptr ) {
+        init_data( "void", "void", "void", PsmrtsUID::null_uid() );
+      }
+      PsmrtsProduct( const std::string &pname ): m_data(  nullptr )  {
+        init_data( pname, "type", "model", PsmrtsUID::get_uid() );
+       }
       PsmrtsProduct( const std::string &pname, 
                      const std::string &ptype,
-                     const std::string &pmodel = "model" ):
-                     m_tracker(), m_name( pname ), 
-                     m_type( ptype ), m_model( pmodel ), 
-                     m_product_id( PsmrtsUID::get_uid() )  { }
+                     const std::string &pmodel = "model" ): m_data( nullptr ) {
+        init_data( pname, ptype, pmodel, PsmrtsUID::get_uid() );
+      }
       virtual ~PsmrtsProduct() { }
 
       inline static PsmrtsProduct VoidProduct( const std::string &name = "void" ) {
-        PsmrtsProduct model_v;
-        model_v.m_name = name;
+        PsmrtsProduct model_v(name);
         return ( model_v );
       }
 
@@ -76,49 +69,67 @@ namespace psmrts {
 
       /** Returns the name of the product */
       inline const std::string &name() const {
-        return ( m_name );
+        return ( m_data->m_name );
       }
       
       /** Returns the type of the product */
       inline const std::string &type() const {
-        return ( m_type );
+        return ( m_data->m_type );
       }
 
       /** Returns the model of the product */
       inline const std::string &model() const {
-        return ( m_model );
+        return ( m_data->m_model );
       }
 
       /** Returns the unique ID of the product */
       inline const UIDType &uid() const {
-        return ( m_product_id );
+        return ( m_data->m_product_id );
       }
       
       /** Returns a distinct timestamp since the product has been created */
       inline PsmrtsThreadSafeCounter timestamp() const {
-        return ( m_tracker.clone() );
+        return ( m_data->m_tracker.clone() );
       }
     
     protected:
       inline void set_name( const std::string &name ) {
-        m_name = name;
+        m_data->m_name = name;
       }
 
       inline void set_type( const std::string &type_p ) {
-        m_type = type_p;
+        m_data->m_type = type_p;
       }
 
       inline void set_model( const std::string &model ) {
-        m_model = model;
+        m_data->m_model = model;
       }
 
 
     private:
-      PsmrtsThreadSafeCounter m_tracker;
-      std::string             m_name;
-      std::string             m_type;
-      std::string             m_model;
-      UIDType                 m_product_id;
+      using ProductData = struct product_data {
+                            PsmrtsThreadSafeCounter m_tracker;
+                            std::string             m_name;
+                            std::string             m_type;
+                            std::string             m_model;
+                            UIDType                 m_product_id;
+                          };
+      using SharedProductData = std::shared_ptr<ProductData>;
+
+      // Use shared data type here for 
+      SharedProductData   m_data;
+
+      inline void init_data( const std::string &name, 
+                             const std::string &ptype,
+                             const std::string &pmodel, 
+                             const UIDType &product_uid ) {
+        m_data = make_shared_copy( ProductData() );
+        m_data->m_name = name;
+        m_data->m_type = ptype;
+        m_data->m_model = pmodel;
+        m_data->m_product_id = product_uid;
+      }
+
   };
 
 } // namespace psmrts

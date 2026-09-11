@@ -117,9 +117,9 @@ namespace psmrts  {
       using ProductInfo     = ProductSpecification::ProductInfo;
       using ProductFeatures = ProductSpecification::ProductFeatures;
 
-      EllipsoidTracer( ) : PsmrtsProduct( "default", "tracer", "ellipsoid" ), 
+      EllipsoidTracer( ) : PsmrtsProduct( "ellipsoid", "tracer", "ellipsoid" ), 
                            m_radii{ 1.0, 1.0, 1.0 },
-                           m_config( init_config( "default", { 1.0 }, "sphere" ) ) {  }
+                           m_config( init_config( "ellipsoid", { 1.0 }, "ellipsoid" ) ) {  }
       EllipsoidTracer( const double radius,
                        const std::string &name = "sphere") :
                        PsmrtsProduct( name, "tracer", "sphere" ),
@@ -251,29 +251,6 @@ namespace psmrts  {
       }
 
       /**
-       * @brief Ellipsoid Features Processor
-       * 
-       * This method accepts a PRQFeatures, and stores into it all the 
-       * relevant Ellipsoid information using JSON.
-       * 
-       * @param features PRQFeatures that holds tracer-relevant information
-       *                  in a JSON format
-       * @return true    If features were added successfully
-       * @return false   If any issues during processing
-       */
-      inline bool process( PRQFeatures &features ) const {
-        psmrts_json f_e;
-        f_e["name"] = "ellisoid" ;
-        f_e["product"] = "shapetracer" ;
-        f_e["mesh"] = false;
-
-        f_e["radii"] = { m_radii[0], m_radii[1], m_radii[2] } ;
-
-        features.add_feature( f_e );
-        return ( true );
-      }
-
-      /**
        * @brief Ellipsoid Ray Trace Method
        * 
        * Deriving classes must implement this method as is specified for 
@@ -372,8 +349,6 @@ namespace psmrts  {
         if (s0 > s1) std::swap(s0, s1);
 
         datum_r.m_hit = true;
-        double t0_l = center_e + s0;
-        double t1_l = center_e + s1;
 
         // Convert back to original scale to get surface intercept point
         Eigen::Vector3d point_scaled = center_m + ( lookdir_t * s0 );
@@ -428,11 +403,6 @@ namespace psmrts  {
       inline const ProductConfiguration &config() const {
         return ( m_config );
       }
-
-      inline bool matches( const ProductConfiguration &conf ) const {
-        return ( this->config().matches( conf ) );
-      }
-
 
       /** Report all remaining features not available */
       PSMRTS_PROCESS_CATCHALL( "EllipsoidTracer" )
@@ -489,7 +459,7 @@ namespace psmrts  {
           throw std::runtime_error( mess );
         }
 
-        std::string name = name_t;
+        std::string name = "";
         if ( v_conf.contains( "name" ) ) {
           name = v_conf.find( "name" ).to_string();
         }
@@ -523,7 +493,7 @@ namespace psmrts  {
         ProductConfiguration config( "ellipsoid" );
         config.add( ProductOption( "tracer", model ) );
         config.add( ProductOption( "radii",  radii ) );
-        config.add( ProductOption( "name",   name ) );
+        if ( name.length() > 0 ) config.add( ProductOption( "name",   name ) );
 
         // Check to ensure none of the radii are invalid
         for ( const double &r : radii ) {

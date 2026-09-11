@@ -17,6 +17,9 @@
 TEST_CASE( "PsmrtsRayTrace Default Test", "[ray][trace][default]") { 
   // No parameters
   psmrts::PsmrtsRayTrace ray_basic;
+  CHECK( sizeof( psmrts::PsmrtsRayTrace )                  > 0 );
+  CHECK( sizeof( psmrts::PsmrtsRayTrace::ray_trace_datum ) > 0 );
+  CHECK( sizeof( psmrts::PsmrtsRayTrace::FacetDatum )      > 0 );
 
   CHECK( ray_basic.hasHit()         == false );
   CHECK( ray_basic.observer()       == Eigen::Vector3d { 0.0, 0.0, 0.0 } );

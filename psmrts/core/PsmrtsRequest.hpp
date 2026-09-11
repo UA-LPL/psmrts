@@ -126,6 +126,93 @@ namespace psmrts {
 #define PSMRTS_PROCESS_CATCHALL( producer_name ) 
 #endif
 
+ class PsmrtsErrors {
+    public:
+      PsmrtsErrors( ) : m_errors() { }
+      virtual ~PsmrtsErrors() = default;
+
+      inline size_t error_count() const {
+        return ( m_errors.size() );
+      }
+
+      inline bool has_errors() const {
+        return ( m_errors.size() > 0 );
+      }      
+
+      inline void add_error( const std::exception &e ) const {
+      // Monitor the cache size of the error queue
+        if ( m_errors.size() >= MaxQueuedErrors ) {
+          (void) m_errors.pop_front();
+        }
+
+        m_errors.push_back( e.what() );
+        return;
+      }
+
+      inline void add_error( const std::string &s ) const {
+      // Monitor the cache size of the error queue
+        if ( m_errors.size() >= MaxQueuedErrors ) {
+          (void) m_errors.pop_front();
+        }
+
+        m_errors.push_back( s );
+        return;
+      }
+
+      /** Append errors from another instance with limit checking */
+      inline void append( const PsmrtsErrors &errors ) const {
+        for ( const auto &error : errors.errors() ) {
+          this->add_error( error );
+        }
+        return;
+      }
+
+
+
+      inline const std::deque<std::string> &errors() const {
+        return ( m_errors );
+      }
+
+      // Print errors in reverse order
+      inline std::string errors_to_string() const {
+        std::string mess("");
+        std::string line_f("");
+        if ( this->error_count() > 0 ) {
+          for ( auto it_s = m_errors.crbegin() ; it_s != m_errors.crend() ; ++it_s ) {
+            mess += line_f + *it_s; 
+            line_f = "\n";
+          }
+        }
+        return ( mess );
+      }
+
+      /** Throw iff any errors actually exist */
+      inline void throw_errors() const {
+        if ( this->error_count() > 0 ) {
+          throw std::runtime_error( this->errors_to_string() );
+        }
+        return;
+      }
+
+      inline void clear_errors() {
+        m_errors.clear();
+        return;
+      }
+
+      inline void reset() {
+        m_errors.clear();
+        return;
+      }
+
+      inline size_t max_error_cache_size() const {
+        return ( MaxQueuedErrors );
+      }
+
+    private:
+      inline static const size_t MaxQueuedErrors = 30;  // Limit cached error size
+      mutable std::deque<std::string> m_errors;
+  };
+
   /**
    * @brief Base class of all PSMRTS requests
    * 
@@ -137,7 +224,7 @@ namespace psmrts {
    * function that is to be used to dispatch 
    * 
    */
-  class PsmrtsRequest {
+  class PsmrtsRequest : public PsmrtsErrors {
     public:
       PsmrtsRequest( ) { this->init( ); }
 
@@ -164,27 +251,6 @@ namespace psmrts {
         return;
       }
 
-      inline void add_error( const std::exception &e ) const {
-      // Monitor the cache size of the error queue
-        if ( m_errors.size() >= MaxQueuedErrors ) {
-          (void) m_errors.pop_front();
-        }
-
-        m_errors.push_back( e.what() );
-        return;
-      }
-
-      inline void add_error( const std::string &s ) const {
-      // Monitor the cache size of the error queue
-        if ( m_errors.size() >= MaxQueuedErrors ) {
-          (void) m_errors.pop_front();
-        }
-
-        m_errors.push_back( s );
-        return;
-      }
-
-
       inline size_t run_count() const {
         return ( m_times_run );
       }
@@ -204,41 +270,9 @@ namespace psmrts {
         return ( m_is_present );
       }
 
-      inline size_t error_count() const {
-        return ( m_errors.size() );
-      }
-
-      inline const std::deque<std::string> &errors() const {
-        return ( m_errors );
-      }
-
-      inline std::string errors_to_string() const {
-        std::string mess("");
-        if ( this->error_count() > 0 ) {
-          // mess = "*** " + this->name() + " has encountered errors!\n";
-          for ( const auto &e_string : this->errors() ) {
-            mess += e_string + "\n"; 
-          }
-        }
-        return ( mess );
-      }
-
-      /** Throw iff any errors actually exist */
-      inline void throw_errors() const {
-        if ( this->error_count() > 0 ) {
-          throw std::runtime_error( this->errors_to_string() );
-        }
-        return;
-      }
-
       /** Return a reference to the request tracker */
       inline const PsmrtsThreadSafeCounter &tracker() const {
         return ( m_tracker );
-      }
-
-      inline void clear_errors() {
-        m_errors.clear();
-        return;
       }
 
       inline void set_process_presence( const bool present = true   ) {
@@ -250,27 +284,19 @@ namespace psmrts {
         m_success_status = false;
         m_is_present     = false;
         m_times_run      = 0;
-        m_errors.clear();
+        this->clear_errors();
         m_tracker.reset_timer();
         m_runtime_ms = 0.0;
         return;
       }
 
-      inline size_t max_error_cache_size() const {
-        return ( MaxQueuedErrors );
-      }
-
     protected:
-      inline static const size_t MaxQueuedErrors = 30;  // Limit cached error size
-
       PsmrtsThreadSafeCounter    m_tracker;
       double                     m_runtime_ms;
       std::string                m_name;
       bool                       m_success_status;
       bool                       m_is_present;
       size_t                     m_times_run;
-      mutable std::deque<std::string> m_errors;
-
 
     private:
       inline void init( const std::string &name = "PsmrtsRequest" ) {
@@ -279,59 +305,6 @@ namespace psmrts {
         return;
       }
   };
-
-
-
-
-  class PRQVersion : public PsmrtsRequest {
-    public:
-      PRQVersion( ) : PsmrtsRequest( "PsmrtsVersion" ), 
-                         m_version(  ) {  }
-      virtual ~PRQVersion() { }
-
-      inline const std::string &system_version ( ) const {
-        return ( psmrts::psmrts_version() );
-      }
-
-      inline const std::string &version() const {
-        return ( m_version );
-      }
-
-      inline bool set_version ( const std::string &v ) {
-        m_version = v;
-        return ( true );
-      }
-
-    public:
-      /** This scope may be changed if necessary */
-      std::string m_version;
-  };
-
-  class PRQFeatures : public PsmrtsRequest {
-    public:
-      PRQFeatures( ) : PsmrtsRequest( "PRQFeatures" ), 
-                      m_features(  ) {  }
-      virtual ~PRQFeatures() { }
-
-      inline void add_feature ( const psmrts_json &feature ) {
-        m_features += feature;
-        return;
-      }
-
-      inline std::string to_string( ) const {
-        return ( std::string( m_features.dump() ) );
-      }
-
-      inline const psmrts_json &config() const {
-        return ( m_features );
-      }
-
-    public:
-      /** This scope may be changed if necessary */
-      psmrts_json  m_features;
-  };
-
-
 
   class PRQRayTrace : public PsmrtsRequest {
     public:

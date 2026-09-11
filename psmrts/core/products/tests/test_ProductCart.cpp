@@ -13,7 +13,8 @@ TEST_CASE( "ProductCart Default Test", "[cart][default]") {
     CHECK( cart.has_valid_content()    == false );
     CHECK( cart.size()                 == 0 );
     CHECK( cart.name()                 == "none" );
-    CHECK( cart.product()              == "none" );
+    CHECK( cart.type()                 == "none" );
+    CHECK( cart.model()                == "none" );
     CHECK( cart.residual_size()        == 0 );
     CHECK( cart.configuration().size() == 0 );
     CHECK_NOTHROW( cart.set_configuration() );
@@ -60,5 +61,5 @@ TEST_CASE( "ProductCart Default Test", "[cart][default]") {
     CHECK( res_config.name() == cart.configuration().name() );
     
     ordered_json j_cart = cart.to_json();
-    CHECK( cart.to_json().size() == 3 );
+    CHECK( cart.to_json().size() == 4 );
 }

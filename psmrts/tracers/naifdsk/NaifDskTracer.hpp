@@ -41,23 +41,26 @@ namespace psmrts  {
 
       NaifDskTracer( ) : PsmrtsProduct( "none", "tracer", "naifdsk" ), 
                          m_model() {
+        m_model = make_shared_copy( naif::DskKernelModel( ) );
         m_config = init_naifdsk( "naifdsk" );
       }
       NaifDskTracer( const naif::DskKernelModel &dsktracer ) : 
                      PsmrtsProduct( dsktracer.shapefile(), "tracer", "naifdsk" ),
-                     m_model( dsktracer ) { 
-        m_config = init_naifdsk( dsktracer, dsktracer.shapefile() );
+                     m_model( ) { 
+        m_model = make_shared_copy( naif::DskKernelModel( dsktracer ) );
+        m_config = init_naifdsk( m_model, dsktracer.shapefile() );
       }
       NaifDskTracer( const std::string &dsk ) : 
                      PsmrtsProduct( dsk, "tracer", "naifdsk" ),
-                     m_model( dsk ) {
+                     m_model( ) {
+        m_model = make_shared_copy( naif::DskKernelModel( dsk ) );
         m_config = init_naifdsk( m_model, dsk );
       }
       NaifDskTracer( const ProductCart &processed_cart ) :
                      PsmrtsProduct( processed_cart.name(), "tracer", "naifdsk" ) {
 
-        m_model = naif::DskKernelModel( processed_cart, m_config );
-        this->set_name( m_model.name() );
+        m_model = make_shared_copy( naif::DskKernelModel( processed_cart, m_config ) );
+        this->set_name( m_model->name() );
         m_config.add( ProductOption( "tracer", "naifdsk" ) );
         m_config.add_metadata( ProductOption( "tracer_uid", PsmrtsUID::to_string( this->uid() ) ) );
       }        
@@ -159,26 +162,6 @@ namespace psmrts  {
         return ( algorithms::process_basic_photometric_trace_array( *this, tracelist ) );
       }
 
-       /**
-       * @brief NAIF Dsk Features Processor
-       * 
-       * This method accepts a PRQFeatures, and stores into it all the 
-       * relevant DSK information using JSON.
-       * 
-       * @param features PRQFeatures that holds tracer-relevant information
-       *                  in a JSON format
-       * @return true    If features were added successfully
-       * @return false   If any issues during processing
-       */
-      inline bool process( PRQFeatures &features ) const {
-        psmrts_json f_e;
-        f_e += { "name" , "naifdsk" };
-        f_e += { "product" , "shapetracer" };
-        f_e += { "mesh" , true };
-        features.add_feature( f_e );
-        return ( true );
-      }
-
       /**
        * @brief NAIF NaifDsk Ray Trace Method
        * 
@@ -204,14 +187,14 @@ namespace psmrts  {
       }
       
       inline bool ray_trace( PsmrtsRayTrace &ray ) const {
-        bool status = m_model.ray_trace( ray );
+        bool status = m_model->ray_trace( ray );
         ray.set_tracer_id( this->uid() );
         return ( status );
       } 
       
       inline bool get_facet(  const PsmrtsRayTrace &ray, 
                               PsmrtsRayTrace::FacetDatum &facet) const {
-        return ( m_model.get_facet( ray, facet ) );                                 
+        return ( m_model->get_facet( ray, facet ) );                                 
       }
 
       /** Report all remaining features not available - e.g., PRQFacet not relevant to Ellipsoid format */
@@ -229,6 +212,12 @@ namespace psmrts  {
                                  ProductOption( "status", "optional" ),
                                  ProductOption( "default", "naifdsk" ),
                                  ProductOption( "valid", "naifdsk" ) } );
+        ProductFeature shape( "shape", {
+                                 ProductOption( "name", "shape" ),
+                                 ProductOption( "type", "string" ),
+                                 ProductOption( "description", "Shape specs conflict with the naifdsk tracer" ),
+                                 ProductOption( "status", "conflict" ),
+                                 ProductOption( "default", "dsk" ) } );                                 
         ProductFeature dfile( "dsk_file", {
                                  ProductOption( "name", "dsk_file" ),
                                  ProductOption( "type", "file" ),
@@ -261,28 +250,24 @@ namespace psmrts  {
                                  ProductOption( "aliases", "required_kernels" ) } );
 #endif
         // This validates the JSON structure and provides product info to callers
-        return ( ProductSpecification( info, { product, dfile, bodyid, segid } ) );
+        return ( ProductSpecification( info, { product, shape, dfile, bodyid, segid } ) );
       }
       
       
       inline const ProductConfiguration &config() const {
         return ( m_config );
       }
-      
-      inline bool matches( const ProductConfiguration &conf ) const {
-        return ( this->config().matches( conf ) );
-      }
 
       inline double maximum_radius() const {
-        return ( m_model.maximum_radius() );
+        return ( m_model->maximum_radius() );
       }
 
       inline double minimum_radius() const {
-        return ( m_model.minimum_radius() );
+        return ( m_model->minimum_radius() );
       }
 
     private:
-      naif::DskKernelModel m_model;
+      naif::SharedDskKernelModel m_model;
       ProductConfiguration m_config;
 
       inline ProductConfiguration init_naifdsk( const std::string &source ) {
@@ -291,11 +276,11 @@ namespace psmrts  {
         return ( config );
       }
 
-      inline ProductConfiguration init_naifdsk( const naif::DskKernelModel &model, const std::string &source ) {
+      inline ProductConfiguration init_naifdsk( const naif::SharedDskKernelModel &model, const std::string &source ) {
         auto config = ProductConfiguration( source, { ProductOption( "tracer", "naifdsk" ),
                                                       ProductOption( "dsk_file", source ),
-                                                      ProductOption( "plates", std::to_string(model.plate_count())),
-                                                      ProductOption( "segments", std::to_string(model.n_dsk_segments())) } );
+                                                      ProductOption( "plates", std::to_string(model->plate_count())),
+                                                      ProductOption( "segments", std::to_string(model->n_dsk_segments())) } );
         return ( config );
       }
   };

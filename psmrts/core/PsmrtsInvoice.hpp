@@ -27,12 +27,10 @@ find files of those names at the top level of this repository. **/
 #include <psmrts/core/products/ProductMaker.hpp>
 #include <psmrts/core/products/ProductCart.hpp>
 #include <psmrts/core/products/ProductProcessing.hpp>
-#include <psmrts/core/products/ProductInventory.hpp>
 #include <psmrts/shapes/PsmrtsShape.hpp>
 #include <psmrts/tracers/PsmrtsTracer.hpp>
 #include <psmrts/core/PsmrtsInventory.hpp>
 #include <psmrts/core/PsmrtsFactory.hpp>
-
 
 namespace psmrts {
 
@@ -51,238 +49,239 @@ namespace psmrts {
    * shape. Each configuration that results in a tracer will be part of the
    * priority tracer. 
    * 
+   * Note that duplicate tracers are prevented from being in the priority tracer
+   * so the total count of tracers in the priority tracer may not be the same 
+   * as the number of submitted orders. Duplicate tracers will cause extended
+   * run times for traces that will not produce different results from previous
+   * traces in the priority tracer, so they are excluded.
+   * 
    * @author Kris J. Becker, University of Arizona
    * @history 2026-01-31 Kris J. Becker  Original Version
+   * @history 2026-08-26 Kris J. Becker Refactored to use heap memory
    */
-  class PsmrtsInvoice : public PsmrtsProduct, public PsmrtsRequest {
+  class PsmrtsInvoice : public PsmrtsErrors {
     public:
-      using UIDType              = PsmrtsProduct::UIDType;
-      using ProductSet           = ProductProcessing::ProductSet;
-      using ProductOrderList     = PsmrtsContainer<ProductSet>;
-      using PriorityTracerList   = PsmrtsFactory::PriorityTracerInventory;
+      using UIDType          = PsmrtsProduct::UIDType;
+      using ProductOrderList = std::vector<SharedOrder>;
+      using TracerList       = std::vector<SharedTracer>;
 
-      PsmrtsInvoice( ) : PsmrtsProduct( "PsmrtsInvoice" ),
-                         PsmrtsRequest( "invoice_errors" ),
+      PsmrtsInvoice( ) : PsmrtsErrors(),
+                         m_name( "invoice" ),
                          m_orders(  ),
-                         m_processor( ) { }
+                         m_inventory( make_shared_copy( PsmrtsInventory( ) ) ),
+                         m_tracers() { }
       PsmrtsInvoice( const std::string &name,
                      const PsmrtsTranslations &trans = PsmrtsTranslations() ) : 
-                     PsmrtsProduct( name ),
-                     PsmrtsRequest( "InvoiceErrors" ),                     
+                     m_name( name ),
                      m_orders( ),
-                     m_processor( trans ) { }                        
-      virtual ~PsmrtsInvoice() { }
-  
+                     m_inventory( ),
+                     m_tracers() {
+        m_inventory = make_shared_copy( PsmrtsInventory( name, trans ) );    
+      }
+      PsmrtsInvoice( const std::string &name,
+                     const SharedTranslations &trans) : 
+                     m_name( name ),
+                     m_orders( ),
+                     m_inventory( ),
+                     m_tracers() {
+        m_inventory = make_shared_copy( PsmrtsInventory( name, trans ) );    
+      }
 
+      virtual ~PsmrtsInvoice() = default;
+  
+      inline const std::string &name() const {
+        return ( m_name );
+      }
+
+      /** Returns the size of the orders */
       inline size_t size() const {
         return ( m_orders.size() );
       }
 
-      inline const std::string &name() const {
-        return ( PsmrtsProduct::name() );
+      /**
+       * @brief Checks the state of the orders and the tracer list for consistency
+       * 
+       * This method detects if the order size is consistent with the tracer list.
+       * If they are not the same, the submit_order() method should be run.
+       * 
+       * @return true   If the sizes of the orders and tracers are the same
+       * @return false  If they are not the same indicating a submit should be
+       *                  ran
+       */
+      inline bool isvalid() const {
+        return ( m_tracers.size() == m_orders.size() );
       }
 
+      /** Returns the file path translator  */
       inline const PsmrtsTranslations &translations() const {
-        return ( m_processor.translator() );
+        return ( *m_inventory->translations() );
       }
 
-      inline const ProductProcessing &processor() const {
-        return ( m_processor );
-      }
-
+      /** Returns the inventory for this invoice after submit_order() */
       inline const PsmrtsInventory &inventory() const {
-        return ( this->processor().inventory() );
+        return ( *m_inventory );
       }
 
       /**
        * @brief Process a product configuration, create product set (shape, tracer)
        * 
-       * This method processes a product configuration and creates a product set
-       * that may contain a shape and/or a tracer. 
+       * This method processes a product configuration and adds a product order
+       * to the invoice list.
        * 
-       * @param config      Product configuration
-       * @return ProductSet A product containing a shape/tracer
+       * This method does not create the tracer. See submit_order().
+       * 
+       * @param config Product configuration for the tracer
        */
-      inline ProductSet process_product( const ProductConfiguration &config ) {
+      inline void add( const ProductConfiguration &config ) {
 
         // Reset processor errors stack
-        m_processor.clear_errors();
-
-        // Parse/evalute the configuration
-        ProductSet product_s = m_processor.process_configuration( config );
-        if ( !m_processor.is_valid_product( product_s ) ) {
-          std::string mess = "PsmsrtsInvoice::process_product() - (" + 
-                              config.name() +
-                              ") config validation errors: " +
-                              m_processor.product_error_string( product_s );
-          this->add_error( mess );
-          return ( product_s );
+        this->clear_errors();
+        ProductProcessing processor( m_inventory->translations() );
+        auto order = processor.process_order( config );
+        if ( this->error_count() > 0 ) {
+          this->add_error( "PsmrtsInvoice::add() - Failed to process config order " + config.name() );
+          this->throw_errors();
         }
 
-        // Process the product set
-        if ( !m_processor.process_product_set( product_s ) ) {
-          std::string mess = "PsmrtsInvoice::process_product() - (" + 
-                             config.name() +
-                              ") product creation errors: " +
-                              m_processor.product_error_string( product_s );
-          this->add_error( mess );
-          return ( product_s );          
-        }
-        
-        // User can evaluate product set status
-        return ( product_s );
-      }
-
-
-      /**
-       * @brief Adds a product set to the internal container
-       * 
-       * This method adds a processed product set to the internal product set
-       * array. The product set typically should be error free and contain at
-       * least a shape and/or a tracer. It will not be added if the these
-       * conditions are not met.
-       * 
-       * It is assumed the tracer and/or shape has already been added to the
-       * cache as if processed.
-       * 
-       * @param product_set A processed product set containing a valid product
-       * @return true  If the product set is valid 
-       * @return false If the product set does not contain a valid product
-       */
-      inline bool add_product( const ProductSet &product_set ) {
-
-        // Must have at least one valid product - shape or tracer
-        if ( !m_processor.has_valid_product( product_set ) ) {
-          return ( false );
-        }
-
-        // Add the valid product
-        m_orders.add( product_set );
-        return (true );
+        // All good
+        m_orders.push_back( order );
+        return;
       }
 
       /**
-       * @brief Creates and adds a product to the invoice from a config
+       * @brief Submit the list of orders to factory for processing
        * 
-       * @param config Product configuration to create valid product
-       * @return true  If creation was successfull
-       * @return false If product could not be created
+       * The list of orders are submitted to the factory for processing. This
+       * will result in a local inventory of all the tracers and shapes generated
+       * in the list of processed configurations.
+       * 
+       * Note this method is reetrant. Additional configurations can be added 
+       * and submitted as the factory will check the local inventory for products
+       * first and then its resources. A new priority tracer can then be generated
+       * at any time. If the number of tracers do not match the number of orders
+       * it is sent back the factory for an update.
+       * 
+       * @return size_t Total number of tracers created from list of orders
        */
-      inline bool create_product( const ProductConfiguration &config ) {
-        return ( add_product( process_product( config ) ) );
+      inline size_t submit_order() {
+        m_tracers = PsmrtsFactory().process_order( m_orders, *m_inventory, *this );
+        if ( m_tracers.size() != m_orders.size() ) {
+          // This is an error and indicates at least one order failed processing
+          this->add_error( "PsmrtsInvoice::submit_order() - Number tracers returned (" +
+                           std::to_string( m_tracers.size() ) + ") not equal to orders (" +
+                           std::to_string( m_orders.size() ) + ")" );
+        }
+        if ( this->has_errors() ) this->throw_errors();
+        return ( m_tracers.size() );
       }
 
       /**
-       * @brief Add a PSMRTS tracer to the inventory and tracer list
+       * @brief Create list of PsmrtsTracers without duplicate tracers
        * 
-       * Use this method to directly add a existing PSMRTS tracer to the
-       * tracing system. It will be added to the configuration of the priority
-       * tracer and to the inventory. If the tracer already exists in the
-       * system, it will not replace its instance in the inventory, but will be
-       * added to the priority tracer configuration for future use.
+       * User tracer configurations at times can result duplications of tracers.
+       * This will result in longer trace times as repeat traces on the same
+       * tracer will produce the same result. This method removes duplicate
+       * tracers produced after processing by submit_order().
        * 
-       * @param tracer Tracer to add to the inventory/priority tracer system
-       * @return true  If the tracer is valid and the config is validated for use
-       * @return false If the tracer was not added to the system
+       * BEWARE this method may return less tracers than the tracers() method!!
+       * The result of the tracers() method may contain duplicate tracers. This 
+       * method removes duplicate tracers by uids.
+       * 
+       * @return TracerList Optimized list of tracers without duplicates
        */
-      inline bool add_tracer( const PsmrtsTracer &tracer ) {
-
-        if ( tracer.isValid() ) {
-
-          ProductConfiguration config_t = tracer.config();
-          m_processor.cache_tracer( tracer );
-
-          // Check for shape
-          PRQShape shaper;
-          if ( tracer.process( shaper ) ) {
-            config_t.merge( shaper.shape().config() );
-            m_processor.cache_shape( shaper.shape() );
-          }
-
-          // Configure tracer
-          ProductSet set_p( config_t );
-          set_p.tracer = ProductOrder( ProductCart( tracer.specs(), 
-                                                    tracer.config() ), 
-                                       this->translations() );
-          set_p.tracer_p.emplace( tracer );
-          set_p.set_tracer_uid( tracer.uid() );
-
-          if (shaper.isValid() ) {
-            set_p.shape = ProductOrder( ProductCart( shaper.shape().specs(), 
-                                                     shaper.shape().config() ), 
-                                        this->translations() );
-            set_p.shape_p.emplace( shaper.shape() );
-            set_p.set_shape_uid( shaper.shape().uid() );              
-          }
-
-          m_orders.add( set_p );
-        }
-
-        return (tracer.isValid() );
-      }
-
-      /**
-       * @brief Add a PSMRTS shape to the inventory
-       * 
-       * Use this method to directly add a existing PSMRTS shape to the
-       * inventory system. If the shape already exists in the system, it will
-       * not replace its instance in the inventory, but will be made available
-       * for use in tracer configurations.
-       * 
-       * @param tracer Shape to add to the inventory/priority inventory system
-       * @return true  If the shape is valid and added to the inventory system
-       * @return false If the shape was not added to the system
-       */
-      inline bool add_shape( const PsmrtsShape &shape ) {
-
-        bool isgood = shape.isValid();
-        if ( shape.isValid() ) {
-          if ( isgood ){
-            m_processor.cache_shape( shape );
-          }
-        }
-
-        return ( isgood );
-      }      
-
-      /** Get a list of all the orders in this invoice */
-      inline const ProductOrderList &orders( ) const {
-        return ( m_orders );
+      inline TracerList optimized_tracer_list() const {
+        return ( remove_duplicates( m_tracers ) );
       }
 
       /**
        * @brief Get the priority tracer object generated from the product configs
        * 
        * This method will create a priority tracer from the results of the
-       * configs contained in this invoice. It will generate a priority tracer
-       * from the contents of the order ProductSet and can be called any number
+       * configs/orders contained in this invoice. It will generate a priority tracer
+       * from the contents of the order list and can be called any number
        * of times - even after adding new products.
+       * 
+       * A new instance of a priority tracer is returned since order is maintained
+       * in each priority tracer. 
+       * 
+       * Note that the number of tracers in the priority tracer may not match
+       * the number of orders in the invoice. Redundant tracers are removed
+       * before the priority tracer is created. Each priority tracer is unique
+       * and does not share the same list (but tracer instances are shared).
+       * It would be quite inefficient and unnecessary to have duplicate tracers
+       * in the priorty tracer.
        * 
        * @param name  Name of the priority tracer to create.
        * @return PsmrtsPriorityTracer A priority tracer from the order set
        */
-      inline PsmrtsPriorityTracer make_priority_tracer( const std::string &name = "" ) 
-                                                           const {
-        std::string name_t = ( name.length() > 0 ) ? name : this->name();
+      inline PsmrtsPriorityTracer make_priority_tracer( const std::string &name = "" ) {
+        if ( !this->isvalid() ) this->submit_order();
+        std::string name_t = ( name.length() > 0 ) ? name : m_name;
+        return ( PsmrtsPriorityTracer( name_t, optimized_tracer_list() ) );
+      }
 
-        PsmrtsPriorityTracer tracer_p( name_t );
+      /** Returns a list of tracers in the order (priority) submitted */
+      inline const std::vector<SharedTracer> &tracers() const {
+        return ( m_tracers );
+      }
 
-        for ( const auto &order : this->orders() ) {
-          if ( order.has_tracer() ) {
-            tracer_p.add_tracer( order.tracer_p.value() );
-          }
-        }
+      /** Returns a list of processed order configurations in the order (priority) submitted */
+      inline const ProductOrderList &orders() const {
+        return ( m_orders );
+      }      
 
-        return ( tracer_p );
+      /** Construct and return a product processor consistent with this object */
+      inline ProductProcessing processor() const {
+        return ( ProductProcessing( m_inventory->translations() ) );
       }
 
     private:
-      ProductOrderList     m_orders;
-      ProductProcessing    m_processor;
+      std::string      m_name;
+      ProductOrderList m_orders;
+      SharedInventory  m_inventory;
+      TracerList       m_tracers;
 
+      /**
+       * @brief Removes redundant tracers from the list after submission
+       * 
+       * This method will check tracers after they are created to determine if
+       * they have already been added to the list. Under most circumstances, 
+       * there is no reason to have redundant tracers in the a priority tracer
+       * as it simply adds overhead. This because the first result of a trace
+       * will be the same in duplicates of other tracers. 
+       * 
+       * The determination of redundant tracers is made by checking for the
+       * same tracer pointers. 
+       * 
+       * @param  list_t
+       * @return TracerList List of unique tracers in ist_t
+       */
+      inline TracerList remove_duplicates( const TracerList &list_t ) const {
+        TracerList newlist_t;
+        newlist_t.reserve( list_t.size() );
 
+        /** Checks for duplicate except at index_t assumed to be t */
+        auto tracer_dup = [&]( auto &t, const size_t max_i ) -> bool {
+          for ( size_t j = 0 ; j < max_i ; j++ ) {
+            if ( t->uid() == list_t[j]->uid() ) return ( true );
+          }
+          return ( false );
+        };
+
+        // Check for duplicates and only return unique ones
+        for ( size_t i = 0 ; i < list_t.size() ; i++ ) {
+          if ( !tracer_dup( list_t[i], i ) ) {
+            newlist_t.push_back( list_t[i] );
+          }
+        }
+
+        return ( newlist_t );
+      }
 
   };
+
+  // Declare a shared pointer type for tracers
+  using SharedInvoice = std::shared_ptr<PsmrtsInvoice>;
 
 } // namespace psmrts
 

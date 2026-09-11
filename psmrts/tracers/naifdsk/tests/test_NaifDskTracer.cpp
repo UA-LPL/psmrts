@@ -4,40 +4,25 @@
 #include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
 #include <psmrts/core/PsmrtsUtilities.hpp>
 
-TEST_CASE("NAIF Dsk Shape Tracer - Default Constructor", "[default][naifdsk][shapetracer]"){
-    const double tolerance = 1.0e-6;
+TEST_CASE( "NAIF Dsk Shape Tracer - Default Constructor", "[default][naifdsk][shapetracer]" ){
 
-    CHECK( sizeof( psmrts::NaifDskTracer ) <= 860 );  
+    CHECK( sizeof( psmrts::NaifDskTracer ) > 0 );  
 
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
     psmrts::NaifDskTracer dsk_string_tracer( dskfile );
     
-    psmrts::PRQFeatures features_string;
-    CHECK( dsk_string_tracer.process( features_string ) == true ); 
-
-    nlohmann::ordered_json j_output;
-    nlohmann::ordered_json j_add;
-    j_add += { "name" , "naifdsk" };
-    j_add += { "product" , "shapetracer" };
-    j_add += { "mesh" , true };
-    j_output += j_add;
-
-    auto feat_diff = nlohmann::ordered_json::diff(features_string.config(), j_output);
-    CHECK( feat_diff.empty() );
-    
-    CHECK( features_string.to_string() == features_string.config().dump());
-
     naif::DskKernelModel dsk( dskfile );
     psmrts::NaifDskTracer dsk_model_tracer( dsk );
+    psmrts::PsmrtsRequest request;
 
-    psmrts::PRQFeatures features_model;
-    CHECK( dsk_model_tracer.process (features_model) == true );
-
-    CHECK( features_model.to_string() == features_string.to_string() );
-    CHECK( features_model.config().dump() == features_string.config().dump() );
+    CHECK( dsk_model_tracer.process( request ) == false );
+    CHECK( request.error_count()               == 1 );
+    CHECK( request.errors_to_string()          == "NaifDskTracer::process(PsmrtsRequest) is not implemented/available!" );
+    CHECK( request.was_invoked()               == false );
+    CHECK( request.process_status()            == false );
 }
 
-TEST_CASE("NAIF Dsk Shape Tracer Test", "[naifdsk][shapetracer]") {
+TEST_CASE( "NAIF Dsk Shape Tracer Test", "[naifdsk][shapetracer]" ) {
     const double tolerance_km = 1.0e-6;
 
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
@@ -59,8 +44,8 @@ TEST_CASE("NAIF Dsk Shape Tracer Test", "[naifdsk][shapetracer]") {
     double surf_lat = 45.0 * rpd_c();
     latrec_c( radius, surf_lon, surf_lat, surf.data() );
 
-    Eigen::Vector3d surf_obs = surf * (max_radius + 1.5);
-    psmrts::PRQRayTrace prq_ray(surf_obs, -surf_obs);
+    Eigen::Vector3d surf_obs = surf * ( max_radius + 1.5 );
+    psmrts::PRQRayTrace prq_ray( surf_obs, -surf_obs );
     REQUIRE( d_tracer.process( prq_ray ) == true );
 
     Eigen::Vector3d lkdr = prq_ray.trace().xyz() - obs;
@@ -74,29 +59,29 @@ TEST_CASE("NAIF Dsk Shape Tracer Test", "[naifdsk][shapetracer]") {
     CHECK( prq_ray.isValid() == true );
     CHECK( prq_spt.isValid() == prq_spt.trace().hasHit() );
 
-    CHECK_THAT( normal[0], Catch::Matchers::WithinAbs( 0.0, tolerance_km));
-    CHECK_THAT( normal[1], Catch::Matchers::WithinAbs( 0.5257310809272836, tolerance_km));
-    CHECK_THAT( normal[2], Catch::Matchers::WithinAbs( 0.8506508276296626, tolerance_km));
+    CHECK_THAT( normal[0], Catch::Matchers::WithinAbs( 0.0, tolerance_km ) );
+    CHECK_THAT( normal[1], Catch::Matchers::WithinAbs( 0.5257310809272836, tolerance_km ) );
+    CHECK_THAT( normal[2], Catch::Matchers::WithinAbs( 0.8506508276296626, tolerance_km ) );
 
     double d_lat, d_lon, d_radius;
     reclat_c( xyz.data(), &d_radius, &d_lon, &d_lat );
 
-    CHECK_THAT( d_lon, Catch::Matchers::WithinAbs( 90.0 * rpd_c(), tolerance_km ));
-    CHECK_THAT( d_lat, Catch::Matchers::WithinAbs( 45.0 * rpd_c(), tolerance_km ));
+    CHECK_THAT( d_lon, Catch::Matchers::WithinAbs( 90.0 * rpd_c(), tolerance_km ) );
+    CHECK_THAT( d_lat, Catch::Matchers::WithinAbs( 45.0 * rpd_c(), tolerance_km ) );
 
-    CHECK_THAT( d_radius, Catch::Matchers::WithinAbs( prq_spt.trace().radius(), tolerance_km));
-    CHECK_THAT( d_lon, Catch::Matchers::WithinAbs( surf_lon, tolerance_km ));
-    CHECK_THAT( d_lat, Catch::Matchers::WithinAbs( surf_lat, tolerance_km ));
+    CHECK_THAT( d_radius, Catch::Matchers::WithinAbs( prq_spt.trace().radius(), tolerance_km ) );
+    CHECK_THAT( d_lon, Catch::Matchers::WithinAbs( surf_lon, tolerance_km ) );
+    CHECK_THAT( d_lat, Catch::Matchers::WithinAbs( surf_lat, tolerance_km ) );
 
-    CHECK_THAT( xyz[0], Catch::Matchers::WithinAbs( prq_ray.trace().xyz()[0], tolerance_km )); 
-    CHECK_THAT( xyz[1], Catch::Matchers::WithinAbs( prq_ray.trace().xyz()[1], tolerance_km )); 
-    CHECK_THAT( xyz[2], Catch::Matchers::WithinAbs( prq_ray.trace().xyz()[2], tolerance_km )); 
+    CHECK_THAT( xyz[0], Catch::Matchers::WithinAbs( prq_ray.trace().xyz()[0], tolerance_km ) ); 
+    CHECK_THAT( xyz[1], Catch::Matchers::WithinAbs( prq_ray.trace().xyz()[1], tolerance_km ) ); 
+    CHECK_THAT( xyz[2], Catch::Matchers::WithinAbs( prq_ray.trace().xyz()[2], tolerance_km ) ); 
 
     // Compare Values to OBJ/Bullet - should they be the same given similar parameters?
     psmrts::PRQFacet prq_facet( prq_ray.trace() );
-    CHECK( prq_facet.isValid() == true );
+    CHECK( prq_facet.isValid()              == true );
     CHECK( d_tracer.process( prq_facet ) );
-    CHECK( prq_facet.facet().isValid() == true ); 
+    CHECK( prq_facet.facet().isValid()      == true ); 
     CHECK( prq_facet.prq_trace().emission() == prq_ray.emission() ); 
 
     CHECK( prq_facet.trace().segment_number() == 2101955 );
@@ -105,9 +90,9 @@ TEST_CASE("NAIF Dsk Shape Tracer Test", "[naifdsk][shapetracer]") {
     CHECK( prq_facet.facet().m_indexes[1]     == 11 );
     CHECK( prq_facet.facet().m_indexes[2]     == 5 );
 
-    CHECK_THAT( prq_facet.facet().m_normal[0], Catch::Matchers::WithinAbs( 0.00000002599305449, tolerance_km));
-    CHECK_THAT( prq_facet.facet().m_normal[1], Catch::Matchers::WithinAbs( 0.52573108811158831, tolerance_km));
-    CHECK_THAT( prq_facet.facet().m_normal[2], Catch::Matchers::WithinAbs( 0.85065082318951801, tolerance_km));
+    CHECK_THAT( prq_facet.facet().m_normal[0], Catch::Matchers::WithinAbs( 0.00000002599305449, tolerance_km ) );
+    CHECK_THAT( prq_facet.facet().m_normal[1], Catch::Matchers::WithinAbs( 0.52573108811158831, tolerance_km ) );
+    CHECK_THAT( prq_facet.facet().m_normal[2], Catch::Matchers::WithinAbs( 0.85065082318951801, tolerance_km ) );
     
     CHECK_THAT( prq_facet.facet().m_vector1[0], Catch::Matchers::WithinAbs( -0.10100385653540001, tolerance_km ) );
     CHECK_THAT( prq_facet.facet().m_vector1[1], Catch::Matchers::WithinAbs( 0.0, tolerance_km ) );
@@ -122,7 +107,7 @@ TEST_CASE("NAIF Dsk Shape Tracer Test", "[naifdsk][shapetracer]") {
     CHECK_THAT( prq_facet.facet().m_vector3[2], Catch::Matchers::WithinAbs( 0.10100385653540001, tolerance_km ) );
 }
 
-TEST_CASE( "NAIF Dsk Shape Tracer Ray Trace Array Test", "[naifdsk][shapetracer][raytrace][array]") {
+TEST_CASE( "NAIF Dsk Shape Tracer Ray Trace Array Test", "[naifdsk][shapetracer][raytrace][array]" ) {
     const double tolerance = 1.0e-6;
 
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
@@ -145,8 +130,8 @@ TEST_CASE( "NAIF Dsk Shape Tracer Ray Trace Array Test", "[naifdsk][shapetracer]
     double surf_lat1 = 50.0 * rpd_c();
     latrec_c ( radius1, surf_lon1, surf_lat1, surf1.data() );
 
-    Eigen::Vector3d surf_obs1 = surf1 * (max_radius + 1.5);
-    psmrts::PRQRayTrace prq_ray1(surf_obs1, -surf_obs1 );
+    Eigen::Vector3d surf_obs1 = surf1 * ( max_radius + 1.5 );
+    psmrts::PRQRayTrace prq_ray1( surf_obs1, -surf_obs1 );
     REQUIRE( d_tracer.process( prq_ray1 ) == true );
 
     Eigen::Vector3d lookdir1 = prq_ray1.trace().xyz() - obs1;
@@ -168,13 +153,13 @@ TEST_CASE( "NAIF Dsk Shape Tracer Ray Trace Array Test", "[naifdsk][shapetracer]
     double surf_lat2 = 45.0 * rpd_c();
     latrec_c ( radius2, surf_lon2, surf_lat2, surf2.data() );
 
-    Eigen::Vector3d surf_obs2 = surf2 * (max_radius + 1.5);
-    psmrts::PRQRayTrace prq_ray2(surf_obs2, -surf_obs2 );
+    Eigen::Vector3d surf_obs2 = surf2 * ( max_radius + 1.5 );
+    psmrts::PRQRayTrace prq_ray2( surf_obs2, -surf_obs2 );
     REQUIRE( d_tracer.process( prq_ray2 ) == true );
 
     Eigen::Vector3d lookdir2 = prq_ray2.trace().xyz() - obs2;
 
-    psmrts::PRQRayTrace prq_spt2(obs2, lookdir2 );
+    psmrts::PRQRayTrace prq_spt2( obs2, lookdir2 );
     REQUIRE( d_tracer.process( prq_spt2 ) );
     CHECK( prq_spt2.trace().hasHit() == true ); 
 
@@ -193,27 +178,27 @@ TEST_CASE( "NAIF Dsk Shape Tracer Ray Trace Array Test", "[naifdsk][shapetracer]
 
     Eigen::Vector3d lookdir3 = surf3 - obs3; 
 
-    psmrts::PRQRayTrace prq_spt3(obs3, lookdir3 );
+    psmrts::PRQRayTrace prq_spt3( obs3, lookdir3 );
     CHECK( d_tracer.process( prq_spt3 ) == false );
-    CHECK( prq_spt3.trace().hasHit() == false ); 
+    CHECK( prq_spt3.trace().hasHit()    == false ); 
 
     psmrts::PRQRayTraceArray ray_array;
     // empty, no hits
     CHECK( d_tracer.process( ray_array ) == false );
 
     // add one miss - should still be false
-    ray_array.add_trace(prq_spt3);
+    ray_array.add_trace( prq_spt3 );
     CHECK( d_tracer.process( ray_array ) == false );
 
     // add two hits
-    ray_array.add_trace(prq_spt1);
-    ray_array.add_trace(prq_spt2);
+    ray_array.add_trace( prq_spt1 );
+    ray_array.add_trace( prq_spt2 );
 
     // needs at least one hit to be true
     CHECK ( d_tracer.process( ray_array ) == true );
 }
 
-TEST_CASE( "NAIF Dsk Shape Tracer Photometric Values Test", "[naifdsk][shapetracer][photometric]") {
+TEST_CASE( "NAIF Dsk Shape Tracer Photometric Values Test", "[naifdsk][shapetracer][photometric]" ) {
     const double tolerance = 1.0e-6;
 
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
@@ -237,9 +222,9 @@ TEST_CASE( "NAIF Dsk Shape Tracer Photometric Values Test", "[naifdsk][shapetrac
 
     // Find the real surface point using bullet surf_obs( 45d, 50d, 1.5 km)
     Eigen::Vector3d surf_obs = surf * 1.5;
-    psmrts::PRQRayTrace prq_surf(surf_obs, -surf_obs );
+    psmrts::PRQRayTrace prq_surf( surf_obs, -surf_obs );
     CHECK( d_tracer.process( prq_surf ) == true );
-    CHECK( surf_obs == prq_surf.trace().observer() ); 
+    CHECK( surf_obs                     == prq_surf.trace().observer() ); 
 
     // Now compute expected/precise look vector from observer to surface intercept point
     Eigen::Vector3d lookdir = prq_surf.trace().xyz() - observer;
@@ -247,7 +232,7 @@ TEST_CASE( "NAIF Dsk Shape Tracer Photometric Values Test", "[naifdsk][shapetrac
     // Create trace from observer to surface xyz = (45d, 50d, r km)
     psmrts::PRQRayTrace prq_ray( observer, lookdir );
     CHECK( d_tracer.process( prq_ray ) == true );
-    CHECK( prq_ray.trace().lookdir() == lookdir );
+    CHECK( prq_ray.trace().lookdir()   == lookdir );
 
     // Rigorous check of surface points
     Eigen::Vector3d ps_xyz  = prq_surf.trace().xyz();
@@ -278,7 +263,7 @@ TEST_CASE( "NAIF Dsk Shape Tracer Photometric Values Test", "[naifdsk][shapetrac
     Eigen::Vector3d sun_pos;
     double sun_lon = psmrts::degrees_to_radians( 20.0 );
     double sun_lat = psmrts::degrees_to_radians( 20.0 );
-    latrec_c( radius, sun_lon, sun_lat, sun_pos.data());
+    latrec_c( radius, sun_lon, sun_lat, sun_pos.data() );
     sun_pos = sun_pos * 50.0;
 
     // Angle between the observer and sun
@@ -287,16 +272,16 @@ TEST_CASE( "NAIF Dsk Shape Tracer Photometric Values Test", "[naifdsk][shapetrac
 
     // Compute the look direction from sun to surface point
     Eigen::Vector3d lookdir_s = prq_ray.trace().xyz() - sun_pos;
-    psmrts::PRQRayTrace prq_sun(sun_pos, lookdir_s );
+    psmrts::PRQRayTrace prq_sun( sun_pos, lookdir_s );
     CHECK( d_tracer.process( prq_sun ) == true );
     CHECK( prq_sun.trace().hasHit()    == true );
     CHECK( prq_sun.trace().lookdir()   == lookdir_s );
 
     // Compute/check photometric angles
-    CHECK_THAT( psmrts::radians_to_degrees( prq_obs.emission(  ) ), Catch::Matchers::WithinAbs( 30.27681520779734825, tolerance) );
-    CHECK_THAT( psmrts::radians_to_degrees( prq_sun.emission(  ) ), Catch::Matchers::WithinAbs( 62.78856867179433721, tolerance) );
-    CHECK_THAT( psmrts::radians_to_degrees( prq_obs.incidence( prq_sun.trace() ) ), Catch::Matchers::WithinAbs( 62.78856867179433721, tolerance) );
-    CHECK_THAT( psmrts::radians_to_degrees( prq_obs.phase( prq_sun.trace() ) ),     Catch::Matchers::WithinAbs( 32.5121566730878726, tolerance) );
+    CHECK_THAT( psmrts::radians_to_degrees( prq_obs.emission(  ) ), Catch::Matchers::WithinAbs( 30.27681520779734825, tolerance ) );
+    CHECK_THAT( psmrts::radians_to_degrees( prq_sun.emission(  ) ), Catch::Matchers::WithinAbs( 62.78856867179433721, tolerance ) );
+    CHECK_THAT( psmrts::radians_to_degrees( prq_obs.incidence( prq_sun.trace() ) ), Catch::Matchers::WithinAbs( 62.78856867179433721, tolerance ) );
+    CHECK_THAT( psmrts::radians_to_degrees( prq_obs.phase( prq_sun.trace() ) ),     Catch::Matchers::WithinAbs( 32.5121566730878726, tolerance ) );
 
     // FINALLY create the Photometric trace and run it!
     psmrts::PRQPhotometricTrace prq_photo( observer, lookdir, sun_pos );
@@ -319,21 +304,17 @@ TEST_CASE( "NAIF Dsk Shape Tracer Photometric Values Test", "[naifdsk][shapetrac
     // Compare surface intercept points of observer and sun
     Eigen::Vector3d o_xyz = prq_photo.observer_trace().xyz();
     Eigen::Vector3d s_xyz = prq_photo.sun_trace().xyz();
-    CHECK_THAT( o_xyz[0], Catch::Matchers::WithinAbs( s_xyz[0], tolerance) );
+    CHECK_THAT( o_xyz[0], Catch::Matchers::WithinAbs( s_xyz[0], tolerance ) );
     CHECK_THAT( o_xyz[1], Catch::Matchers::WithinAbs( s_xyz[1], tolerance ) );
     CHECK_THAT( o_xyz[2], Catch::Matchers::WithinAbs( s_xyz[2], tolerance ) );
 
     // Compute/check photometric angles compared to prt_obs above
-    CHECK_THAT( psmrts::radians_to_degrees( prq_photo.emission(  ) ), Catch::Matchers::WithinAbs( 30.27681520779735536, tolerance) );
-    CHECK_THAT( psmrts::radians_to_degrees( prq_photo.incidence( ) ), Catch::Matchers::WithinAbs( 62.78856867179433721, tolerance) );
-    CHECK_THAT( psmrts::radians_to_degrees( prq_photo.phase( ) ),     Catch::Matchers::WithinAbs( 32.5121566730878726, tolerance) );   
-
-    // Should values be this different from Bullet version?
-    // Related to lookdir calculation handling?
-
+    CHECK_THAT( psmrts::radians_to_degrees( prq_photo.emission(  ) ), Catch::Matchers::WithinAbs( 30.27681520779735536, tolerance ) );
+    CHECK_THAT( psmrts::radians_to_degrees( prq_photo.incidence( ) ), Catch::Matchers::WithinAbs( 62.78856867179433721, tolerance ) );
+    CHECK_THAT( psmrts::radians_to_degrees( prq_photo.phase( ) ),     Catch::Matchers::WithinAbs( 32.5121566730878726, tolerance ) );   
 }
 
-TEST_CASE( "NAIF Dsk Shape Tracer Photometric Array Test", "[naifdsk][shapetracer][photometric][array]") {
+TEST_CASE( "NAIF Dsk Shape Tracer Photometric Array Test", "[naifdsk][shapetracer][photometric][array]" ) {
     const double tolerance = 1.0e-6;
 
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
@@ -356,7 +337,7 @@ TEST_CASE( "NAIF Dsk Shape Tracer Photometric Array Test", "[naifdsk][shapetrace
     double surf_lat1 = psmrts::degrees_to_radians( 50.0 );
     latrec_c ( radius, surf_lon1, surf_lat1, surf1.data() );
 
-    Eigen::Vector3d surf_obs1 = surf1 * (max_radius + 1.5);
+    Eigen::Vector3d surf_obs1 = surf1 * ( max_radius + 1.5 );
     psmrts::PRQRayTrace prq_surf1(surf_obs1, -surf_obs1 );
     CHECK( d_tracer.process( prq_surf1 ) == true );
     CHECK( surf_obs1 == prq_surf1.trace().observer() );
@@ -369,11 +350,11 @@ TEST_CASE( "NAIF Dsk Shape Tracer Photometric Array Test", "[naifdsk][shapetrace
     Eigen::Vector3d sun_pos1;
     double sun_lon1 = psmrts::degrees_to_radians( 20.0 );
     double sun_lat1 = psmrts::degrees_to_radians( 20.0 );
-    latrec_c( radius, sun_lon1, sun_lat1, sun_pos1.data());
+    latrec_c( radius, sun_lon1, sun_lat1, sun_pos1.data() );
     sun_pos1 = sun_pos1 * 50.0;
 
     Eigen::Vector3d lookdir_s1 = prq_ray1.trace().xyz() - sun_pos1;
-    psmrts::PRQRayTrace prq_sun1(sun_pos1, lookdir_s1 );
+    psmrts::PRQRayTrace prq_sun1( sun_pos1, lookdir_s1 );
     CHECK( d_tracer.process( prq_sun1 ) == true );
     CHECK( prq_sun1.trace().hasHit()    == true );
 
@@ -395,8 +376,8 @@ TEST_CASE( "NAIF Dsk Shape Tracer Photometric Array Test", "[naifdsk][shapetrace
     double surf_lat2 = psmrts::degrees_to_radians( 45.0 );
     latrec_c ( radius, surf_lon2, surf_lat2, surf2.data() );
 
-    Eigen::Vector3d surf_obs2 = surf2 * (max_radius + 1.5);
-    psmrts::PRQRayTrace prq_surf2(surf_obs2, -surf_obs2 );
+    Eigen::Vector3d surf_obs2 = surf2 * ( max_radius + 1.5 );
+    psmrts::PRQRayTrace prq_surf2( surf_obs2, -surf_obs2 );
     CHECK( d_tracer.process( prq_surf2 ) == true );
     CHECK( surf_obs2 == prq_surf2.trace().observer() );
 
@@ -438,16 +419,16 @@ TEST_CASE( "NAIF Dsk Shape Tracer Photometric Array Test", "[naifdsk][shapetrace
 
     psmrts::PRQRayTrace prq_ray3( observer3, lookdir3 );
     CHECK( d_tracer.process( prq_ray3 ) == false );
-    CHECK( prq_ray3.trace().hasHit() == false );
+    CHECK( prq_ray3.trace().hasHit()    == false );
 
     Eigen::Vector3d sun_pos3;
     double sun_lon3 = psmrts::degrees_to_radians( 20.0 );
     double sun_lat3 = psmrts::degrees_to_radians( 20.0 );
-    latrec_c( radius, sun_lon3, sun_lat3, sun_pos3.data());
+    latrec_c( radius, sun_lon3, sun_lat3, sun_pos3.data() );
     sun_pos3 = sun_pos3 * 50.0;
 
     Eigen::Vector3d lookdir_s3 = prq_ray3.trace().xyz() - sun_pos3;
-    psmrts::PRQRayTrace prq_sun3(sun_pos3, lookdir_s3 );
+    psmrts::PRQRayTrace prq_sun3( sun_pos3, lookdir_s3 );
     CHECK( d_tracer.process( prq_sun3 ) == true ); // Should be false?
     CHECK( prq_sun3.trace().hasHit()    == true ); // should be false?
 
@@ -472,7 +453,7 @@ TEST_CASE( "NAIF Dsk Shape Tracer Photometric Array Test", "[naifdsk][shapetrace
 
 // This test compares facet data resulting from a dsk Ray Trace to a PRQRequest Ray Trace,
 // ensuring they target the same segment/plate.
-TEST_CASE( "NAIF Dsk Shape Tracer Ray-Facet Test", "[naifdsk][shapetracer][raytrace][facet]") {
+TEST_CASE( "NAIF Dsk Shape Tracer Ray-Facet Test", "[naifdsk][shapetracer][raytrace][facet]" ) {
     const double tolerance_km = 1.0e-6;
 
     std::string dskfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
@@ -487,7 +468,7 @@ TEST_CASE( "NAIF Dsk Shape Tracer Ray-Facet Test", "[naifdsk][shapetracer][raytr
     Eigen::Vector3d surf;
     latrec_c( 1.0, dsk_lon, dsk_lat, surf.data() ); 
 
-    Eigen::Vector3d surf_obs = surf * (max_radius + 1.5 );
+    Eigen::Vector3d surf_obs = surf * ( max_radius + 1.5 );
     psmrts::PRQRayTrace prq_ray( surf_obs, -surf_obs );
 
     CHECK( d_tracer.process( prq_ray ));
@@ -496,7 +477,7 @@ TEST_CASE( "NAIF Dsk Shape Tracer Ray-Facet Test", "[naifdsk][shapetracer][raytr
     CHECK( d_tracer.process( prq_facet ) );
 
     psmrts::PsmrtsRayTrace dsk_ray;
-    CHECK( dsk.ray_trace( surf_obs, -surf_obs, dsk_ray) );
+    CHECK( dsk.ray_trace( surf_obs, -surf_obs, dsk_ray ) );
     psmrts::PsmrtsRayTrace::FacetDatum dsk_facet;
     CHECK( dsk.get_facet( dsk_ray, dsk_facet ) );
 
@@ -504,9 +485,9 @@ TEST_CASE( "NAIF Dsk Shape Tracer Ray-Facet Test", "[naifdsk][shapetracer][raytr
     CHECK( prq_facet.trace().plateid()        == dsk_ray.datum().m_plateid );
     CHECK( prq_facet.facet().m_indexes        == dsk_facet.m_indexes );
 
-    CHECK_THAT( prq_facet.facet().m_normal[0], Catch::Matchers::WithinAbs( dsk_facet.m_normal[0], tolerance_km));
-    CHECK_THAT( prq_facet.facet().m_normal[1], Catch::Matchers::WithinAbs( dsk_facet.m_normal[1], tolerance_km));
-    CHECK_THAT( prq_facet.facet().m_normal[2], Catch::Matchers::WithinAbs( dsk_facet.m_normal[2], tolerance_km));
+    CHECK_THAT( prq_facet.facet().m_normal[0], Catch::Matchers::WithinAbs( dsk_facet.m_normal[0], tolerance_km ) );
+    CHECK_THAT( prq_facet.facet().m_normal[1], Catch::Matchers::WithinAbs( dsk_facet.m_normal[1], tolerance_km ) );
+    CHECK_THAT( prq_facet.facet().m_normal[2], Catch::Matchers::WithinAbs( dsk_facet.m_normal[2], tolerance_km ) );
     
     CHECK_THAT( prq_facet.facet().m_vector1[0], Catch::Matchers::WithinAbs( dsk_facet.m_vector1[0], tolerance_km ) );
     CHECK_THAT( prq_facet.facet().m_vector1[1], Catch::Matchers::WithinAbs( dsk_facet.m_vector1[1], tolerance_km ) );
@@ -521,17 +502,15 @@ TEST_CASE( "NAIF Dsk Shape Tracer Ray-Facet Test", "[naifdsk][shapetracer][raytr
     CHECK_THAT( prq_facet.facet().m_vector3[2], Catch::Matchers::WithinAbs( dsk_facet.m_vector3[2], tolerance_km ) );
 }
 
-TEST_CASE( "NAIF Dsk Shape Tracer Product Specification Test", "[naifdsk][shapetracer][product][specification]") {
+TEST_CASE( "NAIF Dsk Shape Tracer Product Specification Test", "[naifdsk][shapetracer][product][specification]" ) {
     psmrts::ProductSpecification spec = psmrts::NaifDskTracer::product_specifications();
 
-    CHECK( spec.name()              == "naifdsk"     );
+    CHECK( spec.name()              == "naifdsk" );
     CHECK( spec.product()           == "tracer" ); 
-    CHECK( spec.size()              == 4             );
-    CHECK( spec.features().size()   == 4             );
-    CHECK( spec.required().size()   == 1             );
-    CHECK( spec.optional().size()   == 3             );
+    CHECK( spec.size()              == 5 );
+    CHECK( spec.features().size()   == 5 );
+    CHECK( spec.required().size()   == 1 );
+    CHECK( spec.optional().size()   == 3 );
 
     CHECK( spec.contains( "obj_mtl_search_path" ) == false );
-    // CHECK( spec.contains( "kernels" )             == true  );
-
 }

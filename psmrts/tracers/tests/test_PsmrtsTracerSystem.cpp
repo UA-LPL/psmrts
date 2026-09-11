@@ -1,5 +1,8 @@
 #include <psmrts/core/tests/psmrts_catch2_environment.hpp>
 
+#include <thread>
+#include <random>
+
 #include <psmrts/core/PsmrtsUtilities.hpp>
 #include <psmrts/core/PsmrtsUID.hpp>
 #include <psmrts/core/PsmrtsRequest.hpp>
@@ -12,266 +15,276 @@
 #include <psmrts/shapes/obj/ObjShape.hpp>
 #include <psmrts/core/ISISDataDirectory.hpp>
 
+#include <psmrts/tracers/naifdsk/private/KernelFileSystem.hpp>
 #include <psmrts/tracers/naifdsk/private/DskKernelModel.hpp>
 
-TEST_CASE("PsmrtsTracerSystem Default Test", "[tracer][system][default]") {
-   psmrts::PsmrtsFactory().liquidate();
+TEST_CASE( "PsmrtsTracerSystem Default Test", "[tracer][system][default]" ) {
+  psmrts::PsmrtsFactory().liquidate();
 
-    psmrts::PsmrtsTracerSystem sys1;
-    CHECK( sys1.get_ellipsoid_tracer().isValid() == false ); 
-    CHECK( sys1.get_shape_tracer().isValid()     == false ); 
-    CHECK( sys1.get_shape_tracer().size()        == 0 );
+  psmrts::PsmrtsTracerSystem sys1;
+  CHECK( sizeof( psmrts::PsmrtsTracerSystem ) >  0 );
+  CHECK( sys1.get_ellipsoid_tracer().get()    == nullptr ); 
+  CHECK( sys1.get_shape_tracer().isValid()    == false ); 
 
-    psmrts::PsmrtsTracerSystem sys2("test");
-    CHECK( sys2.name() == "test" );
-    CHECK( sys2.get_ellipsoid_tracer().isValid() == false ); 
-    CHECK( sys2.get_shape_tracer().isValid()     == false ); 
-    CHECK( sys2.get_shape_tracer().size()        == 0 );
+  psmrts::PsmrtsTracerSystem sys2( "test" );
+  CHECK( sys2.name()                       == "test" );
+  CHECK( sys2.get_ellipsoid_tracer().get() == nullptr ); 
+  CHECK( sys2.get_shape_tracer().isValid() == false ); 
+  CHECK( sys2.get_shape_tracer().size()    == 0 );
 
-    std::vector<std::string> bad_list{"bad/path"};
-    CHECK_THROWS( psmrts::PsmrtsTracerSystem("test2", bad_list).throw_errors() );
-  
-    psmrts::PsmrtsFactory().liquidate();
+  std::vector<std::string> bad_list{"bad/path"};
+  CHECK_THROWS( psmrts::PsmrtsTracerSystem("test2", bad_list).throw_errors() );
+
+  psmrts::PsmrtsFactory().liquidate();
 }   
 
-TEST_CASE("PsmrtsTracerSystem Values Test", "[tracer][system][values]") {
-    psmrts::PsmrtsFactory().liquidate();
+TEST_CASE( "PsmrtsTracerSystem Values Test", "[tracer][system][values]" ) {
+  psmrts::PsmrtsFactory().liquidate();
 
-    psmrts::PsmrtsTracerSystem sys1("test");
+  psmrts::PsmrtsTracerSystem sys1( "test" );
 
-    std::vector<double> radii = { 1.0, 2.0, 3.0 };
-    bool result = sys1.set_reference_ellipsoid("TestRadii", radii);
+  std::vector<double> radii = { 1.0, 2.0, 3.0 };
+  bool result = sys1.set_reference_ellipsoid( "TestRadii", radii) ;
 
-    REQUIRE( result == true );
-    REQUIRE( sys1.get_ellipsoid_tracer().isValid() );
+  REQUIRE( result                                 == true );
+  REQUIRE( sys1.get_ellipsoid_tracer()->isValid() == true );
 
-    std::vector<double> obs = { 100.0, 0.0, 0.0 };
-    std::vector<double> lkdr = { -1.0, 0.0, 0.0 };
+  std::vector<double> obs = { 100.0, 0.0, 0.0 };
+  std::vector<double> lkdr = { -1.0, 0.0, 0.0 };
 
-    psmrts::PRQRayTrace ray = sys1.ellipsoid_trace(obs, lkdr);
-    CHECK( ray.hasHit() == true );
-    CHECK( ray.trace().radius() > 0.0 );
-    CHECK( ray.trace().normal().norm() > 0.0 );
+  psmrts::PRQRayTrace ray = sys1.ellipsoid_trace( obs, lkdr );
+  CHECK( ray.hasHit()                == true );
+  CHECK( ray.trace().radius()        > 0.0 );
+  CHECK( ray.trace().normal().norm() > 0.0 );
 
-    Eigen::Vector3d e_obs = { 100.0, 0.0, 0.0 };
-    Eigen::Vector3d e_lkdr = { -1.0, 0.0, 0.0 };
-    psmrts::PRQRayTrace e_ray = sys1.ellipsoid_trace(e_obs, e_lkdr);
-    CHECK( e_ray.hasHit() == true );
-    CHECK( e_ray.trace().radius() > 0.0 );
-    CHECK( e_ray.trace().normal().norm() > 0.0 );
+  Eigen::Vector3d e_obs = { 100.0, 0.0, 0.0 };
+  Eigen::Vector3d e_lkdr = { -1.0, 0.0, 0.0 };
+  psmrts::PRQRayTrace e_ray = sys1.ellipsoid_trace(e_obs, e_lkdr);
+  CHECK( e_ray.hasHit()                == true );
+  CHECK( e_ray.trace().radius()        > 0.0 );
+  CHECK( e_ray.trace().normal().norm() > 0.0 );
 
-    std::string file = psmrts_tracers_path("naifdsk/data/bennu_20facets.bds");
-    CHECK(sys1.add_product("dsk_file", file, "naifdsk") == true );
+  std::string file = psmrts_tracers_path("naifdsk/data/bennu_20facets.bds");
+  CHECK(sys1.add_product( "dsk_file", file, "naifdsk" ) == true );
 
-    std::vector<double> sunpos = { 0.0, 1000.0, 0.0 };
-    psmrts::PRQPhotometricTrace p_ray = sys1.ellipsoid_photometric_trace(obs, lkdr, sunpos);
-    CHECK( p_ray.observer_trace().hasHit() == true );
+  std::vector<double> sunpos = { 0.0, 1000.0, 0.0 };
+  psmrts::PRQPhotometricTrace p_ray = sys1.ellipsoid_photometric_trace( obs, lkdr, sunpos );
+  CHECK( p_ray.observer_trace().hasHit() == true );
 
-    // psmrts::PsmrtsTracer naifdsk_t ( psmrts::PsmrtsTracer::naifdsk( file ) );
-    bool naif_add = sys1.add_product( "dsk_file", file, "naifdsk" ); 
-    CHECK( naif_add == true );                    
+  bool naif_add = sys1.add_product( "dsk_file", file, "naifdsk" ); 
+  CHECK( naif_add == true );                    
 
-    sys1.create_priority_tracer("test1");
+  sys1.create_priority_tracer( "test1" );
 
-    psmrts::PsmrtsTracer e_tracer = psmrts::PsmrtsTracer::ellipsoid( { 0.283065,0.271215,0.249720 }, "Bennu" );
-    psmrts::PsmrtsTracerSystem sys2("test2");
-    sys2.set_reference_ellipsoid( e_tracer );
+  psmrts::PsmrtsTracer e_tracer = psmrts::PsmrtsTracer::ellipsoid( { 0.283065,0.271215,0.249720 }, "Bennu" );
+  psmrts::PsmrtsTracerSystem sys2( "test2" );
+  sys2.set_reference_ellipsoid( e_tracer );
 
-    std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
-    CHECK( sys2.get_ellipsoid_tracer().isValid() == true );
-    // shape didnt work as first parameter here
-    // said it expected a mesh
-    CHECK( sys2.add_product("obj_file", objfile, "bullet") == true );
+  std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
+  CHECK( sys2.get_ellipsoid_tracer()->isValid()            == true );
+  CHECK( sys2.add_product( "obj_file", objfile, "bullet" ) == true );
 
-    sys2.create_priority_tracer("test2");
+  sys2.create_priority_tracer( "test2" );
 
-    bool naif_check = false;
-    bool bullet_check = false;
-    
-    for (const auto &[uid, tracer] : sys1.invoice().inventory().tracers().cache() ) {
-        if (tracer.config().contains("tracer") ) {
-            std::string type = tracer.config().find("tracer").to_string();
-            if (type == "naifdsk") {
+  bool naif_check   = false;
+  bool bullet_check = false;
+  
+  auto check_tracer_types1 = [&] ( const auto &map_c ) -> bool {
+    for (const auto &[uid, tracer] : map_c ) {
+        if (tracer->config().contains( "tracer" ) ) {
+            std::string type = tracer->config().find( "tracer" ).to_string();
+            if ( type == "naifdsk" ) {
                 naif_check = true;
             }
-            if (type == "bullet") {
+            if ( type == "bullet" ) {
                 bullet_check = true;
             }
         }
     }
+    return ( naif_check && bullet_check );
+  };
 
-    CHECK( naif_check   == true ); 
-    CHECK( bullet_check == true );
+  bool proc1_check = sys1.invoice()->inventory().tracers()->process( check_tracer_types1 );
+  CHECK( naif_check   == true ); 
+  CHECK( bullet_check == false );
 
-    for (const auto &[uid, tracer] : sys2.invoice().inventory().tracers().cache() ) {
-        if (tracer.config().contains("tracer") ) {
-            std::string type = tracer.config().find("tracer").to_string();
-            if (type == "bullet") {
+
+  auto check_tracer_types2 = [&] ( const auto &map_c ) -> bool {
+    for (const auto &[uid, tracer] : map_c ) {
+        if (tracer->config().contains( "tracer" ) ) {
+            std::string type = tracer->config().find( "tracer" ).to_string();
+            if ( type == "bullet" ) {
                 bullet_check = true;
             }
         }
     }
-    CHECK( bullet_check == true ); 
+    return ( bullet_check );
+  };
 
-    psmrts::PsmrtsShape obj_shape( objfile );
-    CHECK( obj_shape.isValid() == true );
-    CHECK( sys1.add_shape( obj_shape ) == true );
+  naif_check   = false;
+  bullet_check = false;
+  CHECK ( sys2.invoice()->inventory().tracers()->process( check_tracer_types2 ) == true ); 
+  CHECK( bullet_check                                                           == true ); 
 
-    bool obj_check = false;
-    for (const auto &[uid, shape] : sys1.invoice().inventory().shapes().cache()) {
-        if ( shape.config().contains("shape") ) {
-            if ( shape.config().find("shape").to_string() == "obj" ) {
-                obj_check = true;
-            }
-        }
-    }
-    CHECK( obj_check == true );
+  psmrts::PsmrtsFactory().liquidate();
+}
+
+TEST_CASE( "PsmrtsTracerSystem Priority Tracer Test", "[tracer][system][priority]" ) {
+  psmrts::PsmrtsFactory().liquidate();
+
+  using KeyList    = std::vector<std::string>;
+  using TracerList = psmrts::PsmrtsPriorityTracer::TracerList;
+
+  psmrts::PsmrtsTracerSystem sys( "p_tracers" );
+
+  CHECK( psmrts::PsmrtsFactory().tracer_count() == 0 );
   
-    psmrts::PsmrtsFactory().liquidate();
-
-}
-
-TEST_CASE("PsmrtsTracerSystem Priority Tracer Test", "[tracer][system][priority]") {
-    psmrts::PsmrtsFactory().liquidate();
-
-    using KeyList    = std::vector<std::string>;
-    using TracerList = psmrts::PsmrtsPriorityTracer::TracerList;
-
-    psmrts::PsmrtsTracerSystem sys("p_tracers");
-
-    CHECK( psmrts::PsmrtsFactory().tracers().size() == 0 );
-    
-    std::string file = psmrts_tracers_path("naifdsk/data/bennu_20facets.bds");
-    bool added = sys.add_product("dsk_file", file, "naifdsk");
-    
-    CHECK( sys.error_count()  == 0 );
-    if ( sys.error_count() > 0 ) sys.throw_errors();
-    CHECK( added == true ); 
-    CHECK( sys.size()  == 1 );
-
-    psmrts::PsmrtsPriorityTracer pt = sys.create_priority_tracer();
-    CHECK( pt.isValid() == true );
-    CHECK( pt.size() == 1 );
-
-    TracerList tracers = pt.tracers();
-    REQUIRE( tracers.size() == 1 );
-
-    CHECK( sys.get_ellipsoid_tracer().isValid() == true );
-
-    std::vector<double> obs  = { 100.0, 0.0, 0.0 };
-    std::vector<double> lkdr = {  -1.0, 0.0, 0.0 };
-
-    psmrts::PRQRayTrace ray = sys.shape_trace( obs, lkdr );
-    CHECK( ray.hasHit() == true );
-    CHECK( ray.trace().radius() > 0.0 );
-    CHECK( ray.trace().normal().norm() > 0.0 );
-    CHECK( psmrts::PsmrtsUID::is_valid_uid( ray.trace().get_tracer_id() ) == true  );
-
-    psmrts::PsmrtsTracer hit_tracer = sys.get_tracer_from_intercept( ray );
-    CHECK( hit_tracer.name()    == file );
-    CHECK( hit_tracer.type()    == "tracer" );
-    CHECK( hit_tracer.model()   == "naifdsk" );
-    CHECK( hit_tracer.isValid() == true );
-
-    std::vector<double> sunpos = { 0.0, 100.0, 0.0 };
-    psmrts::PRQPhotometricTrace p_ray = sys.shape_photometric_trace( obs, lkdr, sunpos );
-    CHECK( p_ray.observer_trace().hasHit() == true );
-    CHECK( p_ray.isValid() == true );
+  std::string file = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
+  bool added = sys.add_product( "dsk_file", file, "naifdsk" );
   
-    psmrts::PsmrtsFactory().liquidate();
+  CHECK( sys.error_count() == 0 );
+  CHECK_NOTHROW( sys.throw_errors() );
+  CHECK( added             == true ); 
+  CHECK( sys.size()        == 1 );
+
+  psmrts::PsmrtsPriorityTracer pt = sys.create_priority_tracer();
+  CHECK( pt.isValid() == true );
+  CHECK( pt.size()    == 1 );
+
+  TracerList tracers = pt.tracers();
+  REQUIRE( tracers.size() == 1 );
+
+  CHECK( sys.get_ellipsoid_tracer().get() == nullptr );
+  sys.set_reference_ellipsoid();
+  CHECK( sys.get_ellipsoid_tracer().get() != nullptr );
+
+  std::vector<double> obs  = { 100.0, 0.0, 0.0 };
+  std::vector<double> lkdr = {  -1.0, 0.0, 0.0 };
+
+  psmrts::PRQRayTrace ray = sys.shape_trace( obs, lkdr );
+  CHECK( ray.hasHit() == true );
+  CHECK( ray.trace().radius()        > 0.0 );
+  CHECK( ray.trace().normal().norm() > 0.0 );
+  CHECK( psmrts::PsmrtsUID::is_valid_uid( ray.trace().get_tracer_id() ) == true  );
+
+  auto hit_tracer = sys.get_tracer_from_intercept( ray );
+  REQUIRE( hit_tracer.get()    != nullptr );
+  CHECK( hit_tracer->name()    == file );
+  CHECK( hit_tracer->type()    == "tracer" );
+  CHECK( hit_tracer->model()   == "naifdsk" );
+  CHECK( hit_tracer->isValid() == true );
+
+  std::vector<double> sunpos = { 0.0, 100.0, 0.0 };
+  psmrts::PRQPhotometricTrace p_ray = sys.shape_photometric_trace( obs, lkdr, sunpos );
+  CHECK( p_ray.observer_trace().hasHit() == true );
+  CHECK( p_ray.isValid()                 == true );
+
+  psmrts::PsmrtsFactory().liquidate();
 }
 
-TEST_CASE("PsmrtsTracerSystem Shapes Test", "[tracer][system][shapes]") {
+TEST_CASE( "PsmrtsTracerSystem Shapes Test", "[tracer][system][shapes]" ) {
 
-    psmrts::PsmrtsFactory().liquidate();
+  psmrts::PsmrtsFactory().liquidate();
 
-    std::string objfile = psmrts_shapes_path("obj/data/bennu_20facets.obj");
-    std::string bdsfile = psmrts_tracers_path("naifdsk/data/bennu_20facets.bds");
+  std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
+  std::string bdsfile = psmrts_tracers_path( "naifdsk/data/bennu_20facets.bds" );
 
-    std::vector<double> obs    = { 100.0, 0.0, 0.0 };
-    std::vector<double> lkdr   = {  -1.0, 0.0, 0.0 };
-    std::vector<double> sunpos = {   0.0, 100.0, 0.0 };
-    std::vector<double> away   = {   1.0, 0.0, 0.0 };
-    Eigen::Vector3d e_obs      = { 100.0, 0.0, 0.0 };
-    Eigen::Vector3d e_lkdr     = {  -1.0, 0.0, 0.0 };
-    Eigen::Vector3d e_sunpos   = {   0.0, 100.0, 0.0 };
+  std::vector<double> obs    = { 100.0, 0.0, 0.0 };
+  std::vector<double> lkdr   = {  -1.0, 0.0, 0.0 };
+  std::vector<double> sunpos = {   0.0, 100.0, 0.0 };
+  std::vector<double> away   = {   1.0, 0.0, 0.0 };
+  Eigen::Vector3d e_obs      = { 100.0, 0.0, 0.0 };
+  Eigen::Vector3d e_lkdr     = {  -1.0, 0.0, 0.0 };
+  Eigen::Vector3d e_sunpos   = {   0.0, 100.0, 0.0 };
 
-    // Shared bullet system for shape_trace, photometric, process,
-    // and get_tracer_from_intercept tests
-    psmrts::PsmrtsTracerSystem sys_bullet("test_bullet");
-    sys_bullet.add_product("obj_file", objfile, "bullet");
-    sys_bullet.create_priority_tracer("test_bullet");
+  // Shared bullet system for shape_trace, photometric, process,
+  // and get_tracer_from_intercept tests
+  psmrts::PsmrtsTracerSystem sys_bullet( "test_bullet" );
+  sys_bullet.add_product( "obj_file", objfile, "bullet" );
+  sys_bullet.create_priority_tracer( "test_bullet" );
 
-    // shape_trace() PRQRayTrace overload
-    psmrts::PRQRayTrace prq_ray( Eigen::Vector3d(obs.data()), 
-                                 Eigen::Vector3d(lkdr.data()) );
-    CHECK( sys_bullet.shape_trace( prq_ray ) == true );
-    CHECK( prq_ray.hasHit() == true );
+  // shape_trace() PRQRayTrace overload
+  psmrts::PRQRayTrace prq_ray( Eigen::Vector3d(obs.data() ), 
+                               Eigen::Vector3d(lkdr.data() ) );
+  CHECK( sys_bullet.shape_trace( prq_ray ) == true );
+  CHECK( prq_ray.hasHit()                  == true );
+  CHECK( prq_ray.trace().radius()          > 0.0 );
+  CHECK( prq_ray.trace().normal().norm()   > 0.0 );
+  
+  // shape_trace() Eigen overload (non-const refs required)
+  psmrts::PRQRayTrace eigen_ray = sys_bullet.shape_trace( e_obs, e_lkdr );
+  CHECK( eigen_ray.hasHit()                == true );
+  CHECK( eigen_ray.trace().radius()        > 0.0 );
+  CHECK( eigen_ray.trace().normal().norm() > 0.0 );
 
-    // shape_trace() Eigen overload (non-const refs required)
-    psmrts::PRQRayTrace eigen_ray = sys_bullet.shape_trace( e_obs, e_lkdr );
-    CHECK( eigen_ray.hasHit() == true );
+  // shape_photometric_trace() PRQPhotometricTrace overload
+  psmrts::PRQPhotometricTrace prq_photo( Eigen::Vector3d(obs.data() ),
+                                         Eigen::Vector3d(lkdr.data() ),
+                                         Eigen::Vector3d(sunpos.data() ) );
+  CHECK( sys_bullet.shape_photometric_trace( prq_photo ) == true );
+  CHECK( prq_photo.observer_trace().hasHit()             == true );
+  CHECK( prq_photo.observer_trace().radius()             > 0.0 );
+  CHECK( prq_photo.observer_trace().normal().norm()      > 0.0 );
 
-    // shape_photometric_trace() PRQPhotometricTrace overload
-    psmrts::PRQPhotometricTrace prq_photo( Eigen::Vector3d(obs.data()),
-                                           Eigen::Vector3d(lkdr.data()),
-                                           Eigen::Vector3d(sunpos.data()) );
-    CHECK( sys_bullet.shape_photometric_trace( prq_photo ) == true );
-    CHECK( prq_photo.observer_trace().hasHit() == true );
+  // shape_photometric_trace() Eigen overload
+  psmrts::PRQPhotometricTrace eigen_photo = sys_bullet.shape_photometric_trace( e_obs, e_lkdr, e_sunpos );
+  CHECK( eigen_photo.observer_trace().hasHit()        == true );
+  CHECK( eigen_photo.observer_trace().radius()        > 0.0 );
+  CHECK( eigen_photo.observer_trace().normal().norm() > 0.0 );
 
-    // shape_photometric_trace() Eigen overload
-    psmrts::PRQPhotometricTrace eigen_photo = sys_bullet.shape_photometric_trace(e_obs, e_lkdr, e_sunpos);
-    CHECK( eigen_photo.observer_trace().hasHit() == true );
+  // process() template method
+  psmrts::PRQRayTrace process_ray( Eigen::Vector3d(obs.data() ), 
+                                   Eigen::Vector3d(lkdr.data() ) );
+  CHECK( sys_bullet.process( process_ray )   == true );
+  CHECK( process_ray.hasHit()                == true );
+  CHECK( process_ray.trace().radius()        > 0.0 );
+  CHECK( process_ray.trace().normal().norm() > 0.0 );
 
-    // process() template method
-    psmrts::PRQRayTrace process_ray( Eigen::Vector3d(obs.data()), 
-                                     Eigen::Vector3d(lkdr.data()) );
-    CHECK( sys_bullet.process( process_ray ) == true );
-    CHECK( process_ray.hasHit() == true );
+  // get_tracer_from_intercept() - hit case
+  auto hit_tracer = sys_bullet.get_tracer_from_intercept( process_ray );
+  REQUIRE( hit_tracer.get()    != nullptr );
+  CHECK( hit_tracer->isValid() == true );
 
-    // get_tracer_from_intercept() - hit case
-    psmrts::PsmrtsTracer hit_tracer = sys_bullet.get_tracer_from_intercept( prq_ray );
-    CHECK( hit_tracer.isValid() == true );
+  // get_tracer_from_intercept() - miss case (observer at +X, looking further +X)
+  psmrts::PRQRayTrace miss_ray = sys_bullet.shape_trace( obs, away );
+  CHECK( miss_ray.hasHit()                                      == false );
+  CHECK( sys_bullet.get_tracer_from_intercept( miss_ray ).get() == nullptr );
+  CHECK( miss_ray.trace().get_tracer_id()                       == psmrts::PsmrtsUID::null_uid() );
 
-    // get_tracer_from_intercept() - miss case (observer at +X, looking further +X)
-    psmrts::PRQRayTrace miss_ray = sys_bullet.shape_trace( obs, away );
-    CHECK( miss_ray.hasHit() == false );
-    CHECK( sys_bullet.get_tracer_from_intercept( miss_ray ).isValid() == true ); // should this be false?
+  // Shared ellipsoid system for ellipsoid_trace and 
+  // ellipsoid_photometric_trace tests
+  psmrts::PsmrtsTracerSystem sys_ell( "test_ell" );
+  sys_ell.set_reference_ellipsoid( "Bennu", { 0.283065, 0.271215, 0.249720 } );
 
-    // Shared ellipsoid system for ellipsoid_trace and 
-    // ellipsoid_photometric_trace tests
-    psmrts::PsmrtsTracerSystem sys_ell("test_ell");
-    sys_ell.set_reference_ellipsoid("Bennu", { 0.283065, 0.271215, 0.249720 });
+  // ellipsoid_trace() PRQRayTrace overload
+  psmrts::PRQRayTrace ell_ray( Eigen::Vector3d(obs.data() ), 
+                               Eigen::Vector3d(lkdr.data() ) );
+  CHECK( sys_ell.ellipsoid_trace( ell_ray ) == true );
+  CHECK( ell_ray.hasHit()                   == true );
 
-    // ellipsoid_trace() PRQRayTrace overload
-    psmrts::PRQRayTrace ell_ray( Eigen::Vector3d(obs.data()), 
-                                 Eigen::Vector3d(lkdr.data()) );
-    CHECK( sys_ell.ellipsoid_trace( ell_ray ) == true );
-    CHECK( ell_ray.hasHit() == true );
+  // ellipsoid_photometric_trace() PRQPhotometricTrace overload
+  psmrts::PRQPhotometricTrace prq_ellphoto( Eigen::Vector3d(obs.data() ),
+                                            Eigen::Vector3d(lkdr.data() ),
+                                            Eigen::Vector3d(sunpos.data() ) );
+  CHECK( sys_ell.ellipsoid_photometric_trace( prq_ellphoto ) == true );
+  CHECK( prq_ellphoto.observer_trace().hasHit()              == true );
 
-    // ellipsoid_photometric_trace() PRQPhotometricTrace overload
-    psmrts::PRQPhotometricTrace prq_ellphoto( Eigen::Vector3d(obs.data()),
-                                              Eigen::Vector3d(lkdr.data()),
-                                              Eigen::Vector3d(sunpos.data()) );
-    CHECK( sys_ell.ellipsoid_photometric_trace( prq_ellphoto ) == true );
-    CHECK( prq_ellphoto.observer_trace().hasHit() == true );
+  // ellipsoid_photometric_trace() Eigen overload
+  psmrts::PRQPhotometricTrace eigen_ellphoto = sys_ell.ellipsoid_photometric_trace( e_obs, e_lkdr, e_sunpos );
+  CHECK( eigen_ellphoto.observer_trace().hasHit() == true );
 
-    // ellipsoid_photometric_trace() Eigen overload
-    psmrts::PRQPhotometricTrace eigen_ellphoto = sys_ell.ellipsoid_photometric_trace(e_obs, e_lkdr, e_sunpos);
-    CHECK( eigen_ellphoto.observer_trace().hasHit() == true );
+  // translations()
+  psmrts::PsmrtsTracerSystem sys_trans( "test_trans" );
+  const psmrts::PsmrtsTranslations &trans = sys_trans.translations();
+  std::string plain = "/some/plain/path.obj";
+  CHECK( trans.translate_path( plain ) == plain );
 
-    // translations()
-    psmrts::PsmrtsTracerSystem sys_trans("test_trans");
-    const psmrts::PsmrtsTranslations &trans = sys_trans.translations();
-    std::string plain = "/some/plain/path.obj";
-    CHECK( trans.translate_path( plain ) == plain );
-
-    psmrts::PsmrtsFactory().liquidate();
+  psmrts::PsmrtsFactory().liquidate();
 }
 
 
-TEST_CASE("PsmrtsTracerSystem ISIS Interface Test", "[tracer][system][isislike]") {
-    psmrts::PsmrtsFactory().liquidate();
+TEST_CASE( "PsmrtsTracerSystem ISIS Interface Test", "[tracer][system][isislike]" ) {
+  psmrts::PsmrtsFactory().liquidate();
 
   // Set up translation system
   psmrts::PsmrtsTranslations trans_t( "ISISTest" );
@@ -292,20 +305,29 @@ TEST_CASE("PsmrtsTracerSystem ISIS Interface Test", "[tracer][system][isislike]"
 
   size_t n_shapes = system_t.process_shape_list( shapes, "mycube_shapes" );
 
-  CHECK( system_t.invoice().error_count()                == 0 );
-  CHECK( system_t.invoice().errors_to_string()           == "" );
-  CHECK( system_t.invoice().inventory().shapes().size()  == 2 );
-  CHECK( system_t.invoice().inventory().tracers().size() == 4 );
+  CHECK( system_t.invoice()->error_count()              == 0 );
+  CHECK( system_t.invoice()->errors_to_string()         == "" );
+  CHECK( system_t.invoice()->inventory().size_shapes()  == 2 );
+  CHECK( system_t.invoice()->inventory().size_tracers() == 4 );
 
   psmrts::PsmrtsPriorityTracer tracer_p = system_t.create_priority_tracer();
-  CHECK( tracer_p.isValid()          == true );
-  CHECK( tracer_p.inventory().size() == 4 );
-  
+  CHECK( tracer_p.isValid()            == true );
+  REQUIRE( tracer_p.size()             == 4 );
+  CHECK( tracer_p.tracers()[0]->name() == "$osirisrex/obj/data/bennu_20facets.obj" );
+  CHECK( tracer_p.tracers()[1]->name() == "$osirisrex/dsk/data/bennu_20facets.bds" );
+  CHECK( tracer_p.tracers()[2]->name() == "$osirisrex/dsk/data/bennu_20facets.bds");
+  CHECK( tracer_p.tracers()[3]->name() == "ellipsoid::0.28306,0.24972" );
+
+  CHECK( system_t.invoice()->orders()[0]->find( "tracer" )->name() == tracer_p.tracers()[0]->name() );
+  CHECK( system_t.invoice()->orders()[0]->find( "shape" )->name()  == tracer_p.tracers()[0]->name() );
+  CHECK( system_t.invoice()->orders()[1]->find( "tracer" )->name() == tracer_p.tracers()[1]->name() );
+  CHECK( system_t.invoice()->orders()[1]->find( "shape" )->name()  == tracer_p.tracers()[1]->name() );
+ 
   psmrts::PsmrtsFactory().liquidate();
 }
 
 
-TEST_CASE("PsmrtsTracerSystem ISIS Ellipsoid Test", "[tracer][system][ellipsoid][share]") {
+TEST_CASE( "PsmrtsTracerSystem ISIS Ellipsoid Test", "[tracer][system][ellipsoid][share]" ) {
   psmrts::PsmrtsFactory().liquidate();
 
   std::vector<std::string> ellipsoids = { "ellipsoid::17, 5.5, 5.5",
@@ -318,30 +340,23 @@ TEST_CASE("PsmrtsTracerSystem ISIS Ellipsoid Test", "[tracer][system][ellipsoid]
   const psmrts::PsmrtsPriorityTracer &priority_t = tracer_s.create_priority_tracer( "ellipsoids" );
   CHECK( priority_t.size() == 1 );
 
-  const psmrts::ProductProcessing &processor_t = tracer_s.invoice().processor();
-  CHECK( processor_t.tracers().size() == 1 );
-  CHECK( processor_t.shapes().size()  == 0 );
-
   // Now check setting of reference ellipsoid
   std::vector<double> radii_1 = { 17, 5.5, 5.5 };
   CHECK( tracer_s.set_reference_ellipsoid( "ref_1", radii_1 ) == true);
-  CHECK( processor_t.tracers().size() == 1 );
 
   std::vector<double> radii_2 = { 17.0, 5.50, 5.5 };
   CHECK( tracer_s.set_reference_ellipsoid( "ref_2", radii_2 ) == true) ;
-  CHECK( processor_t.tracers().size() == 1 );
 
   std::vector<double> radii_3 = { 17.0, 5.50, 5.500 };
   CHECK( tracer_s.set_reference_ellipsoid( "ref_3", radii_3 )  == true );
-  CHECK( processor_t.tracers().size() == 1 );
 
   // There should only be 1!
-  CHECK( psmrts::PsmrtsFactory().tracers().size() == 1 );
+  CHECK( psmrts::PsmrtsFactory().tracer_count() == 1 );
 
   psmrts::PsmrtsFactory().liquidate();
 }
 
-TEST_CASE("PsmrtsTracerSystem ISIS Bullet Test", "[tracer][system][bullet][share]") {
+TEST_CASE( "PsmrtsTracerSystem ISIS Bullet Test", "[tracer][system][bullet][share]" ) {
   psmrts::PsmrtsFactory().liquidate();
 
   // Set up translation system
@@ -355,19 +370,15 @@ TEST_CASE("PsmrtsTracerSystem ISIS Bullet Test", "[tracer][system][bullet][share
 
   psmrts::PsmrtsTracerSystem system_t( "bullets", trans_t );
   CHECK( system_t.process_shape_list( bullets ) == 3 );
-  CHECK( system_t.size()                        == 1 );
+  CHECK( system_t.size()                        == 3 );
   
-  const psmrts::PsmrtsPriorityTracer &priority_t = system_t.create_priority_tracer( "bullets" );
+  psmrts::PsmrtsPriorityTracer priority_t = system_t.create_priority_tracer( "bullets" );
   CHECK( priority_t.size() == 1 );
-
-  const psmrts::ProductProcessing &processor_t = system_t.invoice().processor();
-  CHECK( processor_t.tracers().size() == 1 );
-  CHECK( processor_t.shapes().size()  == 1 );
 
   psmrts::PsmrtsFactory().liquidate();
 }
 
-TEST_CASE("PsmrtsTracerSystem ISIS NaifDsk Test", "[tracer][system][naifdsk][share]") {
+TEST_CASE( "PsmrtsTracerSystem ISIS NaifDsk Test", "[tracer][system][naifdsk][share]" ) {
   psmrts::PsmrtsFactory().liquidate();
 
   // Set up translation system
@@ -380,15 +391,217 @@ TEST_CASE("PsmrtsTracerSystem ISIS NaifDsk Test", "[tracer][system][naifdsk][sha
                                        "naifdsk::$osirisrex/dsk/data/bennu_20facets.bds" };
 
   psmrts::PsmrtsTracerSystem system_t( "bullets", trans_t );
-  CHECK( system_t.process_shape_list( bullets ) == 3 );
-  CHECK( system_t.size()                        == 1 );
+  CHECK( system_t.process_shape_list( bullets )         == 3 );
+  CHECK( system_t.size()                                == 3 );
+  CHECK( system_t.invoice()->inventory().size_tracers() == 1 );
+  CHECK( system_t.invoice()->inventory().size_shapes()  == 0 );
   
   const psmrts::PsmrtsPriorityTracer &priority_t = system_t.create_priority_tracer( "bullets" );
   CHECK( priority_t.size() == 1 );
 
-  const psmrts::ProductProcessing &processor_t = system_t.invoice().processor();
-  CHECK( processor_t.tracers().size() == 1 );
-  CHECK( processor_t.shapes().size()  == 0 );
+  psmrts::PsmrtsFactory().liquidate();
+}
+
+TEST_CASE( "PsmrtsTracerSystem ISIS Bullet OBJ/PLY Test", "[tracer][system][obj][ply][shapes]" ) {
+  psmrts::PsmrtsFactory().liquidate();
+
+  // Set up translation system
+  psmrts::PsmrtsTranslations trans_t( "ISISTest" );
+  trans_t.add_environment( "ISISDATA", psmrts_rootpath() );
+  trans_t.add_parameter( "osirisrex", "$ISISDATA/psmrts/shapes" );    
+
+  std::vector<std::string> shapes =  { "bullet::$osirisrex/obj/data/bennu_20facets.obj",
+                                       "bullet::$osirisrex/obj/data/bennu_20facets.obj",
+                                       "bullet::$osirisrex/ply/data/Bennu_Radar.ply",
+                                       "bullet::$osirisrex/ply/data/Bennu_Radar.ply" };
+
+  psmrts::PsmrtsTracerSystem system_t( "objply", trans_t );
+  CHECK( system_t.process_shape_list( shapes ) == 4 );
+  CHECK( system_t.size()                       == 4 );
+  
+  const psmrts::PsmrtsPriorityTracer &priority_t = system_t.create_priority_tracer( "objply" );
+  CHECK( priority_t.size() == 2 );
+
+  psmrts::ProductConfiguration config_p( "plt_c",
+                                        { psmrts::ProductOption( "file", "$osirisrex/ply/data/Bennu_Radar.ply" ),
+                                          psmrts::ProductOption( "tracer", "bullet" ) } );
+
+  psmrts::ProductProcessing processor_t = system_t.invoice()->processor();
+  auto order = processor_t.process_order( config_p );
+
+  auto shape_c  = order->find( "shape" );
+  auto tracer_c = order->find( "tracer" );
+
+  const auto &inventory_t = system_t.invoice()->inventory();
+  auto [ found, tracer_p, shape_p ] = processor_t.search_inventory( *order, *inventory_t.tracers(), *inventory_t.shapes() );
+  CHECK( found == true );
+
+  REQUIRE( order->find( "tracer" ) != nullptr );
+  REQUIRE( order->find( "shape" ) != nullptr );
+
+  auto tracer_c1 = order->find( "tracer" );
+  auto shape_c1 =  order->find( "shape" );
+
+  tracer_p = processor_t.search_tracer_inventory( *tracer_c1, *inventory_t.tracers(), shape_c1 );
+  REQUIRE( tracer_p         != nullptr );
+  CHECK ( tracer_p->shape() != nullptr );
+
+  psmrts::PsmrtsTracerSystem system_t2( "ply", trans_t );
+  CHECK( system_t2.process_shape_list( { shapes[3] } ) == 1 );
+  const psmrts::PsmrtsPriorityTracer &priority_t2 = system_t2.create_priority_tracer( "objply" );
+  CHECK( priority_t2.size()                            == 1 );
+
+  CHECK( psmrts::PsmrtsFactory().tracer_count() == 2 );
+  CHECK( psmrts::PsmrtsFactory().shape_count()  == 2 );
+
+  psmrts::PsmrtsFactory().liquidate();
+}
+
+/** Class to process lists of tracers within threads */
+class ThreadTracers {
+  public:
+    ThreadTracers( ) {
+      // Set up translation system
+      psmrts::PsmrtsTranslations trans_t( "ISISTest" );
+      trans_t.add_environment( "ISISDATA", psmrts_rootpath() );
+      trans_t.add_parameter( "osirisrex", "$ISISDATA/psmrts/shapes" );  
+      m_tracers = psmrts::PsmrtsTracerSystem( "threads", trans_t );
+    }
+    virtual ~ThreadTracers() = default;
+
+    inline void load( const std::vector<std::string> &shapes ) {
+      m_tracers.process_shape_list( shapes );
+    }
+
+    inline const psmrts::PsmrtsTracerSystem &tracers() const {
+      return ( m_tracers );
+    }
+
+    inline psmrts::PsmrtsPriorityTracer priority_tracer() const {
+      return ( m_tracers.get_shape_tracer() );
+    }
+
+  private:
+    psmrts::PsmrtsTracerSystem m_tracers;
+
+};
+
+TEST_CASE( "PsmrtsTracerSystem Threads Test", "[tracer][system][threads]" ) {
+
+  psmrts::PsmrtsFactory().liquidate();
+
+  std::vector<std::string> bullets = { "bullet::$osirisrex/dsk/data/bennu_20facets.bds",
+                                       "bullet::$osirisrex/dsk/data/bennu_20facets.bds",
+                                       "bullet::$osirisrex/dsk/data/bennu_20facets.bds" };
+
+  ThreadTracers tracer_1;
+  ThreadTracers tracer_2;
+  ThreadTracers tracer_3;
+
+  // Execute the threads
+  std::thread t1( &ThreadTracers::load, &tracer_1, bullets );
+  std::thread t2( &ThreadTracers::load, &tracer_2, bullets );
+  std::thread t3( &ThreadTracers::load, &tracer_3, bullets );
+
+  // Join the threads - required.
+  t1.join();
+  t2.join();
+  t3.join();
+  
+  // Check validity of all tracers
+  CHECK( tracer_1.tracers().has_errors() == false );
+  CHECK( tracer_2.tracers().has_errors() == false );
+  CHECK( tracer_3.tracers().has_errors() == false );
+
+  // This check returns the total number of submitted tracers. This will not be
+  // the same as the number of tracers that end up in the priority tracer!
+  CHECK( tracer_1.tracers().size() == 3 );
+  CHECK( tracer_2.tracers().size() == 3 );
+  CHECK( tracer_3.tracers().size() == 3 );
+  
+  // Get priority tracers and check states. These all should have one each
+  const psmrts::PsmrtsPriorityTracer &priority_1 = tracer_1.tracers().get_shape_tracer();
+  const psmrts::PsmrtsPriorityTracer &priority_2 = tracer_2.tracers().get_shape_tracer();
+  const psmrts::PsmrtsPriorityTracer &priority_3 = tracer_3.tracers().get_shape_tracer();
+
+  // All have one tracer from 3 of the same configuration
+  CHECK( priority_1.size() == 1 );
+  CHECK( priority_2.size() == 1 );
+  CHECK( priority_3.size() == 1 );
+
+  CHECK( tracer_1.tracers().invoice()->inventory().size_tracers()  == 1 );
+  CHECK( tracer_1.tracers().invoice()->inventory().size_shapes()   == 1 );
+
+  CHECK( tracer_2.tracers().invoice()->inventory().size_tracers()  == 1 );
+  CHECK( tracer_2.tracers().invoice()->inventory().size_shapes()   == 1 );
+    
+  CHECK( tracer_3.tracers().invoice()->inventory().size_tracers()  == 1 );
+  CHECK( tracer_3.tracers().invoice()->inventory().size_shapes()   == 1 );  
+
+  // There should be only 1 each!
+  CHECK( psmrts::PsmrtsFactory().tracer_count() == 1 );
+  CHECK( psmrts::PsmrtsFactory().shape_count()  == 1 );
+
+  psmrts::PsmrtsFactory().liquidate();
+}
+
+TEST_CASE( "PsmrtsTracerSystem Threads Multi-Type Tracers Test", "[tracer][system][threads][multitype]" ) {
+
+  psmrts::PsmrtsFactory().liquidate();
+
+  // Here are 5 unique tracers and 3 unique shapes all created in all threads
+  std::vector<std::string> shapes = {  "naifdsk::$osirisrex/dsk/data/bennu_20facets.bds",
+                                       "bullet::$osirisrex/ply/data/Bennu_Radar.obj",
+                                       "bullet::$osirisrex/obj/data/bennu_20facets.obj",
+                                       "bullet::$osirisrex/dsk/data/bennu_20facets.bds",
+                                       "bullet::$osirisrex/ply/data/Bennu_Radar.obj",
+                                       "bullet::$osirisrex/obj/data/bennu_20facets.obj",
+                                       "ellipsoid::17, 5.5, 5.5",
+                                       "ellipsoid::17.0, 5.50, 5.500" };
+
+  std::random_device rd;
+  std::mt19937 g(rd());
+
+  // Allocate all the threads and tracers here
+  static unsigned int n_threads = 20;  // This allocates 20 threads
+  
+  std::vector<std::thread> threads( n_threads );
+  std::vector<ThreadTracers> tracer_list( n_threads );
+
+  // Create all the tracer threads
+  unsigned int n = 0;
+  for ( auto &t : threads ) {
+    t = std::thread( &ThreadTracers::load, &tracer_list[n++], shapes );
+    std::shuffle( shapes.begin(), shapes.end(), g );
+  }
+
+  // Must join them all
+  for ( auto &t : threads ) {
+    t.join();
+  }
+  
+  // All tracers should have the same state
+  for ( const auto &tracer_t : tracer_list ) {
+    // Check validity of all tracers
+    CHECK( tracer_t.tracers().has_errors() == false );
+
+    // They all should have one each of a bullet tracer and a shape
+    CHECK( tracer_t.tracers().size()         == 8 );
+    CHECK( tracer_t.priority_tracer().size() == 5 );
+    
+    // Get priority tracers and check states
+    auto priority_t = tracer_t.tracers().get_shape_tracer();
+
+    // All have one tracer from 3 of the same configuration
+    CHECK( priority_t.size()                    == 5 );
+    CHECK( tracer_t.tracers().invoice()->size() == 8 );
+    CHECK( tracer_t.tracers().invoice()->inventory().size_tracers() == 5 );
+    CHECK( tracer_t.tracers().invoice()->inventory().size_shapes()  == 3 );
+  }
+
+  // There should be only 1 each!
+  CHECK( psmrts::PsmrtsFactory().tracer_count() == 5 );
+  CHECK( psmrts::PsmrtsFactory().shape_count()  == 3 );
 
   psmrts::PsmrtsFactory().liquidate();
 }

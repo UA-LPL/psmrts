@@ -133,10 +133,6 @@ namespace psmrts {
         return ( std::visit(visitor, m_model) ); 
       }        
 
-       inline bool matches( const ProductConfiguration &conf ) const {
-        return ( this->config().matches( conf ) );
-      }
-      
       inline double minimum_radius() const {
         return this->get_mesh().minimum_radius();
       }
@@ -160,6 +156,11 @@ namespace psmrts {
               
   };
 
+    // Create a shared pointer type for shapes
+  using SharedShape      = std::shared_ptr<PsmrtsShape>;  
+  using ConstSharedShape = std::shared_ptr<const PsmrtsShape>;  
+
+
   /**
    * @brief Shape getter PRQ for tracers that have one
    * 
@@ -173,7 +174,7 @@ namespace psmrts {
     public:
 
       PRQShape() : PsmrtsRequest( "PRQShape" ),
-                   m_shape( std::nullopt ) { }
+                   m_shape( ) { }
       virtual ~PRQShape() { }
  
       using PsmrtsRequest::name;
@@ -183,23 +184,19 @@ namespace psmrts {
       using PsmrtsRequest::errors;
 
       inline bool isValid() const {
-        return ( m_shape.has_value() );
+        return ( m_shape.get() != nullptr );
       }
 
-      inline void set_shape( const PsmrtsShape &shape ) {
-        m_shape.emplace( shape );
+      inline void set_shape( const SharedShape &shape ) {
+        m_shape = shape;
       }
 
-      inline PsmrtsShape shape() const {
-        if ( m_shape.has_value() ) {
-          return ( m_shape.value() );
-        }
-        // If no shape is present
-        return ( PsmrtsShape() );
+      inline SharedShape shape() const {
+        return ( m_shape );
       }
 
     private:
-      std::optional<PsmrtsShape> m_shape;
+      SharedShape m_shape;
   };
 
 } // namespace psmrts

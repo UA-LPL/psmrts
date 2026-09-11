@@ -6,14 +6,12 @@ target_sources( psmrts PUBLIC
                                   ProductCart.hpp
                                   ProductConfiguration.hpp
                                   ProductFeature.hpp
-                                  ProductInventory.hpp
                                   ProductMaker.hpp
                                   ProductOption.hpp
                                   ProductOrder.hpp
                                   ProductModelDispatch.hpp
                                   ProductProcessing.hpp
-                                  ProductSpecification.hpp
-                                  PRQProduct.hpp )
+                                  ProductSpecification.hpp )
  
 # Only add if requested
 if(PSMRTS_BUILD_TESTS)

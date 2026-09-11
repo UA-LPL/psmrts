@@ -151,11 +151,14 @@ static void test_psmrts_ray(void **state) {
     assert_double_equal(lkdr_result.y, 20.2, tolerance);
     assert_double_equal(lkdr_result.z, 30.0, tolerance);
 
-    psmrts_free_ray( ray );
+    psmrts_destroy_ray( ray );
 }
 
 static void test_psmrts_raytrace(void **state) {
     (void)state;
+
+    psmrts_factory_liquidate();
+
     const char *name = "test";
     PSMRTS_Tracer *sphere = psmrts_create_sphere(1.0, name);
 
@@ -218,14 +221,18 @@ static void test_psmrts_raytrace(void **state) {
     double phase = psmrts_phase(ray, ray2);
     assert_double_equal(phase, 0.0, tolerance);
 
-    psmrts_free_tracer( sphere );
-    psmrts_free_ray( ray );
-    psmrts_free_ray( ray2 );
+    psmrts_destroy_tracer( sphere );
+    psmrts_destroy_ray( ray );
+    psmrts_destroy_ray( ray2 );
+
+    psmrts_factory_liquidate();
 }
 
 // --- PSMRTS TraceArray Functions ---
 static void test_psmrts_trace_array(void **state) {
     (void)state;
+
+    psmrts_factory_liquidate();
 
     PSMRTS_TraceArray *t_array = psmrts_create_trace_array();
     int size = psmrts_trace_array_size(t_array);
@@ -266,15 +273,19 @@ static void test_psmrts_trace_array(void **state) {
     assert_double_equal(sec_obs.y, 3.0, tolerance);
     assert_double_equal(sec_obs.z, 2.0, tolerance);
 
-    psmrts_free_ray( ray2 );
-    psmrts_free_ray( ray );
-    psmrts_free_tracer( ellipse );
-    psmrts_free_trace_array( t_array);
+    psmrts_destroy_ray( ray2 );
+    psmrts_destroy_ray( ray );
+    psmrts_destroy_tracer( ellipse );
+    psmrts_destroy_trace_array( t_array);
+    
+    psmrts_factory_liquidate();
 }
 
 // --- PSMRTS Photometric Trace/Array Functions ---
 static void test_psmrts_photometric_trace(void **state) {
     (void)state;
+
+    psmrts_factory_liquidate();
 
     const char *name = "test";
     PSMRTS_Tracer *ellipse = psmrts_create_sphere(1.0, name);
@@ -341,9 +352,11 @@ static void test_psmrts_photometric_trace(void **state) {
     assert_double_equal(new_obs_result.y, new_obs.y, tolerance);
     assert_double_equal(new_obs_result.z, new_obs.z, tolerance);
 
-    psmrts_free_tracer( ellipse );
-    psmrts_free_ray( observer_ray );
-    psmrts_free_photometric_ray( p_ray );
+    psmrts_destroy_tracer( ellipse );
+    psmrts_destroy_ray( observer_ray );
+    psmrts_destroy_photometric_ray( p_ray );
+    
+    psmrts_factory_liquidate();
 }
 
 static void test_psmrts_photometric_array(void **state) {
@@ -384,9 +397,9 @@ static void test_psmrts_photometric_array(void **state) {
     assert_double_equal(target_obs.y, obs2.y, tolerance);
     assert_double_equal(target_obs.z, obs2.z, tolerance);
 
-    psmrts_free_photometric_trace_array( p_array );
-    psmrts_free_photometric_ray( p_ray1 );
-    psmrts_free_photometric_ray( p_ray2 );
+    psmrts_destroy_photometric_trace_array( p_array );
+    psmrts_destroy_photometric_ray( p_ray1 );
+    psmrts_destroy_photometric_ray( p_ray2 );
 }
 
 // --- Conversion Fuctions ---
@@ -431,6 +444,8 @@ static void test_psmrts_conversions(void **state) {
 static void test_psmrts_tracers(void **state) {
     (void)state;
 
+    psmrts_factory_liquidate();
+
     PSMRTS_Tracer *sphere = psmrts_create_sphere(1.0, "sphere");
     PSMRTS_BOOL sphere_valid = psmrts_tracer_valid( sphere );
     assert_int_equal(sphere_valid, 1);
@@ -456,12 +471,14 @@ static void test_psmrts_tracers(void **state) {
     PSMRTS_BOOL dsk_valid = psmrts_tracer_valid( naifdsk );
     assert_int_equal(dsk_valid, 1);
     
-    psmrts_free_tracer( sphere );
-    psmrts_free_tracer( spheroid );
-    psmrts_free_tracer( ellipsoid );
-    psmrts_free_tracer( ellipsoid_v );
-    psmrts_free_tracer( bullet );
-    psmrts_free_tracer( naifdsk );
+    psmrts_destroy_tracer( sphere );
+    psmrts_destroy_tracer( spheroid );
+    psmrts_destroy_tracer( ellipsoid );
+    psmrts_destroy_tracer( ellipsoid_v );
+    psmrts_destroy_tracer( bullet );
+    psmrts_destroy_tracer( naifdsk );
+
+    psmrts_factory_liquidate();
 }
 
 int main(void) {

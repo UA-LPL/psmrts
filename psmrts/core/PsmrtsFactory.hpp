@@ -14,17 +14,26 @@ find files of those names at the top level of this repository. **/
 #define PsmrtsFactory_hpp
 
 #include <string>
+#include <functional>
 #include <iostream>   
+#include <iterator>
 #include <sstream>  
 #include <exception>
+#include <tuple>
 #include <map>
+#include <shared_mutex>
 
 #include <psmrts/core/PsmrtsUtilities.hpp>
-#include <psmrts/core/PsmrtsCache.hpp>
+#include <psmrts/core/PsmrtsSharedCache.hpp>
 #include <psmrts/core/PsmrtsTranslations.hpp>
-#include <psmrts/core/products/ProductInventory.hpp>
+#include <psmrts/core/products/ProductConfiguration.hpp>
 #include <psmrts/core/products/ProductSpecification.hpp>
+#include <psmrts/shapes/PsmrtsShape.hpp>
+#include <psmrts/tracers/PsmrtsTracer.hpp>
+#include <psmrts/core/products/ProductMaker.hpp>
+#include <psmrts/core/products/ProductOrder.hpp>
 #include <psmrts/core/PsmrtsInventory.hpp>
+#include <psmrts/core/products/ProductProcessing.hpp>
 
 namespace psmrts {
 
@@ -34,12 +43,8 @@ namespace psmrts {
    * This class contains a persistent inventory of all PSMRTS products.
    * Inventories can be created for most any situation and copied
    * freely as standalone resources. Using this class for all PSMRTS
-   * product quieries will centralize the caching of all products during
+   * product queries will centralize the caching of all products during
    * systematic processing. 
-   * 
-   * This design also provides opportunities to create or copy existing
-   * inventories for specialized/controlled environments. This will also
-   * help aid in scaling management of PSMRTS environments.
    * 
    * PsmrtsFactory behaves very much like a singleton class object with
    * the main difference being it does not use a pointer to reference
@@ -47,124 +52,41 @@ namespace psmrts {
    * this class where each resulting instance contains the same exact
    * data. With any instance of PsmrtsFactory, you can alter the contents
    * of the internal inventory cache for all PSMRTS products. You can
-   * even completety empty the cache which clearly impacts all users
+   * even completely empty the cache which clearly impacts all users
    * of the factory.
    * 
-   * If you need an enviroment that does not have this type of dynamic, then
+   * If you need an environment that does not have this type of dynamic, then
    * PsmrtsInventory is what you need. See PsmrtsInventory.hpp for details
    * of its characteristics. 
    * 
-   * PsrmtsFactory contains a cache of PsmrtsInventorys with the main default
-   * "system" inventory called "psmrts". However, PsmrtsFactory provides
-   * features to allow users to cache their own inventories for specialized
-   * use. This feature allows users to create their own unique ray tracing
-   * system while maintaining a complete copy of all its resources. This
-   * By maintaining your own copy of your products, you will eliminate the
-   * risk of other processings messing with your configured resources. You 
-   * can uniquely name your products using unique characters as the names
-   * of cached inventories are enforced lowercase names.
+   * PsmrtsFactory contains a cache of PsmrtsInventorys with the main default
    * 
-   * Note that PSMRTS is intented to provide a balance of stack and heap
-   * resources. Efforts are made to use heap allocations for large data needs
-   * and avoid instantiations of objects as pointers or even contain allocated
-   * objects. Futhermore, use of virtual inheritance is discouraged with
-   * efforts to support effective use of small objects within PSMRTS classes.
-   * 
-   * Here is a small example of the characteristics of PsmrtsFactory. This
-   * example is a test case in our Catch2 test base that illustrates the
-   * state of the PSMRTS factory product inventory environment in use.
-   * 
-   * @code
-   * // State of an empty factory.
-   * psmrts::PsmrtsFactory factory1;
-   * factory1.liquidate();  // Start with empty factory, "psmrts" always exists
-   *  
-   * CHECK( factory1.size()               == 1 );
-   * CHECK( factory1.contains( "psmrts" ) == true );
-   * 
-   * // Add a bullet tracer into unque inventory
-   * std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
-   * auto uid1 = factory1.add_product( psmrts::PsmrtsTracer::bullet( objfile ), "inv1" );
-   * CHECK( factory1.size() == 2 );
-   * CHECK( factory1.find( "inv1" ).tracers().size() == 1 );
-   * CHECK( factory1.contains( "psmrts" )            == true );
-   * CHECK( factory1.contains( "inv1" )              == true );
-   * CHECK( factory1.contains( "INV1" )              == true );
-   *
-   * // Instantiate second factory and compare its state to factory1.
-   * psmrts::PsmrtsFactory factory2;
-   * CHECK( factory2.size()                          == 2 );
-   * CHECK( factory2.size()                          == factory1.size() );
-   * CHECK( factory2.contains( "psmrts" )            == factory1.contains( "psmrts" ) );
-   * CHECK( factory2.contains( "inv1" )              == factory1.contains( "inv1" ) );
-   * CHECK( factory2.find( "inv1" ).tracers().size() == factory1.find( "inv1" ).tracers().size() );
-   *
-   * @endcode 
-   *
-   * If your application requires an isolated ray tracing system, a custom
-   * inventory can be built up through the contents of any number of
-   * inventories. You can add (or merge) environments into one another,
-   * or add to the system factory as a standalone inventory that can be
-   * easily accessed from anywhere in your code simply by instantiating
-   * a copy of PsmrtsFactory and find() the appropriate inventory - or
-   * implement your own access capabilities.
-   * 
-   * @author Kris J Becker, Univerisity of Arizona
+   * @author Kris J Becker, University of Arizona
    * @history 2025-09-07 Kris J. Becker  Original Version
    * @history 2026-01-01 Kris J. Becker  Add thread locking for merge, add and
    *                      remove operations
    * @history 2026-02-17 Kris J. Becker  Fix initialization and tests
+   * @history 2026-08-29 Kris J. Becker  Refactored to use shared products and 
+   *                       other PSMRTS data elements.
    */
-  class PsmrtsFactory {
+  class PsmrtsFactory final {
     public:
-      inline static const std::string psmrts_inventory{ "psmrts" };
       using UIDType                 = PsmrtsUID::UIDType;
       using TracerInventory         = PsmrtsInventory::TracerInventory;
       using ShapeInventory          = PsmrtsInventory::ShapeInventory;
-      using PriorityTracerInventory = PsmrtsInventory::PriorityTracerInventory;
+      using SharedTracerInventory   = PsmrtsInventory::SharedTracerInventory;
+      using SharedShapeInventory    = PsmrtsInventory::SharedShapeInventory;      
       using ParameterInventory      = PsmrtsInventory::ParameterInventory;
 
-      PsmrtsFactory( )  {  }
-      virtual ~PsmrtsFactory() { }
+      PsmrtsFactory( ) = default;
+      ~PsmrtsFactory() = default;
 
-
-      /** Return the number of inventories present in the factory */
-      inline size_t size() const {
-        std::scoped_lock mylocker( m_mutex );
-        return ( PsmrtsFactory::inventory().size() );
-      }
-
-      /** Looking for an inventory by name case insensive */
-      inline bool contains( const std::string &name ) const {
-        std::scoped_lock mylocker( m_mutex );
-        return ( PsmrtsFactory::inventory().contains( name ) );
-      }
-
-      /** Returns list of all cached inventories by name/uid */
-      inline std::vector<std::string>  get_inventory_list( ) const {
-        std::scoped_lock mylocker( m_mutex );
-        return ( PsmrtsFactory::inventory().cache().keys() );
-      }
-
-      /** Looking for an inventory by name */
-      inline const PsmrtsInventory &find( const std::string &name  = psmrts_inventory ) const {
-        std::scoped_lock mylocker( m_mutex );
-        return ( PsmrtsFactory::inventory().find( name ) );
-      }
-
-      /** Return the shape inventory from the named container */
-      inline const ShapeInventory &shapes( const std::string &name  = psmrts_inventory) const  {
-        return ( this->find( name ).shapes() );
-      }
-
-      /** Return the tracer inventory from the named container */
-      inline const TracerInventory &tracers( const std::string &name  = psmrts_inventory ) const  {
-        return ( this->find( name ).tracers() );
-      }
-
-      /** Return the priority tracer inventory from the named container */
-      inline const PriorityTracerInventory &prioritytracers( const std::string &name  = psmrts_inventory ) const  {
-        return ( this->find( name ).prioritytracers() );
+      //*** Shape utilities ***//
+      
+      /** Return the number of shapes in the inventory */
+      inline size_t shape_count() const {
+        std::shared_lock<std::shared_mutex> mylocker( m_mutex );
+        return ( m_inventory.shapes()->size() );
       }
 
       /**
@@ -178,34 +100,48 @@ namespace psmrts {
        * @param inventory_name Name of the inventory to add the shape to
        * @return UIDType       The unique id of the product as stored in the cache
        */
-      inline UIDType add_product( const PsmrtsShape &shape,
-                                  const std::string &inventory_name = psmrts_inventory  ) {
-                                    
-        std::scoped_lock mylocker( m_mutex );
-        if ( PsmrtsFactory::inventory().contains( inventory_name ) ) {
-          return ( PsmrtsFactory::inventory().find( inventory_name ).shapes().add_product( shape ) );
-        }
-        else {
-          PsmrtsInventory inv_t( inventory_name );
-          (void) inv_t.shapes().add_product( shape );
-          PsmrtsFactory::inventory().add( inventory_name, inv_t );
-        }           
-        return ( shape.uid() );
+      inline UIDType add( const PsmrtsShape &shape  ) {
+        std::unique_lock<std::shared_mutex> mylocker( m_mutex );
+        return ( m_inventory.add( make_shared_copy( shape ) ) );
+      }
+
+      inline UIDType add( const SharedShape &shape  ) {
+        std::unique_lock<std::shared_mutex> mylocker( m_mutex );
+        return (  m_inventory.add( shape ) );
+      }
+
+      inline bool contains_shape( const UIDType &uid  ) {
+        std::shared_lock<std::shared_mutex> mylocker( m_mutex );
+        return ( m_inventory.shapes()->contains( uid ) );
+      }
+
+      inline SharedShape find_shape( const UIDType &uid  ) {
+        std::shared_lock<std::shared_mutex> mylocker( m_mutex );
+        return ( m_inventory.shapes()->find( uid ) );
       }
 
       /** Remove a shape product from a named inventory */
-      inline void remove_shape( const UIDType &uid, 
-                                const std::string &inventory_name = psmrts_inventory  ) {
-        std::scoped_lock mylocker( m_mutex );
-        if ( PsmrtsFactory::inventory().contains( inventory_name )  ) {
-          PsmrtsFactory::inventory().find( inventory_name ).shapes().remove( uid );
-        }
+      inline void remove_shape( const UIDType &uid  ) {
+        std::unique_lock<std::shared_mutex> mylocker( m_mutex );
+        m_inventory.shapes()->remove( uid );
         return;
       } 
 
+      inline std::vector<UIDType> shape_keys() const {
+        std::shared_lock<std::shared_mutex> mylocker( m_mutex );
+        return ( m_inventory.shapes()->keys() );
+      }
+
+      //*** Tracer utilities ***//
+
+      /** Return the number of tracers in the inventory */
+      inline size_t tracer_count() const {
+        std::shared_lock<std::shared_mutex> mylocker( m_mutex );
+        return ( m_inventory.tracers()->size() );
+      }
 
       /**
-       * @brief Add a PsmrtsTracer to the named inventory
+       * @brief Add a PsmrtsTracer to the inventory
        * 
        * This method will add a PsmrtsTracer to a named inventory in the
        * PSMRTS factory system. If the specified inventory does not exist,
@@ -215,147 +151,321 @@ namespace psmrts {
        * @param inventory_name Name of inventory to add the tracer to [default: "psmrts"]
        * @return UIDType       The unique id of the product as stored in the cache
        */
-      inline UIDType add_product( const PsmrtsTracer &tracer,
-                                  const std::string &inventory_name = psmrts_inventory  ) {
-        std::scoped_lock mylocker( m_mutex );
-        if ( PsmrtsFactory::inventory().contains( inventory_name )  ) {
-          return ( PsmrtsFactory::inventory().find( inventory_name ).tracers().add_product( tracer ) );
-        }
-        else {
-          PsmrtsInventory inv_t( inventory_name );
-          (void) inv_t.tracers().add_product( tracer );
-          PsmrtsFactory::inventory().add( inventory_name, inv_t );
-        }        
-        return ( tracer.uid()  );
+      inline UIDType add( const PsmrtsTracer &tracer ) {
+        std::unique_lock<std::shared_mutex> mylocker( m_mutex );
+        return ( m_inventory.add( make_shared_copy( tracer ) ) );
+      }
+
+      inline UIDType add( const SharedTracer &tracer ) {
+        std::unique_lock<std::shared_mutex> mylocker( m_mutex );
+        return ( m_inventory.add( tracer ) );
+      }
+
+      inline bool contains_tracer( const UIDType &uid  ) {
+        std::shared_lock<std::shared_mutex> mylocker( m_mutex );
+        return ( m_inventory.tracers()->contains( uid ) );
+      }
+
+      inline SharedTracer find_tracer( const UIDType &uid  ) {
+        std::shared_lock<std::shared_mutex> mylocker( m_mutex );
+        return ( m_inventory.tracers()->find( uid ) );
       }
 
       /** Remove a tracer from a named inventory */
-      inline void remove_tracer( const UIDType &uid, 
-                                const std::string &inventory_name = psmrts_inventory  ) {
-        std::scoped_lock mylocker( m_mutex );
-        if ( PsmrtsFactory::inventory().contains( inventory_name )  ) {
-          PsmrtsFactory::inventory().find( inventory_name ).tracers().remove( uid );
-        }
+      inline void remove_tracer( const UIDType &uid  ) {
+        std::unique_lock<std::shared_mutex> mylocker( m_mutex );
+        m_inventory.tracers()->remove( uid );
         return;
-      }       
-
-      /**
-       * @brief Add a PsmrtsPriorityTracer to the named inventory
-       * 
-       * This method will add a PsmrtsPriorityTracer to a named inventory in
-       * the PSMRTS factory system. If the specified inventory does not exist,
-       * it will be created and the product added to the inventory.
-       * 
-       * @param tracer_p         PsmrtsPriorityTracer to add to the named inventory
-       * @param inventory_name Name of inventory to add the tracer to [default: "psmrts"]
-       * @return UIDType       The unique id of the product as stored in the cache
-       */
-      inline UIDType add_product( const PsmrtsPriorityTracer &tracer_p,
-                                  const std::string &inventory_name = psmrts_inventory  ) {
-        std::scoped_lock mylocker( m_mutex );
-        if ( PsmrtsFactory::inventory().contains( inventory_name )  ) {
-          return ( PsmrtsFactory::inventory().find( inventory_name ).prioritytracers().add_product( tracer_p ) );
-        }
-        else {
-          PsmrtsInventory inv_t( inventory_name );
-          (void) inv_t.prioritytracers().add_product( tracer_p );
-          PsmrtsFactory::inventory().add( inventory_name, inv_t );
-        }
-        return ( tracer_p.uid() );
+      }     
+      
+      inline std::vector<UIDType> tracer_keys() const {
+        std::shared_lock<std::shared_mutex> mylocker( m_mutex );
+        return ( m_inventory.tracers()->keys() );
       }
-
-      /** Remove a priority tracer from a named inventory */
-      inline void remove_priority_tracer( const UIDType &uid, 
-                                          const std::string &inventory_name = psmrts_inventory  ) {
-        std::scoped_lock mylocker( m_mutex );
-        if ( PsmrtsFactory::inventory().contains( inventory_name )  ) {
-          PsmrtsFactory::inventory().find( inventory_name ).prioritytracers().remove( uid );
-        }
-        return;
-      }                                            
 
       /** Add a value to the cache - overwrites existing data */
-      inline size_t add( const PsmrtsInventory &inventory, 
-                         const std::string &cache_name = psmrts_inventory) {
-        return ( this->merge( inventory, cache_name ) );
-      }
-
-      /** Get the current state of the parameter/environment variable system */
-      static inline PsmrtsTranslations getenv( ) {
-        return ( PsmrtsTranslations::create() );
-      }
-
+      inline size_t add( const PsmrtsInventory &inventory ) {
+        std::unique_lock<std::shared_mutex> mylocker( m_mutex );
+        return ( m_inventory.merge( inventory ) );
+      }      
       
-      /** Remove the requested cache value by key */
-      inline size_t merge( const PsmrtsInventory &inventory, 
-                           const std::string &cache_name ) {
-
-        std::scoped_lock mylocker( m_mutex );
-        size_t n_merged = 0;
-
-        if ( PsmrtsFactory::inventory().contains( cache_name ) ) {
-          PsmrtsInventory &cache = PsmrtsFactory::inventory().find( cache_name );
-          n_merged += cache.merge( inventory );
-        }
-        else {
-          PsmrtsFactory::inventory().add( cache_name, inventory );
-          n_merged += inventory.size();
-        }
-
-        return ( n_merged );
-      }
-
-      /** Remove the requested cache value by key */
+      /** Merge the requested cache into the factory */
       inline size_t merge( const PsmrtsInventory &inventory ) {
-        return ( this->merge( inventory, psmrts_inventory ) );
+        std::unique_lock<std::shared_mutex> mylocker( m_mutex );
+        return ( m_inventory.merge( inventory ) );
       }
 
-      /** Create a new inventory if it doesn't exist */
-      inline bool create( const std::string &name_inv ) {
-        if ( name_inv.length() > 0 ) {
-          if ( !this->contains( name_inv ) ) {
-            PsmrtsFactory::inventory().add( name_inv, PsmrtsInventory( name_inv ) );
+      /**
+       * @brief Comprehensive product maker complete with search of existing resources
+       * 
+       * This method will search the factory inventory for a specific product
+       * given the configurations present. Note this method will search the
+       * "inventory" contents and then factory resources for existing
+       * products that may exist.
+       * 
+       * It is assumed that the products contained in the order are validated
+       * against a product specification.
+       * 
+       * If the product does not exist, it will be created and added to the 
+       * factory resources as well as the "inventory" parameter.
+       * 
+       * There are no more that two products expected to exist in the order - 
+       * a tracer and shape.
+       * 
+       * The errors parameter will inform the caller of any errors that have
+       * occurred.
+       * 
+       * @param orders    Array of orders, typically from an invoice
+       * @param inventory The local inventory to check for tracer products
+       * @return std::vector<SharedTracer> Ordered list of tracers created so
+       *                     that priority is preserved if that is needed by
+       *                      called
+       */
+      inline std::vector<SharedTracer> process_order( const std::vector<SharedOrder> &orders,
+                                                      PsmrtsInventory &inventory,
+                                                      PsmrtsErrors &errors ) {
+
+        std::unique_lock<std::shared_mutex> mylocker( m_mutex );
+
+        std::vector<SharedTracer> tracer_list_t;
+        tracer_list_t.reserve( orders.size() );
+
+        ProductProcessing processor( inventory.translations() );
+        for ( const auto &order : orders ) {
+
+          // Refuse to process an invalid empty product
+          if ( !order->isvalid() ) {
+            errors.add_error( "PsmrtsFactory::make_product() - Invalid product order: " + order->name() );
+            return ( tracer_list_t );
           }
-          return ( true );
+
+          // Get the cart configuration
+          SharedCart cart_t = order->find( "tracer" );
+          SharedCart cart_s = order->find( "shape" );
+
+          SharedTracer tracer_p;
+          SharedShape  shape_p;
+
+          // Run a search on the local inventory since we can be creating new
+          // products there.
+          bool success = this->tracer_search( *order, inventory, processor, tracer_p, shape_p );
+          if ( !success ) {
+            success = this->tracer_search( *order, m_inventory, processor, tracer_p, shape_p );
+          }
+          
+          // If we did not find an existing tracer, we must make one
+          if ( !success ) {
+
+            // First see if we have a shape
+            this->shape_search( cart_s, 
+                                { inventory.shapes(), m_inventory.shapes() },
+                                processor, shape_p );
+
+            if ( !this->make_tracer_and_shape( *order, tracer_p, shape_p, errors ) ) {
+              errors.throw_errors();
+            }
+
+          }
+
+          this->update_cart( cart_t, tracer_p );  
+          this->update_cart( cart_s, shape_p ); 
+        
+          // Update the inventories
+          inventory.add( tracer_p );
+          inventory.add( shape_p );
+
+
+          m_inventory.add( tracer_p );
+          m_inventory.add( shape_p );
+
+          tracer_list_t.push_back( tracer_p );
         }
-        return ( false );
+        return ( tracer_list_t );
+      }  
+      
+      /** Create tracers from a single order */
+      inline std::vector<SharedTracer> process_order( SharedOrder &order,
+                                                     PsmrtsInventory &inventory,
+                                                     PsmrtsErrors &errors ) {
+        std::vector<SharedOrder> orders =  { order };
+        return ( process_order( orders, inventory, errors ) );
       }
 
+      /**
+       * @brief Create a new product as defined by the order content
+       * 
+       * This method uses no factory resources but will create a new product
+       * based upon the carts contained in the order. It should be used when
+       * the product resources do not exist in the factory invoice.
+       * 
+       * The products created here are not added to the factory resources so
+       * if callers want to add this to the factory, it must be done so using one
+       * of the add() methods.
+       * 
+       * @param order   Order containing the product configurations
+       * @param tracer  Returns a tracer if a configuration exists in the order
+       * @param shape   Returns a shape if a configuration exists in the order
+       * @param errors  An error logger to return any errors that occured in the
+       *                 creation of the products. Note no errors are thrown 
+       *                 directly in this method but can be upon return by this
+       *                 object.
+       * @return true  If the product was successfully created
+       * @return false If the product could not be created
+       */
+      inline bool make_tracer_and_shape( const ProductOrder &order,
+                                         SharedTracer &tracer, 
+                                         SharedShape &shape,
+                                         PsmrtsErrors &errors ) const {
 
-      /** Remove a system inventory from the factory! */
-      inline void remove( const std::string &invname ) {
-        std::scoped_lock mylocker( m_mutex );
-        PsmrtsFactory::inventory().remove( invname );
+        SharedCart cart_s = order.find( "shape" );
+        SharedCart cart_t = order.find( "tracer" );
+
+        bool success = true;
+        if ( cart_s && !shape ) {
+          ProductMaker<PsmrtsShape> maker_s( cart_s->name() );
+          if ( !maker_s.process_cart( *cart_s ) ) {
+            errors.add_error( "PsmrtsFactory::make_tracer_and_shape() - Failed to make shape: " + cart_s->name() );
+            return ( false );
+          }
+          shape = maker_s.product();     
+        }
+
+        if ( cart_t && !tracer ) {
+          ProductMaker<PsmrtsTracer> maker_t( cart_t->name() );
+          SharedTracer tracer_t;
+          if ( !shape ) {
+            tracer_t = maker_t.process_cart( *cart_t );
+          }
+          else {
+            tracer_t = maker_t.process_cart( *cart_t, shape );
+          }
+
+          // Check for success
+          if ( !tracer_t ) {
+            errors.add_error( "PsmrtsFactory::make_tracer_and_shape() - Failed to make tracer: " + cart_t->name() );
+            success = false;
+          }
+          else {
+            tracer = tracer_t;
+          }
+
+        } 
+        return ( success );
       }
-    
+
+      /**
+       * @brief Returns a reference to the translator containing users evironment
+       * 
+       * This method returns a reference to the current set of environment
+       * variables in the user's shell. This is intended to provide a consistent
+       * starting point where users can copy this and add parameters as needed
+       * to assist in translating file paths.
+       * 
+       * This is inspired by the ISIS IsisPreferences system that defines a set
+       * of environment-like variables that define an absolute path to mission
+       * ancillary data such as NAIF SPICE kernels and calibration data. This
+       * system uses both parameters and environment variables that are
+       * iteratively substituted to provide absolute file paths in file names.
+       * 
+       * See ISIS classes Preferences, FileName and the IsisPreferences file in
+       * $ISISROOT.
+       * 
+       * @see PsmrtsTranslations.hpp.
+       * 
+       * @return const PsmrtsTranslations& Current state of users environment
+       *                                     variables
+       */
+      inline const PsmrtsTranslations &translator() const {
+        return ( *m_inventory.translations() );
+      }
+
       /** Liquidate/empty all PSRMTS factory inventory - affects all instances of PsmrtsFactory! */
       inline static void liquidate( ) {
-        std::scoped_lock mylocker( m_mutex );
-        PsmrtsFactory::PsmrtsFactory::inventory().clear();
-        
-        // Be sure to set up the default "psmrts" inventory
-        PsmrtsFactory::PsmrtsFactory::inventory().add( psmrts_inventory, PsmrtsInventory( psmrts_inventory ) );
+        std::unique_lock<std::shared_mutex> mylocker( m_mutex );
+        m_inventory.clear();
         return;
       }
 
     private:
       // Definitions and cache of active product inventories.
-      using FactoryInventory = ProductInventory<std::string, PsmrtsInventory>;
-      static inline std::mutex       m_mutex{};
+      inline static PsmrtsInventory m_inventory{ "psmrts" };
+      inline static std::shared_mutex m_mutex{};
 
-      // Flag to initialize at startup
-      static inline std::once_flag psmrts_inventory_init;
+      /**
+       * @brief Update the cart with the product uid
+       * 
+       * @tparam SharedT Type of product to update
+       * @param cart     Cart to update
+       * @param data     Typically a PsmrtsTracer or PsmrtsShape
+       */
+      template <typename SharedT>
+        inline void update_cart( SharedCart &cart, const SharedT &data ) const {
+          if ( cart && data ) cart->set_uid( data->uid() );
+        }
 
-      /** Return the factory inventory */
-      static inline FactoryInventory &inventory()  {
-        static FactoryInventory m_inventory;
-         std::call_once( psmrts_inventory_init, [&]( ){ 
-            m_inventory = create_case_insensitive_inventory<PsmrtsInventory>( psmrts_inventory );
-            m_inventory.add( psmrts_inventory, PsmrtsInventory( psmrts_inventory ) ); 
-          } ); // set up default product inventory cache on first call
+        /**
+         * @brief Run a tracer/shape search for a given order
+         * 
+         * This method will search a tracer/shape inventory for a match order.
+         * It will return a tracer and shape, if a shape is actually part of
+         * the tracer, upon a match found in the inventory.
+         * 
+         * This actually searches for a tracer and then compares the shape cart
+         * in the order, if given, to the shape in the tracer.
+         * 
+         * @param order     The order to fill containing a tracer configuration
+         * @param inventory The tracer/shape inventory to search to fullfil the order
+         * @param processor A product processor use to determine/validate products
+         * @param tracer Contains the tracer found in the search/compare
+         * @param shape  Contains the shape of the tracer if present
+         * @return true  If both the tracer and shape (if applicable) cart contents are 
+         *                 satisfied, true will be returned.
+         * @return false If the tracer or shape do not match any content in the
+         *                 inventory.
+         */
+      inline bool tracer_search( const ProductOrder &order,
+                                 const PsmrtsInventory &inventory,
+                                 const ProductProcessing &processor,
+                                 SharedTracer &tracer,
+                                 SharedShape &shape ) const {
 
-        return ( m_inventory );
-      }
+        auto [ found, tracer_p, shape_p ] = processor.search_inventory( order, 
+                                                                    *inventory.tracers(), 
+                                                                    *inventory.shapes() );
+        tracer = tracer_p;
+        shape  = shape_p;
+        return ( found );
+      } 
+      
+      /**
+       * @brief Runs an inventory shape search to use in construction of new tracer
+       * 
+       * This method will return a shape if it is contained in the inventory
+       * 
+       * @param cart_s     Shape configuration to search for
+       * @param shape_list List of inventory pointers to search for a shape
+       * @param processor  Product processor to use in the evaluation of shapes 
+       *                     and the cart configuration
+       * @param shape      Returns a shape if found in the inventories
+       * @return true      If a shape was found in one of the inventories
+       * @return false     If a shape was not found
+       */
+      inline bool shape_search( const SharedCart &cart_s, 
+                                const std::initializer_list<SharedShapeInventory> &shape_list,
+                                const ProductProcessing &processor,
+                                SharedShape &shape ) const {
+
+        if ( !cart_s ) return ( false );
+        for ( const auto &list_s : shape_list ) {
+          auto shape_p = processor.search_shape_inventory( *cart_s, *list_s );
+          if ( shape_p ) {
+            shape = shape_p;
+            return ( true );
+          }
+        }
+        return ( false );
+      } 
+      
   };
 
 } // namespace psmrts

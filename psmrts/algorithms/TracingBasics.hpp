@@ -60,7 +60,6 @@ namespace psmrts::algorithms  {
   template <typename TRACER>
     bool process_basic_trace( const TRACER &tracer, PRQRayTrace &trace ) {
       try { 
-        trace.trace().set_tracer_id( tracer.uid() );
         trace.trace().validate_lookdir();
         return ( tracer.ray_trace( trace.trace() ) );
       }

@@ -32,27 +32,16 @@ namespace psmrts {
     public:
       using ProductInfo     = ProductSpecification::ProductInfo;
       using ProductFeatures = ProductSpecification::ProductFeatures;
+      using SharedMeshData  = std::shared_ptr<PsmrtsMeshData>;
                 
       PlyShape() : PsmrtsProduct( "none", "shape", "ply"), 
-                  m_mesh(),
-                  m_config( "ply" ) { }
+                   m_mesh(), m_config( "ply" ) { 
+        m_mesh = make_shared_copy ( PsmrtsMeshData() );
+      }
       PlyShape( const std::string &ply_file );
       PlyShape( const ProductCart &processed_cart );
       virtual ~PlyShape() = default;
       
-      /**
-      * @brief PRQFeatures holding Format-relevant specification data
-      *  - Possibly needs removal
-      * @param features 
-      * @return true 
-      * @return false 
-      */
-      inline bool process( PRQFeatures &features ) const {
-        features.add_feature( this->product_specifications().to_json() );
-        return ( true );
-      }
-      
-
       static inline ProductSpecification product_specifications() {
         ProductInfo  info( "ply", { 
                       ProductOption( "name", "ply"),
@@ -86,21 +75,17 @@ namespace psmrts {
       }
 
         inline const PsmrtsMeshData &get_mesh() const {
-          return m_mesh;
+          return ( *m_mesh );
         }
 
         inline const ProductConfiguration &config() const {
           return m_config;
         }
 
-      inline bool matches( const ProductConfiguration &conf ) const {
-        return ( this->config().matches( conf ) );
-      }
-
         PSMRTS_PROCESS_CATCHALL( "PlyShape" )
 
       private:
-        PsmrtsMeshData m_mesh;
+        SharedMeshData       m_mesh;
         ProductConfiguration m_config;
 
       void create( const ProductCart &cart );        

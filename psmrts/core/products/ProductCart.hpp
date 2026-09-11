@@ -50,42 +50,39 @@ namespace psmrts {
    * @author Kris J. Becker, University of Arizona
    * @history 2026-02-14 Kris J. Becker  Original Version
    */
-  class ProductCart : public PsmrtsRequest {
+  class ProductCart : public PsmrtsErrors {
     public:
       using ProductOptionList = ProductConfiguration::ProductOptionList;
       using ResidualOptions   = PsmrtsContainer<ProductOption>;
       using UIDType           = PsmrtsProduct::UIDType;
 
 
-      ProductCart( ) : PsmrtsRequest( "ProductCart" ),
+      ProductCart( ) : PsmrtsErrors(), 
                        m_specs(  ),
                        m_config( ),
                        m_residual( "residualoptions" ),
-                       m_tracer_uid( PsmrtsUID::null_uid() ),
-                       m_shape_uid( PsmrtsUID::null_uid() ) { }
+                       m_uid( PsmrtsUID::null_uid() ) { }
       ProductCart( const std::string &name ) : 
-                   PsmrtsRequest( name ),
+                   PsmrtsErrors(), 
                    m_specs(  ),
-                   m_config( ),
+                   m_config( name ),
                    m_residual( "residualoptions" ),
-                   m_tracer_uid( PsmrtsUID::null_uid() ),
-                   m_shape_uid( PsmrtsUID::null_uid() ) { }
-      ProductCart( const ProductSpecification &specs ) : 
-                   PsmrtsRequest( specs.name() ),
+                   m_uid( PsmrtsUID::null_uid() ) { }
+      ProductCart( const ProductSpecification &specs,
+                   const std::string &name = "cart"  ) :
+                   PsmrtsErrors(), 
                    m_specs( specs ),
-                   m_config(  ),
+                   m_config( name ),
                    m_residual( "residualoptions" ),
-                   m_tracer_uid( PsmrtsUID::null_uid() ),
-                   m_shape_uid( PsmrtsUID::null_uid() ) { }                    
+                   m_uid( PsmrtsUID::null_uid() ) { }
       ProductCart( const ProductSpecification &specs,
                    const ProductConfiguration &config,
                    const ResidualOptions &residuals = ResidualOptions( "residualoptions" )) : 
-                   PsmrtsRequest( config.name() ),
+                   PsmrtsErrors(), 
                    m_specs( specs ),
                    m_config( config ),
                    m_residual( residuals ),
-                   m_tracer_uid( PsmrtsUID::null_uid() ),
-                   m_shape_uid( PsmrtsUID::null_uid() ) { }                                     
+                   m_uid( PsmrtsUID::null_uid() ) { }
       virtual ~ProductCart() = default; 
        
       /** Special constructor to extract a product from a combined config */
@@ -119,14 +116,19 @@ namespace psmrts {
                  ( this->residual_size() == 0 ) );
       }
 
-      /** The product name such as "obj", "bullet" as defined in the specs */
+      /** Name of the product as specified in the configuration */
       inline const std::string &name () const {
-        return ( this->specification().name() );
+        return ( this->configuration().name() );
       }
 
       /** The product type, "tracer" or "shape", as defined in the specs */
-      inline const std::string &product() const {
+      inline const std::string &type() const {
         return ( this->specification().product() );
+      }
+
+      /** The product type such as "obj", "bullet" as defined in the specs */
+      inline const std::string &model () const {
+        return ( this->specification().name() );
       }
 
       inline size_t residual_size() const {
@@ -184,33 +186,24 @@ namespace psmrts {
         order_j.update( json_p::insert_object( "specification",  m_specs.to_json() )  );
         order_j.update( json_p::insert_object( "configuration",  m_config.to_json() )  );
         order_j.update( json_p::insert_object( "residualoptions",  process_json( m_residual ) ) );
+        order_j["uid"] = PsmrtsUID::to_string( m_uid );
         return ( order_j );
       }
 
-      inline ProductCart &set_tracer_uid( const UIDType uid_t ) {
-        m_tracer_uid = uid_t;
+      inline ProductCart &set_uid( const UIDType &uid_t ) {
+        m_uid = uid_t;
         return ( *this );
       }
 
-      inline UIDType get_tracer_uid( ) const {
-        return ( m_tracer_uid );
-      }
-      
-      inline ProductCart &set_shape_uid( const UIDType uid_t ) {
-        m_shape_uid = uid_t;
-        return ( *this );
-      }
-      
-      inline UIDType get_shape_uid( ) const {
-        return ( m_shape_uid );
+      inline UIDType get_uid( ) const {
+        return ( m_uid );
       }      
 
     private:
       ProductSpecification m_specs;
       ProductConfiguration m_config;
       ResidualOptions      m_residual;
-      UIDType              m_tracer_uid;
-      UIDType              m_shape_uid;      
+      UIDType              m_uid;
 
       /** Convert the residual objects to an json structure */
       inline ordered_json process_json( const ResidualOptions &c ) const {
@@ -223,6 +216,9 @@ namespace psmrts {
         return ( j_opts );
       }      
   };
+
+  // Declare a shared pointer type for tracers
+  using SharedCart = std::shared_ptr<ProductCart>;
 
 } // namespace psmrts
 

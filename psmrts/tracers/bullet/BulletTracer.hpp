@@ -42,10 +42,10 @@ namespace psmrts  {
       using FeatureList   = ProductFeature::FeatureOptionList;
 
       BulletTracer( );
-      BulletTracer( const PsmrtsShape &shape );
+      BulletTracer( const SharedShape &shape );
       BulletTracer( const ProductCart &processed_cart  );      
       BulletTracer( const ProductCart &processed_cart,
-                    const PsmrtsShape &shape  );      
+                    const SharedShape &shape  );      
       virtual ~BulletTracer();
 
       double maximum_radius() const;
@@ -148,28 +148,6 @@ namespace psmrts  {
         return ( algorithms::process_basic_photometric_trace_array( *this, tracelist ) );
       }
 
-      /**
-       * @brief Bullet Features Processor
-       * 
-       * This method accepts a PRQFeatures, and stores into it all the 
-       * relevant Bullet information using JSON.
-       * 
-       * @param features PRQFeatures that holds tracer-relevant information
-       *                  in a JSON format
-       * @return true    If features were added successfully
-       * @return false   If any issues during processing
-       */
-      inline bool process( PRQFeatures &features ) const {
-        psmrts_json f_e;
-        f_e["name"]        = "bullet";
-        f_e["product"]     = "tracer";
-        f_e["mesh"]        = true;
-        f_e["optimizebvh"] = false;
-        f_e["vectortype"]  = { "double", "float" };
-        features.add_feature( f_e );
-        return ( true );
-      }
-
       inline bool process( PRQShape &shaper ) const {
         shaper.set_shape( this->shape() );
         return ( true );
@@ -208,7 +186,7 @@ namespace psmrts  {
         ProductInfo  info( "bullet", { 
                                  FeatureOption( "name", "bullet" ),
                                  FeatureOption( "product", "tracer" ),
-                                 FeatureOption( "description", "The Bullet Physics ray tracing system specification") } );
+                                 FeatureOption( "description", "The Bullet Physics ray tracing system specification" ) } );
         ProductFeature product( "tracer", {
                                  ProductOption( "name", "tracer" ),
                                  ProductOption( "type", "string" ),
@@ -254,20 +232,13 @@ namespace psmrts  {
       }
 
       /** Return reference to PsmrtsShape used in this instance */
-      const PsmrtsShape &shape() const;
+      const SharedShape &shape() const;
 
       /** Return the current product configuration */
       inline const ProductConfiguration &config() const {
         return ( m_config );
       }
 
-      inline bool matches( const ProductConfiguration &conf ) const {
-        if ( this->shape().matches( conf ) && this->config().matches( conf ) ) {
-          return ( true );
-        }
-
-        return ( false );
-      }
                       
       /** Catcha nd report errors on all remaining processes not available */
       PSMRTS_PROCESS_CATCHALL( "BulletTracer" )
@@ -279,7 +250,7 @@ namespace psmrts  {
       ProductConfiguration              m_config;
 
       void create( const ProductCart &cart, 
-                   const PsmrtsShape &shape = PsmrtsShape() );
+                   const SharedShape &shape = SharedShape() );
 
   };
 

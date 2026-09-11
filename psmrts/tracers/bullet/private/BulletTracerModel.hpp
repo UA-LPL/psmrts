@@ -96,10 +96,10 @@ namespace psmrts::bullet {
                              PsmrtsRayTrace::FacetDatum &facet ) const;
 
 
-      const PsmrtsBulletWorldModel &model() const;
+      const SharedBulletWorldModel &model() const;
 
     private:
-      PsmrtsBulletWorldModel   m_bullet_model;
+      SharedBulletWorldModel m_bullet_model;
     
   };
 

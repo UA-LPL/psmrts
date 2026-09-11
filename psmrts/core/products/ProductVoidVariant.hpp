@@ -59,10 +59,6 @@ namespace psmrts {
         return ( m_config );
       }
 
-      inline bool matches( const ProductConfiguration &conf ) const {
-        return ( false );
-      }
-
       inline double maximum_radius() const {
         return ( psmrts::null() );
       }

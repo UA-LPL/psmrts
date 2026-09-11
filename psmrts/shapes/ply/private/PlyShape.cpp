@@ -11,16 +11,21 @@ find files of those names at the top level of this repository. **/
 /* SPDX-License-Identifier: CC0-1.0 */
 
 #include <string>
+#include <memory>
 
 #include "../PlyShape.hpp"
 #include "PsmrtsPLYFormat.hpp"
 
 namespace psmrts {
+
+  using UniquePLYFormat = std::unique_ptr<PsmrtsPLYFormat>;
+
+
   PlyShape::PlyShape( const std::string &ply_file ) : 
                       PsmrtsProduct( ply_file, "shape", "ply") {
-    PsmrtsPLYFormat m_model( ply_file );
-    m_config = m_model.get_metadata(); // check if can rename to config
-    m_mesh = m_model.get_mesh();
+    UniquePLYFormat ply_t = std::make_unique<PsmrtsPLYFormat>( PsmrtsPLYFormat( ply_file ) );
+    m_config = ply_t->get_metadata(); // check if can rename to config
+    m_mesh = make_shared_copy( ply_t->get_mesh() );
   }
 
   PlyShape::PlyShape( const ProductCart &processed_cart ) :
@@ -30,7 +35,8 @@ namespace psmrts {
   
   void PlyShape::create( const ProductCart &cart ) {
 
-    std::string name_t = cart.configuration().name();
+    const ProductConfiguration &v_conf = cart.configuration();
+    std::string name_t = v_conf.name();
 
     // Check for valid shape type
     if (cart.error_count() > 0 ) {
@@ -45,43 +51,47 @@ namespace psmrts {
       throw std::runtime_error( mess );          
     }
 
-    m_config = cart.configuration();
-    if ( m_config.contains( "shape" ) ) {
-      if ( m_config.find( "shape" ).to_string() != "ply" ) {
+    m_config = ProductConfiguration( v_conf.name() );
+    if ( v_conf.contains( "shape" ) ) {
+      if ( v_conf.find( "shape" ).to_string() != "ply" ) {
         std::string mess = "PlyShape::create() - shape type must be \"ply\""
-                            " but found " + m_config.find("shape").to_string();
+                            " but found " + v_conf.find("shape").to_string();
         throw std::runtime_error( mess );
       }
     }
+    m_config.add( ProductOption( "shape", "ply" ) );
 
     std::string plyfile          = name_t;
-    std::string plyfile_extended = name_t;
     // Check for obj_file
-    if ( m_config.contains( "ply_file" ) ) {
-      plyfile  = m_config.find( "ply_file" ).to_string();
+    if ( v_conf.contains( "ply_file" ) ) {
+      plyfile  = v_conf.find( "ply_file" ).to_string();
+      m_config.add( ProductOption( "ply_file", plyfile ) );
       name_t = plyfile;
-      if ( m_config.metadata().contains( "ply_file_expanded" ) ) {
-        plyfile_extended =  m_config.metadata().find( "ply_file_expanded" ).to_string();
+      if ( v_conf.metadata().contains( "ply_file_expanded" ) ) {
+        plyfile =  v_conf.metadata().find( "ply_file_expanded" ).to_string();
+        m_config.add_metadata( ProductOption( "ply_file_expanded", plyfile) );
       }
     }
     else {
       std::string mess = "PlyShape - ply_file not found in config";
+      throw std::runtime_error( mess );
     }
 
     this->set_name( name_t );
 
     // Load the PLY file
-    PsmrtsPLYFormat model_p( plyfile );
+    UniquePLYFormat ply_t = std::make_unique<PsmrtsPLYFormat>( PsmrtsPLYFormat( plyfile ) );
 
-    if ( m_config.contains( "ply_data_type") && 
-          ( m_config.find( "ply_data_type" ).to_string() == "float" ) ) {
-      m_mesh = PsmrtsMeshData( model_p.get_indexes(), model_p.get_float_vectors() );
+    if ( v_conf.contains( "ply_data_type") && 
+          ( v_conf.find( "ply_data_type" ).to_string() == "float" ) ) {
+      m_config.add( ProductOption( "ply_data_type", "float") );
+      m_mesh =  make_shared_copy( PsmrtsMeshData( ply_t->get_indexes(), ply_t->get_float_vectors() ) );
     }
     else {
-      m_mesh = PsmrtsMeshData( model_p.get_indexes(), model_p.get_double_vectors() );
+      m_mesh =  make_shared_copy( PsmrtsMeshData( ply_t->get_indexes(), ply_t->get_double_vectors() ) );
     }
 
-    m_config.merge( model_p.get_metadata() );
+    m_config.add_metadata( ply_t->get_metadata().metadata() );
     m_config.add_metadata( ProductOption( "shape_uid", PsmrtsUID::to_string( this->uid() ) ) );
 
   }

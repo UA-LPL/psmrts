@@ -17,8 +17,6 @@ TEST_CASE( "ProductVoidVariant Default Test", "[product][void][variant][default]
     
     psmrts::ProductConfiguration config;
 
-    CHECK( v_var.matches( config ) == false ); // always?
-
     psmrts::PsmrtsTranslations tln;
     psmrts::ProductSpecification spec_v = psmrts::ProductVoidVariant::product_specifications();
 

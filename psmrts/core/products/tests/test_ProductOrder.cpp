@@ -3,55 +3,48 @@
 #include <psmrts/core/products/ProductOption.hpp>
 #include <psmrts/core/products/ProductOrder.hpp>
 #include <psmrts/core/products/ProductCart.hpp>
+#include <psmrts/core/products/ProductProcessing.hpp>
 
 TEST_CASE( "ProductOrder Default Test", "[order][default]") {
-    psmrts::ProductOrder po;
+  psmrts::ProductOrder po;
 
-    CHECK( po.isvalid()          == false );
-    CHECK( po.submitted().name() == "none" );
-    CHECK( po.config().name()    == "none" );
-    CHECK( po.residual().name()  == "residualoptions" ); 
+  CHECK( po.isvalid()          == false );
+  CHECK( po.isempty()          == true );
+  CHECK( po.size()             == 0 );
 
-    psmrts::ProductOption b("bool", true);
-    psmrts::ProductOption i("integer", 42);
-    psmrts::ProductOption f("float", 3.14); //is default double, named for testing purposes
+  CHECK( po.name()             == "none" );
+  CHECK( po.config().name()    == "none" ); 
+  CHECK( po.cart_keys()        == std::vector<std::string>{ } );
+  CHECK( po.cart_values()      == std::vector<psmrts::SharedCart>{ } );
+  CHECK( po.find( "tracer" )   == nullptr );
+  CHECK( po.translations()     == nullptr );
+  CHECK( po.translate_path( "$osirisrex/kernels" ) == "$osirisrex/kernels" );
+  CHECK( po.to_json().dump(-1) == R"({"submitted":{"options":{},"metadata":{}},"products":[]})" );
+}
 
-    po.add_option( b );
-    po.add_option( i );
-    po.add_option( f );
+TEST_CASE( "ProductOrder Config Processing Test", "[order][config][processing]") {
 
-    CHECK( po.config().contains( "bool" )    == true );
-    CHECK( po.config().contains( "integer" ) == true );
-    CHECK( po.config().contains( "float" )   == true );
-    CHECK( po.config().contains( "double" )  == false );
-    CHECK( po.config().options().size()      == 3 );
-    
-    // Config is no longer empty - so..
-    // config != 0 && but specs.size() == 0, no residuals added yet, valid?
-    CHECK( po.isvalid() == false );
+  psmrts::ProductConfiguration config( std::string( "order_test" ), 
+                               { psmrts::ProductOption( "tracer", "spheroid" ),
+                                 psmrts::ProductOption( "radii", { 1.0, 2.0 } ),
+                                 psmrts::ProductOption( "name", "test_spheroid" ) } );
+                                 
+  auto order_t = psmrts::ProductProcessing().process_order( config );
+  REQUIRE( order_t != nullptr );
 
-    psmrts::ProductOption s( "string", "metadata string" );
+  CHECK( order_t->isvalid()   == true );
+  CHECK( order_t->isempty()   == false );
+  CHECK( order_t->size()      == 1 );
 
-    CHECK( po.config().metadata().size() == 0 );
+  CHECK( order_t->name()             == "order_test" );
+  CHECK( order_t->config().name()    == "order_test" );
 
-    po.add_metadata( s );
+  CHECK( order_t->translate_path( "$osirisrex/kernels" ) == "$osirisrex/kernels" );
 
-    CHECK( po.config().metadata().size() == 1 );
-    CHECK( po.config().metadata().contains("string") == true );
+  CHECK( order_t->find( "shape" )  == nullptr );
+  CHECK( order_t->find( "tracer" ) != nullptr );
+  CHECK( order_t->cart_keys()      == std::vector<std::string>{ "tracer" } );
+  CHECK( order_t->cart_values().size() == 1 );
 
-    psmrts::ProductOption i2("integer2", 360);
-
-    po.add_residual( i2 );
-
-    CHECK( po.isvalid() == false );
-    CHECK( po.residual().size() == 1 );
-    CHECK( po.residual().contains( "integer2" ) == true );
-
-    psmrts::ProductConfiguration config( "multi", { psmrts::ProductOption( "bool2", false ),
-                                                    psmrts::ProductOption( "extra", 1 ) } );
-
-    //po.set_residual( config );
-
-    //CHECK( po.residual().size() == 2 );
-    //CHECK( po.residual().contains( "integer2" ) == false );
+  CHECK(order_t->to_json().dump(-1) == R"({"submitted":{"options":{"tracer":"spheroid","radii":[1.0,2.0],"name":"test_spheroid"},"metadata":{}},"products":[{"specification":{"info":{"name":"ellipsoid","product":"tracer","description":"Ellipsoid, spheroid and sphere ray tracer"},"features":[{"name":"tracer","type":"string","description":"Describe the product type: ellipsoid, spheroid or sphere","status":"optional","default":"ellipsoid","valid":["ellipsoid","spheroid","sphere"]},{"name":"radii","type":"double","description":"Radius values of the object: 1, 2 or 3 double values","status":"required","aliases":"radius"},{"name":"name","type":"string","description":"Name of the ellipsoid model","status":"optional","default":"ellipsoid","aliases":"model"}]},"configuration":{"options":{"tracer":"spheroid","radii":[1.0,2.0],"name":"test_spheroid"},"metadata":{}},"residualoptions":{},"uid":"0"}]})" );
 }

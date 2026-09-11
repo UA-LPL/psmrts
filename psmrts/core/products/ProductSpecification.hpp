@@ -52,17 +52,14 @@ namespace psmrts {
       using ProductInfo      = PsmrtsContainer<ProductOption>;
       using ProductFeatures  = PsmrtsContainer<ProductFeature>;
       using ResidualList     = PsmrtsContainer<ProductOption>;
-      using Creator = std::function<void(const ProductConfiguration &config)>;
 
 
       ProductSpecification( ) : m_name( "none" ), m_product( "none" ),
-                                m_info( "info" ), m_features( "features" ),
-                                m_creator( std::nullopt ) { }
+                                m_info( "info" ), m_features( "features" ) { }
       ProductSpecification( const std::string &name,
                             const std::string &product ) :
                             m_name( name ), m_product( product ),
-                            m_info( "info" ), m_features( "features" ),
-                            m_creator( std::nullopt ) {
+                            m_info( "info" ), m_features( "features" ) {
         m_info.add( ProductOption( "name", name) );
         m_info.add( ProductOption( "product", product) );
       }
@@ -71,15 +68,13 @@ namespace psmrts {
                                      m_name( info.find( "name" ).to_string() ),
                                      m_product( info.find( "product" ).to_string() ),
                                      m_info( "info", info.data() ),
-                                     m_features( "features", features ),
-                                     m_creator( std::nullopt ) { }                                
+                                     m_features( "features", features ) { }                                
       explicit ProductSpecification( const ProductInfo &info,
                                      const std::vector<ProductFeature> &features ) : 
                                      m_name( info.find( "name" ).to_string() ),
                                      m_product( info.find( "product" ).to_string() ),                                     
                                      m_info( "info", info.data() ),
-                                     m_features( "features", features ),
-                                     m_creator( std::nullopt ) { }         
+                                     m_features( "features", features ) { }         
       virtual ~ProductSpecification() = default;
 
       /** Returns the name of the product specification */
@@ -254,7 +249,7 @@ namespace psmrts {
        */
       inline bool valid_option_with_feature( const ProductOption &option,
                                              const ProductFeature &feature,
-                                             PsmrtsRequest &validator ) const {
+                                             PsmrtsErrors &validator ) const {
 
         bool is_good = true;
         if ( feature.contains( "valid" ) ) {
@@ -267,6 +262,14 @@ namespace psmrts {
             validator.add_error( std::runtime_error( mess ) );
             is_good = false;
           }
+        }
+
+        // Check for conflicting feature for this option
+        if ( feature.is_conflict() ) {
+          std::string mess = "ProductSpecification::validate option (" +
+                    option.name() + ") conflicts with this specification.";
+          validator.add_error( std::runtime_error( mess ) );
+          is_good = false;
         }
 
         return ( is_good );
@@ -286,7 +289,7 @@ namespace psmrts {
        *                    alias or the values in the option are invalid. 
        */
       inline bool validate_option_default( const ProductOption &option,
-                                           PsmrtsRequest &validator ) const {
+                                           PsmrtsErrors &validator ) const {
         bool is_good = true;
         const std::string name_t = option.name();
         const std::string alias_name = this->get_alias_feature_name( name_t, name_t );
@@ -313,7 +316,7 @@ namespace psmrts {
             is_good = false;
           }
         }
-        else { 
+        else {
           validator.add_error( name_t + " (" + alias_name + ") feature does not exist in specs." );
           is_good = false;
         }
@@ -339,8 +342,8 @@ namespace psmrts {
        */
       inline ProductConfiguration extract( const ProductConfiguration &config,
                                            ResidualList &residuals, 
-                                           PsmrtsRequest &validator ) const {
-        ProductConfiguration config_t( this->name() );
+                                           PsmrtsErrors &validator ) const {
+        ProductConfiguration config_t( config.name() );
         std::vector<std::string> required_list;   
 
         for ( const auto &option : config.options() ) {
@@ -383,17 +386,11 @@ namespace psmrts {
         return ( config_t );
       }
 
-      /** Adds a generic constructor that may be used to create the product */
-      inline void add_creator( const Creator &creator ) {
-        m_creator = creator;
-      }
-      
     private:
       std::string     m_name;
       std::string     m_product;
       ProductInfo     m_info;
       ProductFeatures m_features;
-      std::optional<Creator> m_creator;
       
   };
 

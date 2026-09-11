@@ -28,10 +28,13 @@ find files of those names at the top level of this repository. **/
 #include <iterator>
 #include <limits>
 #include <locale>
+#include <memory>
 #include <mutex>
+#include <shared_mutex>
 #include <stdexcept>
 #include <string>
 #include <time.h>
+#include <utility>
 #include <vector>
 
 // For Windows
@@ -131,6 +134,22 @@ namespace psmrts {
                                                  const PSMRTS_SYSTEM_CLOCK_TIME &end_time ) {
     return ( std::chrono::duration_cast<std::chrono::nanoseconds>( end_time - start_time ).count() );
   } 
+
+  /** 
+   * @brief Create an efficient shared copy of a data value
+   * 
+   * This template function creates a copy of a data value using an efficient
+   * management technique of heap memory. The data value must be copyable
+   * 
+   * @see https://ddanilov.me/shared-ptr-is-evil/
+   * 
+   * @tparam T    Data type of value
+   * @param value Data value to create allocated heap instance of
+   */
+  template <typename T>
+    std::shared_ptr<T> make_shared_copy( const T& value ) {
+      return ( std::make_shared<T>( std::move( value ) ) ); 
+    }
 
   /**
    * @brief Standard, typesafe method to cast shared pointer to another type
@@ -384,7 +403,21 @@ namespace psmrts {
     return ( ( a.cross( b ).dot( c ) ) / 6.0 );
   }
 
-////---> String utlitities
+////---> String utilities
+
+/** Case insensitive string comparison designed for std::map<std::string, T> */
+struct CompareCaseInsensitive {
+    inline bool operator()( const std::string &lhs, const std::string &rhs) const {
+      return std::lexicographical_compare(
+          lhs.begin(), lhs.end(),
+          rhs.begin(), rhs.end(),
+          [](unsigned char a, unsigned char b) {
+              return std::tolower(a) < std::tolower(b);
+          }
+      );
+    }
+  };
+  
   /** Returns string completely converted to lower case */
   inline std::string psmrts_tolower( const std::string &s ) {
     std::string s_t = s;
@@ -486,6 +519,56 @@ namespace psmrts {
     }
     return values;
   }
+
+  /**
+   * @brief Tokenize a string with a substring delimiter
+   * 
+   * While the string_tokenizer() function takes a string of individual
+   * delimiters, this function treats the string as a substring to tokenize
+   * a string. This is neccessary for finding tracer type specifications as
+   * used in the PsrmtsTracerSystem class. The form of strings this is useful
+   * for have the following form:
+   * 
+   * @code
+   *  std::string input( "bullet::D:/a/path/to/file/myshape.obj" );
+   *  auto tokens = string_tokenizer_substring( input, "::" );
+   *  // tokens = { "bullet", "D:/a/path/to/file/myshape.obj"};
+   * @endcode
+   * 
+   * 
+   * @param input     String to tokenize presumeably containing the delimiter
+   * @param delimiter The substring to find, create a token and remove from input
+   * @param dropEmpty If true, it will drop empty tokens with delimiters occuring
+   *                    contiguously with no separation.
+   * @return std::vector<std::string> A list of the tokens found in input
+   */
+  inline std::vector<std::string> string_tokenizer_substring( const std::string& input,
+                                                              const std::string& delimiter,
+                                                              bool dropEmpty = true) {
+      std::vector<std::string> tokens;
+
+      if (delimiter.empty()) {
+          tokens.push_back(input);
+          return tokens;
+      }
+
+      size_t start = 0;
+      while (true) {
+          size_t pos = input.find(delimiter, start);
+          std::string token = (pos == std::string::npos)
+                                  ? input.substr(start)
+                                  : input.substr(start, pos - start);
+
+          if (!dropEmpty || !token.empty()) {
+              tokens.push_back(token);
+          }
+
+          if (pos == std::string::npos) break;
+          start = pos + delimiter.size();
+      }
+
+      return tokens;
+  }  
 
   /**
    * @brief Constructs a path that is OS sensitive
@@ -673,14 +756,14 @@ namespace psmrts {
                           m_mutex( dmm.m_mutex),
                           m_datum( dmm.m_datum ) { }
 
-        DatumMutexWrapper( const std::shared_ptr<std::mutex> &p_mutex, 
+        DatumMutexWrapper( const std::shared_ptr<std::shared_mutex> &p_mutex, 
                           const Datum &p_datum ) :
                           m_mutex( p_mutex ), m_datum( p_datum ) { }
 
         ~DatumMutexWrapper()  { }
 
         /** Return a reference to the mutex for locking purposes */
-        inline std::mutex &mutex() const {
+        inline std::shared_mutex &mutex() const {
           return ( *m_mutex );
         }
 
@@ -701,12 +784,12 @@ namespace psmrts {
 
       private:
         // Needs to be mutable to lock in const methods
-        mutable std::shared_ptr<std::mutex> m_mutex;
+        mutable std::shared_ptr<std::shared_mutex> m_mutex;
         Datum  m_datum;
 
         /** Fundamental initialization of the object */
         void init( const Datum &datum = Datum() ) {
-          m_mutex.reset( new std::mutex() );
+          m_mutex.reset( new std::shared_mutex() );
           m_datum = datum;
           return;
         }
@@ -734,7 +817,7 @@ namespace psmrts {
         virtual ~PsmrtsThreadSafeCounter() { }
 
         inline size_t hitme() const {
-          std::scoped_lock mylocker( m_counter->mutex() );
+          std::unique_lock<std::shared_mutex> mylocker( m_counter->mutex());
           return ( m_counter->datum() += 1 );
         }
 
@@ -743,7 +826,7 @@ namespace psmrts {
         }
 
         inline size_t count() const {
-          std::scoped_lock mylocker( m_counter->mutex() );
+          std::shared_lock<std::shared_mutex> mylocker( m_counter->mutex() );
           return  ( m_counter->datum() );
         }
 

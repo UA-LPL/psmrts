@@ -13,6 +13,7 @@ find files of those names at the top level of this repository. **/
 #ifndef PsmrtsTracer_hpp
 #define PsmrtsTracer_hpp
 
+#include <memory>
 #include <string>
 #include <variant>
 
@@ -114,7 +115,7 @@ namespace psmrts {
       }
 
       inline static PsmrtsTracer bullet( const std::string &meshfile ) {
-        return ( PsmrtsTracer( BulletTracer( PsmrtsShape( meshfile ) ) ) );
+        return ( PsmrtsTracer( BulletTracer( make_shared_copy( PsmrtsShape( meshfile ) ) ) ) );
       }
 
       inline static PsmrtsTracer naifdsk( const std::string &dskfile ) {
@@ -165,9 +166,6 @@ namespace psmrts {
         return ( std::visit(visitor, m_model ) ); 
       }        
 
-      inline bool matches( const ProductConfiguration &conf ) const {
-        return ( this->config().matches( conf ) );
-      }
 
       inline double maximum_radius() const {
         const auto visitor = overload{            
@@ -189,6 +187,12 @@ namespace psmrts {
         return ( std::visit(visitor, m_model ) ); 
       }
 
+      inline SharedShape shape( ) const {
+        PRQShape shaper_t;
+        this->process( shaper_t );
+        return ( shaper_t.shape() ); 
+      }
+
     private:
       PsmrtsProduct m_product;
 
@@ -203,6 +207,10 @@ namespace psmrts {
       }
         
   };
+
+  // Declare a shared pointer type for tracers
+  using SharedTracer      = std::shared_ptr<PsmrtsTracer>;
+  using ConstSharedTracer = std::shared_ptr<const PsmrtsTracer>;
 
 } // namespace psmrts
 

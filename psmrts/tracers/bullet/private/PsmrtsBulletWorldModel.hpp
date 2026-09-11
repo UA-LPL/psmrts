@@ -206,6 +206,9 @@ namespace psmrts::bullet {
 
   };
 
+  // Declare a shared pointer type for the world model
+  using SharedBulletWorldModel = std::shared_ptr<PsmrtsBulletWorldModel>;
+
 } // namespace psmrts::bullet
 
 #endif // PsmrtsBulletWorldModel_hpp

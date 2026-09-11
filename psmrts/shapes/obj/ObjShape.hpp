@@ -35,22 +35,29 @@ namespace psmrts  {
     public:
       using ProductInfo     = ProductSpecification::ProductInfo;
       using ProductFeatures = ProductSpecification::ProductFeatures;
+      using SharedMeshData  = std::shared_ptr<PsmrtsMeshData>;
+      using SharedOBJFormat = std::shared_ptr<PsmrtsOBJFormat>;
 
       ObjShape( ) : PsmrtsProduct( "none", "shape", "obj" ), 
-                    m_model(), m_mesh(), m_config("obj" ) { }
+                    m_mesh(), m_config( "obj" ) { 
+        m_mesh = make_shared_copy ( PsmrtsMeshData() );                      
+      }
       ObjShape( const psmrts::PsmrtsOBJFormat &obj_t ) :
                 PsmrtsProduct( obj_t.obj_source(), "shape", "obj" ), 
-                m_model( obj_t ), m_mesh( obj_t.get_mesh() ),
-                m_config( obj_t.get_config()) { 
-        m_config.add_metadata( ProductOption( "minimum_radius", m_mesh.minimum_radius() ) );
-        m_config.add_metadata( ProductOption( "maximum_radius", m_mesh.maximum_radius() ) );
+                m_mesh(), m_config( ) { 
+        m_mesh = make_shared_copy ( obj_t.get_mesh() );                      
+        m_config = obj_t.get_config();                     
+        m_config.add_metadata( ProductOption( "minimum_radius", m_mesh->minimum_radius() ) );
+        m_config.add_metadata( ProductOption( "maximum_radius", m_mesh->maximum_radius() ) );
       }
       ObjShape( const std::string &obj_file ) :
                 PsmrtsProduct( obj_file, "shape", "obj" ), 
-                m_model( obj_file ), m_mesh( m_model.get_mesh() ),
-                m_config( m_model.get_config() ) { 
-        m_config.add_metadata( ProductOption( "minimum_radius", m_mesh.minimum_radius() ) );
-        m_config.add_metadata( ProductOption( "maximum_radius", m_mesh.maximum_radius() ) );
+                m_mesh( ), m_config( ) {
+        SharedOBJFormat obj_t = make_shared_copy ( PsmrtsOBJFormat( obj_file ) );                      
+        m_mesh = make_shared_copy ( obj_t->get_mesh() ); 
+        m_config = obj_t->get_config();                     
+        m_config.add_metadata( ProductOption( "minimum_radius", m_mesh->minimum_radius() ) );
+        m_config.add_metadata( ProductOption( "maximum_radius", m_mesh->maximum_radius() ) );
       }
       ObjShape( const ProductCart &processed_cart ) : 
                 PsmrtsProduct( processed_cart.configuration().name(), "shape", "obj" ) {
@@ -59,49 +66,12 @@ namespace psmrts  {
       virtual ~ObjShape() { }
 
 
-      /**
-       * @brief OBJ Facet Processor
-       * 
-       * This method accepts a PRQFacet, usually instantiated with a ray
-       * trace, and processes it - storing the facet associated with the 
-       * trace's intercept back into the PRQFacet. The resulting facet
-       * can be accessed using the PRQFacet's facet() function.
-       * 
-       * It returns true if the process results in a valid facet.
-       * 
-       * @param facet   PRQFacet provides desired ray trace, and stores
-       *                  resulting facet data
-       * @return true   If process results in valid facet intercept
-       * @return false  If process fails to find facet/intercept
-       
-      inline bool process( PRQFacet &facet ) const {
-         return ( m_model.get_facet( facet.trace(), facet.facet() ) );
-      }
-        */
-
-
-      /**
-       * @brief OBJ Features Processor
-       * 
-       * This method accepts a PRQFeatures, and stores into it all the 
-       * relevant Bullet information using JSON.
-       * 
-       * @param features PRQFeatures that holds tracer-relevant information
-       *                  in a JSON format
-       * @return true    If features were added successfully
-       * @return false   If any issues during processing
-       */
-      inline bool process( PRQFeatures &features ) const {
-        features.add_feature( this->product_specifications().to_json() );
-        return ( true );
-      }
-        
-
+      /** Product specifications for the OBJ shape */
       static inline ProductSpecification product_specifications() {
         ProductInfo  info( "obj", { 
                                  ProductOption( "name", "obj"),
                                  ProductOption( "product", "shape"),
-                                 ProductOption( "description", "Reads Wavefront OBJ mesh files and creates a PMRTS mesh object") } );
+                                 ProductOption( "description", "Reads Wavefront OBJ mesh files and creates a PMRTS mesh object" ) } );
         ProductFeature product( "shape", {
                                 ProductOption( "name", "shape" ),
                                 ProductOption( "type", "string" ),
@@ -112,30 +82,32 @@ namespace psmrts  {
         ProductFeature ofile( "obj_file", {
                                  ProductOption( "name", "obj_file"),
                                  ProductOption( "type", "file"),
-                                 ProductOption( "description", "Name of OBJ file/string to read"),
+                                 ProductOption( "description", "Name of OBJ file/string to read" ),
                                  ProductOption( "status", "required"),
-                                 ProductOption( "aliases", {"file", "filename", "obj_mesh", "mesh_file", "shapefile"} ),
+                                 ProductOption( "aliases", { "file", "filename", "obj_mesh", "mesh_file", "shapefile" } ),
                                  ProductOption( "file_suffixes", { "obj", "OBJ" } ) } );
         ProductFeature ostr( "obj_string", {
                                  ProductOption( "name", "obj_string"),
                                  ProductOption( "type", "string"),
                                  ProductOption( "description", "Format-compatible string containing contents of an OBJ file" ),
                                  ProductOption( "status", "optional"),
-                                 ProductOption( "aliases", "obj_mesh_string" ) } );
+                                 ProductOption( "aliases", "obj_mesh_string" ),
+                                ProductOption( "default", "" ) } );
         ProductFeature dtype( "obj_data_type", {
-                                 ProductOption( "name", "obj_data_type"),
-                                 ProductOption( "type", "string"),
-                                 ProductOption( "description", "Type of mesh vector data requested/read"),
-                                 ProductOption( "status", "optional"),
+                                 ProductOption( "name", "obj_data_type" ),
+                                 ProductOption( "type", "string" ),
+                                 ProductOption( "description", "Type of mesh vector data requested/read" ),
+                                 ProductOption( "status", "optional" ),
                                  ProductOption( "aliases", { "data_type", "mesh_data_type" } ), 
-                                 ProductOption( "valid", { "double", "float"} ),
+                                 ProductOption( "valid", { "double", "float" } ),
                                  ProductOption( "default", "double" ) } );
         ProductFeature mtld( "obj_mtl_search_path", {
-                                 ProductOption( "name", "obj_mtl_search_path"),
-                                 ProductOption( "type", "directory"),
-                                 ProductOption( "description", "Directory path to OBJ materials files"),
-                                 ProductOption( "status", "optional"),
-                                 ProductOption( "aliases", { "obj_materials_dir", "obj_materials_directory" } ) } );
+                                 ProductOption( "name", "obj_mtl_search_path" ),
+                                 ProductOption( "type", "directory" ),
+                                 ProductOption( "description", "Directory path to OBJ materials files" ),
+                                 ProductOption( "status", "optional" ),
+                                 ProductOption( "aliases", { "obj_materials_dir", "obj_materials_directory" } ),
+                                 ProductOption( "default", "" ) } );
 
 
         // This validates the JSON structure and provides product info to callers
@@ -143,25 +115,20 @@ namespace psmrts  {
       }      
 
       inline const PsmrtsMeshData &get_mesh() const {
-        return m_mesh;
+        return ( *m_mesh );
       }
 
       inline const ProductConfiguration &config() const {
         return ( m_config );
       }
-
-      inline bool matches( const ProductConfiguration &conf ) const {
-        return ( this->config().matches( conf ) );
-      }
-
+      
       /** Report all remaining features not available */
       PSMRTS_PROCESS_CATCHALL( "ObjShape" )
 
 
     protected:
-      psmrts::PsmrtsOBJFormat m_model; // Move to .cpp, WIP
-      psmrts::PsmrtsMeshData  m_mesh;
-      ProductConfiguration    m_config;
+      SharedMeshData       m_mesh;
+      ProductConfiguration m_config;
 
       inline void create( const ProductCart &cart ) {
 
@@ -180,17 +147,17 @@ namespace psmrts  {
           throw std::runtime_error( mess );          
         }
 
-        m_config = cart.configuration();
-        if ( m_config.contains( "shape" ) ) {
-          if ( m_config.find( "shape" ).to_string() != "obj" ) {
+        m_config = ProductConfiguration( cart.configuration().name() );
+        if ( v_conf.contains( "shape" ) ) {
+          if ( v_conf.find( "shape" ).to_string() != "obj" ) {
             std::string mess = "ObjShape::create() - shape type must be \"obj\""
-                               " but found " + m_config.find("shape").to_string();
+                               " but found " + v_conf.find("shape").to_string();
             throw std::runtime_error( mess );
           }
+          m_config.add( ProductOption( "shape", "obj" ) );
         }
-
         // Check for conflicts
-        if ( m_config.contains( "obj_file" ) && m_config.contains( "obj_string" ) ) {
+        if ( v_conf.contains( "obj_file" ) && v_conf.contains( "obj_string" ) ) {
           std::string mess = "ObjShape::create() - only one of obj_file or obj_string is allowed!";
           throw std::runtime_error( mess );
         }
@@ -199,40 +166,51 @@ namespace psmrts  {
         std::string text_q;
         std::string objfile;
         std::string materials_path; 
-        if ( m_config.contains( "obj_mtl_search_path" ) ) {
-          materials_path  = m_config.find( "obj_mtl_search_path" ).to_string();
-          if ( m_config.metadata().contains( "obj_mtl_search_path_expanded" ) ) {
-            materials_path = m_config.metadata().find( "obj_mtl_search_path_expanded" ).to_string();
+
+        auto extract_materials_path = [&]( const ProductConfiguration &c ) {
+          if ( c.contains( "obj_mtl_search_path" ) ) {
+            materials_path  = c.find( "obj_mtl_search_path" ).to_string();
+            m_config.add( ProductOption( "obj_mtl_search_path", materials_path ) );
+            if ( c.metadata().contains( "obj_mtl_search_path_expanded" ) ) {
+              materials_path = c.metadata().find( "obj_mtl_search_path_expanded" ).to_string();
+              m_config.add_metadata( ProductOption( "obj_mtl_search_path_extended", materials_path ) );
+            }
           }
-        }   
-        
+        };
         
         // Check for obj_file
-        if ( m_config.contains( "obj_file" ) ) {
-          objfile  = m_config.find( "obj_file" ).to_string();
-          if ( m_config.metadata().contains( "obj_file_expanded" ) ) {
-            objfile =  m_config.metadata().find( "obj_file_expanded" ).to_string();
+        SharedOBJFormat obj_t;
+        if ( v_conf.contains( "obj_file" ) ) {
+          objfile  = v_conf.find( "obj_file" ).to_string();
+          m_config.add( ProductOption( "obj_file", objfile ) );
+
+          if ( v_conf.metadata().contains( "obj_file_expanded" ) ) {
+            objfile =  v_conf.metadata().find( "obj_file_expanded" ).to_string();
+            m_config.add_metadata( ProductOption( "obj_file_expanded", objfile) );
           }
-          m_model = PsmrtsOBJFormat( objfile, materials_path );
+          extract_materials_path( v_conf );
+          obj_t = make_shared_copy( PsmrtsOBJFormat( objfile, materials_path ) );
         }
-        else if ( m_config.contains( "obj_string" ) ) {
-          text_q = m_config.find( "obj_string" ).to_string();
-          m_model = PsmrtsOBJFormat( PsmrtsOBJFormat::load_obj_string( text_q, materials_path,
-                                                      PsmrtsOBJFormat::obj_config( materials_path ) ),
-                                                      "obj_string" );
+        else if ( v_conf.contains( "obj_string" ) ) {
+          text_q = v_conf.find( "obj_string" ).to_string();
+          m_config.add( ProductOption( "obj_string", text_q) );
+          extract_materials_path( v_conf );
+          obj_t = make_shared_copy( PsmrtsOBJFormat( PsmrtsOBJFormat::load_obj_string( text_q, materials_path,
+                                                     PsmrtsOBJFormat::obj_config( materials_path ) ),
+                                                     "obj_string" ) );
         }
 
-        if ( m_config.contains( "obj_data_type") && 
-             ( m_config.find( "obj_data_type" ).to_string() == "float" ) ) {
-          m_mesh = PsmrtsMeshData( m_model.get_indexes(), m_model.get_float_vectors() );
+        if ( v_conf.contains( "obj_data_type" ) && 
+             ( v_conf.find( "obj_data_type" ).to_string() == "float" ) ) {
+          m_config.add( ProductOption( "obj_data_type", "float" ) );
+          m_mesh = make_shared_copy( PsmrtsMeshData( obj_t->get_indexes(), obj_t->get_float_vectors() ) );
         }
         else {
-          m_mesh = PsmrtsMeshData( m_model.get_indexes(), m_model.get_double_vectors() );
+          m_mesh = make_shared_copy( PsmrtsMeshData( obj_t->get_indexes(), obj_t->get_double_vectors() ) );
         }
 
-        m_config = v_conf;
-        m_config.add_metadata( ProductOption( "minimum_radius", m_mesh.minimum_radius() ) );
-        m_config.add_metadata( ProductOption( "maximum_radius", m_mesh.maximum_radius() ) );           
+        m_config.add_metadata( ProductOption( "minimum_radius", m_mesh->minimum_radius() ) );
+        m_config.add_metadata( ProductOption( "maximum_radius", m_mesh->maximum_radius() ) );           
         m_config.add_metadata( ProductOption( "shape_uid", PsmrtsUID::to_string( this->uid() ) ) );
 
         return;
