@@ -80,8 +80,8 @@ class bulletTraceFixture {
     }
 
     virtual ~bulletTraceFixture() { // tear down code
-      psmrts_free_ray( ray );
-      psmrts_free_tracer( bulletTracer );
+      psmrts_destroy_ray( ray );
+      psmrts_destroy_tracer( bulletTracer );
     }
 
     const double tolerance = 1.0e-6; // tolerance for comparisons
@@ -113,7 +113,7 @@ TEST_CASE ( "PSMRTS C API - Version and Info", "[capi][c++][version][info]" ) {
  *   5) psmrts_add_config_options_double
  *   6) psmrts_product_config_contains
  *   7) psmrts_product_config_to_string
- *   8) psmrts_free_product_config
+ *   8) psmrts_destroy_product_config
  * 
  */
 TEST_CASE ( "PSMRTS C API - Product Configuration", "[capi][config][options]" ) {
@@ -153,9 +153,9 @@ TEST_CASE ( "PSMRTS C API - Product Configuration", "[capi][config][options]" ) 
   CHECK( std::string( psmrts_string_content( pstr2 ) ) == R"({"options":{"string":"Casablanca","bool":1,"int":-270,"size_t":27,"double":3.141593,"double vector":[1.1,2.2,3.3]},"metadata":{}})");
 
   // free strings and product configuration memory
-  psmrts_free_string( pstr1 );
-  psmrts_free_string( pstr2 );
-  psmrts_free_product_config( config );
+  psmrts_destroy_string( pstr1 );
+  psmrts_destroy_string( pstr2 );
+  psmrts_destroy_product_config( config );
 }
 
 /**
@@ -166,11 +166,11 @@ TEST_CASE ( "PSMRTS C API - Product Configuration", "[capi][config][options]" ) 
  *   1) psmrts_create_string
  *   2) psmrts_string_content
  *   3) psmrts_string_length
- *   4) psmrts_free_string
+ *   4) psmrts_destroy_string
  *
  */
 TEST_CASE ( "PSMRTS C API - Strings", "[capi][strings][default]" ) {
-//  using PSTRING = std::unique_ptr<PSMRTS_String, psmrts_free_string>;
+//  using PSTRING = std::unique_ptr<PSMRTS_String, psmrts_destroy_string>;
 //  PSTRING ps = PSTRING( psmrts_create_string( "you talking to me?" ) );
 //  CHECK( psmrts_string_length( ps ) == 19 );
 
@@ -187,7 +187,7 @@ TEST_CASE ( "PSMRTS C API - Strings", "[capi][strings][default]" ) {
   CHECK( psmrts_string_length( strTest1 ) == strlen("you talking to me?") );
 
   // free string memory
-  psmrts_free_string( strTest1 );
+  psmrts_destroy_string( strTest1 );
 }
 
 /**
@@ -200,7 +200,7 @@ TEST_CASE ( "PSMRTS C API - Strings", "[capi][strings][default]" ) {
  *   3) psmrts_string_array_add_string
  *   4) psmrts_string_array_clear
  *   5) psmrts_string_array_get_string
- *   6) psmrts_free_string_array
+ *   6) psmrts_destroy_string_array
  *
  */
 TEST_CASE ( "PSMRTS C API - String Array", "[capi][string][array][default]" ) {
@@ -236,7 +236,7 @@ TEST_CASE ( "PSMRTS C API - String Array", "[capi][string][array][default]" ) {
   CHECK( psmrts_string_array_size( stringarray ) == 0 );
 
   // free string array
-  psmrts_free_string_array( stringarray );
+  psmrts_destroy_string_array( stringarray );
 }
 
 /**
@@ -591,7 +591,7 @@ TEST_CASE_METHOD ( bulletTraceFixture,  "PSMRTS C API - Two Traces", "[capi][c++
   CHECK( facet2.m_normal.z == facet1.m_normal.z );
 
   // free memory allocated for ray2
-  psmrts_free_ray( ray2 );
+  psmrts_destroy_ray( ray2 );
 
   // liquidate factory
   psmrts_factory_liquidate();
@@ -708,8 +708,8 @@ TEST_CASE_METHOD ( bulletTraceFixture, "PSMRTS C API - NAIF vs Bullet", "[capi][
               Catch::Matchers::WithinAbs( dsk_facet.m_normal.z, tolerance ) );
 
   // free memory for ray and tracer
-  psmrts_free_ray( dsk_ray );
-  psmrts_free_tracer( dskTracer );
+  psmrts_destroy_ray( dsk_ray );
+  psmrts_destroy_tracer( dskTracer );
 
   // liquidate factory
   psmrts_factory_liquidate(); 
@@ -724,9 +724,9 @@ TEST_CASE_METHOD ( bulletTraceFixture, "PSMRTS C API - NAIF vs Bullet", "[capi][
  *  2. psmrts_trace_array_size:      Get size of PSMRTS_TraceArray.
  *  3. psmrts_trace_array_add_trace: Add trace to PSMRTS_TraceArray.
  *  4. psmrts_trace_array_get_trace: Get trace from PSMRTS_TraceArray.
- *  5. psmrts_free_ray:              Free ray.
+ *  5. psmrts_destroy_ray:              Free ray.
  *  6. psmrts_trace_array_clear:     Clear trace array.
- *  7. psmrts_free_trace_array:      Free trace array.
+ *  7. psmrts_destroy_trace_array:      Free trace array.
  */
 TEST_CASE ( "PSMRTS C API - Bullet Trace Array", "[capi][c++][BulletTraceArray]" ) {
   // liquidate factory
@@ -806,11 +806,11 @@ TEST_CASE ( "PSMRTS C API - Bullet Trace Array", "[capi][c++][BulletTraceArray]"
   CHECK_THAT( ray2observer.z, Catch::Matchers::WithinAbs( observer2.z, tolerance ) );
 
   // free memory
-  psmrts_free_ray( ray1 );
-  psmrts_free_ray( ray2 );
-  psmrts_free_ray( ray3 );
+  psmrts_destroy_ray( ray1 );
+  psmrts_destroy_ray( ray2 );
+  psmrts_destroy_ray( ray3 );
   psmrts_trace_array_clear( tracearray );
-  psmrts_free_trace_array( tracearray );
+  psmrts_destroy_trace_array( tracearray );
 
   // liquidate factory
   psmrts_factory_liquidate();
@@ -828,7 +828,7 @@ TEST_CASE ( "PSMRTS C API - Bullet Trace Array", "[capi][c++][BulletTraceArray]"
  *  5. psmrts_photometric_phase
  *  6. psmrts_photometric_observer_trace
  *  7. psmrts_photometric_sun_trace
- *  8. psmrts_free_photometric_ray
+ *  8. psmrts_destroy_photometric_ray
  *
  */
 TEST_CASE ( "PSMRTS C API - Photometric Trace", "[capi][c++][photometric][trace]" ) {
@@ -892,9 +892,9 @@ TEST_CASE ( "PSMRTS C API - Photometric Trace", "[capi][c++][photometric][trace]
   CHECK_THAT( new_obs_result.y, Catch::Matchers::WithinAbs( new_obs.y, tolerance ) );
   CHECK_THAT( new_obs_result.z, Catch::Matchers::WithinAbs( new_obs.z, tolerance ) );
 
-  psmrts_free_tracer( ellipse );
-  psmrts_free_ray( observer_ray );
-  psmrts_free_photometric_ray( p_ray );
+  psmrts_destroy_tracer( ellipse );
+  psmrts_destroy_ray( observer_ray );
+  psmrts_destroy_photometric_ray( p_ray );
 
   // liquidate factory
   psmrts_factory_liquidate();
@@ -913,9 +913,9 @@ TEST_CASE ( "PSMRTS C API - Photometric Trace", "[capi][c++][photometric][trace]
  *   6. psmrts_photometric_trace_array_get_trace
  *   7. psmrts_photometric_observer_trace
  *   8. psmrts_photometric_trace_array_clear
- *   9. psmrts_free_tracer
- *  10. psmrts_free_photometric_trace_array
- *  11. psmrts_free_photometric_ray
+ *   9. psmrts_destroy_tracer
+ *  10. psmrts_destroy_photometric_trace_array
+ *  11. psmrts_destroy_photometric_ray
  *
  */
 TEST_CASE ( "PSMRTS C API - Photometric Array", "[capi][c++][photometric][array]" ) {
@@ -958,10 +958,10 @@ TEST_CASE ( "PSMRTS C API - Photometric Array", "[capi][c++][photometric][array]
   psmrts_photometric_trace_array_clear( p_array );
   CHECK( psmrts_photometric_trace_array_size( p_array ) == 0 );
 
-  psmrts_free_tracer( ellipse_tracer );
-  psmrts_free_photometric_trace_array( p_array );
-  psmrts_free_photometric_ray( p_ray1 );
-  psmrts_free_photometric_ray( p_ray2 );
+  psmrts_destroy_tracer( ellipse_tracer );
+  psmrts_destroy_photometric_trace_array( p_array );
+  psmrts_destroy_photometric_ray( p_ray1 );
+  psmrts_destroy_photometric_ray( p_ray2 );
 
   // liquidate factory
   psmrts_factory_liquidate();
@@ -1258,9 +1258,9 @@ TEST_CASE( "PSMRTS C API - Sphere Shape Tracer Test", "[capi][c++][sphere][shape
   CHECK( facet.m_has_facet == PSMRTS_FALSE );
 
   // free memory
-  psmrts_free_tracer( sphere_tracer );
-  psmrts_free_ray( trace_45_50_02 );
-  psmrts_free_ray( trace_45_45_10 );
+  psmrts_destroy_tracer( sphere_tracer );
+  psmrts_destroy_ray( trace_45_50_02 );
+  psmrts_destroy_ray( trace_45_45_10 );
 
   // liquidate factory
   psmrts_factory_liquidate();
@@ -1363,9 +1363,9 @@ TEST_CASE( "PSMRTS C API - Spheroid Shape Tracer Test", "[capi][c++][spheroid][s
   CHECK( facet.m_has_facet == PSMRTS_FALSE );
 
   // free memory
-  psmrts_free_tracer( spheroid_tracer );
-  psmrts_free_ray( trace_45_50_02 );
-  psmrts_free_ray( trace_45_45_10 );
+  psmrts_destroy_tracer( spheroid_tracer );
+  psmrts_destroy_ray( trace_45_50_02 );
+  psmrts_destroy_ray( trace_45_45_10 );
 
   // liquidate factory
   psmrts_factory_liquidate();
@@ -1467,9 +1467,9 @@ TEST_CASE( "PSMRTS C API - Ellipsoid Shape Tracer Test", "[capi][c++][ellipsoid]
   CHECK( facet.m_has_facet == PSMRTS_FALSE );
 
   // free memory
-  psmrts_free_tracer( e_tracer );
-  psmrts_free_ray( trace_45_50_02 );
-  psmrts_free_ray( trace_45_45_10 );
+  psmrts_destroy_tracer( e_tracer );
+  psmrts_destroy_ray( trace_45_50_02 );
+  psmrts_destroy_ray( trace_45_45_10 );
 
   // liquidate factory
   psmrts_factory_liquidate();
@@ -1575,9 +1575,9 @@ TEST_CASE( "PSMRTS C API - Ellipsoid V Shape Tracer Test", "[capi][c++][ellipsoi
   CHECK( facet.m_has_facet == PSMRTS_FALSE );
 
   // free memory
-  psmrts_free_tracer( ev_tracer );
-  psmrts_free_ray( trace_45_50_02 );
-  psmrts_free_ray( trace_45_45_10 );
+  psmrts_destroy_tracer( ev_tracer );
+  psmrts_destroy_ray( trace_45_50_02 );
+  psmrts_destroy_ray( trace_45_45_10 );
 
   // liquidate factory
   psmrts_factory_liquidate();
@@ -1599,7 +1599,7 @@ TEST_CASE( "PSMRTS C API - Ellipsoid V Shape Tracer Test", "[capi][c++][ellipsoi
  *   psmrts_factory_shape_count
  * 
  * And finally frees the memory for all shapes with...
- *   psmrts_free_shape
+ *   psmrts_destroy_shape
  */
 TEST_CASE( "PSMRTS C API - Mesh Test", "[capi][c++][mesh][obj]" ) {
   // liquidate factory
@@ -1637,9 +1637,9 @@ TEST_CASE( "PSMRTS C API - Mesh Test", "[capi][c++][mesh][obj]" ) {
   CHECK( psmrts_factory_shape_count() == 3 );
 
   // free memory
-  psmrts_free_shape( objshape );
-  psmrts_free_shape( dskshape );
-  psmrts_free_shape( plyshape );
+  psmrts_destroy_shape( objshape );
+  psmrts_destroy_shape( dskshape );
+  psmrts_destroy_shape( plyshape );
 
   // liquidate factory
   psmrts_factory_liquidate();
@@ -1655,8 +1655,8 @@ TEST_CASE( "PSMRTS C API - Mesh Test", "[capi][c++][mesh][obj]" ) {
  *   psmrts_invoice_error_string
  *   psmrts_add_config_invoice
  *   psmrts_generate_priority_tracer
- *   psmrts_free_translations
- *   psmrts_free_invoice
+ *   psmrts_destroy_translations
+ *   psmrts_destroy_invoice
  * 
  */
 TEST_CASE( "C API Invoice & Translations Shape Test", "[capi][c++][invoice][translations][shape]" ) {
@@ -1698,12 +1698,12 @@ TEST_CASE( "C API Invoice & Translations Shape Test", "[capi][c++][invoice][tran
   PSMRTS_PriorityTracer *ptracer = psmrts_generate_priority_tracer( plyinvoice, nullptr );
 
   // free memory
-  psmrts_free_translations( trans_t );
-  psmrts_free_product_config( shape_config );
-  psmrts_free_string( checkstr );
-  psmrts_free_invoice( plyinvoice );
-  psmrts_free_string( error_str );
-  psmrts_free_priority_tracer( ptracer );
+  psmrts_destroy_translations( trans_t );
+  psmrts_destroy_product_config( shape_config );
+  psmrts_destroy_string( checkstr );
+  psmrts_destroy_invoice( plyinvoice );
+  psmrts_destroy_string( error_str );
+  psmrts_destroy_priority_tracer( ptracer );
 }
 
 
@@ -1717,8 +1717,8 @@ TEST_CASE( "C API Invoice & Translations Shape Test", "[capi][c++][invoice][tran
  *   psmrts_invoice_error_string
  *   psmrts_add_config_invoice
  *   psmrts_generate_priority_tracer
- *   psmrts_free_translations
- *   psmrts_free_invoice
+ *   psmrts_destroy_translations
+ *   psmrts_destroy_invoice
  * 
  */
 TEST_CASE( "C API Invoice & Translations Tracer Test", "[capi][c++][invoice][translations][tracer]" ) {
@@ -1769,12 +1769,12 @@ TEST_CASE( "C API Invoice & Translations Tracer Test", "[capi][c++][invoice][tra
   CHECK( psmrts_factory_tracer_count() == 1 );
 
   // free memory
-  psmrts_free_translations( trans_t );
-  psmrts_free_product_config( tracer_config );
-  psmrts_free_string( checkstr );
-  psmrts_free_invoice( bulletinvoice );
-  psmrts_free_string( errorstr );
-  psmrts_free_priority_tracer( ptracer );  
+  psmrts_destroy_translations( trans_t );
+  psmrts_destroy_product_config( tracer_config );
+  psmrts_destroy_string( checkstr );
+  psmrts_destroy_invoice( bulletinvoice );
+  psmrts_destroy_string( errorstr );
+  psmrts_destroy_priority_tracer( ptracer );  
 
   // liquidate factory
   psmrts_factory_liquidate();
@@ -1788,7 +1788,7 @@ TEST_CASE( "C API Invoice & Translations Tracer Test", "[capi][c++][invoice][tra
  *   psmrts_factory_shape_count
  *   psmrts_factory_tracer_count
  *   psmrts_error_count
- *   psmrts_errors_to_string
+ *   psmrts_error_string
  *   psmrts_clear_errors
  *   
  */
@@ -1817,14 +1817,10 @@ TEST_CASE( "C API Error System Test", "[capi][c++][errors]" ) {
   CHECK( psmrts_error_count() == 2 );
 
   // get errors in single string and verify
-  PSMRTS_String *errorstr1 = psmrts_create_string( "" );
-  psmrts_errors_to_string ( errorstr1 );
-
-  std::string result1 = psmrts_string_content( errorstr1 );
-  std::string chkstr1 = "PsmrtsFactory::make_product() - Invalid product order: fred\n"
-                       "PsmrtsInvoice::submit_order() - Number tracers returned (0) not equal to orders (1)\n\n"
-                       "create_tracer_for_capi - Error creating tracer for config fred\n";
-  CHECK( result1 == chkstr1 );
+  std::string chkstr1 = "create_tracer_for_capi - Error creating tracer for config fred\n"
+                        "PsmrtsInvoice::submit_order() - Number tracers returned (0) not equal to orders (1)\n"
+                        "PsmrtsFactory::make_product() - Invalid product order: fred";
+  CHECK( std::string( psmrts_error_string() ) == chkstr1 );
 
   // clear errors and confirm
   psmrts_clear_errors();
@@ -1840,20 +1836,31 @@ TEST_CASE( "C API Error System Test", "[capi][c++][errors]" ) {
   CHECK( psmrts_error_count() == 2 );
 
   // get errors in single string and verify
-  PSMRTS_String *errorstr2 = psmrts_create_string( "" );
-  psmrts_errors_to_string ( errorstr2 );
+  std::string chkstr2 = "create_shape_for_capi - Failed to create shape config fred\n"
+                        "PsmrtsInvoice::submit_order() - Number tracers returned (0) not equal to orders (1)\n"
+                        "PsmrtsFactory::make_product() - Invalid product order: fred";
+  CHECK( std::string( psmrts_error_string() ) == chkstr2 );
 
-  std::string result2 = psmrts_string_content( errorstr2 );
-  std::string chkstr2 = "PsmrtsFactory::make_product() - Invalid product order: fred\n"
-                        "PsmrtsInvoice::submit_order() - Number tracers returned (0) not equal to orders (1)\n\n"
-                        "create_shape_for_capi - Failed to create shape config fred\n";
-  CHECK( result2 == chkstr2 );
+  // Check some error conditions
+  psmrts_clear_errors();
+  PSMRTS_Tracer *tracer_e = psmrts_create_bullet( NULL );
+  CHECK( tracer_e == NULL );
+  CHECK( psmrts_error_count() == 1 );
+  CHECK( std::string( psmrts_error_string() ) == "psmrts_create_bullet::char *objfile is null" );
+
+  psmrts_clear_errors();
+  CHECK( psmrts_translation_environment_count( NULL ) == 0 );
+  CHECK( psmrts_error_count() == 1 );
+  CHECK( std::string( psmrts_error_string() ) == "psmrts_translation_environment_count::PSMRTS_Translations *translations is null" );
+
+  psmrts_clear_errors();
+  CHECK( psmrts::isnull( psmrts_emission( NULL ) ) == true );
+  CHECK( psmrts_error_count() == 1 );
+  CHECK( std::string( psmrts_error_string() ) == "psmrts_emission::PSMRTS_RayTrace *ray is null" );
 
   // free memory
-  psmrts_free_tracer( bulletTracer );
-  psmrts_free_shape( objShape );
-  psmrts_free_string( errorstr1 );
-  psmrts_free_string( errorstr2 );
+  psmrts_destroy_tracer( bulletTracer );
+  psmrts_destroy_shape( objShape );
 
   // liquidate factory
   psmrts_factory_liquidate();
@@ -1896,9 +1903,9 @@ TEST_CASE("PsmrtsTracerSystem Priority Tracer Test", "[capi][prioritytracer][sys
   CHECK( psmrts_factory_tracer_count() == 4 );
 
   // free memory
-  psmrts_free_string_array( array_s );
-  psmrts_free_translations( trans_t );
-  psmrts_free_priority_tracer( tracer_p );
+  psmrts_destroy_string_array( array_s );
+  psmrts_destroy_translations( trans_t );
+  psmrts_destroy_priority_tracer( tracer_p );
 
   // liquidate factory
   psmrts_factory_liquidate();
@@ -1915,7 +1922,7 @@ TEST_CASE("PsmrtsTracerSystem Priority Tracer Test", "[capi][prioritytracer][sys
  *   psmrts_add_translation_parameter
  *   psmrts_translate_path*
  *   psmrts_string_content
- *   psmrts_free_translations
+ *   psmrts_destroy_translations
  * 
  */
 TEST_CASE( "C API Translations Environment/Parameters Test", "[capi][c++][translations][environment][parameters]" ) {
@@ -1960,8 +1967,8 @@ TEST_CASE( "C API Translations Environment/Parameters Test", "[capi][c++][transl
  value = psmrts_translate_path( trans_t, "$NOTHERE/kernels/dsk", value);
  CHECK( std::string( psmrts_string_content( value ) ) == "$NOTHERE/kernels/dsk" );
 
- psmrts_free_string( value );
- psmrts_free_translations( trans_t );
+ psmrts_destroy_string( value );
+ psmrts_destroy_translations( trans_t );
 
 }
 
@@ -1973,7 +1980,7 @@ TEST_CASE( "C API Translations Environment/Parameters Test", "[capi][c++][transl
  *   psmrts_add_data_directory
  *   psmrts_translate_path 
  *   psmrts_string_content
- *   psmrts_free_translations
+ *   psmrts_destroy_translations
  * 
  */
 TEST_CASE( "C API Translations DataDirectory Test", "[capi][c++][translations][datadirectory]" ) {
@@ -2020,9 +2027,61 @@ TEST_CASE( "C API Translations DataDirectory Test", "[capi][c++][translations][d
  value = psmrts_translate_path( trans_t, "$NOTHERE/kernels/dsk", value);
  CHECK( std::string( psmrts_string_content( value ) ) == "$NOTHERE/kernels/dsk" );
 
- psmrts_free_string( value );
- psmrts_free_translations( trans_t );
- psmrts_free_translations( trans_dd_t );
+ psmrts_destroy_string( value );
+ psmrts_destroy_translations( trans_t );
+ psmrts_destroy_translations( trans_dd_t );
  
 }
 
+TEST_CASE( "C API JSON Strings Test", "[capi][c++][json][strings]" ) {
+
+  psmrts_factory_liquidate();
+
+  std::string objfile = psmrts_shapes_path( "obj/data/bennu_20facets.obj" );
+  PSMRTS_Tracer *bullet_tracer = psmrts_create_bullet( objfile.c_str() );
+  REQUIRE( bullet_tracer != nullptr );
+
+  PSMRTS_String *tracer_string = psmrts_tracer_json_string( bullet_tracer );
+  REQUIRE( tracer_string != nullptr );
+
+  std::string json_t( psmrts_string_content( tracer_string ) );
+  psmrts_json tracer_json = json::parse( json_t );
+
+  CHECK( tracer_json.contains( "options" )                    == true );
+  CHECK( tracer_json["options"].contains( "obj_file" )        == true );
+  CHECK( tracer_json["options"]["obj_file"]                   == objfile );
+  CHECK( tracer_json["options"].contains( "tracer" )          == true );
+  CHECK( tracer_json["options"]["tracer"]                     == "bullet" );
+  CHECK( tracer_json.contains( "metadata" )                   == true );
+  CHECK( tracer_json["metadata"].contains( "minimum_radius" ) == true );
+  CHECK( tracer_json["metadata"].contains( "maximum_radius" ) == true );
+  CHECK( tracer_json["metadata"].contains( "shape_uid" )      == true );
+
+  // Load the shape OBJ file which should be in the factory and have the same UID
+  PSMRTS_Shape *shape_p = psmrts_create_obj_shape( objfile.c_str() );
+  PSMRTS_String *shape_string = psmrts_shape_json_string( shape_p );
+  REQUIRE( shape_string != nullptr );
+  std::string json_s( psmrts_string_content( shape_string ) );
+  psmrts_json shape_json = json::parse( json_s );
+
+  CHECK( shape_json.contains( "options" ) == true );
+  CHECK( shape_json["options"].contains( "obj_file" )        == true );
+  CHECK( shape_json["options"]["obj_file"]                   == objfile );
+  CHECK( shape_json.contains( "metadata" )                   == true );
+  CHECK( shape_json["metadata"].contains( "minimum_radius" ) == true );
+  CHECK( shape_json["metadata"].contains( "maximum_radius" ) == true );
+  CHECK( shape_json["metadata"].contains( "shape_uid" )      == true );
+
+  // Now compare common content
+  CHECK( shape_json["options"]["obj_file"]        ==  tracer_json["options"]["obj_file"] );
+  CHECK( shape_json["metadata"]["minimum_radius"] ==  tracer_json["metadata"]["minimum_radius"] );
+  CHECK( shape_json["metadata"]["maximum_radius"] ==  tracer_json["metadata"]["maximum_radius"] );
+  CHECK( shape_json["metadata"]["shape_uid"]      ==  tracer_json["metadata"]["shape_uid"] );
+
+  psmrts_destroy_tracer( bullet_tracer );
+  psmrts_destroy_shape( shape_p );
+  psmrts_destroy_string( tracer_string );
+  psmrts_destroy_string( shape_string );
+
+  psmrts_factory_liquidate();
+}

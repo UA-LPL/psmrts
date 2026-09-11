@@ -264,10 +264,10 @@ int main( int argc, char *argv[] ) {
   }
 */
   // free objects
-  psmrts_free_ray( ray1 );
-  psmrts_free_ray( ray2 );
-  psmrts_free_ray( sunray );
-  psmrts_free_tracer( bulletTracer );
+  psmrts_destroy_ray( ray1 );
+  psmrts_destroy_ray( ray2 );
+  psmrts_destroy_ray( sunray );
+  psmrts_destroy_tracer( bulletTracer );
 
   return ( 0 );
 }

@@ -121,7 +121,7 @@ typedef struct psmrts_photometric_trace_array  PSMRTS_PhotometricTraceArray;
 /*=============== PSMRTS error functions ================*/
 PSMRTS_C_EXPORT const size_t psmrts_error_count ();
 PSMRTS_C_EXPORT void psmrts_clear_errors ();
-PSMRTS_C_EXPORT PSMRTS_String *psmrts_errors_to_string ( PSMRTS_String *s );
+PSMRTS_C_EXPORT const char *psmrts_error_string ();
 
 /*============== PSMRTS factory functions ===============*/
 PSMRTS_C_EXPORT void psmrts_factory_liquidate ();
@@ -135,7 +135,7 @@ PSMRTS_C_EXPORT const char PSMRTS_DLL *psmrts_info();
 /*============ PSMRTS_String functions ==================*/
 PSMRTS_C_EXPORT PSMRTS_String *psmrts_create_string( const char* sbuf );
 PSMRTS_C_EXPORT void psmrts_string_set( PSMRTS_String *s, const char* sbuf );
-PSMRTS_C_EXPORT int psmrts_string_length( const PSMRTS_String *s );
+PSMRTS_C_EXPORT size_t psmrts_string_length( const PSMRTS_String *s );
 PSMRTS_C_EXPORT const char* psmrts_string_content( const PSMRTS_String *s );
 
 /*============ PSMRTS_StringArray functions =============*/
@@ -145,7 +145,7 @@ PSMRTS_C_EXPORT size_t psmrts_string_array_add_string( PSMRTS_StringArray *strin
                                                        const char* sbuf );
 PSMRTS_C_EXPORT void psmrts_string_array_clear( PSMRTS_StringArray *stringarray );
 PSMRTS_C_EXPORT const PSMRTS_String *psmrts_string_array_get_string( const PSMRTS_StringArray *stringarray,
-                                                                     size_t index );
+                                                                     const size_t index );
 
 /*============ PSMRTS_Vector3d functions ================*/
 PSMRTS_C_EXPORT PSMRTS_Vector3d psmrts_vector3d( const double v1, const double v2,
@@ -206,12 +206,12 @@ PSMRTS_C_EXPORT PSMRTS_BOOL psmrts_trace_array_trace( PSMRTS_TraceArray *tracear
                                                       const PSMRTS_Tracer *tracer);
 PSMRTS_C_EXPORT void psmrts_trace_array_clear(PSMRTS_TraceArray *tracearray);
 PSMRTS_C_EXPORT const PSMRTS_RayTrace *psmrts_trace_array_get_trace( const PSMRTS_TraceArray *tracearray,
-                                                                     size_t index );
+                                                                     const size_t index );
 
 /*======== PSMRTS Photometric Trace functions ===========*/
 PSMRTS_C_EXPORT PSMRTS_PhotometricRayTrace *psmrts_create_photometric_ray( const PSMRTS_Vector3d *observer,
-                                                                  const PSMRTS_Vector3d *lookdir,
-                                                                  const PSMRTS_Vector3d *sunpos);
+                                                                           const PSMRTS_Vector3d *lookdir,
+                                                                           const PSMRTS_Vector3d *sunpos);
 PSMRTS_C_EXPORT PSMRTS_PhotometricRayTrace *psmrts_photometric_ray_set_observation( const PSMRTS_Vector3d *observer, // to be tested
                                                                                     const PSMRTS_Vector3d *lookdir,
                                                                                     const PSMRTS_Vector3d *sunpos,
@@ -233,7 +233,7 @@ PSMRTS_C_EXPORT PSMRTS_BOOL psmrts_photometric_trace_array_trace( PSMRTS_Photome
                                                                   const PSMRTS_Tracer *tracer);
 PSMRTS_C_EXPORT void psmrts_photometric_trace_array_clear(PSMRTS_PhotometricTraceArray *tracearray);
 PSMRTS_C_EXPORT const PSMRTS_PhotometricRayTrace *psmrts_photometric_trace_array_get_trace( const PSMRTS_PhotometricTraceArray *tracearray,
-                                                                                            size_t index );
+                                                                                            const size_t index );
 
 /* Coordinate conversion functions ======================*/
 PSMRTS_C_EXPORT PSMRTS_Vector3d psmrts_lonlatrad_to_xyz_d( const PSMRTS_Vector3d *lonlatrad );
@@ -263,6 +263,7 @@ PSMRTS_C_EXPORT PSMRTS_PriorityTracer *psmrts_create_priority_tracer( const char
                                                                       const PSMRTS_StringArray *filelist,
                                                                       const PSMRTS_Translations *translations );
 PSMRTS_C_EXPORT PSMRTS_BOOL psmrts_tracer_valid( const PSMRTS_Tracer *trace );
+PSMRTS_C_EXPORT PSMRTS_String *psmrts_tracer_json_string( const PSMRTS_Tracer *trace );
 
 /*============ PSMRTS Facet functions ===================*/
 PSMRTS_C_EXPORT PSMRTS_BOOL psmrts_get_facet( PSMRTS_RayTrace *ray, const PSMRTS_Tracer *tracer,
@@ -274,6 +275,7 @@ PSMRTS_C_EXPORT double psmrts_facet_volume( const PSMRTS_Facet *facet );
 PSMRTS_C_EXPORT PSMRTS_Shape *psmrts_create_obj_shape( const char *objfile );
 PSMRTS_C_EXPORT PSMRTS_Shape *psmrts_create_dsk_shape( const char *dskfile );
 PSMRTS_C_EXPORT PSMRTS_Shape *psmrts_create_ply_shape( const char *plyfile );
+PSMRTS_C_EXPORT PSMRTS_String *psmrts_shape_json_string( const PSMRTS_Shape *shape );
 PSMRTS_C_EXPORT double psmrts_mesh_surface_area( const PSMRTS_Shape *shape );
 PSMRTS_C_EXPORT double psmrts_mesh_volume( const PSMRTS_Shape *shape );
 
@@ -337,18 +339,18 @@ PSMRTS_C_EXPORT PSMRTS_PriorityTracer
                                       PSMRTS_PriorityTracer* tracer_p);
 
 /*============ PSMRTS memory free functions =============*/
-PSMRTS_C_EXPORT void psmrts_free_ray( PSMRTS_RayTrace *trace );
-PSMRTS_C_EXPORT void psmrts_free_shape( PSMRTS_Shape *shape );
-PSMRTS_C_EXPORT void psmrts_free_tracer( PSMRTS_Tracer *tracer );
-PSMRTS_C_EXPORT void psmrts_free_priority_tracer( PSMRTS_PriorityTracer *ptracer );
-PSMRTS_C_EXPORT void psmrts_free_photometric_ray( PSMRTS_PhotometricRayTrace *ptracer );
-PSMRTS_C_EXPORT void psmrts_free_trace_array( PSMRTS_TraceArray *tracearray );
-PSMRTS_C_EXPORT void psmrts_free_photometric_trace_array( PSMRTS_PhotometricTraceArray *ptracearray );
-PSMRTS_C_EXPORT void psmrts_free_product_config( PSMRTS_ProductConfiguration* config );
-PSMRTS_C_EXPORT void psmrts_free_invoice( PSMRTS_Invoice* invoice );
-PSMRTS_C_EXPORT void psmrts_free_translations( PSMRTS_Translations* translations );
-PSMRTS_C_EXPORT void psmrts_free_string( PSMRTS_String *pstring );
-PSMRTS_C_EXPORT void psmrts_free_string_array( PSMRTS_StringArray *stringarray );
+PSMRTS_C_EXPORT void psmrts_destroy_ray( PSMRTS_RayTrace *trace );
+PSMRTS_C_EXPORT void psmrts_destroy_shape( PSMRTS_Shape *shape );
+PSMRTS_C_EXPORT void psmrts_destroy_tracer( PSMRTS_Tracer *tracer );
+PSMRTS_C_EXPORT void psmrts_destroy_priority_tracer( PSMRTS_PriorityTracer *ptracer );
+PSMRTS_C_EXPORT void psmrts_destroy_photometric_ray( PSMRTS_PhotometricRayTrace *ptracer );
+PSMRTS_C_EXPORT void psmrts_destroy_trace_array( PSMRTS_TraceArray *tracearray );
+PSMRTS_C_EXPORT void psmrts_destroy_photometric_trace_array( PSMRTS_PhotometricTraceArray *ptracearray );
+PSMRTS_C_EXPORT void psmrts_destroy_product_config( PSMRTS_ProductConfiguration* config );
+PSMRTS_C_EXPORT void psmrts_destroy_invoice( PSMRTS_Invoice* invoice );
+PSMRTS_C_EXPORT void psmrts_destroy_translations( PSMRTS_Translations* translations );
+PSMRTS_C_EXPORT void psmrts_destroy_string( PSMRTS_String *pstring );
+PSMRTS_C_EXPORT void psmrts_destroy_string_array( PSMRTS_StringArray *stringarray );
 
 #ifdef __cplusplus
 }

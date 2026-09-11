@@ -181,13 +181,13 @@ int main( int argc, char *argv[] ) {
         printf("\n");
     }
 
-    psmrts_free_ray( ray3 );
-    psmrts_free_ray( ray2 );
-    psmrts_free_ray( ray1 );
-    psmrts_free_trace_array(t_array);
-    psmrts_free_photometric_ray(p_ray);
-    psmrts_free_ray(ray);
-    psmrts_free_tracer( tracer );
+    psmrts_destroy_ray( ray3 );
+    psmrts_destroy_ray( ray2 );
+    psmrts_destroy_ray( ray1 );
+    psmrts_destroy_trace_array(t_array);
+    psmrts_destroy_photometric_ray(p_ray);
+    psmrts_destroy_ray(ray);
+    psmrts_destroy_tracer( tracer );
 
     return 0;
 }

@@ -56,52 +56,28 @@ using PSMRTS_PhotometricTraceArray = PRQPhotometricTraceArray;
 /* Include the PSMRTS C api include */
 #include <psmrts/capi/psmrts_c.h>
 
-
+/** Error objects to log errors in C API */
 static PsmrtsErrors psmrts_capi_errors{};
+static std::string  psmrts_last_error{};  // Convenience buffer for psmrts_error_string()
 
 /**
- * @brief Internal function to create a tracer for capi object from a tracer string
+ * @brief Error logger function for errors with default to return on error
  * 
- * This function ensures consistent use of the PSMRTS factory to search for and 
- * or create a tracer for the given file. This particular file is expected to 
- * contain PSMRTS tracer prefixes to the filename that follows the pattern
- * "tracer::filename.ext" where "tracer" is one of the supported types.
- * A variation of this pattern can also use the ellipsoid pattern that may look
- * like "sphere::0.345".
- * 
- * This function will return NULL if an error has occured. Users can then
- * query the psrmts_error*() functions to determine the the nature of the error.
- * The error status is cleared at start of this function processing sequence.
- * 
- * @param filename       PSMRTS tracer/file pattern string to convert to tracer
- * @return PSMRTS_Tracer* A tracer object is returned if succesful otherwise 
- *                           NULL is returned.
+ * @tparam T     Generic type to return
+ * @param msg    Error message to log
+ * @param retval Return value
+ * @return T     Returns the retval data
  */
-inline PSMRTS_Tracer *create_tracer_for_capi ( const std::string &filename ) {
-
-  PSMRTS_Tracer *tracer_p = NULL;
-  psmrts_capi_errors.clear_errors();
-  
-
-  try {
-    PsmrtsTracerSystem tracer_s( "create_tracer_for_capi" );
-    (void) tracer_s.process_shape_list( { filename }, filename );
-    auto tracer_list = tracer_s.create_priority_tracer( filename ).tracers();
-    if ( tracer_list.size() != 1 ) {
-      psmrts_capi_errors.add_error( "create_tracer_for_capi - Did not get the expected tracer for file " + filename );
-    }
-    else {
-      tracer_p = new PSMRTS_Tracer( tracer_list[0] );
-    }
-
-  }
-  catch ( const std::exception &e ) {
-    psmrts_capi_errors.add_error( e );
-    psmrts_capi_errors.add_error( "create_tracer_for_capi - Error creating tracer for file " + filename );
+template<typename T>
+  inline T psmrts_error_logger( const std::string &msg, T retval ) {
+    psmrts_capi_errors.add_error( msg );
+    return ( retval );
   }
 
-  return ( tracer_p );
-}
+  /** Log an error to the PSMRTS C API error system with return data */
+  inline void psmrts_error_logger( const std::string &msg ) {
+    psmrts_capi_errors.add_error( msg );
+  }  
 
 /**
  * @brief Internal function to create a tracer for capi object from a config object
@@ -308,44 +284,52 @@ extern "C" {
 /**
  * @brief psmrts_error_count - Returns number of errors from last call.
  *
- * This function returns number of errors from last call.
+ * This function returns number of errors from last call. No more than
+ * 30 errors are retained.
  *
- * @return size_t
+ * @return size_t Number of current errors in the system.
  */
 const size_t psmrts_error_count () {
   return psmrts_capi_errors.error_count();
 }
 
 /**
- * @brief psmrts_errors_to_string - Returns all errors in single string.
+ * @brief psmrts_error_string - Returns all errors in single string.
  *
- * This function returns errors in a single string.
+ * This function returns errors in a single string. When this function is called
+ * it replaces the contents of a static string with content of the error
+ * utility. For convenience, this method returns a pointer to null terminated
+ * const char * string whose contents are replaced with every call to this
+ * function. Callers are not responsible for destroying this pointer as it
+ * is persistent.
  * 
- * Note: String pointer argument is allocated if NULL. Caller is responsible for
- *       freeing string pointer.
+ * The const char buffer is cleared with psmrts_clear_errors() is called. It is
+ * recommended that callers immediately copy the string to local buffer to
+ * avoid content changes. 
  *
- * @param s PSMRTS_String*
- * @return PSMRTS_String*
+ * @return const char * Pointer to last error string
  */
-PSMRTS_String *psmrts_errors_to_string ( PSMRTS_String *s ) {
-  if ( s == NULL ) {
-    s = new PSMRTS_String();
-  }
-
-  *s = psmrts_capi_errors.errors_to_string();
-
-  return s;
+const char *psmrts_error_string ( ) {
+  psmrts_last_error = psmrts_capi_errors.errors_to_string();
+  return ( psmrts_last_error.c_str() );
 }
 
 /**
  * @brief psmrts_clear_errors - Clears c api errors.
  *
- * This function clears c api errors from last call.
+ * This function clears c api errors from last call. There is a maximum number
+ * of individual errors that can be stored in the internal error mechanism. The
+ * current maximum is 30 error strings (@see PsrmtsError.hpp).
+ * 
+ * The string buffer pointer/content returned by psmrts_error_string() is also
+ * invalidated/cleared by this call so callers should copy strings immediately
+ * upon calling that routine if the content is to be retained.
  *
- * @return void
+ * @return void None
  */
 void psmrts_clear_errors () {
   psmrts_capi_errors.clear_errors();
+  psmrts_last_error = "";
 }
 
 /*============== PSMRTS factory functions ==============*/
@@ -366,7 +350,7 @@ void psmrts_factory_liquidate () {
  *
  * This function returns the number of shapes in the PsmrtsFactory.
  *
- * @return size_t
+ * @return size_t Number of shape products in PSRMTS factory
  */
 const size_t psmrts_factory_shape_count () {
   return PsmrtsFactory().shape_count();
@@ -377,7 +361,7 @@ const size_t psmrts_factory_shape_count () {
  *
  * This function returns the number of tracers in the PsmrtsFactory.
  *
- * @return size_t
+ * @return size_t Number of tracer products in PSMRT factory
  */
 const size_t psmrts_factory_tracer_count () {
   return PsmrtsFactory().tracer_count();
@@ -439,6 +423,8 @@ PSMRTS_String *psmrts_create_string( const char* sbuf ) {
  * @return void
  */
 void psmrts_string_set( PSMRTS_String *s, const char* sbuf ) {
+  if ( !s ) { psmrts_error_logger( "psmrts_string_set::PSMRTS_String *s is null" ); return; }
+  if ( !sbuf ) { psmrts_error_logger( "psmrts_string_set::char* sbuf is null" ); return; }
  s->assign(sbuf);
 }
 
@@ -450,8 +436,9 @@ void psmrts_string_set( PSMRTS_String *s, const char* sbuf ) {
  * @param s PSMRTS_String.
  * @return int length of string.
  */
-int psmrts_string_length( const PSMRTS_String *s ) {
- return s->length();
+size_t psmrts_string_length( const PSMRTS_String *s ) {
+  if ( !s ) return ( psmrts_error_logger( "psmrts_string_length::PSMRTS_String *s is null", 0 ) );
+  return s->length();
 }
 
 /**
@@ -465,7 +452,8 @@ int psmrts_string_length( const PSMRTS_String *s ) {
  * @return const char* pointer to null-terminated C-style character array with content of input string.
  */
 const char* psmrts_string_content( const PSMRTS_String *s ) {
- return s->c_str();
+  if ( !s ) { psmrts_error_logger( "psmrts_string_content::PSMRTS_String *s is null" ); return ( NULL ); }
+  return s->c_str();
 }
 
 /*============ PSMRTS_StringArray functions ================*/
@@ -490,6 +478,7 @@ PSMRTS_StringArray *psmrts_create_string_array() {
  * @return size_t Number of strings in array.
  */
 size_t psmrts_string_array_size( const PSMRTS_StringArray *stringarray ) {
+  if ( !stringarray ) return ( psmrts_error_logger( "psmrts_string_array_size::PSMRTS_StringArray *stringarray is null", 0 ) );
   return ( stringarray->size() );
 }
 
@@ -504,6 +493,9 @@ size_t psmrts_string_array_size( const PSMRTS_StringArray *stringarray ) {
  */
 size_t psmrts_string_array_add_string( PSMRTS_StringArray *stringarray,
                                        const char* sbuf ) {
+
+  if ( !stringarray ) return ( psmrts_error_logger( "psmrts_string_array_add_string::PSMRTS_StringArray *stringarray is null", 0 ) );
+  if ( !sbuf ) return ( psmrts_error_logger( "psmrts_string_array_add_string::char *sbuf is null", 0) );
   
   stringarray->push_back( *psmrts_create_string( sbuf ) );
   
@@ -522,6 +514,7 @@ size_t psmrts_string_array_add_string( PSMRTS_StringArray *stringarray,
  * @return void
  */
 void psmrts_string_array_clear( PSMRTS_StringArray *stringarray ) {
+  if ( !stringarray ) { psmrts_error_logger( "psmrts_string_array_clear::PSMRTS_StringArray *stringarray is null" ); return; }
   stringarray->clear();
 }
 
@@ -539,7 +532,8 @@ void psmrts_string_array_clear( PSMRTS_StringArray *stringarray ) {
  * @return const PSMRTS_String Pointer to PSMRTS_String object at index.
  */
 const PSMRTS_String *psmrts_string_array_get_string( const PSMRTS_StringArray *stringarray,
-                                                     size_t index ) {
+                                                     const size_t index ) {
+  if ( !stringarray ) { psmrts_error_logger( "psmrts_string_array_get_string::PSMRTS_StringArray *stringarray is null" ); return ( NULL ); }
   return ( &stringarray->at( index ) );
 }
 
@@ -577,6 +571,8 @@ PSMRTS_Vector3d psmrts_vector3d( const double v1,
  */
 PSMRTS_Vector3d psmrts_negate( const PSMRTS_Vector3d *v ) {
 
+  if ( !v ) return ( psmrts_error_logger( "psmrts_negate::PSMRTS_Vector3d *v is null" ), eigen_to_vector_d( null_vector() ) );
+
   PSMRTS_Vector3d v3d;
   v3d.x = -v->x;
   v3d.y = -v->y;
@@ -597,6 +593,10 @@ PSMRTS_Vector3d psmrts_negate( const PSMRTS_Vector3d *v ) {
  */
 PSMRTS_Vector3d psmrts_subtract( const PSMRTS_Vector3d *v1,
                                  const PSMRTS_Vector3d *v2 ) {
+
+  if ( !v1 ) return ( psmrts_error_logger( "psmrts_subtract::PSMRTS_Vector3d *v1 is null" ), eigen_to_vector_d( null_vector() ) );
+  if ( !v2 ) return ( psmrts_error_logger( "psmrts_subtract::PSMRTS_Vector3d *v2 is null" ), eigen_to_vector_d( null_vector() ) );
+
   PSMRTS_Vector3d v3d;
 
   v3d.x = v1->x - v2->x;
@@ -618,6 +618,10 @@ PSMRTS_Vector3d psmrts_subtract( const PSMRTS_Vector3d *v1,
  */
 PSMRTS_Vector3d psmrts_add( const PSMRTS_Vector3d *v1,
                             const PSMRTS_Vector3d *v2 ) {
+
+  if ( !v1 ) return ( psmrts_error_logger( "psmrts_add::PSMRTS_Vector3d *v1 is null" ), eigen_to_vector_d( null_vector() ) );
+  if ( !v2 ) return ( psmrts_error_logger( "psmrts_add::PSMRTS_Vector3d *v2 is null" ), eigen_to_vector_d( null_vector() ) );
+
     PSMRTS_Vector3d v3d;
 
     v3d.x = v1->x + v2->x;
@@ -638,6 +642,9 @@ PSMRTS_Vector3d psmrts_add( const PSMRTS_Vector3d *v1,
  */
 PSMRTS_Vector3d psmrts_scale( const PSMRTS_Vector3d *v,
                               const double scale ) {
+
+  if ( !v ) return ( psmrts_error_logger( "psmrts_scale::PSMRTS_Vector3d *v is null" ), eigen_to_vector_d( null_vector() ) );
+                                
   PSMRTS_Vector3d v3d;
 
   v3d.x = scale * v->x;
@@ -656,6 +663,8 @@ PSMRTS_Vector3d psmrts_scale( const PSMRTS_Vector3d *v,
  * @return double Vector length.
  */
 double psmrts_length( const PSMRTS_Vector3d *v ) {
+
+  if ( !v ) return ( psmrts_error_logger( "psmrts_length::PSMRTS_Vector3d *v is null" ), null() );
 
   double x2 = v->x * v->x;
   double y2 = v->y * v->y;
@@ -705,6 +714,9 @@ PSMRTS_Vector3i psmrts_vector3i( const int v1, const int v2, const int v3 ) {
 PSMRTS_RayTrace *psmrts_create_ray( const PSMRTS_Vector3d *observer,
                                     const PSMRTS_Vector3d *lookdir ) {
 
+  if ( !observer ) { psmrts_error_logger( "psmrts_create_ray::PSMRTS_Vector3d *observer is null" ); return ( NULL ); }
+  if ( !lookdir )  { psmrts_error_logger( "psmrts_create_ray::PSMRTS_Vector3d *lookdir is null" ); return ( NULL ); }
+
   return ( new PSMRTS_RayTrace( vector_to_eigen_d( *observer ),
                                 vector_to_eigen_d( *lookdir ) ) );
 }
@@ -732,7 +744,9 @@ PSMRTS_RayTrace *psmrts_ray_set_observation( const PSMRTS_Vector3d *observer,
                                              const PSMRTS_Vector3d *lookdir,
                                              PSMRTS_RayTrace *trace ) {
 
-  assert( trace != nullptr && "psmrts_ray_trace::PSMRTS_RayTrace is null" );
+  if ( !observer ) { psmrts_error_logger( "psmrts_ray_set_observation::PSMRTS_Vector3d *observer is null" ); return ( NULL ); }
+  if ( !lookdir )  { psmrts_error_logger( "psmrts_ray_set_observation::PSMRTS_Vector3d *lookdir is null" ); return ( NULL ); }
+  if ( !trace )    { psmrts_error_logger( "psmrts_ray_set_observation::PSMRTS_RayTrace *trace is null" ); return ( NULL ); }
 
   *trace = PSMRTS_RayTrace( vector_to_eigen_d( *observer ),
                             vector_to_eigen_d( *lookdir ) );
@@ -757,8 +771,9 @@ PSMRTS_RayTrace *psmrts_ray_set_observation( const PSMRTS_Vector3d *observer,
 PSMRTS_RayTrace *psmrts_ray_trace( PSMRTS_RayTrace *ray,
                                    const PSMRTS_Tracer *tracer ) {
 
-  assert( ray != nullptr && "psmrts_ray_trace::PSMRTS_RayTrace is null" );
-  assert( tracer != nullptr && "psmrts_ray_trace::PSMRTS_Trace is null" );
+  if ( !ray )       { psmrts_error_logger( "psmrts_ray_trace::PSMRTS_RayTrace *ray is null" ); return ( NULL ); }
+  if ( !tracer )    { psmrts_error_logger( "psmrts_ray_trace::PSMRTS_Tracer *tracer is null" ); return ( NULL ); }
+  if ( !(*tracer) ) { psmrts_error_logger( "psmrts_ray_trace::PSMRTS_RayTrace *tracer is invalid" ); return ( NULL ); }
 
   (*tracer)->process( *ray );
 
@@ -793,6 +808,11 @@ PSMRTS_RayTrace *psmrts_ray_trace_v( const PSMRTS_Vector3d *observer,
                                      const PSMRTS_Vector3d *lookdir,
                                      const PSMRTS_Tracer *tracer ) {
 
+  if ( !observer )  { psmrts_error_logger( "psmrts_ray_trace_v::PSMRTS_Vector3d *observer is null" ); return ( NULL ); }
+  if ( !lookdir )   { psmrts_error_logger( "psmrts_ray_trace_v::PSMRTS_Vector3d *lookdir is null" ); return ( NULL ); }
+  if ( !tracer )    { psmrts_error_logger( "psmrts_ray_trace_v::PSMRTS_Tracer *tracer is null" ); return ( NULL ); }
+  if ( !(*tracer) ) { psmrts_error_logger( "psmrts_ray_trace_v::PSMRTS_RayTrace *tracer is invalid" ); return ( NULL ); }
+
   return ( psmrts_ray_trace( psmrts_create_ray( observer, lookdir ),
                              tracer ) );
 }
@@ -808,6 +828,7 @@ PSMRTS_RayTrace *psmrts_ray_trace_v( const PSMRTS_Vector3d *observer,
  * @return PSMRTS_Vector3d defining observer position associated with input ray.
  */
 PSMRTS_Vector3d psmrts_ray_observer( const PSMRTS_RayTrace *ray ) {
+  if ( !ray ) return ( psmrts_error_logger( "psmrts_ray_observer::PSMRTS_RayTrace *ray is null" ), eigen_to_vector_d( null_vector() ) );
   return ( eigen_to_vector_d( ray->trace().observer() ) );
 }
 
@@ -822,6 +843,7 @@ PSMRTS_Vector3d psmrts_ray_observer( const PSMRTS_RayTrace *ray ) {
  * @return PSMRTS_Vector3d defining look direction associated with input ray.
  */
 PSMRTS_Vector3d psmrts_ray_lookdir( const PSMRTS_RayTrace *ray ) {
+  if ( !ray ) return ( psmrts_error_logger( "psmrts_ray_lookdir::PSMRTS_RayTrace *ray is null" ), eigen_to_vector_d( null_vector() ) );
   return ( eigen_to_vector_d( ray->trace().lookdir() ) );
 }
 
@@ -836,6 +858,7 @@ PSMRTS_Vector3d psmrts_ray_lookdir( const PSMRTS_RayTrace *ray ) {
  * @return PSMRTS_BOOL indicating if input ray intercepts the surface.
  */
 PSMRTS_BOOL psmrts_ray_has_hit( const PSMRTS_RayTrace *ray ) {
+  if ( !ray ) return ( psmrts_error_logger( "psmrts_ray_has_hit::PSMRTS_RayTrace *ray is null" ), PSMRTS_FALSE );
   return ( to_psmrts_bool( ray->trace().hasHit() ) );
 }
 
@@ -851,6 +874,7 @@ PSMRTS_BOOL psmrts_ray_has_hit( const PSMRTS_RayTrace *ray ) {
  *                         body origin.
  */
 PSMRTS_Vector3d psmrts_ray_xyz( const PSMRTS_RayTrace *ray ) {
+  if ( !ray ) return ( psmrts_error_logger( "psmrts_ray_xyz::PSMRTS_RayTrace *ray is null" ), eigen_to_vector_d( null_vector() ) );
   return ( eigen_to_vector_d( ray->trace().xyz() ) );
 }
 
@@ -865,6 +889,7 @@ PSMRTS_Vector3d psmrts_ray_xyz( const PSMRTS_RayTrace *ray ) {
  * @return PSMRTS_Vector3d Vector along the ray look direction to the surface.
  */
 PSMRTS_Vector3d psmrts_ray_raypt( const PSMRTS_RayTrace *ray ) {
+  if ( !ray ) return ( psmrts_error_logger( "psmrts_ray_raypt::PSMRTS_RayTrace *ray is null" ), eigen_to_vector_d( null_vector() ) );
   return ( eigen_to_vector_d( ray->trace().raypt() ) );
 }
 
@@ -879,6 +904,7 @@ PSMRTS_Vector3d psmrts_ray_raypt( const PSMRTS_RayTrace *ray ) {
  * @return PSMRTS_Vector3d Normal vector at surface intercept, if it exists.
  */
 PSMRTS_Vector3d psmrts_ray_normal( const PSMRTS_RayTrace *ray ) {
+  if ( !ray ) return ( psmrts_error_logger( "psmrts_ray_normal::PSMRTS_RayTrace *ray is null" ), eigen_to_vector_d( null_vector() ) );
   return ( eigen_to_vector_d( ray->trace().normal() ) );
 }
 
@@ -893,6 +919,7 @@ PSMRTS_Vector3d psmrts_ray_normal( const PSMRTS_RayTrace *ray ) {
  * @return double Radius at surface intercept, if it exists.
  */
 double psmrts_ray_intercept_radius( const PSMRTS_RayTrace *ray ) {
+  if ( !ray ) return ( psmrts_error_logger( "psmrts_ray_intercept_radius::PSMRTS_RayTrace *ray is null" ), null() );
   return ( ray->trace().radius() );
 }
 
@@ -909,6 +936,7 @@ double psmrts_ray_intercept_radius( const PSMRTS_RayTrace *ray ) {
  * @return double Slant distance at surface intercept, if it exists.
  */
 double psmrts_ray_intercept_slant_distance( const PSMRTS_RayTrace *ray ) {
+  if ( !ray ) return ( psmrts_error_logger( "psmrts_ray_intercept_slant_distance::PSMRTS_RayTrace *ray is null" ), null() );
   return ( ray->trace().slant_distance() );
 }
 
@@ -926,6 +954,9 @@ double psmrts_ray_intercept_slant_distance( const PSMRTS_RayTrace *ray ) {
 double psmrts_ray2ray_distance( const PSMRTS_RayTrace *ray1,
                                 const PSMRTS_RayTrace *ray2 ) {
 
+  if ( !ray1 ) return ( psmrts_error_logger( "psmrts_ray2ray_distance::PSMRTS_RayTrace *ray1 is null" ), null() );
+  if ( !ray2 ) return ( psmrts_error_logger( "psmrts_ray2ray_distance::PSMRTS_RayTrace *ray2 is null" ), null() );
+ 
   return ( ray1->trace().distance( ray2->trace() ) );
 }
 
@@ -943,8 +974,11 @@ double psmrts_ray2ray_distance( const PSMRTS_RayTrace *ray1,
 double psmrts_separation_angle_radians( const PSMRTS_Vector3d *v1,
                                         const PSMRTS_Vector3d *v2 ) {
 
+  if ( !v1 ) return ( psmrts_error_logger( "psmrts_separation_angle_radians::PSMRTS_RayTrace *v1 is null" ), null() );
+  if ( !v2 ) return ( psmrts_error_logger( "psmrts_separation_angle_radians::PSMRTS_RayTrace *v2 is null" ), null() );  
+  
   return ( PsmrtsRayTrace::separation_angle( vector_to_eigen_d( *v1 ),
-                                                     vector_to_eigen_d( *v2 ) ) );
+                                             vector_to_eigen_d( *v2 ) ) );
 }
 
 /**
@@ -965,6 +999,9 @@ PSMRTS_BOOL psmrts_isNear( const PSMRTS_RayTrace *ray1,
                            const PSMRTS_RayTrace *ray2,
                            const double tolerance_km ) {
 
+  if ( !ray1 ) return ( psmrts_error_logger( "psmrts_isNear::PSMRTS_RayTrace *ray1 is null" ), PSMRTS_FALSE );
+  if ( !ray2 ) return ( psmrts_error_logger( "psmrts_isNear::PSMRTS_RayTrace *ray2 is null" ), PSMRTS_FALSE );
+
   return ( to_psmrts_bool( ray1->trace().isNear( ray2->trace(), tolerance_km ) ) );
 }
 
@@ -982,6 +1019,9 @@ PSMRTS_BOOL psmrts_isNear( const PSMRTS_RayTrace *ray1,
 double psmrts_incidence( const PSMRTS_RayTrace *ray1,
                          const PSMRTS_RayTrace *ray2 ) {
 
+  if ( !ray1 ) return ( psmrts_error_logger( "psmrts_incidence::PSMRTS_RayTrace *ray1 is null" ), null() );
+  if ( !ray2 ) return ( psmrts_error_logger( "psmrts_incidence::PSMRTS_RayTrace *ray2 is null" ), null() );
+  
   return ( ray1->trace().incidence( ray2->trace() ) );
 }
 
@@ -998,6 +1038,7 @@ double psmrts_incidence( const PSMRTS_RayTrace *ray1,
  * @return double Emission angle of input ray, in radians.
  */
 double psmrts_emission( const PSMRTS_RayTrace *ray ) {
+  if ( !ray ) return ( psmrts_error_logger( "psmrts_emission::PSMRTS_RayTrace *ray is null" ), null() );
   return ( ray->trace().emission() );
 }
 
@@ -1016,6 +1057,9 @@ double psmrts_emission( const PSMRTS_RayTrace *ray ) {
 double psmrts_phase( const PSMRTS_RayTrace *ray1,
                      const PSMRTS_RayTrace *ray2 ) {
 
+  if ( !ray1 ) return ( psmrts_error_logger( "psmrts_phase::PSMRTS_RayTrace *ray1 is null" ), null() );
+  if ( !ray2 ) return ( psmrts_error_logger( "psmrts_phase::PSMRTS_RayTrace *ray2 is null" ), null() );
+  
   return ( ray1->trace().phase( ray2->trace() ) );
 }
 
@@ -1039,6 +1083,7 @@ PSMRTS_TraceArray *psmrts_create_trace_array() {
  * @return size_t Number of traces in array.
  */
 size_t psmrts_trace_array_size( const PSMRTS_TraceArray *tracearray ) {
+  if ( !tracearray ) return ( psmrts_error_logger( "psmrts_trace_array_size::PSMRTS_TraceArray *tracearray is null", 0 ) );
   return ( tracearray->size() );
 }
 
@@ -1046,13 +1091,27 @@ size_t psmrts_trace_array_size( const PSMRTS_TraceArray *tracearray ) {
  * @brief psmrts_trace_array_add_trace - Adds trace to trace array.
  *
  * This function adds a PSMRTS_RayTrace to a given PSMRTS_TraceArray object.
+ * The "trace" object content is copied to the trace array so the 
+ * PSMRTS_RayTrace can be safely destroyed after this call and will not affect
+ * the trace array.
+ * 
+ * The recommended process to create an array is to create the first trace ray
+ * with psmrts_create_trace_array(), add it to the array and then use
+ * psmrts_ray_set_observation() to initialize subsequent trace rays using the
+ * first ray trace object and add it to the array. Once the array is completely
+ * constructed, you can safely call psmrts_destroy_trace_ray() on the first
+ * trace ray.
  *
  * @param tracearray Pointer to PSMRTS_TraceArray.
  * @param trace Pointer to PSMRTS_RayTrace to be added.
  * @return size_t Index of newly added trace.
  */
 size_t psmrts_trace_array_add_trace( PSMRTS_TraceArray *tracearray,
-                                     const PSMRTS_RayTrace *trace ) {    
+                                     const PSMRTS_RayTrace *trace ) {   
+
+  if ( !tracearray ) return ( psmrts_error_logger( "psmrts_trace_array_add_trace::PSMRTS_TraceArray *tracearray is null", 0 ) );
+  if ( !trace )      return ( psmrts_error_logger( "psmrts_trace_array_add_trace::PSMRTS_RayTrace *trace is null", 0 ) );
+  
   return ( tracearray->add_trace( *trace ) );
 }
 
@@ -1067,6 +1126,11 @@ size_t psmrts_trace_array_add_trace( PSMRTS_TraceArray *tracearray,
  */
 extern PSMRTS_BOOL psmrts_trace_array_trace( PSMRTS_TraceArray *tracearray,
                                              const PSMRTS_Tracer *tracer) {
+
+  if ( !tracearray ) return ( psmrts_error_logger( "psmrts_trace_array_trace::PSMRTS_TraceArray *tracearray is null" ), PSMRTS_FALSE );
+  if ( !tracer )     return ( psmrts_error_logger( "psmrts_trace_array_trace::PSMRTS_Tracer *tracer is null" ), PSMRTS_FALSE );
+  if ( !(*tracer) )  return ( psmrts_error_logger( "psmrts_trace_array_trace::PSMRTS_RayTrace *tracer is invalid" ), PSMRTS_FALSE );                                             
+  
   return ( (*tracer)->process( *tracearray ) );
 }
 
@@ -1081,6 +1145,7 @@ extern PSMRTS_BOOL psmrts_trace_array_trace( PSMRTS_TraceArray *tracearray,
  * @return void
  */
 void psmrts_trace_array_clear(PSMRTS_TraceArray *tracearray) {
+  if ( !tracearray ) { psmrts_error_logger( "psmrts_trace_array_clear::PSMRTS_TraceArray *tracearray is null" ); return; }
   tracearray->clear();
 }
 
@@ -1098,7 +1163,8 @@ void psmrts_trace_array_clear(PSMRTS_TraceArray *tracearray) {
  * @return const PSMRTS_RayTrace Pointer to PSMRTS_RayTrace object at index.
  */
 const PSMRTS_RayTrace *psmrts_trace_array_get_trace( const PSMRTS_TraceArray *tracearray,
-                                                     size_t index ) {
+                                                     const size_t index ) {
+  if ( !tracearray ) { psmrts_error_logger( "psmrts_trace_array_get_trace::PSMRTS_TraceArray *tracearray is null"); return ( NULL ); }
   return ( &tracearray->get_trace( index ) );
 }
 
@@ -1126,7 +1192,11 @@ const PSMRTS_RayTrace *psmrts_trace_array_get_trace( const PSMRTS_TraceArray *tr
  */
 PSMRTS_PhotometricRayTrace *psmrts_create_photometric_ray( const PSMRTS_Vector3d *observer,
                                                            const PSMRTS_Vector3d *lookdir,
-                                                           const PSMRTS_Vector3d *sunpos) {
+                                                           const PSMRTS_Vector3d *sunpos ) {
+
+  if ( !observer ) { psmrts_error_logger( "psmrts_create_photometric_ray::PSMRTS_Vector3d *observer is null" ); return ( NULL ); }
+  if ( !lookdir )  { psmrts_error_logger( "psmrts_create_photometric_ray::PSMRTS_Vector3d *lookdir is null" ); return ( NULL ); }
+  if ( !sunpos )   { psmrts_error_logger( "psmrts_create_photometric_ray::PSMRTS_Vector3d *sunpos is null" ); return ( NULL ); }
 
   return ( new PRQPhotometricTrace( vector_to_eigen_d( *observer ),
                                     vector_to_eigen_d( *lookdir ),
@@ -1159,7 +1229,10 @@ PSMRTS_PhotometricRayTrace *psmrts_photometric_ray_set_observation( const PSMRTS
                                                                     const PSMRTS_Vector3d *sunpos,
                                                                     PSMRTS_PhotometricRayTrace *phototrace ) {
 
-  assert( phototrace != nullptr && "psmrts_ray_trace::PSMRTS_PhotometricRayTrace is null" );
+  if ( !observer )   { psmrts_error_logger( "psmrts_photometric_ray_set_observation::PSMRTS_Vector3d *observer is null" ); return ( NULL ); }
+  if ( !lookdir )    { psmrts_error_logger( "psmrts_photometric_ray_set_observation::PSMRTS_Vector3d *lookdir is null" ); return ( NULL ); }
+  if ( !sunpos )     { psmrts_error_logger( "psmrts_photometric_ray_set_observation::PSMRTS_Vector3d *sunpos is null" ); return ( NULL ); }
+  if ( !phototrace ) { psmrts_error_logger( "psmrts_photometric_ray_set_observation::PSMRTS_PhotometricRayTrace *phototrace is null" ); return ( NULL ); }
 
   *phototrace = PSMRTS_PhotometricRayTrace( vector_to_eigen_d( *observer ),
                                             vector_to_eigen_d( *lookdir ),
@@ -1185,10 +1258,13 @@ PSMRTS_PhotometricRayTrace *psmrts_photometric_ray_set_observation( const PSMRTS
 PSMRTS_PhotometricRayTrace *psmrts_photo_ray_trace( PSMRTS_PhotometricRayTrace *photoray,
                                                     const PSMRTS_Tracer *tracer ) {
 
-    assert( photoray != nullptr && "psmrts_photo_ray_trace::PSMRTS_PhotometricRayTrace is null" );
-    (*tracer)->process( *photoray );
+  if ( !photoray )  { psmrts_error_logger( "psmrts_photo_ray_trace::PSMRTS_PhotometricRayTrace *phototrace is null" ); return ( NULL ); }
+  if ( !tracer )    { psmrts_error_logger( "psmrts_photo_ray_trace::PSMRTS_Tracer *tracer is null" ); return ( NULL ); }
+  if ( !(*tracer) ) { psmrts_error_logger( "psmrts_photo_ray_trace::PSMRTS_RayTrace *tracer is invalid" ); return ( NULL ); }  
 
-    return ( photoray );
+  (*tracer)->process( *photoray );
+
+  return ( photoray );
 }
 
 /**
@@ -1205,6 +1281,7 @@ PSMRTS_PhotometricRayTrace *psmrts_photo_ray_trace( PSMRTS_PhotometricRayTrace *
  *                radians).
  */
 double psmrts_photometric_incidence( const PSMRTS_PhotometricRayTrace *photometricTrace ) {
+  if ( !photometricTrace ) return ( psmrts_error_logger( "psmrts_photometric_incidence::PSMRTS_PhotometricRayTrace *photometricTrace is null", null() ) );
   return ( photometricTrace->incidence() );
 }
 
@@ -1222,6 +1299,7 @@ double psmrts_photometric_incidence( const PSMRTS_PhotometricRayTrace *photometr
  *                radians).
  */
 double psmrts_photometric_emission( const PSMRTS_PhotometricRayTrace *photometricTrace ) {
+  if ( !photometricTrace ) return ( psmrts_error_logger( "psmrts_photometric_emission::PSMRTS_PhotometricRayTrace *photometricTrace is null", null() ) );
   return ( photometricTrace->emission() );
 }
 
@@ -1239,6 +1317,7 @@ double psmrts_photometric_emission( const PSMRTS_PhotometricRayTrace *photometri
  *                radians).
  */
 double psmrts_photometric_phase( const PSMRTS_PhotometricRayTrace *photoTrace ) {
+  if ( !photoTrace ) return ( psmrts_error_logger( "psmrts_photometric_emission::PSMRTS_PhotometricRayTrace *photoTrace is null", null() ) );
   return ( photoTrace->phase() );
 }
 
@@ -1253,6 +1332,7 @@ double psmrts_photometric_phase( const PSMRTS_PhotometricRayTrace *photoTrace ) 
  * @return PSMRTS_RayTrace const pointer to PSMRTS_RayTrace observer trace.
  */
 const PSMRTS_RayTrace *psmrts_photometric_observer_trace( const PSMRTS_PhotometricRayTrace *photoTrace ) {
+  if ( !photoTrace ) { psmrts_error_logger( "psmrts_photometric_observer_trace::PSMRTS_PhotometricRayTrace *photoTrace is null" ); return ( NULL ); }
   return ( &photoTrace->observer() );
 }
 
@@ -1266,6 +1346,7 @@ const PSMRTS_RayTrace *psmrts_photometric_observer_trace( const PSMRTS_Photometr
  * @return PSMRTS_RayTrace const pointer to PSMRTS_RayTrace sun trace.
  */
 const PSMRTS_RayTrace *psmrts_photometric_sun_trace( const PSMRTS_PhotometricRayTrace *photoTrace ) {
+  if ( !photoTrace ) { psmrts_error_logger( "psmrts_photometric_sun_trace::PSMRTS_PhotometricRayTrace *photoTrace is null" ); return ( NULL ); }
   return ( &photoTrace->sunpos() );
 }
 
@@ -1291,6 +1372,7 @@ PSMRTS_PhotometricTraceArray *psmrts_create_photometric_trace_array() {
  * @return size_t Number of traces in array.
  */
 size_t psmrts_photometric_trace_array_size( const PSMRTS_PhotometricTraceArray *tracearray ) {
+  if ( !tracearray ) return ( psmrts_error_logger( "psmrts_photometric_trace_array_size::PSMRTS_PhotometricTraceArray *tracearray is null", 0 ) );
   return ( tracearray->size() );
 }
 
@@ -1298,7 +1380,15 @@ size_t psmrts_photometric_trace_array_size( const PSMRTS_PhotometricTraceArray *
  * @brief psmrts_photometric_trace_array_add_trace - Adds trace to trace array.
  *
  * This function adds a PSMRTS_PhotometricRayTrace to a given PSMRTS_TraceArray
- * object.
+ * object. The photometric "trace" object content is copied to the trace array
+ * so the PSMRTS_PhotometricRayTrace can be safely destroyed after this call and
+ * will not affect the trace array.
+ * 
+ * The recommended process to create is to create the first photometric trace
+ * with psmrts_create_photometric_ray(), add it to the array and the use
+ * psmrts_photometric_ray_set_observation() to initialize subsequent photometric
+ * traces and add to the array. Once the array is completely constructed, you
+ * can safely call psmrts_destroy_photometric_ray().
  *
  * @param tracearray Pointer to PSMRTS_PhotometricTraceArray.
  * @param trace Pointer to PSMRTS_PhotometricRayTrace to be added.
@@ -1306,6 +1396,10 @@ size_t psmrts_photometric_trace_array_size( const PSMRTS_PhotometricTraceArray *
  */
 size_t psmrts_photometric_trace_array_add_trace( PSMRTS_PhotometricTraceArray *tracearray,
                                                  const PSMRTS_PhotometricRayTrace *trace ) {
+
+  if ( !tracearray ) return ( psmrts_error_logger( "psmrts_photometric_trace_array_add_trace::PSMRTS_PhotometricTraceArray *tracearray is null", 0 ) );
+  if ( !trace )      return ( psmrts_error_logger( "psmrts_photometric_trace_array_add_trace::PSMRTS_PhotometricRayTrace *trace is null", 0 ) );
+  
   return ( tracearray->add_trace( *trace ) );
 }
 
@@ -1321,6 +1415,11 @@ size_t psmrts_photometric_trace_array_add_trace( PSMRTS_PhotometricTraceArray *t
  */
 extern PSMRTS_BOOL psmrts_photometric_trace_array_trace( PSMRTS_PhotometricTraceArray *tracearray,
                                                          const PSMRTS_Tracer *tracer) {
+
+  if ( !tracearray ) return ( psmrts_error_logger( "psmrts_photometric_trace_array_add_trace::PSMRTS_PhotometricTraceArray *tracearray is null", PSMRTS_FALSE ) );
+  if ( !tracer )     return ( psmrts_error_logger( "psmrts_photometric_trace_array_add_trace::PSMRTS_Tracer *tracer is null", PSMRTS_FALSE ) );
+  if ( !(*tracer) )  return ( psmrts_error_logger( "psmrts_photometric_trace_array_add_trace::PSMRTS_Tracer (*tracer) is invalid", PSMRTS_FALSE ) );
+  
   return ( (*tracer)->process( *tracearray ) );
 }
 
@@ -1335,6 +1434,7 @@ extern PSMRTS_BOOL psmrts_photometric_trace_array_trace( PSMRTS_PhotometricTrace
  * @return void
  */
 void psmrts_photometric_trace_array_clear(PSMRTS_PhotometricTraceArray *tracearray) {
+  if ( !tracearray ) { psmrts_error_logger( "psmrts_photometric_trace_array_clear::PSMRTS_PhotometricTraceArray *tracearray is null" ); return; }
   tracearray->clear();
 }
 
@@ -1349,7 +1449,8 @@ void psmrts_photometric_trace_array_clear(PSMRTS_PhotometricTraceArray *tracearr
  * @return const PSMRTS_PhotometricRayTrace Pointer ƒ√at index.
  */
 const PSMRTS_PhotometricRayTrace *psmrts_photometric_trace_array_get_trace( const PSMRTS_PhotometricTraceArray *tracearray,
-                                                                            size_t index ) {
+                                                                            const size_t index ) {
+  if ( !tracearray ) { psmrts_error_logger( "psmrts_photometric_trace_array_get_trace::PSMRTS_PhotometricTraceArray *tracearray is null" ); return ( NULL ); }                                                                    
   return ( &tracearray->get_trace( index ) );
 }
 
@@ -1369,7 +1470,7 @@ const PSMRTS_PhotometricRayTrace *psmrts_photometric_trace_array_get_trace( cons
  * @return PSMRTS_Vector3d Vector converted to xyz coordinates.
  */
 PSMRTS_Vector3d psmrts_lonlatrad_to_xyz_d( const PSMRTS_Vector3d *v ) {
-
+  if ( !v ) return ( psmrts_error_logger( "psmrts_lonlatrad_to_xyz_d::PSMRTS_Vector3d *v is null" ), eigen_to_vector_d( null_vector() ) );
   return ( eigen_to_vector_d( lonlatrad_to_xyz_d( vector_to_eigen_d(*v) ) ) );
 }
 
@@ -1385,7 +1486,7 @@ PSMRTS_Vector3d psmrts_lonlatrad_to_xyz_d( const PSMRTS_Vector3d *v ) {
  * @return PSMRTS_Vector3d Vector converted to lon, lat, radius coordinates.
  */
 PSMRTS_Vector3d psmrts_xyz_to_lonlatrad_d( const PSMRTS_Vector3d *v ) {
-
+  if ( !v ) return ( psmrts_error_logger( "psmrts_xyz_to_lonlatrad_d::PSMRTS_Vector3d *v is null" ), eigen_to_vector_d( null_vector() ) );
   return ( eigen_to_vector_d( xyz_to_lonlatrad_d( vector_to_eigen_d( *v ) ) ) );
 }
 
@@ -1424,13 +1525,15 @@ double psmrts_radians_to_degrees( const double d ) {
  * @return PSMRTS_Vector3d Vector with longitude/latitude converted to radians.
  */
 PSMRTS_Vector3d psmrts_vector3d_to_radians( const PSMRTS_Vector3d *v ) {
-    PSMRTS_Vector3d newvec;
+  if ( !v ) return ( psmrts_error_logger( "psmrts_vector3d_to_radians::PSMRTS_Vector3d *v is null" ), eigen_to_vector_d( null_vector() ) );
+    
+  PSMRTS_Vector3d newvec;
 
-    newvec.longitude = psmrts_degrees_to_radians( v->longitude );
-    newvec.latitude  = psmrts_degrees_to_radians( v->latitude );
-    newvec.radius    = v->radius;
+  newvec.longitude = psmrts_degrees_to_radians( v->longitude );
+  newvec.latitude  = psmrts_degrees_to_radians( v->latitude );
+  newvec.radius    = v->radius;
 
-    return ( newvec );
+  return ( newvec );
 }
 
 /**
@@ -1443,14 +1546,16 @@ PSMRTS_Vector3d psmrts_vector3d_to_radians( const PSMRTS_Vector3d *v ) {
  * @param v PSMRTS_Vector3d Input vector with longitude/latitude in radians.
  * @return PSMRTS_Vector3d Vector with longitude/latitude converted to degrees.
  */
-PSMRTS_Vector3d psmrts_vector3d_to_degrees( const PSMRTS_Vector3d *v ) {    
-    PSMRTS_Vector3d newvec;
+PSMRTS_Vector3d psmrts_vector3d_to_degrees( const PSMRTS_Vector3d *v ) {  
+  if ( !v ) return ( psmrts_error_logger( "psmrts_vector3d_to_degrees::PSMRTS_Vector3d *v is null" ), eigen_to_vector_d( null_vector() ) );
 
-    newvec.longitude = psmrts_radians_to_degrees( v->longitude );
-    newvec.latitude  = psmrts_radians_to_degrees( v->latitude );
-    newvec.radius    = v->radius;
+  PSMRTS_Vector3d newvec;
 
-    return ( newvec );
+  newvec.longitude = psmrts_radians_to_degrees( v->longitude );
+  newvec.latitude  = psmrts_radians_to_degrees( v->latitude );
+  newvec.radius    = v->radius;
+
+  return ( newvec );
 }
 
 /**
@@ -1467,11 +1572,13 @@ PSMRTS_Vector3d psmrts_vector3d_to_degrees( const PSMRTS_Vector3d *v ) {
  */
 PSMRTS_Tracer *psmrts_create_sphere( const double radius_km,
                                      const char *name ) {
+  if ( !name ) { psmrts_error_logger( "psmrts_create_sphere::char *name is null" ); return ( NULL ); }
 
   ProductConfiguration config( std::string( name ), 
                                { ProductOption( "tracer", "sphere" ),
                                  ProductOption( "radii", radius_km ),
                                  ProductOption( "name", std::string( name ) ) } );
+
   return ( create_tracer_for_capi( config ) );   
 }
 
@@ -1494,11 +1601,13 @@ PSMRTS_Tracer *psmrts_create_sphere( const double radius_km,
 PSMRTS_Tracer *psmrts_create_spheroid( const double a_radius_km,
                                        const double c_radius_km,
                                        const char *name ) {
+  if ( !name ) { psmrts_error_logger( "psmrts_create_spheroid::char *name is null" ); return ( NULL ); }
 
   ProductConfiguration config( std::string( name ), 
                                { ProductOption( "tracer", "spheroid" ),
                                  ProductOption( "radii", { a_radius_km, c_radius_km } ),
                                  ProductOption( "name", std::string( name ) ) } );
+
   return ( create_tracer_for_capi( config ) );                                        
 }
 
@@ -1521,11 +1630,14 @@ PSMRTS_Tracer *psmrts_create_ellipsoid( const double a_radius_km,
                                         const double c_radius_km,
                                         const char *name ) {
 
+  if ( !name ) { psmrts_error_logger( "psmrts_create_ellipsoid::char *name is null" ); return ( NULL ); }
+ 
   std::string name_t( name );
   ProductConfiguration config( std::string( name_t ), 
                                { ProductOption( "tracer", "ellipsoid" ),
                                  ProductOption( "radii", { a_radius_km, b_radius_km, c_radius_km } ),
                                  ProductOption( "name", std::string( name_t ) ) } );
+
   return ( create_tracer_for_capi( config ) );  
 }
 
@@ -1544,6 +1656,8 @@ PSMRTS_Tracer *psmrts_create_ellipsoid( const double a_radius_km,
  */
 PSMRTS_Tracer *psmrts_create_ellipsoid_v( const PSMRTS_Vector3d *radii,
                                           const char *name ) {
+
+  if ( !name ) { psmrts_error_logger( "psmrts_create_ellipsoid_v::char *name is null" ); return ( NULL ); }
 
   std::string name_t( name );
   ProductConfiguration config( std::string( name_t ), 
@@ -1568,6 +1682,9 @@ PSMRTS_Tracer *psmrts_create_ellipsoid_v( const PSMRTS_Vector3d *radii,
  * @return Pointer to the resulting PSMRTS_Tracer object.
  */
 PSMRTS_Tracer *psmrts_create_bullet( const char *objfile ) {
+
+  if ( !objfile ) { psmrts_error_logger( "psmrts_create_bullet::char *objfile is null" ); return ( NULL ); }
+
   std::string name_t( objfile );
   ProductConfiguration config( std::string( name_t ), 
                                { ProductOption( "tracer", "bullet" ),
@@ -1591,6 +1708,9 @@ PSMRTS_Tracer *psmrts_create_bullet( const char *objfile ) {
  * @return Pointer to the resulting PSMRTS_Tracer object.
  */
 PSMRTS_Tracer *psmrts_create_naifdsk( const char *dskfile ) {
+
+  if ( !dskfile ) { psmrts_error_logger( "psmrts_create_naifdsk::char *dskfile is null" ); return ( NULL ); }
+
   std::string name_t( dskfile );
   ProductConfiguration config( std::string( name_t ), 
                                { ProductOption( "tracer", "naifdsk" ),
@@ -1622,9 +1742,9 @@ PSMRTS_Tracer *psmrts_create_naifdsk( const char *dskfile ) {
  * .
  * .
  * .
- * psmrts_free_string_array( array_s );
- * psmrts_free_translations( trans_t );
- * psmrts_free_priority_tracer( tracer_p );
+ * psmrts_destroy_string_array( array_s );
+ * psmrts_destroy_translations( trans_t );
+ * psmrts_destroy_priority_tracer( tracer_p );
  * @endcode
  * 
  * Note that there may not be the same number of tracers in the priority tracer
@@ -1645,8 +1765,7 @@ PSMRTS_PriorityTracer *psmrts_create_priority_tracer ( const char *name,
                                                        const PSMRTS_StringArray *filelist,
                                                        const PSMRTS_Translations *translations  ) {
 
-  assert( filelist != NULL && "psmrts_create_priority_tracer::PSMRTS_StringArray is null" );
-
+  if ( !filelist ) { psmrts_error_logger( "psmrts_create_priority_tracer::PSMRTS_StringArray *filelist is null" ); return ( NULL ); }
 
   PSMRTS_PriorityTracer *tracer_p = NULL;
   psmrts_capi_errors.clear_errors();
@@ -1669,6 +1788,42 @@ PSMRTS_PriorityTracer *psmrts_create_priority_tracer ( const char *name,
 }
 
 /**
+ * @brief psmrts_tracer_valid - Validates PSMRTS_Tracer.
+ *
+ * Validates given PSMRTS_Tracer pointer by confirming it is not null.
+ *
+ * @param tracer Pointer to PSMRTS_Tracer object.
+ * @return PSMRTS_BOOL Validity of input PSMRTS_Tracer.
+ */
+PSMRTS_BOOL psmrts_tracer_valid( const PSMRTS_Tracer *tracer ) {
+  return ( to_psmrts_bool( 0 != tracer ) );
+}
+
+/**
+ * @brief Return a tracer configuration string in JSON format
+ * 
+ * This routine returns the configuration string of a PSMRTS tracer that has been
+ * validated by its specification type. It is represented in JSON format that
+ * is converted to a string in compressed format, i.e., no spacing or special
+ * formatting.
+ * 
+ * This routine allocates a PSMRTS_String and returns a pointer to it that the
+ * caller is responsible to destroy when use is complete. 
+ * 
+ * If the tracer pointer is invalid, NULL will be returned.
+ * 
+ * @param tracer   A PSMRTS_Tracer object to produce the config string for
+ * @return PSMRTS_String* Pointer to JSON string if valid otherwise NULL
+ */
+PSMRTS_String *psmrts_tracer_json_string( const PSMRTS_Tracer *tracer ) {
+  if ( !tracer )    { psmrts_error_logger( "psmrts_tracer_json_string::PSMRTS_Tracer *tracer is null");       return ( NULL ); }
+  if ( !(*tracer) ) { psmrts_error_logger( "psmrts_tracer_json_string::PSMRTS_Tracer (*tracer) is invalid" ); return ( NULL ); }
+
+  std::string json_s = (*tracer)->config().to_json().dump(-1);
+  return ( psmrts_create_string( json_s.c_str() ) );
+}
+
+/**
  * @brief psmrts_get_facet - Creates and processes a PRQFacet.
  *
  * Given PSMRTS_Tracer, PSMRTS_RayTrace, and PSMRTS_Facet objects, the tracer is used to
@@ -1686,8 +1841,10 @@ PSMRTS_PriorityTracer *psmrts_create_priority_tracer ( const char *name,
 PSMRTS_BOOL psmrts_get_facet( PSMRTS_RayTrace *ray, const PSMRTS_Tracer *tracer,
                               PSMRTS_Facet *facet ) {
 
-  assert( ray != nullptr && "psmrts_ray_trace::PSMRTS_RayTrace is null" );
-  assert( tracer != nullptr && "psmrts_tracer::PSMRTS_Tracer is null" );
+  if ( !ray )       return ( psmrts_error_logger( "psmrts_get_facet::PSMRTS_RayTrace *ray is null", PSMRTS_FALSE ) );
+  if ( !tracer )    return ( psmrts_error_logger( "psmrts_get_facet::PSMRTS_Tracer *tracer is null", PSMRTS_FALSE ) );
+  if ( !(*tracer) ) return ( psmrts_error_logger( "psmrts_get_facet::PSMRTS_Tracer (*tracer) is invalid", PSMRTS_FALSE ) );
+  if ( !facet )     return ( psmrts_error_logger( "psmrts_get_facet::PSMRTS_Facet *facet is null", PSMRTS_FALSE ) );
 
   // construct PRQFacet with PsmrtsRayTrace from PSMRTS_RayTrace argument
   PRQFacet prqFacet( ray->trace() );
@@ -1713,6 +1870,9 @@ PSMRTS_BOOL psmrts_get_facet( PSMRTS_RayTrace *ray, const PSMRTS_Tracer *tracer,
  * @return PSMRTS_Shape*.
  */
 PSMRTS_Shape *psmrts_create_obj_shape( const char *objfile ) {
+
+  if ( !objfile ) { psmrts_error_logger( "psmrts_create_obj_shape::char *objfile is null" ); return ( NULL ); }
+
   std::string objfile_t( objfile );
 
   ProductConfiguration config( objfile_t,
@@ -1733,11 +1893,15 @@ PSMRTS_Shape *psmrts_create_obj_shape( const char *objfile ) {
  * @return PSMRTS_Shape*.
  */
 PSMRTS_Shape *psmrts_create_dsk_shape( const char *dskfile ) {
+
+  if ( !dskfile ) { psmrts_error_logger( "psmrts_create_dsk_shape::char *dskfile is null" ); return ( NULL ); }
+
   std::string dskfile_t( dskfile );
 
   ProductConfiguration config( dskfile_t,
                               { ProductOption( "shape", "dsk" ),
                                 ProductOption( "dsk_file", dskfile_t ) } );
+
   return ( create_shape_for_capi( config ) );
 }
 
@@ -1754,13 +1918,43 @@ PSMRTS_Shape *psmrts_create_dsk_shape( const char *dskfile ) {
  * @return PSMRTS_Shape*.
  */
 PSMRTS_Shape *psmrts_create_ply_shape( const char *plyfile ) {
+
+  if ( !plyfile ) { psmrts_error_logger( "psmrts_create_ply_shape::char *plyfile is null" ); return ( NULL ); }
+
   std::string plyfile_t( plyfile );
 
   ProductConfiguration config( plyfile_t,
                               { ProductOption( "shape", "ply" ),
                                 ProductOption( "ply_file", plyfile_t ) } );
+
   return ( create_shape_for_capi( config ) );
 }  
+
+
+/**
+ * @brief Return a shape configuration string in JSON format
+ * 
+ * This routine returns the configuration string of a PSMRTS shape that has been
+ * validated by its specification type. It is represented in JSON format that
+ * is converted to a string in compressed format, i.e., no spacing or special
+ * formatting.
+ * 
+ * This routine allocates a PSMRTS_String and returns a pointer to it that the
+ * caller is responsible to destroy when use is complete. 
+ * 
+ * If the shape pointer is invalid, NULL will be returned.
+ * 
+ * @param tracer   A PSMRTS_Shape object to produce the config string for
+ * @return PSMRTS_String* Pointer to JSON string if valid otherwise NULL
+ */
+PSMRTS_String *psmrts_shape_json_string( const PSMRTS_Shape *shape ) {
+  if ( !shape )    { psmrts_error_logger( "psmrts_shape_json_string::PSMRTS_Shape *shape is null" ); return ( NULL ); }
+  if ( !(*shape) )    { psmrts_error_logger( "psmrts_shape_json_string::PSMRTS_Shape *shape is invalid" ); return ( NULL ); }
+
+  std::string json_s = (*shape)->config().to_json().dump(-1);
+  return ( psmrts_create_string( json_s.c_str() ) );
+}
+
 
 /**
  * @brief psmrts_facet_surface_area - Computes facet surface area.
@@ -1772,6 +1966,8 @@ PSMRTS_Shape *psmrts_create_ply_shape( const char *plyfile ) {
  * @return double facet surface area.
  */
 double psmrts_facet_surface_area( const PSMRTS_Facet *facet ) {
+
+  if ( !facet ) return ( psmrts_error_logger( "psmrts_facet_surface_area::PSMRTS_Facet *facet is null", null() ) );
 
   // convert PSMRTS_Facet to PRQFacet
   PRQFacet prqfacet = capi_facet_to_psmrts( *facet );
@@ -1797,6 +1993,8 @@ double psmrts_facet_surface_area( const PSMRTS_Facet *facet ) {
  */
 double psmrts_facet_volume( const PSMRTS_Facet *facet ) {
 
+  if ( !facet ) return ( psmrts_error_logger( "psmrts_facet_volume::PSMRTS_Facet *facet is null", null() ) );
+
   // convert PSMRTS_Facet to PRQFacet
   PRQFacet prqfacet = capi_facet_to_psmrts( *facet );
 
@@ -1812,6 +2010,7 @@ double psmrts_facet_volume( const PSMRTS_Facet *facet ) {
  * @return double Shape surface area.
  */
 extern double psmrts_mesh_surface_area( const PSMRTS_Shape *shape ) {
+  if ( !shape ) return ( psmrts_error_logger( "psmrts_mesh_surface_area::PSMRTS_Shape *shape is null", null() ) );
   return ( (*shape)->get_mesh().mesh_surface_area() );
 }
 
@@ -1824,6 +2023,7 @@ extern double psmrts_mesh_surface_area( const PSMRTS_Shape *shape ) {
  * @return double Shape volume.
  */
 extern double psmrts_mesh_volume( const PSMRTS_Shape *shape ) {
+  if ( !shape ) return ( psmrts_error_logger( "psmrts_mesh_volume::PSMRTS_Shape *shape is null", null() ) );
   return ( (*shape)->get_mesh().mesh_volume() );
 }
 
@@ -1855,7 +2055,12 @@ PSMRTS_Translations *psmrts_create_translation() {
  * @return void.
  */
 void psmrts_add_translation_parameter( PSMRTS_Translations *translations, const char* name,
-                                       const char* value ) {  
+                                       const char* value ) { 
+
+  if ( !translations ) { psmrts_error_logger( "psmrts_add_translation_parameter::PSMRTS_Translations *translations is null" ); return; }
+  if ( !name )         { psmrts_error_logger( "psmrts_add_translation_parameter::char* name is null" ); return; }
+  if ( !value )        { psmrts_error_logger( "psmrts_add_translation_parameter::char* value is null" ); return; }
+
   translations->add_parameter( name, value );
 }
 
@@ -1900,10 +2105,11 @@ void psmrts_add_translation_parameter( PSMRTS_Translations *translations, const 
  * @return PSMRTS_Translations* If NULL, an error occurred and you can check the
  *                       psmsrts_errors_to_strings() content.
  */
-PSMRTS_Translations *psmrts_translation_add_data_directory( PSMRTS_Translations *translations ,
+PSMRTS_Translations *psmrts_translation_add_data_directory( PSMRTS_Translations *translations,
                                                             const char *pvlfile ) {
 
-  assert( pvlfile != nullptr && "psmrts_translation_add_data_directory - data directory file name is NULL" );
+  if ( !pvlfile ) { psmrts_error_logger( "psmrts_translation_add_data_directory::char *pvlfile is null" ); return ( NULL ); }
+
   psmrts_capi_errors.clear_errors();
 
   PSMRTS_Translations *trans_t = ( NULL != translations ) ? translations : psmrts_create_translation();
@@ -1930,8 +2136,7 @@ PSMRTS_Translations *psmrts_translation_add_data_directory( PSMRTS_Translations 
  * @return size_t       Number of environment variables contained in object
  */
 size_t psmrts_translation_environment_count( const PSMRTS_Translations *translations ) {
-  assert( translations != nullptr && "psmrts_translation_environment_count - translations is NULL" );
-
+  if ( !translations ) return ( psmrts_error_logger( "psmrts_translation_environment_count::PSMRTS_Translations *translations is null", 0 ) );
   return ( translations->environment().size() );
 }
 
@@ -1945,8 +2150,7 @@ size_t psmrts_translation_environment_count( const PSMRTS_Translations *translat
  * @return size_t       Number of parameter variables contained in object
  */
 size_t psmrts_translation_parameters_count( const PSMRTS_Translations *translations ) {
-  assert( translations != nullptr && "psmrts_translation_parameters_count - translations is NULL" );
-
+  if ( !translations ) return ( psmrts_error_logger( "psmrts_translation_parameters_count::PSMRTS_Translations *translations is null", 0 ) );
   return ( translations->parameters().size() );
 }
 
@@ -1960,9 +2164,10 @@ size_t psmrts_translation_parameters_count( const PSMRTS_Translations *translati
  * @return PSMRTS_BOOL PSMRTS_TRUE if it exists, otherwise PSMRTS_FALSE
  */
 PSMRTS_BOOL psmrts_translation_environment_contains( const PSMRTS_Translations *translations,
-                                                      const char *name ) {
-  assert( translations != nullptr && "psmrts_translation_environment_contains - translations is NULL" );
-  assert( name != nullptr && "psmrts_translation_environment_contains - name is NULL" );
+                                                     const char *name ) {
+
+  if ( !translations ) return ( psmrts_error_logger( "psmrts_translation_environment_contains::PSMRTS_Translations *translations is null", PSMRTS_FALSE ) );
+  if ( !name )         return ( psmrts_error_logger( "psmrts_translation_environment_contains::char *name is null", PSMRTS_FALSE ) );
 
   return ( to_psmrts_bool( translations->environment().contains( std::string( name ) ) ) );
 }
@@ -1977,9 +2182,10 @@ PSMRTS_BOOL psmrts_translation_environment_contains( const PSMRTS_Translations *
  * @return PSMRTS_BOOL PSMRTS_TRUE if it exists, otherwise PSMRTS_FALSE
  */
 PSMRTS_BOOL psmrts_translation_parameters_contains( const PSMRTS_Translations *translations,
-                                                     const char *name  ) {
-  assert( translations != nullptr && "psmrts_translation_parameters_contains - translations is NULL" );
-  assert( name != nullptr && "psmrts_translation_parameters_contains - name is NULL" );
+                                                    const char *name  ) {
+
+  if ( !translations ) return ( psmrts_error_logger( "psmrts_translation_parameters_contains::PSMRTS_Translations *translations is null", PSMRTS_FALSE ) );
+  if ( !name )         return ( psmrts_error_logger( "psmrts_translation_parameters_contains::char *name is null", PSMRTS_FALSE ) );
 
   return ( to_psmrts_bool( translations->parameters().contains( std::string( name ) ) ) );
  }
@@ -2003,9 +2209,9 @@ PSMRTS_String *psmrts_translate_path( const PSMRTS_Translations *translations,
                                       const char *filepath, 
                                       PSMRTS_String *expanded_path ) {
 
-  assert( filepath != nullptr && "psmrts_translate_path - filepath is NULL" );
-  assert( translations != nullptr && "psmrts_translate_path - translations is NULL" );
-
+  if ( !translations ) { psmrts_error_logger( "psmrts_translate_path::PSMRTS_Translations *translations is null" ); return ( NULL ); }
+  if ( !filepath )     { psmrts_error_logger( "psmrts_translate_path::char *filepath is null" ); return ( NULL ); }
+  
   std::string filepath_t( filepath );
   std::string filename_t = translations->translate_path( filepath_t );
 
@@ -2045,6 +2251,9 @@ PSMRTS_ProductConfiguration *psmrts_create_product_config( const char *id ) {
  */
 PSMRTS_ProductConfiguration *psmrts_create_config( const char *producttype, const char* productname,
                                                    PSMRTS_ProductConfiguration *config ) {
+
+  if ( !producttype ) { psmrts_error_logger( "psmrts_create_config::char *producttype is null" ); return ( NULL ); }
+  if ( !productname ) { psmrts_error_logger( "psmrts_create_config::char *productname is null" ); return ( NULL ); }
   
   // if config is nullptr, create one
   if ( config == nullptr ) {
@@ -2069,6 +2278,10 @@ PSMRTS_ProductConfiguration *psmrts_create_config( const char *producttype, cons
  */
 PSMRTS_BOOL psmrts_product_config_contains( PSMRTS_ProductConfiguration *config,
                                             const char* text ) {
+
+  if ( !config ) return ( psmrts_error_logger( "psmrts_product_config_contains::PSMRTS_ProductConfiguration *config is null", PSMRTS_FALSE ) );
+  if ( !text )   return ( psmrts_error_logger( "psmrts_product_config_contains::char* text is null", PSMRTS_FALSE ) );
+
   return config->contains( text );
 }
 
@@ -2085,9 +2298,13 @@ PSMRTS_BOOL psmrts_product_config_contains( PSMRTS_ProductConfiguration *config,
  * @param pstr PSMRTS_String*
  * @return void.
  */
-PSMRTS_C_EXPORT void psmrts_product_config_to_string( PSMRTS_ProductConfiguration *config,
-                                                      PSMRTS_String *pstr ) {
-  pstr->assign( config->to_json().dump() );  
+void psmrts_product_config_to_string( PSMRTS_ProductConfiguration *config,
+                                      PSMRTS_String *pstr ) {
+
+  if ( !config ) { psmrts_error_logger( "psmrts_product_config_to_string::PSMRTS_ProductConfiguration *config is null" ); return; }
+  if ( !pstr )   { psmrts_error_logger( "psmrts_product_config_to_string::PSMRTS_String *pstr is null" ); return; }
+
+  pstr->assign( config->to_json().dump() );
 }
 
 /**
@@ -2105,6 +2322,10 @@ PSMRTS_C_EXPORT void psmrts_product_config_to_string( PSMRTS_ProductConfiguratio
 void psmrts_add_product_string( PSMRTS_ProductConfiguration *config,
                                 const char *name, const char *text ) {
                                           
+  if ( !config ) { psmrts_error_logger( "psmrts_add_product_string::PSMRTS_ProductConfiguration *config is null" ); return; }
+  if ( !name )   { psmrts_error_logger( "psmrts_add_product_string::PSMRTS_String *name is null" ); return; }
+  if ( !text )   { psmrts_error_logger( "psmrts_add_product_string::PSMRTS_String *text is null" ); return; }
+
   config->add( ProductOption( name, text ) );
 }
 
@@ -2122,7 +2343,10 @@ void psmrts_add_product_string( PSMRTS_ProductConfiguration *config,
  */
 void psmrts_add_product_bool( PSMRTS_ProductConfiguration *config,
                               const char *name, const PSMRTS_BOOL b ) {
-                                          
+
+  if ( !config ) { psmrts_error_logger( "psmrts_add_product_bool::PSMRTS_ProductConfiguration *config is null" ); return; }
+  if ( !name )   { psmrts_error_logger( "psmrts_add_product_bool::PSMRTS_String *name is null" ); return; }
+                                         
   config->add( ProductOption( name, b ) );
 }
 
@@ -2140,7 +2364,10 @@ void psmrts_add_product_bool( PSMRTS_ProductConfiguration *config,
  */
 void psmrts_add_product_int( PSMRTS_ProductConfiguration *config,
                              const char *name, const int i ) {
-                                          
+
+  if ( !config ) { psmrts_error_logger( "psmrts_add_product_int::PSMRTS_ProductConfiguration *config is null" ); return; }
+  if ( !name )   { psmrts_error_logger( "psmrts_add_product_int::PSMRTS_String *name is null" ); return; }
+
   config->add( ProductOption( name, i ) );
 }
 
@@ -2158,7 +2385,11 @@ void psmrts_add_product_int( PSMRTS_ProductConfiguration *config,
  */
 void psmrts_add_product_sizet( PSMRTS_ProductConfiguration *config,
                                const char *name, const size_t szt ) {
-                                          
+     
+
+  if ( !config ) { psmrts_error_logger( "psmrts_add_product_sizet::PSMRTS_ProductConfiguration *config is null" ); return; }
+  if ( !name )   { psmrts_error_logger( "psmrts_add_product_sizet::PSMRTS_String *name is null" ); return; }
+                                
   config->add( ProductOption( name, szt ) );
 }
 
@@ -2176,7 +2407,10 @@ void psmrts_add_product_sizet( PSMRTS_ProductConfiguration *config,
  */
 void psmrts_add_product_double( PSMRTS_ProductConfiguration *config,
                                 const char *name, const double d ) {
-                                          
+
+  if ( !config ) { psmrts_error_logger( "psmrts_add_product_double::PSMRTS_ProductConfiguration *config is null" ); return; }
+  if ( !name )   { psmrts_error_logger( "psmrts_add_product_double::PSMRTS_String *name is null" ); return; }
+
   config->add( ProductOption( name, d ) );
 }
 
@@ -2199,23 +2433,16 @@ void psmrts_add_product_double_vector( PSMRTS_ProductConfiguration *config,
                                        const double *d_vector,
                                        const int count ) {
 
+  if ( !config )   { psmrts_error_logger( "psmrts_add_product_double_vector::PSMRTS_ProductConfiguration *config is null" ); return; }
+  if ( !name )     { psmrts_error_logger( "psmrts_add_product_double_vector::PSMRTS_String *name is null" ); return; }
+  if ( !d_vector ) { psmrts_error_logger( "psmrts_add_product_double_vector::double *d_vector is null" ); return; }
+                                        
   std::vector<double> cpp_vector(count);
   std::copy_n( d_vector, count, cpp_vector.begin() );
                                                                                           
   config->add( ProductOption( name, cpp_vector ) );
 }
 
-/**
- * @brief psmrts_tracer_valid - Validates PSMRTS_Tracer.
- *
- * Validates given PSMRTS_Tracer pointer by confirming it is not null.
- *
- * @param tracer Pointer to PSMRTS_Tracer object.
- * @return PSMRTS_BOOL Validity of input PSMRTS_Tracer.
- */
-PSMRTS_BOOL psmrts_tracer_valid( const PSMRTS_Tracer *tracer ) {
-  return ( to_psmrts_bool( 0 != tracer ) );
-}
 
 /*============ PSMRTS_Invoice functions ================*/
 
@@ -2231,6 +2458,9 @@ PSMRTS_BOOL psmrts_tracer_valid( const PSMRTS_Tracer *tracer ) {
  */
 PSMRTS_Invoice *psmrts_create_invoice( const char* name,
                                        PSMRTS_Translations* translation ) {
+
+  if ( !name ) { psmrts_error_logger( "psmrts_create_invoice::char *name is null" ); return ( NULL ); }
+
   if ( translation == nullptr ) {
     return ( new PSMRTS_Invoice( name ) );
   }
@@ -2251,6 +2481,9 @@ PSMRTS_Invoice *psmrts_create_invoice( const char* name,
 PSMRTS_BOOL psmrts_add_config_invoice( PSMRTS_ProductConfiguration *config,
                                        PSMRTS_Invoice *invoice ) {
 
+  if ( !config )  return ( psmrts_error_logger( "psmrts_add_config_invoice::PSMRTS_ProductConfiguration *config is null", PSMRTS_FALSE ) );
+  if ( !invoice ) return ( psmrts_error_logger( "psmrts_add_config_invoice::PSMRTS_Invoice *invoice is null", PSMRTS_FALSE ) );
+
   invoice->add( *config );
   
   return ( true );
@@ -2269,6 +2502,8 @@ PSMRTS_BOOL psmrts_add_config_invoice( PSMRTS_ProductConfiguration *config,
  */
 PSMRTS_String *psmrts_invoice_error_string( const PSMRTS_Invoice *invoice,
                                             PSMRTS_String *string ) {
+
+  if ( !invoice ) { psmrts_error_logger( "psmrts_invoice_error_string::PSMRTS_Invoice *invoice is null" ); return ( NULL ); }
 
   PSMRTS_String *string_t = string;
 
@@ -2296,6 +2531,9 @@ PSMRTS_String *psmrts_invoice_error_string( const PSMRTS_Invoice *invoice,
  */
 PSMRTS_PriorityTracer *psmrts_generate_priority_tracer( PSMRTS_Invoice *invoice,
                                                         PSMRTS_PriorityTracer* tracer_p) {
+
+  if ( !invoice )  { psmrts_error_logger( "psmrts_generate_priority_tracer::PSMRTS_Invoice *invoice is null" ); return ( NULL ); }
+
   PSMRTS_PriorityTracer *tracer_t = tracer_p;
 
   if ( tracer_t == nullptr ) {
@@ -2308,7 +2546,7 @@ PSMRTS_PriorityTracer *psmrts_generate_priority_tracer( PSMRTS_Invoice *invoice,
 }
 
 /**
- * @brief psmrts_free_ray - Frees memory allocated to input PSMRTS_RayTrace
+ * @brief psmrts_destroy_ray - Frees memory allocated to input PSMRTS_RayTrace
  *                          pointer.
  *
  * This function frees memory allocated to the input PSMRTS_RayTrace pointer.
@@ -2316,12 +2554,12 @@ PSMRTS_PriorityTracer *psmrts_generate_priority_tracer( PSMRTS_Invoice *invoice,
  * @param trace Pointer to PSMRTS_RayTrace.
  * @return void
  */
-void psmrts_free_ray( PSMRTS_RayTrace *trace ) {
+void psmrts_destroy_ray( PSMRTS_RayTrace *trace ) {
   delete trace;
 }
 
 /**
- * @brief psmrts_free_shape - Frees memory allocated to input PSMRTS_Shape
+ * @brief psmrts_destroy_shape - Frees memory allocated to input PSMRTS_Shape
  *                            pointer.
  *
  * This function frees memory allocated to the input PSMRTS_Shape pointer.
@@ -2329,12 +2567,12 @@ void psmrts_free_ray( PSMRTS_RayTrace *trace ) {
  * @param shape Pointer to PSMRTS_Shape.
  * @return void
  */
-void psmrts_free_shape( PSMRTS_Shape *shape ) {
+void psmrts_destroy_shape( PSMRTS_Shape *shape ) {
   delete shape;
 }
 
 /**
- * @brief psmrts_free_tracer - Frees memory allocated to input PSMRTS_Tracer
+ * @brief psmrts_destroy_tracer - Frees memory allocated to input PSMRTS_Tracer
  *                            pointer.
  *
  * This function frees memory allocated to the input PSMRTS_Tracer pointer.
@@ -2342,12 +2580,12 @@ void psmrts_free_shape( PSMRTS_Shape *shape ) {
  * @param tracer Pointer to PSMRTS_Tracer.
  * @return void
  */
-void psmrts_free_tracer( PSMRTS_Tracer *tracer ){
+void psmrts_destroy_tracer( PSMRTS_Tracer *tracer ){
   delete tracer;
 }
 
 /**
- * @brief psmrts_free_priority_tracer - Frees memory allocated to input
+ * @brief psmrts_destroy_priority_tracer - Frees memory allocated to input
  *                      PSMRTS_PriorityTracer pointer.
  *
  * This function frees memory allocated to the input PSMRTS_PriorityTracer
@@ -2356,12 +2594,12 @@ void psmrts_free_tracer( PSMRTS_Tracer *tracer ){
  * @param ptracer Pointer to PSMRTS_PriorityTracer.
  * @return void
  */
-void psmrts_free_priority_tracer( PSMRTS_PriorityTracer *ptracer ) {
+void psmrts_destroy_priority_tracer( PSMRTS_PriorityTracer *ptracer ) {
   delete ptracer;
 }
 
 /**
- * @brief psmrts_free_photometric_ray - Frees memory allocated to input
+ * @brief psmrts_destroy_photometric_ray - Frees memory allocated to input
  *                                      PSMRTS_PhotometricRayTrace pointer.
  *
  * This function frees memory allocated to the input PSMRTS_PhotometricRayTrace
@@ -2370,41 +2608,41 @@ void psmrts_free_priority_tracer( PSMRTS_PriorityTracer *ptracer ) {
  * @param phototrace Pointer to PSMRTS_PhotometricRayTrace.
  * @return void
  */
-void psmrts_free_photometric_ray( PSMRTS_PhotometricRayTrace *phototrace ) {
+void psmrts_destroy_photometric_ray( PSMRTS_PhotometricRayTrace *phototrace ) {
   delete phototrace;
 }
 
 /**
- * @brief psmrts_free_trace_array - Frees memory allocated to input
+ * @brief psmrts_destroy_trace_array - Frees memory allocated to input
  *                                  PSMRTS_TraceArray pointer.
  *
  * This function frees memory allocated to the input PSMRTS_TraceArray pointer.
- * Note that we don't free the traces in the array.
+ * Note that we don't need to destroy individual traces in the array.
  *
  * @param tracearray Pointer to PSMRTS_TraceArray.
  * @return void
  */
-void psmrts_free_trace_array( PSMRTS_TraceArray *tracearray ) {
+void psmrts_destroy_trace_array( PSMRTS_TraceArray *tracearray ) {
   delete tracearray;
 }
 
 /**
- * @brief psmrts_free_photometric_trace_array - Frees memory allocated to input
+ * @brief psmrts_destroy_photometric_trace_array - Frees memory allocated to input
  *                                         PSMRTS_PhotometricTraceArray pointer.
  *
  * This function frees memory allocated to the input
- * PSMRTS_PhotometricTraceArray pointer.
- * Note that we don't free the traces in the array.
+ * PSMRTS_PhotometricTraceArray pointer. Note that we don't need to destroy
+ * individual traces in the array.
  *
  * @param ptracearray Pointer to PSMRTS_PhotometricTraceArray.
  * @return void
  */
-void psmrts_free_photometric_trace_array( PSMRTS_PhotometricTraceArray *ptracearray ) {
+void psmrts_destroy_photometric_trace_array( PSMRTS_PhotometricTraceArray *ptracearray ) {
   delete ptracearray;
 }
 
 /**
- * @brief psmrts_free_product_config - Frees memory allocated to input
+ * @brief psmrts_destroy_product_config - Frees memory allocated to input
  *                                     PSMRTS_ProductConfiguration pointer.
  *
  * This function frees memory allocated to the input PSMRTS_ProductConfiguration pointer.
@@ -2412,36 +2650,36 @@ void psmrts_free_photometric_trace_array( PSMRTS_PhotometricTraceArray *ptracear
  * @param config PSMRTS_ProductConfiguration*.
  * @return void
  */
-void psmrts_free_product_config( PSMRTS_ProductConfiguration* config ) {
+void psmrts_destroy_product_config( PSMRTS_ProductConfiguration* config ) {
   delete config;
 }
 
 /**
- * @brief psmrts_free_invoice - Frees memory allocated to input PSMRTS_Invoice pointer.
+ * @brief psmrts_destroy_invoice - Frees memory allocated to input PSMRTS_Invoice pointer.
  *
  * This function frees memory allocated to the input PSMRTS_Invoice pointer.
  *
  * @param invoice PSMRTS_Invoice*.
  * @return void
  */
-void psmrts_free_invoice( PSMRTS_Invoice* invoice ) {
+void psmrts_destroy_invoice( PSMRTS_Invoice* invoice ) {
   delete invoice;
 }
 
 /**
- * @brief psmrts_free_translations - Frees memory allocated to input psmrts_free_translations pointer.
+ * @brief psmrts_destroy_translations - Frees memory allocated to input psmrts_destroy_translations pointer.
  *
- * This function frees memory allocated to the input psmrts_free_translations pointer.
+ * This function frees memory allocated to the input psmrts_destroy_translations pointer.
  *
- * @param translations psmrts_free_translations*.
+ * @param translations psmrts_destroy_translations*.
  * @return void
  */
-void psmrts_free_translations( PSMRTS_Translations* translations ) {
+void psmrts_destroy_translations( PSMRTS_Translations* translations ) {
   delete translations;
 }
 
 /**
- * @brief psmrts_free_string - Frees memory allocated to input PSMRTS_RayTrace
+ * @brief psmrts_destroy_string - Frees memory allocated to input PSMRTS_RayTrace
  *                             pointer.
  *
  * This function frees memory allocated to the input PSMRTS_String pointer.
@@ -2449,12 +2687,12 @@ void psmrts_free_translations( PSMRTS_Translations* translations ) {
  * @param s Pointer to PSMRTS_String.
  * @return void
  */
-void psmrts_free_string( PSMRTS_String *s ) {
+void psmrts_destroy_string( PSMRTS_String *s ) {
   delete s;
 }
 
 /**
- * @brief psmrts_free_string_array - Frees memory allocated to input
+ * @brief psmrts_destroy_string_array - Frees memory allocated to input
  *                                   PSMRTS_StringArray pointer.
  *
  * This function frees memory allocated to the input
@@ -2464,7 +2702,7 @@ void psmrts_free_string( PSMRTS_String *s ) {
  * @param ptracearray Pointer to PSMRTS_PhotometricTraceArray.
  * @return void
  */
-void psmrts_free_string_array( PSMRTS_StringArray *pstringarray ) {
+void psmrts_destroy_string_array( PSMRTS_StringArray *pstringarray ) {
   delete pstringarray;
 }
 
